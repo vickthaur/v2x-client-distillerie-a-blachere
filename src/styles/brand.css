@@ -109,6 +109,7 @@
 
 /* ---------- Gamme (Couleur Provence) ---------- */
 .bgamme .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: clamp(28px, 2.6vw, 40px) clamp(14px, 1.6vw, 24px); }
+@media (max-width: 640px) { .bgamme .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px 12px; } }
 .bgamme__group + .bgamme__group { margin-top: 56px; }
 .bgamme__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 20px; margin-bottom: 22px; padding-bottom: 12px; border-bottom: 1px solid var(--ink); }
 .bgamme__title { font: 760 1.4rem/1.1 var(--font); letter-spacing: -0.02em; }

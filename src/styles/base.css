@@ -106,6 +106,8 @@ sup { font-size: 0.55em; line-height: 0; vertical-align: 0.9em; }
 .section__head > div { max-width: 720px; }
 .section__head > div > .lead { margin-top: 14px; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: clamp(20px, 2.4vw, 32px) clamp(14px, 2vw, 28px); }
+/* téléphone : deux produits par rangée partout (boutique, gammes, spiritueux, suggestions) */
+@media (max-width: 640px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px 12px; } }
 
 /* ---------- Typographie ---------- */
 .kicker { display: inline-flex; align-items: center; gap: 10px; font: 600 0.76rem/1.2 var(--font); letter-spacing: 0.16em; text-transform: uppercase; color: var(--u-soft, var(--ink-3)); }
