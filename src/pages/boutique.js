@@ -195,7 +195,7 @@ function removeChip(k, v) {
   } else if (k === 'univers') state.univers = 'tous';
   else if (k === 'gamme') state.gammes.delete(v);
   else if (k === 'arome') state.familles.delete(v);
-  else if (k === 'contenance') state.volumes.delete(Number(v));
+  else if (k === 'contenance') state.volumes.delete(String(v));
   else if (k === 'prix') state.prix = null;
   else if (k === 'degre') state.degre = null;
   else if (k === 'meilleures') state.best = false;

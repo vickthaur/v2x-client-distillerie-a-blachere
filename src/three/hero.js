@@ -10,12 +10,13 @@ export const SCENES = {
     gels: { left: 0xff6fbf, right: 0x6fb2ff },
     layout: 'duo',
     bottles: [
-      { product: products[0], x: -0.72, ry: 0.1 },
+      // PAC Citron tournée pour présenter « pac » et l'ovale « Sirop citron » (étiquette réelle)
+      { product: products[0], x: -0.72, ry: -0.25 },
       { product: products[1] || products[0], x: 0.72, ry: -0.1 },
     ],
   }),
-  pac: (products) => ({ colors: { a: '#c2177f' }, gels: { left: 0xff6fbf, right: 0xffd36f }, layout: 'pac', bottles: [{ product: products[0], x: 0, ry: 0.08 }] }),
-  funblue: (products) => ({ colors: { a: '#1f56a8' }, gels: { left: 0x6fd8ff, right: 0x6fb2ff }, layout: 'funblue', bottles: [{ product: products[0], x: 0, ry: -0.08 }] }),
+  pac: (products) => ({ colors: { a: '#c2177f' }, gels: { left: 0xff6fbf, right: 0xffd36f }, layout: 'pac', bottles: [{ product: products[0], x: 0, ry: -0.4 }] }),
+  funblue: (products) => ({ colors: { a: '#1f56a8' }, gels: { left: 0x6fd8ff, right: 0x6fb2ff }, layout: 'funblue', bottles: [{ product: products[0], x: 0, ry: -0.05 }] }),
 };
 
 export class HeroScene {

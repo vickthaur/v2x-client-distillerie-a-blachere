@@ -202,7 +202,7 @@ async function toWebp(src, dest, { max = 1600, quality = 90, alpha = true, lossl
 
 const prodDir = join(root, 'photos/produits');
 const labelDir = join(root, 'photos/etiquettes');
-for (const f of existsSync(prodDir) ? readdirSync(prodDir) : []) if (!f.startsWith('.') && f !== 'plats.json') rmSync(join(prodDir, f));
+for (const f of existsSync(prodDir) ? readdirSync(prodDir) : []) if (!f.startsWith('.') && !f.endsWith('.json')) rmSync(join(prodDir, f)); // réglages <slug>.json et plats.json conservés
 for (const f of existsSync(labelDir) ? readdirSync(labelDir) : []) if (!f.startsWith('.')) rmSync(join(labelDir, f));
 let nP = 0;
 let nL = 0;
@@ -212,11 +212,23 @@ for (const p of site) {
   if (!imgs.length) continue;
   await toWebp(join(SRC, imgs[0]), join(prodDir, `${slug}.webp`), { max: 1600, quality: 92 });
   nP++;
-  // étiquette à plat (sirops) : 2e image de la galerie, un fichier d'étiquette du site
+  // étiquettes à plat (sirops) : 2e image de la galerie = étiquette de face (ou tour complet pour
+  // PAC Citron, Fun Blue et Cola), 3e image = contre-étiquette (dos) des Couleur Provence
   if (p.categorie !== 'Alcools' && imgs[1]) {
-    await toWebp(join(SRC, imgs[1]), join(labelDir, `${slug}.webp`), { max: 1200, quality: 86, alpha: false });
-    writeJSON(join(labelDir, `${slug}.json`), { type: 'plat', source: `Étiquette publiée sur la fiche officielle (${p.url}).` });
-    nL++;
+    for (const [img, suffix, type] of [
+      [imgs[1], '', 'plat'],
+      [imgs[2], '-dos', 'dos'],
+    ]) {
+      if (!img) continue;
+      const src = join(SRC, img);
+      // marges transparentes retirées (fichiers PNG détourés), puis fond blanc (papier)
+      const hasAlpha = (await sharp(src, { failOn: 'none' }).metadata()).hasAlpha;
+      const trimmed = hasAlpha ? await sharp(src, { failOn: 'none' }).trim({ threshold: 2 }).png().toBuffer() : readFileSync(src);
+      const meta = await sharp(trimmed).metadata();
+      await toWebp(trimmed, join(labelDir, `${slug}${suffix}.webp`), { max: 1200, quality: 86, alpha: false });
+      writeJSON(join(labelDir, `${slug}${suffix}.json`), { type, largeur: meta.width, hauteur: meta.height, source: `${type === 'dos' ? 'Contre-étiquette' : 'Étiquette'} publiée sur la fiche officielle (${p.url}).` });
+      nL++;
+    }
   }
 }
 writeJSON(join(prodDir, 'plats.json'), { _note: 'Flacons non tournés : photo affichée à plat (pas de bouteille 3D tournée).', slugs: produits.filter((p) => p.plat).map((p) => p.slug) });
@@ -226,9 +238,69 @@ log(`packshots : ${nP} → photos/produits ; étiquettes à plat : ${nL} → pho
 
 const lieuxDir = join(root, 'photos/lieux');
 mkdirSync(lieuxDir, { recursive: true });
-await sharp(join(SRC, 'lieux/boutique-de-la-distillerie-1.png')).flatten({ background: '#ffffff' }).jpeg({ quality: 90 }).toFile(join(lieuxDir, 'boutique.jpg'));
+// La photo « boutique » du site est un montage de deux photos inclinées (+8° et −17°) : chacune est
+// redressée et recadrée à l'intérieur de son cadre (la seconde recouvre un coin de la première).
+{
+  const src = join(SRC, 'lieux/boutique-de-la-distillerie-1.png');
+  const isW = (d, i) => d[i] > 238 && d[i + 1] > 238 && d[i + 2] > 238;
+  const straight = (angle) => sharp(src).flatten({ background: '#ffffff' }).rotate(angle, { background: '#ffffff' }).raw().toBuffer({ resolveWithObject: true });
+  const scan = ({ data, info }) => {
+    const { width: W, channels: C } = info;
+    return {
+      row: (y, x0, x1) => {
+        let n = 0;
+        for (let x = x0; x < x1; x++) if (!isW(data, (y * W + x) * C)) n++;
+        return n / (x1 - x0);
+      },
+      col: (x, y0, y1) => {
+        let n = 0;
+        for (let y = y0; y < y1; y++) if (!isW(data, (y * W + x) * C)) n++;
+        return n / (y1 - y0);
+      },
+      white: (x, y) => isW(data, (y * W + x) * C),
+    };
+  };
+  rmSync(join(lieuxDir, 'boutique.jpg'), { force: true });
+  {
+    const img = await straight(-8);
+    const { width: W, height: H } = img.info;
+    const f = scan(img);
+    let top = 0;
+    while (top < H && f.row(top, Math.round(W * 0.1), Math.round(W * 0.6)) < 0.9) top++;
+    let left = 0;
+    while (left < W && f.col(left, top + 20, top + Math.round(H * 0.3)) < 0.9) left++;
+    let right = W - 1;
+    while (right > 0 && f.col(right, top + 10, top + Math.round(H * 0.12)) < 0.9) right--;
+    let bottom = H - 1;
+    while (bottom > 0 && f.row(bottom, left + 10, left + Math.round(W * 0.2)) < 0.9) bottom--;
+    const inset = 6;
+    await sharp(img.data, { raw: img.info })
+      .extract({ left: left + inset, top: top + inset, width: Math.round((right - left) * 0.69) - inset, height: Math.round((bottom - top) * 0.82) - inset })
+      .jpeg({ quality: 90 })
+      .toFile(join(lieuxDir, 'boutique-salon.jpg'));
+  }
+  {
+    const img = await straight(17);
+    const { width: W, height: H } = img.info;
+    const f = scan(img);
+    let bottom = H - 1;
+    while (bottom > 0 && f.row(bottom, Math.round(W * 0.4), Math.round(W * 0.8)) < 0.9) bottom--;
+    let right = W - 1;
+    while (right > 0 && f.col(right, bottom - Math.round(H * 0.3), bottom - 20) < 0.9) right--;
+    let left = 0;
+    while (left < W && f.col(left, bottom - Math.round(H * 0.2), bottom - 10) < 0.9) left++;
+    let top = bottom - 10;
+    while (top > 0 && [left + 6, left + 10, left + 14].some((x) => !f.white(x, top))) top--;
+    top += 1;
+    const inset = 6;
+    await sharp(img.data, { raw: img.info })
+      .extract({ left: left + inset, top: top + inset, width: right - left - 2 * inset, height: bottom - top - 2 * inset })
+      .jpeg({ quality: 90 })
+      .toFile(join(lieuxDir, 'boutique-rayons.jpg'));
+  }
+}
 await sharp(join(SRC, 'lieux/stand-exposition-palais-des-papes-archive-1.png')).flatten({ background: '#ffffff' }).jpeg({ quality: 90 }).toFile(join(lieuxDir, 'stand-palais-des-papes.jpg'));
-log('lieux : boutique, stand du Palais des Papes');
+log('lieux : boutique (salon et rayons, redressés), stand du Palais des Papes');
 
 // ---------------------------------------------------------------- archives
 

@@ -12,14 +12,15 @@ export const infos = {
   adresseLigne: '1695 route de Sorgues, quartier Cansaud, 84230 Châteauneuf-du-Pape',
   magasin: { tel: '04 90 83 55 65', telLien: 'tel:+33490835565', email: 'magasin@distillerieablachere.com' },
   bureaux: { tel: '04 90 83 53 81', telLien: 'tel:+33490835381', email: 'info@distillerieablachere.com' },
-  // Horaires du magasin, version des fiches produits en français. La version anglaise du site
-  // indique 9 h-12 h / 14 h-17 h, Instagram 9 h-19 h : contradiction signalée dans le README.
+  // Horaires du magasin : page Contact du site officiel (relevée le 14 octobre 2026), qui fait
+  // référence ; elle tranche les versions différentes des autres pages.
   horaires: [
     { periode: 'D’octobre à mars', heures: '10 h – 18 h' },
     { periode: 'D’avril à septembre', heures: '9 h – 19 h' },
   ],
   jours: 'Du lundi au samedi, hors jours fériés',
-  horairesNote: 'Horaires à confirmer : ils diffèrent selon les pages du site actuel.',
+  horairesNote: 'Horaires de la page Contact du site de la distillerie.',
+  bureauxHoraires: { jours: 'Du lundi au vendredi, hors jours fériés', heures: '8 h – 12 h, 14 h – 18 h' },
   // Horaires de retrait indiqués par la page « Achat express » du site actuel.
   retrait: '9 h – 12 h et 14 h – 17 h',
   itineraire: 'https://www.openstreetmap.org/search?query=1695%20route%20de%20Sorgues%2C%2084230%20Ch%C3%A2teauneuf-du-Pape',

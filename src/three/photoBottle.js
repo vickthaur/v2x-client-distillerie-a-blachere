@@ -5,7 +5,11 @@
 //   ou, à défaut, la photo de face projetée en miroir et un peu assombrie ; fondu sur les côtés ;
 // - là où la photo montre son propre fond à travers le verre (col vide, épaule), la bouteille devient
 //   du verre transparent qui laisse voir le décor (transmission) ;
-// - un vernis (clearcoat) et les reflets du studio donnent le volume quand elle tourne.
+// - un vernis (clearcoat) et les reflets du studio donnent le volume quand elle tourne ;
+// - quand l'étiquette à plat du produit existe (fichier du site, recalé sur la photo par le
+//   pipeline), elle remplace la photo dans sa bande : nette à toutes les tailles, éclairée par le
+//   studio, et le dos de la bouteille montre le liquide (photo prise juste au-dessus de l'étiquette).
+// Les flacons « à plat » (carafe et étui) sont montrés comme une photo posée, sans rotation.
 import * as THREE from 'three';
 import { BOTTLE_HEIGHT } from './bottle.js';
 
@@ -37,8 +41,13 @@ function loadAssets(slug, entry, anisotropy) {
         const res = await fetch(entry.profil);
         if (!res.ok) throw new Error(`profil introuvable (${res.status})`);
         const profil = await res.json();
-        const [front, back] = await Promise.all([loadTexture(entry.face, anisotropy), entry.dos ? loadTexture(entry.dos, anisotropy) : null]);
-        return { profil, front, back };
+        const [front, back, label, labelBack] = await Promise.all([
+          loadTexture(entry.face, anisotropy),
+          entry.dos ? loadTexture(entry.dos, anisotropy) : null,
+          entry.etiquette && profil.etiquette ? loadTexture(entry.etiquette, anisotropy).catch(() => null) : null,
+          entry.etiquetteDos && profil.etiquetteDos ? loadTexture(entry.etiquetteDos, anisotropy).catch(() => null) : null,
+        ]);
+        return { profil, front, back, label, labelBack };
       })(),
     );
     assets.get(slug).catch(() => assets.delete(slug));
@@ -46,10 +55,15 @@ function loadAssets(slug, entry, anisotropy) {
   return assets.get(slug);
 }
 
+// réglables depuis le labo (window.__photoGain) : diffus photo, auto-éclairage photo, diffus
+// étiquette, auto-éclairage étiquette
+export const PHOTO_GAIN = [0.75, 0.2, 0.95, 0.22];
+
 const transmissionChunk = THREE.ShaderChunk.transmission_fragment.replace('material.transmission = transmission;', 'material.transmission = transmission * glassK;');
 
 // fade : { floorY, length } pour la copie en reflet au sol (rendu séparé), sinon null.
-export function photoMaterial(front, back, { lite = false, background = null, fade = null } = {}) {
+// label : { texture, bas, haut, centre, angle } (étiquette à plat recalée), sinon null.
+export function photoMaterial(front, back, { lite = false, background = null, fade = null, label = null } = {}) {
   const glass = !!background && !fade && !lite;
   const params = { color: 0xffffff, roughness: 0.3, metalness: 0, envMapIntensity: 0.8 };
   const mat =
@@ -67,11 +81,18 @@ export function photoMaterial(front, back, { lite = false, background = null, fa
     photoFront: { value: front },
     photoBack: { value: back || front },
     backTint: { value: new THREE.Color(back ? 0xffffff : 0xcfcfcf) },
-    selfLit: { value: 0.42 },
+    // gains (diffus, auto-éclairage) de la photo puis de l'étiquette : la photo porte déjà la
+    // lumière de la prise de vue, l'étiquette à plat n'en porte aucune
+    photoGain: { value: new THREE.Vector4(...PHOTO_GAIN) },
     bgColor: { value: new THREE.Color(background || '#ffffff').convertSRGBToLinear() },
     uFloorY: fade?.floorY || { value: 0 },
     uFadeLen: fade?.length || { value: 1 },
+    labelMap: { value: label?.texture || null },
+    labelBand: { value: new THREE.Vector4(label?.bas ?? 0, label?.haut ?? 0, label?.centre ?? 0.5, label?.angle ?? 1) },
+    labelBackMap: { value: label?.dos?.texture || null },
+    labelBack: { value: new THREE.Vector3(label?.dos?.bas ?? 0, label?.dos?.haut ?? 0, label?.dos?.angle ?? 1) },
   };
+  if (label) mat.defines = { ...(mat.defines || {}), PHOTO_LABEL: '', ...(label.dos ? { PHOTO_LABEL_BACK: '' } : {}) };
   mat.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, mat.userData.uniforms);
     shader.vertexShader = shader.vertexShader
@@ -84,14 +105,16 @@ export function photoMaterial(front, back, { lite = false, background = null, fa
          varying vec2 vUvFront;
          varying vec2 vUvBack;
          varying float vSide;
-         varying float vWorldY;`,
+         varying float vWorldY;
+         varying float vLatheU;`,
       )
       .replace(
         '#include <begin_vertex>',
         `#include <begin_vertex>
          vUvFront = uvFront;
          vUvBack = uvBack;
-         vSide = side;`,
+         vSide = side;
+         vLatheU = uv.x;`,
       )
       .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWorldY = (modelMatrix * vec4(transformed, 1.0)).y;');
     let frag = shader.fragmentShader
@@ -101,7 +124,7 @@ export function photoMaterial(front, back, { lite = false, background = null, fa
          uniform sampler2D photoFront;
          uniform sampler2D photoBack;
          uniform vec3 backTint;
-         uniform float selfLit;
+         uniform vec4 photoGain;
          uniform vec3 bgColor;
          uniform float uFloorY;
          uniform float uFadeLen;
@@ -109,21 +132,92 @@ export function photoMaterial(front, back, { lite = false, background = null, fa
          varying vec2 vUvBack;
          varying float vSide;
          varying float vWorldY;
-         float glassK = 0.0;`,
+         varying float vLatheU;
+         uniform sampler2D labelMap;
+         uniform vec4 labelBand;
+         uniform sampler2D labelBackMap;
+         uniform vec3 labelBack;
+         float glassK = 0.0;
+         float labelK = 0.0;`,
       )
       .replace(
         '#include <map_fragment>',
         `vec4 photoF = texture2D(photoFront, vUvFront);
          vec4 photoB = texture2D(photoBack, vUvBack);
          photoB.rgb *= backTint;
-         vec4 photo = mix(photoB, photoF, smoothstep(-0.14, 0.14, vSide));
-         ${glass ? 'glassK = (1.0 - smoothstep(0.012, 0.06, distance(photo.rgb, bgColor))) * 0.92;' : ''}
-         diffuseColor.rgb *= photo.rgb;`,
+         float sideK = smoothstep(-0.14, 0.14, vSide);
+         vec4 photo = mix(photoB, photoF, sideK);
+         #ifdef PHOTO_LABEL
+         {
+           float h = vUvFront.y;
+           float lo = labelBand.x;
+           float hi = labelBand.y;
+           #ifdef PHOTO_LABEL_BACK
+           lo = min(lo, labelBack.x);
+           hi = max(hi, labelBack.y);
+           #endif
+           if (h >= lo && h <= hi) {
+             // angle autour de l'axe (0 = face à l'objectif)
+             float th = vLatheU * 6.2831853;
+             th = th > 3.14159265 ? th - 6.2831853 : th;
+             // bouteille nue hors de l'étiquette (et dans ses découpes) : la photo prise juste
+             // au-dessus de l'étiquette, même colonne
+             float hb = min(labelBand.y + 0.022, 0.995);
+             vec3 bodyF = texture2D(photoFront, vec2(vUvFront.x, hb)).rgb;
+             vec3 bodyB = texture2D(photoBack, vec2(vUvBack.x, hb)).rgb * backTint;
+             vec3 col = mix(bodyB, bodyF, sideK);
+             float k = 0.0;
+             float ah = max(fwidth(h) * 1.25, 1e-5);
+             {
+               float u = labelBand.z + th / labelBand.w;
+               float v = (h - labelBand.x) / (labelBand.y - labelBand.x);
+               float aa = clamp(fwidth(u) * 1.25, 1e-4, 0.02);
+               float inside = smoothstep(-aa, aa, u) * smoothstep(-aa, aa, 1.0 - u)
+                 * smoothstep(labelBand.x - ah, labelBand.x + ah, h) * smoothstep(labelBand.y + ah, labelBand.y - ah, h);
+               vec4 lab = texture2D(labelMap, vec2(clamp(u, 0.0, 1.0), clamp(v, 0.0, 1.0)));
+               inside *= lab.a;
+               col = mix(col, lab.rgb, inside);
+               k = max(k, inside);
+             }
+             #ifdef PHOTO_LABEL_BACK
+             {
+               float tb = th - 3.14159265;
+               tb = tb < -3.14159265 ? tb + 6.2831853 : tb;
+               float u = 0.5 + tb / labelBack.z;
+               float v = (h - labelBack.x) / (labelBack.y - labelBack.x);
+               float aa = clamp(fwidth(u) * 1.25, 1e-4, 0.02);
+               float inside = smoothstep(-aa, aa, u) * smoothstep(-aa, aa, 1.0 - u)
+                 * smoothstep(labelBack.x - ah, labelBack.x + ah, h) * smoothstep(labelBack.y + ah, labelBack.y - ah, h);
+               vec3 lab = texture2D(labelBackMap, vec2(clamp(u, 0.0, 1.0), clamp(v, 0.0, 1.0))).rgb;
+               col = mix(col, lab, inside);
+               k = max(k, inside);
+             }
+             #endif
+             photo.rgb = col;
+             labelK = k;
+           }
+         }
+         #endif
+         ${glass ? 'glassK = (1.0 - smoothstep(0.012, 0.06, distance(photo.rgb, bgColor))) * 0.92 * (1.0 - labelK);' : ''}
+         diffuseColor.rgb *= photo.rgb * mix(photoGain.x, photoGain.z, labelK);`,
+      )
+      .replace(
+        '#include <roughnessmap_fragment>',
+        `#include <roughnessmap_fragment>
+         roughnessFactor = mix(roughnessFactor, 0.46, labelK);`,
       )
       .replace(
         '#include <emissivemap_fragment>',
         `#include <emissivemap_fragment>
-         totalEmissiveRadiance += photo.rgb * selfLit * (1.0 - glassK);`,
+         totalEmissiveRadiance += photo.rgb * mix(photoGain.y, photoGain.w, labelK) * (1.0 - glassK);`,
+      );
+    if (!lite && !fade)
+      frag = frag.replace(
+        '#include <lights_physical_fragment>',
+        `#include <lights_physical_fragment>
+         #ifdef USE_CLEARCOAT
+         material.clearcoat *= mix(1.0, 0.45, labelK);
+         #endif`,
       );
     if (glass) frag = frag.replace('#include <transmission_fragment>', transmissionChunk);
     if (fade)
@@ -135,12 +229,14 @@ export function photoMaterial(front, back, { lite = false, background = null, fa
       );
     shader.fragmentShader = frag;
   };
-  mat.customProgramCacheKey = () => `photo-bottle-${lite ? 'l' : 'p'}-${glass ? 'g' : 'o'}-${fade ? 'r' : 'n'}`;
+  mat.customProgramCacheKey = () => `photo-bottle-${lite ? 'l' : 'p'}-${glass ? 'g' : 'o'}-${fade ? 'r' : 'n'}-${label ? (label.dos ? 'ed' : 'e') : 's'}`;
   return mat;
 }
 
 export async function createPhotoBottle(product, entry, { lite = false, anisotropy = 8 } = {}) {
-  const { profil, front, back } = await loadAssets(product.slug, entry, anisotropy);
+  if (entry.plat && entry.photo) return createFlatPhoto(product, entry, { anisotropy });
+  const { profil, front, back, label: labelTex, labelBack } = await loadAssets(product.slug, entry, anisotropy);
+  const label = labelTex && profil.etiquette ? { texture: labelTex, ...profil.etiquette, dos: labelBack && profil.etiquetteDos ? { texture: labelBack, ...profil.etiquetteDos } : null } : null;
   const H = BOTTLE_HEIGHT;
   const pts = profil.points.map(([r, y]) => new THREE.Vector2(Math.max(r * H, 0.0005), (y - 0.5) * H));
   pts.unshift(new THREE.Vector2(0, -0.5 * H));
@@ -173,9 +269,9 @@ export async function createPhotoBottle(product, entry, { lite = false, anisotro
   geo.computeVertexNormals();
 
   const background = profil.couleurFond || null;
-  const mesh = new THREE.Mesh(geo, photoMaterial(front, back, { lite, background }));
+  const mesh = new THREE.Mesh(geo, photoMaterial(front, back, { lite, background, label }));
   mesh.userData.part = 'photo';
-  mesh.userData.makeReflection = (fade) => photoMaterial(front, back, { fade });
+  mesh.userData.makeReflection = (fade) => photoMaterial(front, back, { fade, label });
   const group = new THREE.Group();
   group.add(mesh);
   let rmax = 0;
@@ -189,7 +285,37 @@ export async function createPhotoBottle(product, entry, { lite = false, anisotro
     liquid: product.bottle.liquid,
     cloudy: !!product.bottle.cloudy,
     bottom: -H / 2,
+    labelSource: label ? 'etiquette' : 'photo',
+  };
+  return group;
+}
+
+// Flacon montré à plat (carafe et son étui) : la photo détourée, debout sur le sol du studio.
+const flatTextures = new Map();
+async function createFlatPhoto(product, entry, { anisotropy = 8 } = {}) {
+  if (!flatTextures.has(entry.photo)) flatTextures.set(entry.photo, loadTexture(entry.photo, anisotropy));
+  const map = await flatTextures.get(entry.photo);
+  const H = BOTTLE_HEIGHT * 0.86;
+  const W = H * (entry.photoRatio || 0.8);
+  const geo = new THREE.PlaneGeometry(W, H);
+  const mat = new THREE.MeshBasicMaterial({ map, transparent: true, alphaTest: 0.02, depthWrite: true, toneMapped: true });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.y = -BOTTLE_HEIGHT / 2 + H / 2;
+  mesh.userData.part = 'photo';
+  mesh.userData.makeReflection = () => new THREE.MeshBasicMaterial({ map, transparent: true, alphaTest: 0.02, opacity: 0.4, side: THREE.DoubleSide });
+  const group = new THREE.Group();
+  group.add(mesh);
+  group.userData = {
+    slug: product.slug,
+    kind: 'plat',
+    height: BOTTLE_HEIGHT,
+    radius: W / 2,
+    ratio: W / H,
+    liquid: product.bottle.liquid,
+    cloudy: false,
+    bottom: -BOTTLE_HEIGHT / 2,
     labelSource: 'photo',
+    flat: true,
   };
   return group;
 }

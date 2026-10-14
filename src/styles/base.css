@@ -201,10 +201,14 @@ body[data-hero] .hd[data-state='top']:not(.has-mega) .hd__main { background: tra
 body[data-hero] .hd[data-state='top']:not(.has-mega) .hd__cta { --b-bg: #fff; --b-ink: var(--ink); }
 body[data-hero] .hd[data-state='top']:not(.has-mega) .cart-btn__count { background: #fff; color: var(--ink); }
 
-.logo { display: inline-flex; flex-direction: column; gap: 3px; color: inherit; text-decoration: none; line-height: 1; flex: none; }
-.logo__name { font: 600 1.6rem/0.95 var(--serif); letter-spacing: -0.015em; font-variation-settings: 'SOFT' 0, 'WONK' 0, 'opsz' 72; }
-.logo__sub { font: 600 0.6rem/1 var(--font); letter-spacing: 0.24em; text-transform: uppercase; opacity: 0.72; }
-.logo--light { color: #fff; }
+/* Logo officiel (SVG du site de la distillerie) : version encre, version blanche sur les visuels */
+.logo { position: relative; display: inline-flex; align-items: center; color: inherit; text-decoration: none; line-height: 0; flex: none; }
+.logo__img { display: block; width: auto; height: 46px; }
+.logo__img--light { position: absolute; left: 0; top: 50%; transform: translateY(-50%); opacity: 0; transition: opacity 0.35s var(--ease); }
+.logo__img--ink { transition: opacity 0.35s var(--ease); }
+body[data-hero] .hd[data-state='top']:not(.has-mega) .logo__img--ink { opacity: 0; }
+body[data-hero] .hd[data-state='top']:not(.has-mega) .logo__img--light { opacity: 1; }
+.logo--light .logo__img { height: 54px; }
 
 .nav { flex: 1; display: flex; justify-content: center; }
 .nav__list { display: flex; align-items: center; gap: 2px; }
@@ -308,8 +312,7 @@ body[data-hero] .hd[data-state='top']:not(.has-mega) .cart-btn__count { backgrou
 @media (max-width: 760px) {
   :root { --util-h: 0px; --main-h: 64px; }
   .hd__util { display: none; }
-  .logo__name { font-size: 1.38rem; }
-  .logo__sub { font-size: 0.55rem; }
+  .logo__img { height: 38px; }
 }
 
 /* ---------- Pied de page ---------- */
@@ -448,7 +451,7 @@ dialog::backdrop { background: rgba(21, 19, 15, 0.46); -webkit-backdrop-filter: 
 @keyframes gate-in { from { transform: translateY(16px) scale(0.98); opacity: 0; } }
 .gate__in { display: grid; gap: 22px; padding: clamp(26px, 5vw, 40px); }
 .gate__head { display: flex; justify-content: center; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
-.gate__head .logo { align-items: center; }
+.gate__head .logo__img { height: 52px; }
 .gate__ask, .gate__no { display: grid; gap: 18px; }
 .gate__title { font: 740 clamp(1.5rem, 3vw, 1.9rem)/1.1 var(--font); letter-spacing: -0.025em; text-align: center; }
 .gate__text { color: var(--ink-2); text-align: center; }

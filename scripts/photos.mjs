@@ -22,7 +22,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, wri
 import { basename, dirname, extname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const VERSION = 6; // à incrémenter quand le traitement change (invalide le cache)
+const VERSION = 13; // à incrémenter quand le traitement change (invalide le cache)
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
 const opt = (name, fallback) => {
@@ -338,12 +338,16 @@ function repairDips(hw) {
 
 // Demi-largeur par ligne autour de l'axe (côté le plus large : un côté rogné par le détourage,
 // sur une étiquette blanche par exemple, ne réduit pas la silhouette), lissée.
-function halfWidths(left, right, top, bottom, cx) {
+// cote : 'max' (par défaut), ou 'droit' / 'gauche' quand un accessoire (collerette, étiquette
+// suspendue, ficelle) déborde d'un côté : la silhouette est alors prise du côté propre.
+function halfWidths(left, right, top, bottom, cx, cote = 'max') {
   const n = bottom - top + 1;
   const hw = new Float64Array(n);
   for (let k = 0; k < n; k++) {
     const y = top + k;
-    hw[k] = left[y] < 0 ? 0 : Math.max(cx - left[y] + 0.5, right[y] + 0.5 - cx, 0);
+    const l = cx - left[y] + 0.5;
+    const r = right[y] + 0.5 - cx;
+    hw[k] = left[y] < 0 ? 0 : Math.max(cote === 'droit' ? r : cote === 'gauche' ? l : cote === 'min' ? Math.min(l, r) : Math.max(l, r), 0);
   }
   const repaired = repairDips(hw);
   if (repaired) warn(`silhouette réparée sur ${Math.round((repaired / n) * 100)} % de la hauteur (étiquette proche de la couleur du fond).`);
@@ -369,7 +373,7 @@ async function loadRaw(sharp, file, rotateDeg = 0, background = { r: 255, g: 255
   return { data, w: info.width, h: info.height };
 }
 
-async function analyse(sharp, file) {
+async function analyse(sharp, file, opts = {}) {
   let tilt = 0;
   let raw;
   let m;
@@ -387,11 +391,18 @@ async function analyse(sharp, file) {
     bottom = raw.h - 1 - [...ext.left].reverse().findIndex((x) => x >= 0);
     if (top < 0 || m.size < raw.w * raw.h * 0.01) throw new Error('aucune bouteille trouvée (fond trop proche de la bouteille ?)');
     axis = axisOf(ext.left, ext.right, top, bottom);
+    if (opts.cote === 'droit' || opts.cote === 'gauche') {
+      // axe pris sur le bord propre et la largeur du corps (l'accessoire est de l'autre côté)
+      const ys = [];
+      for (let y = Math.round(top + (bottom - top) * 0.55); y <= Math.round(bottom - (bottom - top) * 0.1); y++) if (ext.left[y] >= 0) ys.push(y);
+      const half = median(ys.map((y) => (ext.right[y] - ext.left[y]) / 2));
+      axis.cx = median(ys.map((y) => (opts.cote === 'droit' ? ext.right[y] - half : ext.left[y] + half)));
+    }
     const t = (Math.atan(axis.slope) * 180) / Math.PI;
-    if (Math.abs(t) <= 0.2 || Math.abs(tilt + t) >= 12 || pass === 2) break;
+    if (opts.redresser === false || Math.abs(t) <= 0.2 || Math.abs(tilt + t) >= 12 || pass === 2) break;
     tilt += t;
   }
-  const hw = halfWidths(ext.left, ext.right, top, bottom, axis.cx);
+  const hw = halfWidths(ext.left, ext.right, top, bottom, axis.cx, opts.cote);
   return { raw, mask: m.mask, mode: m.mode, bg: m.bg, top, bottom, cx: axis.cx, hw, tilt };
 }
 
@@ -539,28 +550,251 @@ async function calibrateLabel(sharp, tex, hw, labelFile) {
     }
     return num / Math.sqrt(dp * dq + 1e-9);
   };
+  // contraintes physiques : une étiquette à plat couvre au moins 80° du tour et au plus le tour
+  // entier, et mesure au moins 15 % de la hauteur de la bouteille
+  const spanOf = (r0, r1) => (aspect * ((r1 - r0) / ROWS) * H) / R;
+  const plausible = (r0, r1) => r1 - r0 >= ROWS * 0.15 && spanOf(r0, r1) >= 1.4 && spanOf(r0, r1) <= 6.4;
   let best = { s: -2 };
-  for (let r0 = rMin; r0 < rMax - ROWS * 0.12; r0 += 4)
-    for (let r1 = r0 + Math.round(ROWS * 0.12); r1 <= rMax; r1 += 4)
+  for (let r0 = rMin; r0 < rMax - ROWS * 0.15; r0 += 4)
+    for (let r1 = r0 + Math.round(ROWS * 0.15); r1 <= rMax; r1 += 4)
       for (let u0 = 0.3; u0 <= 0.701; u0 += 0.04) {
+        if (!plausible(r0, r1)) continue;
         const sc = score(r0, r1, u0);
         if (sc > best.s) best = { s: sc, r0, r1, u0 };
       }
+  if (best.s < -1) return { ok: false, score: 0 };
   // affinage
   for (let pass = 0; pass < 2; pass++) {
     const b0 = { ...best };
     for (let r0 = b0.r0 - 4; r0 <= b0.r0 + 4; r0++)
       for (let r1 = b0.r1 - 4; r1 <= b0.r1 + 4; r1++)
         for (let u0 = b0.u0 - 0.04; u0 <= b0.u0 + 0.0401; u0 += 0.01) {
-          if (r0 < 0 || r1 >= ROWS || r1 - r0 < ROWS * 0.1) continue;
+          if (r0 < 0 || r1 >= ROWS || !plausible(r0, r1)) continue;
           const sc = score(r0, r1, u0);
           if (sc > best.s) best = { s: sc, r0, r1, u0 };
         }
   }
-  if (best.s < 0.35) return { ok: false, score: +best.s.toFixed(3) };
+  if (process.env.DEBUG_LABEL) log(`calage : ${JSON.stringify(best)} (lignes ${rMin}–${rMax} sur ${ROWS})`);
+  if (best.s < 0.3) return { ok: false, score: +best.s.toFixed(3) };
   const y0 = (best.r0 / ROWS) * H;
   const y1 = ((best.r1 + 1) / ROWS) * H;
   const span = (aspect * (y1 - y0)) / R;
+  // Couleurs : le fichier d'étiquette (souvent converti depuis la quadrichromie) est ramené aux
+  // couleurs de la vraie bouteille photographiée. On compare les aplats (zones unies de l'étiquette,
+  // loin des contours que la photo adoucit) au centre de la face, où l'éclairage est égal, et on
+  // ajuste une matrice couleur 3×3 + décalage, retenue vers l'identité (régularisation).
+  const fitColors = (cut) => {
+    const X = [];
+    const Y = [];
+    const dU = 1.6 / LW;
+    const dV = 1.6 / LH;
+    for (let r = best.r0 + 2; r <= best.r1 - 2; r++) {
+      const v = (r - best.r0) / (best.r1 - best.r0);
+      for (let j = 0; j < COLS; j++) {
+        const dx = -0.62 + (1.24 * j) / (COLS - 1);
+        if (Math.abs(dx) > 0.42 || F[r][j][3] < 220) continue;
+        const u = best.u0 + Math.asin(dx) / span;
+        if (u < 0.03 || u > 0.97) continue;
+        const l = lab(u, v);
+        let flat = true;
+        for (const [du, dv] of [[dU, 0], [-dU, 0], [0, dV], [0, -dV], [dU, dV], [-dU, -dV]]) {
+          const n = lab(u + du, v + dv);
+          if (Math.abs(n[0] - l[0]) + Math.abs(n[1] - l[1]) + Math.abs(n[2] - l[2]) > 30) {
+            flat = false;
+            break;
+          }
+        }
+        if (!flat || (cut && cut(u, v))) continue;
+        X.push(l);
+        Y.push([F[r][j][0], F[r][j][1], F[r][j][2]]);
+      }
+    }
+    let matrice = null;
+    if (X.length >= 80) {
+      // moindres carrés régularisés, une sortie à la fois : y = w·x + d, ‖w − identité‖ pénalisé
+      const lambda = X.length * 0.15;
+      const solve = (A, bvec) => {
+        const n = bvec.length;
+        const M = A.map((row, i) => [...row, bvec[i]]);
+        for (let c = 0; c < n; c++) {
+          let piv = c;
+          for (let r2 = c + 1; r2 < n; r2++) if (Math.abs(M[r2][c]) > Math.abs(M[piv][c])) piv = r2;
+          [M[c], M[piv]] = [M[piv], M[c]];
+          if (Math.abs(M[c][c]) < 1e-9) return null;
+          for (let r2 = 0; r2 < n; r2++) {
+            if (r2 === c) continue;
+            const f = M[r2][c] / M[c][c];
+            for (let k = c; k <= n; k++) M[r2][k] -= f * M[c][k];
+          }
+        }
+        return M.map((row, i) => row[n] / row[i]);
+      };
+      const rows = [];
+      for (let k = 0; k < 3; k++) {
+        // inconnues [w0, w1, w2, d] ; x normalisé 0–1, d en 0–255
+        const A = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
+        const bvec = [0, 0, 0, 0];
+        for (let i = 0; i < X.length; i++) {
+          const xi = [X[i][0], X[i][1], X[i][2], 255];
+          for (let a = 0; a < 4; a++) {
+            for (let b2 = 0; b2 < 4; b2++) A[a][b2] += xi[a] * xi[b2];
+            bvec[a] += xi[a] * Y[i][k];
+          }
+        }
+        const scale = 255 * 255;
+        for (let a = 0; a < 3; a++) {
+          A[a][a] += lambda * scale;
+          if (a === k) bvec[a] += lambda * scale;
+        }
+        const w = solve(A, bvec);
+        if (!w) {
+          rows.push(null);
+          continue;
+        }
+        rows.push(w);
+      }
+      if (rows.every(Boolean)) {
+        const err = (f) => {
+          let e = 0;
+          for (let i = 0; i < X.length; i++) for (let k = 0; k < 3; k++) e += Math.abs(f(X[i], k) - Y[i][k]);
+          return e / X.length;
+        };
+        const before = err((x, k) => x[k]);
+        const after = err((x, k) => rows[k][0] * x[0] + rows[k][1] * x[1] + rows[k][2] * x[2] + rows[k][3] * 255);
+        if (after < before * 0.85) matrice = rows.map((w) => w.map((v, i) => +(i === 3 ? v * 255 : v).toFixed(4)));
+        if (process.env.DEBUG_LABEL) log(`couleurs : ${X.length} aplats, écart ${before.toFixed(1)} → ${after.toFixed(1)}${matrice ? '' : ' (non appliqué)'}`);
+      }
+    }
+    return matrice;
+  };
+
+  // Découpe de l'étiquette (arche, fenêtre du soleil des Couleur Provence…) : le fichier est
+  // rectangulaire, la vraie étiquette ne l'est pas toujours. Là où la photo montre la bouteille nue
+  // (couleur prise juste au-dessus de l'étiquette) alors que le fichier montre du papier, l'étiquette
+  // est découpée. Seule la face visible sur la photo est mesurée ; ailleurs l'étiquette reste pleine.
+  const MW = 220;
+  const { data: LM, info: im } = await sharp(labelFile).resize({ width: MW }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  const MH = im.height;
+  const pix = (x, y) => {
+    const xx = Math.min(W - 1.001, Math.max(0, x));
+    const yy = Math.min(H - 1.001, Math.max(0, y));
+    const x0 = Math.floor(xx);
+    const y0p = Math.floor(yy);
+    const tx = xx - x0;
+    const ty = yy - y0p;
+    const out = [0, 0, 0, 0];
+    for (const [dx2, dy2, wgt] of [[0, 0, (1 - tx) * (1 - ty)], [1, 0, tx * (1 - ty)], [0, 1, (1 - tx) * ty], [1, 1, tx * ty]]) {
+      const i = ((y0p + dy2) * W + x0 + dx2) * 4;
+      for (let k = 0; k < 4; k++) out[k] += tex.buffer[i + k] * wgt;
+    }
+    return out;
+  };
+  const yTop = y0;
+  const yBot = y1;
+  const cutMask = (mat) => {
+    const m = new Uint8Array(MW * MH).fill(1);
+    for (let j = 0; j < MH; j++) {
+      const v = (j + 0.5) / MH;
+      const y = yTop + v * (yBot - yTop);
+      for (let i = 0; i < MW; i++) {
+        const u = (i + 0.5) / MW;
+        const th = (u - best.u0) * span;
+        if (Math.abs(th) > 1.15) continue;
+        const x = cx + R * Math.sin(th);
+        const p = pix(x, y);
+        if (p[3] < 200) continue;
+        const b = [0, 0, 0];
+        for (const k of [0.012, 0.02, 0.03]) {
+          const q = pix(x, yTop - k * H);
+          for (let c = 0; c < 3; c++) b[c] += q[c] / 3;
+        }
+        let l = [LM[(j * MW + i) * 3], LM[(j * MW + i) * 3 + 1], LM[(j * MW + i) * 3 + 2]];
+        if (mat) l = mat.map((w) => w[0] * l[0] + w[1] * l[1] + w[2] * l[2] + w[3]);
+        const dB = Math.hypot(p[0] - b[0], p[1] - b[1], p[2] - b[2]);
+        const dL = Math.hypot(p[0] - l[0], p[1] - l[1], p[2] - l[2]);
+        if (dB < 60 && dL > dB + 50) m[j * MW + i] = 0;
+      }
+    }
+    // ouverture morphologique (rayon 2) : pas de liseré découpé le long des contours
+    const morph = (src, keepIfAll) => {
+      const out = new Uint8Array(src.length);
+      for (let j = 0; j < MH; j++)
+        for (let i = 0; i < MW; i++) {
+          let all = true;
+          let any = false;
+          for (let dj = -2; dj <= 2; dj++)
+            for (let di = -2; di <= 2; di++) {
+              const jj = Math.min(MH - 1, Math.max(0, j + dj));
+              const ii = Math.min(MW - 1, Math.max(0, i + di));
+              const c = src[jj * MW + ii] === 0;
+              all = all && c;
+              any = any || c;
+            }
+          out[j * MW + i] = (keepIfAll ? all : any) ? 0 : 1;
+        }
+      return out;
+    };
+    let cutM = morph(morph(m, true), false);
+    // petites zones isolées : ignorées
+    const seen = new Uint8Array(MW * MH);
+    const minArea = MW * MH * 0.004;
+    for (let s0 = 0; s0 < MW * MH; s0++) {
+      if (cutM[s0] !== 0 || seen[s0]) continue;
+      const comp = [s0];
+      seen[s0] = 1;
+      for (let h = 0; h < comp.length; h++) {
+        const q = comp[h];
+        const qi = q % MW;
+        for (const n of [q - 1, q + 1, q - MW, q + MW]) {
+          if (n < 0 || n >= MW * MH || seen[n] || cutM[n] !== 0) continue;
+          if ((n === q - 1 && qi === 0) || (n === q + 1 && qi === MW - 1)) continue;
+          seen[n] = 1;
+          comp.push(n);
+        }
+      }
+      if (comp.length < minArea) for (const q of comp) cutM[q] = 1;
+    }
+    // contour adouci (filtre majoritaire 5×5, deux passes) : une découpe d'imprimeur est nette et
+    // régulière, sans les crans de la mesure
+    for (let pass = 0; pass < 2; pass++) {
+      const next = new Uint8Array(cutM.length);
+      for (let j = 0; j < MH; j++)
+        for (let i = 0; i < MW; i++) {
+          let n = 0;
+          for (let dj = -2; dj <= 2; dj++)
+            for (let di = -2; di <= 2; di++) n += cutM[Math.min(MH - 1, Math.max(0, j + dj)) * MW + Math.min(MW - 1, Math.max(0, i + di))];
+          next[j * MW + i] = n >= 13 ? 1 : 0;
+        }
+      cutM = next;
+    }
+    return cutM;
+  };
+  if (process.env.DEBUG_LABEL_DIR) {
+    // photo « déroulée » dans le repère de l'étiquette, étiquette et découpe, pour contrôle visuel
+    const un = Buffer.alloc(MW * MH * 3, 128);
+    for (let j = 0; j < MH; j++)
+      for (let i = 0; i < MW; i++) {
+        const th = ((i + 0.5) / MW - best.u0) * span;
+        if (Math.abs(th) > 1.15) continue;
+        const p = pix(cx + R * Math.sin(th), yTop + ((j + 0.5) / MH) * (yBot - yTop));
+        for (let c = 0; c < 3; c++) un[(j * MW + i) * 3 + c] = p[c];
+      }
+    const tag = basename(labelFile, extname(labelFile));
+    mkdirSync(process.env.DEBUG_LABEL_DIR, { recursive: true });
+    await sharp(un, { raw: { width: MW, height: MH, channels: 3 } }).png().toFile(join(process.env.DEBUG_LABEL_DIR, `${tag}-photo.png`));
+    await sharp(LM, { raw: { width: MW, height: MH, channels: 3 } }).png().toFile(join(process.env.DEBUG_LABEL_DIR, `${tag}-label.png`));
+  }
+  const m0 = cutMask(null);
+  const inCut = (mask) => (u, v) => mask[Math.min(MH - 1, Math.floor(v * MH)) * MW + Math.min(MW - 1, Math.floor(u * MW))] === 0;
+  const matrice = fitColors(inCut(m0));
+  const masque = cutMask(matrice);
+  if (process.env.DEBUG_LABEL_DIR)
+    await sharp(Buffer.from(Array.from(masque, (v) => (v ? 255 : 0))), { raw: { width: MW, height: MH, channels: 1 } })
+      .png()
+      .toFile(join(process.env.DEBUG_LABEL_DIR, `${basename(labelFile, extname(labelFile))}-masque.png`));
+  let nCut = 0;
+  for (const c of masque) if (c === 0) nCut++;
+  const couleurs = matrice;
   return {
     ok: true,
     score: +best.s.toFixed(3),
@@ -570,22 +804,34 @@ async function calibrateLabel(sharp, tex, hw, labelFile) {
     centre: +best.u0.toFixed(4), // colonne de l'étiquette (0…1) au centre de la face
     angle: +span.toFixed(5), // angle couvert autour de la bouteille (radians)
     rayon: +(R / H).toFixed(5),
+    couleurs, // matrice 3×3 + décalage (0–255) appliquée au fichier, ou null
+    decoupe: +(nCut / (MW * MH)).toFixed(4), // part de l'étiquette découpée (0 = rectangle plein)
+    masque: nCut ? { data: masque, w: MW, h: MH } : null,
   };
 }
 
-async function processBottle(sharp, slug, front, back, dest, label = null, plat = false) {
-  const a = await analyse(sharp, front);
+async function processBottle(sharp, slug, front, back, dest, label = null, plat = false, opts = {}) {
+  const a = await analyse(sharp, front, plat ? { ...opts, redresser: false } : opts);
   const tex = buildTexture(a);
   const scale = TEX_H / tex.H;
   const width = Math.max(2, Math.round(tex.W * scale));
   mkdirSync(dest, { recursive: true });
   const rgba = sharp(tex.buffer, { raw: { width: tex.W, height: tex.H, channels: 4 } });
   await rgba.clone().resize(width, TEX_H, { kernel: 'lanczos3' }).webp({ quality: 88, alphaQuality: 90, effort: 5 }).toFile(join(dest, 'face.webp'));
-  await rgba
-    .clone()
-    .resize(Math.round((tex.W * THUMB_H) / tex.H), THUMB_H, { kernel: 'lanczos3' })
-    .webp({ quality: 84, alphaQuality: 85, effort: 5 })
-    .toFile(join(dest, 'vignette.webp'));
+  // Flacon non tourné (carafe et étui, coffret) : la photo elle-même, détourée, sans symétrie.
+  let photo = null;
+  if (plat) {
+    const trimmed = await sharp(a.raw.data, { raw: { width: a.raw.w, height: a.raw.h, channels: 4 } }).trim({ threshold: 1 }).png().toBuffer({ resolveWithObject: true });
+    const ph = Math.min(TEX_H, trimmed.info.height);
+    await sharp(trimmed.data).resize({ height: ph, kernel: 'lanczos3' }).webp({ quality: 88, alphaQuality: 90, effort: 5 }).toFile(join(dest, 'photo.webp'));
+    await sharp(trimmed.data).resize({ height: THUMB_H, kernel: 'lanczos3' }).webp({ quality: 84, alphaQuality: 85, effort: 5 }).toFile(join(dest, 'vignette.webp'));
+    photo = { fichier: 'photo.webp', ratio: +(trimmed.info.width / trimmed.info.height).toFixed(5) };
+  } else
+    await rgba
+      .clone()
+      .resize(Math.round((tex.W * THUMB_H) / tex.H), THUMB_H, { kernel: 'lanczos3' })
+      .webp({ quality: 84, alphaQuality: 85, effort: 5 })
+      .toFile(join(dest, 'vignette.webp'));
   const prof = profilePoints(a.hw, tex.R);
   let dos = null;
   if (back) {
@@ -617,14 +863,59 @@ async function processBottle(sharp, slug, front, back, dest, label = null, plat 
     vignette: 'vignette.webp',
     points: prof.points,
     plat,
+    photo,
     etiquette: null,
+    etiquetteDos: null,
   };
   if (label && !plat) {
     try {
-      const cal = await calibrateLabel(sharp, tex, a.hw, label);
+      const cal = await calibrateLabel(sharp, tex, a.hw, label.file);
       if (cal?.ok) {
-        await sharp(label).resize({ width: 1400, withoutEnlargement: true }).removeAlpha().webp({ quality: 88, effort: 5 }).toFile(join(dest, 'etiquette.webp'));
-        profil.etiquette = { fichier: 'etiquette.webp', ...cal };
+        const { masque, ...info } = cal;
+        // fichier ramené aux couleurs de la photo, avec sa découpe en transparence
+        const colour = (img) =>
+          img
+            .removeAlpha()
+            .recomb(cal.couleurs ? cal.couleurs.map((w) => w.slice(0, 3)) : [[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+            .linear([1, 1, 1], cal.couleurs ? cal.couleurs.map((w) => w[3]) : [0, 0, 0]);
+        const front = await colour(sharp(label.file).resize({ width: 1400, withoutEnlargement: true })).raw().toBuffer({ resolveWithObject: true });
+        let out = sharp(front.data, { raw: front.info });
+        if (masque) {
+          const m = Buffer.from(Array.from(masque.data, (v) => (v ? 255 : 0)));
+          const alpha = await sharp(m, { raw: { width: masque.w, height: masque.h, channels: 1 } })
+            .resize(front.info.width, front.info.height, { kernel: 'cubic' })
+            .blur(1.1)
+            .extractChannel(0)
+            .raw()
+            .toBuffer({ resolveWithObject: true });
+          if (alpha.info.channels !== 1 || alpha.data.length !== front.info.width * front.info.height) throw new Error(`masque de découpe mal formé (${alpha.info.channels} canaux)`);
+          // assemblage RGBA explicite
+          const rgba = Buffer.alloc(front.info.width * front.info.height * 4);
+          const ch = front.info.channels;
+          for (let i = 0, n = front.info.width * front.info.height; i < n; i++) {
+            rgba[i * 4] = front.data[i * ch];
+            rgba[i * 4 + 1] = front.data[i * ch + 1];
+            rgba[i * 4 + 2] = front.data[i * ch + 2];
+            rgba[i * 4 + 3] = alpha.data[i];
+          }
+          out = sharp(rgba, { raw: { width: front.info.width, height: front.info.height, channels: 4 } });
+        }
+        await out.webp({ quality: 88, alphaQuality: 90, effort: 5 }).toFile(join(dest, 'etiquette.webp'));
+        profil.etiquette = { fichier: 'etiquette.webp', ...info };
+        // contre-étiquette : même imprimeur, même bas d'étiquette, taille relative des fichiers
+        // d'origine (même résolution de numérisation), centrée au dos
+        if (label.dos && label.meta?.hauteur && label.dos.meta?.hauteur) {
+          const back = await colour(sharp(label.dos.file).resize({ width: 1200, withoutEnlargement: true })).webp({ quality: 86, effort: 5 }).toBuffer({ resolveWithObject: true });
+          writeFileSync(join(dest, 'etiquette-dos.webp'), back.data);
+          const hFront = cal.haut - cal.bas;
+          const hBack = Math.min(hFront * 1.05, hFront * (label.dos.meta.hauteur / label.meta.hauteur));
+          const aspect = label.dos.meta.largeur / label.dos.meta.hauteur;
+          const angle = (aspect * hBack) / cal.rayon;
+          // pas de chevauchement avec l'étiquette de face
+          const free = Math.PI * 2 - cal.angle;
+          if (angle < free * 0.96) profil.etiquetteDos = { fichier: 'etiquette-dos.webp', bas: cal.bas, haut: +(cal.bas + hBack).toFixed(5), angle: +angle.toFixed(5) };
+          else warn(`${slug} : contre-étiquette trop large pour le dos (${angle.toFixed(2)} rad pour ${free.toFixed(2)} libres), ignorée.`);
+        }
       } else warn(`${slug} : étiquette à plat non retrouvée sur la photo (score ${cal?.score ?? '—'}), photo seule.`);
     } catch (err) {
       warn(`${slug} : étiquette à plat illisible (${err.message}).`);
@@ -1006,6 +1297,25 @@ async function main() {
     }
     return listImages(join(IN, 'etiquettes')).find((f) => basename(f, extname(f)).toLowerCase() === slug) || null;
   };
+  // contre-étiquette à plat (photos/etiquettes/<slug>-dos.* + <slug>-dos.json { "type": "dos" })
+  const backLabel = (slug) => {
+    const j = join(IN, 'etiquettes', `${slug}-dos.json`);
+    let meta = {};
+    try {
+      meta = existsSync(j) ? JSON.parse(readFileSync(j, 'utf8')) : {};
+    } catch {
+      meta = {};
+    }
+    const file = listImages(join(IN, 'etiquettes')).find((f) => basename(f, extname(f)).toLowerCase() === `${slug}-dos`);
+    return file ? { file, meta } : null;
+  };
+  const labelMeta = (slug) => {
+    try {
+      return JSON.parse(readFileSync(join(IN, 'etiquettes', `${slug}.json`), 'utf8'));
+    } catch {
+      return {};
+    }
+  };
   // flacons non tournés (photo affichée à plat)
   let plats = new Set();
   try {
@@ -1020,8 +1330,19 @@ async function main() {
     }
     const dest = join(outBottles, slug);
     const label = flatLabel(slug);
+    const dos = label ? backLabel(slug) : null;
     const plat = plats.has(slug);
-    const key = `${stamp(g.front)}|${g.back ? stamp(g.back) : '-'}|${label ? stamp(label) : '-'}|${plat ? 'plat' : 'tour'}`;
+    // réglages facultatifs : photos/produits/<slug>.json { "redresser": false, "cote": "droit" }
+    let opts = {};
+    const oj = join(IN, 'produits', `${slug}.json`);
+    if (existsSync(oj)) {
+      try {
+        opts = JSON.parse(readFileSync(oj, 'utf8'));
+      } catch (err) {
+        warn(`${relative(root, oj)} : JSON illisible (${err.message}), réglages par défaut.`);
+      }
+    }
+    const key = `${stamp(g.front)}|${g.back ? stamp(g.back) : '-'}|${label ? stamp(label) : '-'}|${dos ? stamp(dos.file) : '-'}|${plat ? 'plat' : 'tour'}|${JSON.stringify(opts)}`;
     try {
       let profil;
       if (cache[slug] === key && existsSync(join(dest, 'profil.json'))) {
@@ -1029,7 +1350,7 @@ async function main() {
       } else {
         rmSync(dest, { recursive: true, force: true });
         const t0 = Date.now();
-        profil = await processBottle(sharp, slug, g.front, g.back, dest, label, plat);
+        profil = await processBottle(sharp, slug, g.front, g.back, dest, label ? { file: label, meta: labelMeta(slug), dos } : null, plat, opts);
         cache[slug] = key;
         log(`${slug} : ${profil.fond}${profil.redressement ? `, redressée de ${profil.redressement}°` : ''}${profil.dos ? ', avec dos' : ''}${profil.etiquette ? `, étiquette à plat (score ${profil.etiquette.score})` : ''}${plat ? ', photo à plat' : ''} (${Date.now() - t0} ms)`);
       }
@@ -1040,7 +1361,10 @@ async function main() {
         vignette: `/bouteilles/${slug}/vignette.webp`,
         ratio: profil.ratio,
         plat: !!profil.plat,
+        photo: profil.photo ? `/bouteilles/${slug}/photo.webp` : null,
+        photoRatio: profil.photo?.ratio ?? null,
         etiquette: profil.etiquette ? `/bouteilles/${slug}/etiquette.webp` : null,
+        etiquetteDos: profil.etiquetteDos ? `/bouteilles/${slug}/etiquette-dos.webp` : null,
       };
     } catch (err) {
       errors++;
@@ -1081,6 +1405,8 @@ async function main() {
   const labels = { version: VERSION, etiquettes: {} };
   for (const f of listImages(join(IN, 'etiquettes'))) {
     const slug = basename(f, extname(f)).toLowerCase();
+    // contre-étiquette : traitée avec la bouteille en photo
+    if (slug.endsWith('-dos') && (!slugs || slugs.has(slug.slice(0, -4)))) continue;
     if (slugs && !slugs.has(slug)) {
       warn(`${relative(root, f)} : « ${slug} » ne correspond à aucun produit (le plus proche : « ${closest(slug, slugs)} »). Fichier ignoré.`);
       continue;
@@ -1094,8 +1420,8 @@ async function main() {
         warn(`${relative(root, pj)} : JSON illisible (${err.message}), réglages par défaut.`);
       }
     }
-    // étiquette à plat : traitée avec la bouteille en photo (voir calibrateLabel)
-    if (params.type === 'plat') continue;
+    // étiquette à plat et contre-étiquette : traitées avec la bouteille en photo (calibrateLabel)
+    if (params.type === 'plat' || params.type === 'dos') continue;
     try {
       const t0 = Date.now();
       const meta = await processLabel(sharp, f, params, join(outLabels, `${slug}.webp`));
