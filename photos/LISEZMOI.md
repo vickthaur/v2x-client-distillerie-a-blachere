@@ -1,103 +1,66 @@
 # Photos de la maquette
 
-Déposez ici les photos de la distillerie : au prochain `npm run build` (ou `npm run photos`), elles
-remplacent les bouteilles dessinées en code par de vraies bouteilles 3D, et les cadres « photo à
-faire » par les photos des lieux. Rien d’autre à modifier dans le code.
+Les photos de ce dossier sont la **source de vérité** des bouteilles 3D et des lieux. Depuis la v3,
+elles viennent du site officiel (branche `photos-site`, importée par `npm run import-site`) ; on peut
+en déposer de meilleures à la main (même nom de fichier). Au prochain `npm run build` (ou
+`npm run photos`), `scripts/photos.mjs` les traite vers `public/` (non versionné, régénéré au build).
+Rien d'autre à modifier dans le code.
 
 ## Bouteilles : `photos/produits/`
 
 | Fichier | Rôle |
 |---|---|
-| `<slug>.jpg` (ou `.png`, `.webp`) | Photo de face, obligatoire |
-| `<slug>-dos.jpg` (ou `.png`, `.webp`) | Contre-étiquette, facultative |
+| `<slug>.webp` (ou `.jpg`, `.png`) | Photo de face, obligatoire (un PNG détouré est idéal) |
+| `<slug>-dos.webp` | Photo du dos, facultative |
+| `<slug>.json` | Réglages facultatifs : `{ "redresser": false, "cote": "droit" }` (silhouette prise du côté droit quand un accessoire — étiquette suspendue, collerette — déborde à gauche) |
+| `plats.json` | Flacons montrés en photo, sans rotation (`{ "slugs": [...] }` : carafes et étuis) |
 
-Sans photo de dos, le dos de la bouteille 3D reprend la face, retournée et assombrie.
+Les 63 slugs sont ceux de `src/data/catalogue.json`.
 
-### Comment photographier
+## Étiquettes à plat : `photos/etiquettes/`
 
-- La bouteille debout, de face, entière (bouchon compris), à hauteur d’étiquette.
-- Un fond uni et clair (blanc ou gris très clair), sans autre objet ; ou un PNG déjà détouré.
-- La plus grande définition possible (2 000 px de haut ou plus). Une légère inclinaison est corrigée.
-- Une ombre douce au sol est acceptée : le script la retire.
+| Fichier | Rôle |
+|---|---|
+| `<slug>.webp` + `<slug>.json` `{ "type": "plat", "largeur", "hauteur" }` | L'étiquette à plat (fichier de l'imprimeur, ou celui publié sur la fiche officielle), posée nette sur la bouteille 3D |
+| `<slug>-dos.webp` + `<slug>-dos.json` `{ "type": "dos", … }` | La contre-étiquette, posée au dos |
 
-### Ce que fait `scripts/photos.mjs`
+`largeur` et `hauteur` sont les dimensions du fichier d'origine : elles donnent la taille relative de
+la contre-étiquette. Une photo d'étiquette sur bouteille (sans `"type"`) est encore acceptée : elle est
+« déroulée » (ancienne méthode, `public/etiquettes/`).
 
-1. Retire le fond depuis les bords de l’image (les blancs intérieurs, comme une étiquette blanche,
-   sont gardés ; l’ombre portée au sol est retirée ; la transparence d’un PNG est conservée).
-2. Redresse la bouteille si elle penche, puis la recadre.
-3. Mesure la silhouette ligne par ligne autour de l’axe, la lisse et la normalise (181 points).
-4. Écrit dans `public/bouteilles/<slug>/` :
-   - `face.webp` : texture de la bouteille (1 024 px de haut, fond transparent) ;
-   - `dos.webp` : texture du dos, si une photo de dos existe ;
-   - `profil.json` : la silhouette, que Three.js fait tourner (LatheGeometry) ;
-   - `vignette.webp` : l’image des cartes de la boutique.
+## Ce que fait `scripts/photos.mjs`
+
+1. Retire le fond (ou garde la transparence d'un PNG), redresse, recadre.
+2. Mesure la silhouette ligne par ligne autour de l'axe (181 points) : `profil.json`, que Three.js fait
+   tourner (`LatheGeometry`).
+3. Écrit `face.webp` (texture de 1 024 px de haut), `vignette.webp` (cartes), `corps.png` (la couleur
+   « tout autour », mesurée sur les bandes latérales de la photo, pour les côtés et le dos), et pour un
+   flacon à plat `photo.webp`.
+4. **Étiquette à plat** : la recale sur la photo de face (corrélation : bas, haut, colonne au centre de
+   la face, angle couvert autour de la bouteille), mesure une matrice couleur sur les aplats pour la
+   ramener aux couleurs de la vraie bouteille, déduit sa découpe (arche, fenêtre) des zones où la photo
+   montre la bouteille nue, et écrit `etiquette.webp` (avec la découpe en transparence) et
+   `etiquette-dos.webp`. Les mesures sont dans `profil.json` (`etiquette`, `etiquetteDos`).
 5. Met à jour `public/bouteilles/index.json`, que le site lit au chargement.
 
-Le dossier `public/bouteilles/` est régénéré à chaque build : il n’est pas versionné. Un cache
-(`.cache/photos.json`) évite de retraiter une photo qui n’a pas changé ; `npm run photos -- --force`
-retraite tout.
+Un cache (`.cache/photos.json`) évite de retraiter ce qui n'a pas changé ; `npm run photos -- --force`
+retraite tout (environ une minute pour 63 bouteilles). `DEBUG_LABEL=1` affiche le calage des
+étiquettes ; `DEBUG_LABEL_DIR=<dossier>` y écrit, pour chaque étiquette, la photo « déroulée » dans le
+repère de l'étiquette, le fichier et la découpe trouvée.
 
-La preuve de bout en bout est dans `scripts/test-packshot.mjs` : le script dessine une bouteille sur
-fond blanc (`scripts/test-packshot.png`), la fait passer dans le pipeline vers un dossier temporaire,
-affiche la bouteille 3D obtenue sous plusieurs angles, puis nettoie.
-
-```bash
-npm run photos                 # traite photos/ → public/
-node scripts/test-packshot.mjs # preuve de bout en bout (Chromium de Playwright requis)
-```
+La preuve de bout en bout est dans `scripts/test-packshot.mjs` (`npm run test:photos`).
 
 ## Lieux : `photos/lieux/`
 
-`<nom>.jpg` → `public/lieux/<nom>-1600.webp` et `<nom>-800.webp`. Les noms attendus par les pages :
+`<nom>.jpg` → `public/lieux/<nom>-1600.webp` et `<nom>-800.webp`. Les pages les appellent par
+`data-lieu="<nom>"`.
 
 | Fichier | Où il apparaît |
 |---|---|
-| `comptoir.jpg` | La maison, le lieu ; Visiter |
-| `herboristerie.jpg` | La maison, le lieu |
-| `chai.jpg` | La maison, le lieu |
-| `vignes.jpg` | La maison, le lieu |
-| `sandrine-blachere.jpg` | La maison, la famille (avec accord écrit) |
-| `raphael-vannelle.jpg` | La maison, la famille (avec accord écrit) |
+| `boutique-rayons.jpg` | Accueil (savoir-faire, visite), Visiter, La maison — majeurs seulement : des bouteilles d'alcool y sont visibles |
+| `boutique-salon.jpg` | Accueil (savoir-faire) — majeurs seulement |
+| `stand-palais-des-papes.jpg` | Carte postale ancienne (aussi dans les archives) |
 
-Les photos de presse et les visuels de revendeurs ne doivent pas être utilisés sans accord. Les
-étiquettes collector de C215 et de Claude Viallat ne sont publiées qu’avec l’accord des artistes.
-
-## Les 35 slugs du catalogue
-
-| Slug | Nom officiel | Univers |
-|---|---|---|
-| `pac-citron` | PAC CITRON® | sirop |
-| `fun-blue` | FUN BLUE | sirop |
-| `sirop-couleur-provence-cola` | SIROP COULEUR PROVENCE® COLA | sirop |
-| `sirop-couleur-provence-orgeat` | SIROP COULEUR PROVENCE® ORGEAT | sirop |
-| `sirop-couleur-provence-grenadine` | SIROP COULEUR PROVENCE® GRENADINE | sirop |
-| `sirop-couleur-provence-figue` | SIROP COULEUR PROVENCE® FIGUE | sirop |
-| `sirop-couleur-provence-violette` | SIROP COULEUR PROVENCE® VIOLETTE | sirop |
-| `sirop-couleur-provence-reglisse` | SIROP COULEUR PROVENCE® REGLISSE | sirop |
-| `sirop-couleur-provence-kiwi` | SIROP COULEUR PROVENCE® KIWI | sirop |
-| `sirop-anis` | Sirop d'anis | sirop |
-| `sirop-chataigne` | Sirop de chataîgne | sirop |
-| `sirop-fraise-barbe-a-papa` | SIROP FRAISE BARBE A PAPA | sirop |
-| `sucre-de-canne` | Sucre de canne | sirop |
-| `sirop-menthe` | SIROP MENTHE | sirop |
-| `sirop-fraise` | SIROP FRAISE | sirop |
-| `sirop-citron` | SIROP CITRON | sirop |
-| `sirop-framboise` | SIROP FRAMBOISE | sirop |
-| `sirop-peche` | SIROP PECHE | sirop |
-| `sirop-cassis` | SIROP CASSIS | sirop |
-| `sirop-orange` | SIROP ORANGE | sirop |
-| `sirop-lavande` | SIROP LAVANDE | sirop |
-| `sirop-melon` | SIROP MELON | sirop |
-| `sirop-vanille` | SIROP VANILLE | sirop |
-| `sirop-passion` | SIROP PASSION | sirop |
-| `sirop-pomme` | SIROP POMME | sirop |
-| `sirop-banane` | SIROP BANANE | sirop |
-| `sirop-caramel` | SIROP CARAMEL | sirop |
-| `sirop-caramel-fleur-de-sel-camargue` | SIROP CARAMEL A LA FLEUR DE SEL DE CAMARGUE | sirop |
-| `pastis-marra` | PASTIS MARRA® | spiritueux (18+) |
-| `pastis-le-camarguais` | LE CAMARGUAIS® | spiritueux (18+) |
-| `aperitif-lou-gardian` | APERITIF VIN ET PECHE « LOU GARDIAN » | spiritueux (18+) |
-| `la-camarguaise` | LA CAMARGUAISE ® | spiritueux (18+) |
-| `verveine-auguste-vieilli` | VERVEINE AUGUSTE VIEILLI | spiritueux (18+) |
-| `eau-de-vie-poire-williams-flirt` | Eau de vie Poires Williams « FLIRT® » | spiritueux (18+) |
-| `marc-chateauneuf-du-pape-reserve-des-legats` | Réserve des LEGATS | spiritueux (18+) |
+Les deux photos de la boutique sont redressées et recadrées depuis le montage incliné publié sur le
+site (`scripts/import-site.mjs`). À remplacer par des photos du lieu après les travaux (herboristerie,
+chai, comptoir, vignes), avec l'accord des personnes photographiées.

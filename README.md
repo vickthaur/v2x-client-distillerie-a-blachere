@@ -1,275 +1,254 @@
-# Distillerie A. Blachère · maquette de refonte v2
+# Distillerie A. Blachère · maquette de refonte v3
 
 Proposition de nouveau site pour la **Distillerie A. Blachère** (Avignon 1835, Châteauneuf-du-Pape
 depuis 1993), préparée par V2X Studio. Maquette non indexée (`noindex` dans les pages et les en-têtes
-Vercel, `robots.txt` qui interdit tout), avec la pastille « Proposition de refonte » de V2X.
+Vercel, `robots.txt` qui interdit tout), avec la pastille « Proposition de refonte » de V2X
+(`public/v2x/`, inchangée).
 
 - Site actuel : https://www.distillerieablachere.com/
-- Sources des faits : note de prospection (`V2X-Studio/research_notes/Sites web datés entreprises
-  Vaucluse/blachere_et_spiritueux.md`, sections 1 à 3), catalogue de la recherche
-  (`blachere_catalogue.json`), brief DA (`blachere_da.md`) et étude d'identité
-  (`V2X-Studio/reports/Identité visuelle Distillerie Blachère.md`, éléments marqués « Fait »).
-  Rien d'inventé : un prix, un degré, une contenance, un horaire, un tarif ou une date qui manque est
-  écrit « Prix en boutique » ou « à confirmer ».
+- **Source de vérité depuis la v3** : les visuels et le catalogue officiels relevés sur le site le
+  14 octobre 2026 (branche `photos-site`, commit `513b695`, jamais fusionnée dans `main`), importés par
+  `scripts/import-site.mjs` : noms, contenances, prix, degrés, descriptions, ingrédients, valeurs
+  nutritionnelles, « le saviez-vous ? », photos des produits, étiquettes à plat, archives, recettes,
+  textes (Histoire, Contact, CGV, mentions légales, « On parle de nous ») et logos.
+- Ce que le site officiel ne dit pas vient de la note de prospection (`V2X-Studio/research_notes/Sites
+  web datés entreprises Vaucluse/blachere_et_spiritueux.md`, sections 1 à 3) et de son complément
+  (`blachere_catalogue_complement.*`). Rien d'inventé : une valeur inconnue est contournée (« Prix en
+  boutique », « Date à préciser ») ou signalée « à confirmer ».
 
-## Direction artistique
+## Direction artistique v3
 
-« Le rayon dit l'usage, l'habillage dit l'univers, la porte d'âge dit le public » (étude d'identité).
+- **Le réalisme d'abord.** Les bouteilles sont construites à partir des vraies photos (« scan 3D »),
+  posées sur un plateau de studio photographique (fond en arrondi, lumière, ombres de contact,
+  reflets au sol, caustiques), avec des citrons, tranches, glaçons et feuilles de menthe photoréalistes
+  en suspension lente. **Aucune illustration dessinée hors des archives** : plus de femme à la paille
+  coupée, de lagon, d'île, de pastilles de couleur ni de titres détourés.
+- **Structure de grande marque** : barre utilitaire (Où acheter, Espace pro, Visiter, FR/EN/DE, Compte,
+  Panier), navigation à méga-menus avec rendus des bouteilles (Nos marques, Spiritueux 18+, La maison,
+  Visiter, Boutique), recherche, en-tête collant qui se resserre au défilement, menu plein écran sur
+  téléphone avec vignettes ; accueil dans l'ordre d'une campagne : PAC Citron et Fun Blue en 3D →
+  nos marques → carrousel avec prix → la maison en chiffres → savoir-faire → archives → visite →
+  presse → où acheter et espace pro → lettre d'information → pied de page complet.
+- **Typographie** : grotesque Archivo (titres affirmés, interface) et serif patrimoniale Fraunces
+  (accents en italique). Aplats de couleur de marque contrôlés (fuchsia PAC, bleu Fun Blue, crème
+  Couleur Provence) réservés aux chapitres de marque ; boutique et fiches sur fonds neutres.
+- **Les marques PAC et Fun Blue** : logotypes vectorisés depuis les étiquettes dans tous les titres et
+  étiquettes ; police la plus proche et couleur de marque dans le texte courant (voir plus bas).
+- **Spiritueux sobres et photographiques** : les quatre rayons officiels, racontés par la page
+  Histoire et illustrés par les archives et les photos du chai ; pas de décor ni de rotation
+  automatique en 3D.
+- **Archives présentées comme au musée** : cadres, passe-partout, cartels (titre, date telle qu'elle
+  est imprimée, technique, statut), fond pierre.
 
-- **Un cadre commun, « maison 1835 »** : papier chaux, encre sépia, filets bruns, sceau
-  « A. Blachère · Avignon 1835 → Châteauneuf-du-Pape » (proposition), Fraunces pour le récit,
-  Archivo pour l'interface. L'ovale jaune de l'étiquette PAC est le bouton principal du site.
-- **Neuf univers**, qui ne changent que la couleur, le motif et la police de titre
-  (`data-univers` dans `src/styles/base.css`) : PAC Citron (fuchsia à rayures, Lobster Two, Spicy
-  Rice pour la grille du T-shirt), Fun Blue (dégradé du ciel au bleu nuit, lagon, île, voiles, Molle),
-  les collectors (salle sombre, cadres colorés), Couleur Provence® (une couleur par parfum, Fraunces),
-  Comtat et papes (affiche de l'Origan, Federant), Camargue, Ventoux et garrigue (herbier, Della
-  Respira), marcs et eaux-de-vie (chai, Cinzel), la maison.
-- **Pop pour les sirops, rigueur pour les spiritueux** : la femme à la paille, la grille pop et l'été
-  ne côtoient jamais un alcool. Les spiritueux ont une présentation sobre (pas de décor ni de rotation
-  automatique en 3D, fiches limitées aux mentions autorisées).
-- **Étiquettes reproduites en code** (ni photo de presse, ni recadrage des images de référence sur le
-  site) : PAC Citron et sa femme à la paille en vectoriel (`src/lib/femme.js`), Fun Blue, et treize
-  étiquettes anciennes du mur du magasin dans le musée (`src/lib/archives.js`). Les logos ne sont pas
-  recomposés comme s'ils étaient définitifs : il faudra les fichiers vectoriels de la distillerie.
-- **Les œuvres de C215 et de Claude Viallat ne sont pas reproduites** : cadres neutres « visuel à
-  fournir par la distillerie », crédits en texte.
-
-Polices (SIL OFL, sous-ensemble latin, auto-hébergées dans `src/fonts`, licences jointes) : Archivo
-(interface), Fraunces (récit), Lobster Two 700 italique (titres « esprit pac »), Spicy Rice (« PAC »
-du T-shirt), Molle italique (Fun Blue), Federant (Comtat, affiches), Della Respira (« SIROP »,
-« SANS COLORANT », herbier), Cinzel 900 (« CITRON », marcs). Aucune requête vers un CDN.
+Polices (SIL OFL, sous-ensemble latin, auto-hébergées dans `src/fonts`, licences jointes) : Archivo,
+Fraunces, Lobster Two 700 italique (nom « pac » dans le texte), Molle italique (nom « Fun Blue » dans
+le texte) ; Spicy Rice, Federant, Della Respira et Cinzel ne servent plus qu'aux bouteilles dessinées
+de secours. Aucune requête vers un CDN.
 
 ## Plan du site
 
 | Adresse | Page |
 |---|---|
-| `/` | Accueil : les meilleures ventes (PAC Citron et Fun Blue, champ `bestSeller` du catalogue) en 3D devant une affiche coupée en deux, femme à la paille coupée par le bord gauche dont la paille pointe vers l'ovale ; gros plan PAC puis Fun Blue ; grille du T-shirt ; deux portes ; collectors ; musée ; maison ; visites ; actualités |
-| `/pac-citron` | Univers PAC : bouteille 3D, histoire, rituel du PAC à l'eau, formats, salle des collectors, étiquettes anciennes |
-| `/fun-blue` | Univers Fun Blue : le lagon, d'« Aurélie » à Fun Blue, le Blue Mojito, formats |
-| `/couleur-provence` | Trois étagères : classiques du comptoir (1 L), parfums de Provence (70 cl), gourmands et fruités (70 cl et 50 cl) |
-| `/recettes` | Le Blue Mojito, l'index des recettes officielles, les idées des fiches ; « sans alcool » par défaut |
-| `/spiritueux` | Porte d'âge ; un bandeau par univers : Comtat et papes, Camargue, Ventoux et garrigue, marcs et eaux-de-vie, pastis Marra |
-| `/la-maison` | « Je suis née en 1835… » : frise de 1835 à 2035, famille, lieu, chantier (`/la-distillerie` y redirige) |
-| `/musee` | Le musée de l'étiquette : le mur, la frise, la fiche ; aile des spiritueux réservée aux majeurs |
-| `/visiter` | Quatre formules, réservation en mode maquette, infos pratiques, questions fréquentes |
-| `/boutique`, `/boutique/<slug>` | Boutique filtrée et fiches produits avec bouteille 3D |
-| `/panier` | Panier et commande en mode maquette |
-| `/ou-trouver` | Points de vente : la distillerie, grandes surfaces, cavistes et épiceries fines, cafés |
-| `/actualites` | Actualités datées et sourcées, « On parle de nous » |
-| `/espace-pro` | Connexion et demande de compte (maquette) |
-| `/mentions-legales`, 404 | Données des registres ; page « évaporée » (statut 404) |
+| `/` | Campagne 3D (PAC Citron et Fun Blue, étiquettes réelles), nos marques, carrousel avec prix, la maison en chiffres, savoir-faire, archives, visite, presse, où acheter et espace pro |
+| `/pac-citron`, `/fun-blue` | Campagne 3D sur l'aplat de la marque, carte de prix, l'histoire racontée par la fiche officielle et la page Histoire, le rituel, la composition, les recettes, les étiquettes d'archives, la presse (PAC), les formats |
+| `/couleur-provence` | Trois bouteilles en 3D sur le plateau crème, les 26 parfums rangés par contenance avec leurs prix, recettes, sirops d'hier |
+| `/recettes` | Les 26 recettes du site (textes exacts, photos) ; sans alcool par défaut, « Toutes · 18+ » après vérification de l'âge |
+| `/spiritueux` | Porte d'âge ; les quatre rayons officiels (apéritifs et pastis, liqueurs, crèmes et eaux-de-vie, vieux marcs) |
+| `/la-maison` | L'histoire officielle en quatre époques (texte exact), archives de chaque époque, savoir-faire, papiers de la rue Molière, chantier (`/la-distillerie` y redirige) |
+| `/musee` | Les archives : 46 pièces en trois ailes (sirops, maison, spiritueux 18+), pièce en grand, pièces sans visuel |
+| `/visiter` | Formules, réservation en mode maquette, horaires officiels, accès, questions fréquentes |
+| `/boutique`, `/boutique/<slug>` | Boutique filtrée et fiches produits avec bouteille 3D et textes officiels |
+| `/panier` | Panier et commande en mode maquette (CGV officielles) |
+| `/actualites` | Nouvelles datées et sourcées ; « On parle de nous » du site officiel (20 articles et vidéos) |
+| `/ou-trouver`, `/espace-pro` | Points de vente (liste indicative) ; connexion et demande de compte (maquette) |
+| `/mentions-legales`, `/conditions-de-vente`, 404 | Textes officiels repris tels quels ; page « évaporée » (statut 404) |
+
+## Bouteilles « scan 3D »
+
+`scripts/photos.mjs` (sharp, lancé avant `vite dev` et `vite build`) traite `photos/produits/<slug>.webp`
+(les packshots officiels détourés) vers `public/bouteilles/<slug>/` (non versionné) :
+
+1. **Silhouette** mesurée ligne par ligne, axe et redressement automatiques (réglages par photo dans
+   `photos/produits/<slug>.json` : la Verveine « Auguste », dont l'étiquette suspendue au col faussait
+   l'axe, est prise du côté droit) ; Three.js la fait tourner (`LatheGeometry`).
+2. **Photo de face** projetée comme par l'objectif qui l'a prise ; sur les côtés et au dos, la couleur
+   « tout autour » mesurée sur les bandes latérales de la photo (verre, liquide, capsule), pour qu'une
+   bouteille qu'on fait tourner reste juste.
+3. **Étiquette à plat** (le fichier publié sur la fiche officielle, `photos/etiquettes/<slug>.webp`) :
+   recalée sur la photo de face par corrélation (hauteur, colonne centrale, angle couvert, sous
+   contraintes physiques), **ramenée aux couleurs de la vraie bouteille** (matrice couleur mesurée sur
+   les aplats), **découpée comme la vraie** (l'arche et la fenêtre du soleil des Couleur Provence,
+   déduites des zones où la photo montre la bouteille nue), puis posée nette, éclairée par le studio.
+   La **contre-étiquette** (`<slug>-dos.webp`) est posée au dos. Les 28 sirops en ont une ; les
+   spiritueux gardent leur photo.
+4. **Flacons à plat** (`photos/produits/plats.json` : carafes Elixir millésimées et Camarguaise Luxe
+   avec leur étui) : montrés en photo, sans rotation.
+
+Studio (`src/three/stage.js`, `studio.js`) : environnement PMREM fait de panneaux lumineux (gélatines
+colorées sur les campagnes), matières PBR (vernis, rugosité), lumières principale, contre-jour et
+débouchage, fond en arrondi (ombres de contact, reflets au sol rendus à part, caustiques douces),
+léger *bloom*, profondeur de champ discrète, grain fin. **Mappage tonal Khronos PBR Neutral** plutôt
+qu'AgX : AgX ternissait le fuchsia PAC et les bleus Fun Blue (comparaison dans le labo), Neutral est
+conçu pour le rendu de produits et garde les couleurs d'étiquette ; AgX reste disponible
+(`tone: 'agx'`). Citrons, tranches, glaçons et menthe (`src/three/garnish.js`) : textures procédurales
+(pores et albédo de l'écorce, quartiers translucides, glace à bulles et fissures, nervures),
+mouvement lent et pesant. Le cadrage tient les bouteilles entières dans un rectangle de la page, à
+toutes les tailles d'écran (vérifié par la recette, de 390 à 3440 px de large).
+
+Vignettes : la vraie photo détourée sur fond neutre pour les cartes ; rendus 3D de groupe pour les
+menus et les cartes de marque (faits à la demande, gardés pour la session) ; en attendant, ou sans
+WebGL, les photos côte à côte — jamais de bouteille dessinée. La bouteille dessinée en code
+(`src/three/bottle.js`, `labels.js`) ne sert plus que si une photo manquait.
+
+Labo de réglage (développement seulement, non versionné) : `labo.html?scene=duo|pac|funblue|neutre&slug=…`.
+
+## Marques PAC et Fun Blue
+
+- `scripts/marques.mjs` (outil ponctuel ; `npm i --no-save potrace@2.1.8`) vectorise les logotypes
+  depuis les étiquettes à plat du site : **« pac »** (lettres jaunes #feed01, liseré #403512 et halo
+  blanc, épaisseurs mesurées sur l'étiquette) et **« Fun Blue »** (lettres blanches et relief marine
+  #2d2b6a) → `public/marques/pac.svg`, `pac-simple.svg`, `fun-blue.svg` (+ `.json` des mesures).
+- `src/lib/marques.js` parcourt tout le texte des pages, y compris ce qui est généré : dans un titre
+  ou une étiquette (h1–h4, noms de produits et de marques, méga-menu, menu, pied de page, carte des
+  prix, panier), le nom devient le **logotype** (nom gardé en texte masqué pour les lecteurs d'écran
+  et le copier-coller) ; dans le texte courant (paragraphes, légendes, fil d'Ariane, rayons, filtres),
+  il prend la **police la plus proche** (Lobster Two 700 italique pour pac, Molle italique pour Fun
+  Blue) **et la couleur de la marque**, contrastée pour le fond : fuchsia foncé #ad1270 (6,2:1 sur le
+  papier) et bleu #1f56a8 (6,5:1) sur fond clair, jaune du logo et bleu clair sur fond sombre ou sur
+  les aplats de marque (AA). « Citron » et « Sirop de menthe » restent dans la police de l'interface.
 
 ## Boutique, fiches et commande
 
-- **Filtres** (`/boutique`) : univers (sirops ou spiritueux, avec ou sans alcool), gamme, famille
-  d'arômes, contenance, prix, degré (majeurs), meilleures ventes, recherche sans accents (« chataigne »
-  trouve « châtaigne »), tri, filtres actifs en pastilles avec « Tout effacer », compteur, adresse
-  synchronisée (`?gamme=couleur-provence&arome=agrumes`), état vide, panneau qui monte du bas sur
-  téléphone. Chaque option affiche le nombre de résultats qu'elle donnerait ; les options vides sont
-  désactivées, les filtres sans objet (coffrets, grands formats) ne sont pas affichés.
-- **Deux rayons séparés** quand sirops et spiritueux sont affichés ensemble ; « Vous aimerez aussi »
-  reste dans le même univers.
-- **Fiche produit** (`/boutique/<slug>`) : bouteille 3D à faire tourner (souris, doigt, flèches),
-  boutons face et dos, contenance, prix officiel ou « Prix en boutique » (avec le numéro du magasin),
-  quantité, ajout au panier, faits connus, recette liée, message sanitaire.
-- **Panier** latéral et `/panier` : coordonnées → retrait à la distillerie (9 h-12 h et 14 h-17 h,
-  horaires de la page « Achat express ») ou livraison (frais non inventés : « calculés avec la
-  distillerie ») → récapitulatif → paiement simulé → confirmation. Avec de l'alcool, la case
-  « J'ai 18 ans ou plus » est obligatoire et l'étape de paiement affiche « Vente interdite aux
-  mineurs ». Panier gardé dans le navigateur (`localStorage`, clé `blachere-panier`, accès protégés).
-
-## Photos → bouteilles 3D
-
-Déposer `photos/produits/<slug>.jpg` (et `<slug>-dos.jpg`) et `photos/lieux/<nom>.jpg` : au build,
-`scripts/photos.mjs` (sharp) retire le fond, redresse, mesure la silhouette et écrit dans
-`public/bouteilles/<slug>/` `face.webp`, `dos.webp`, `profil.json`, `vignette.webp` (dossier non
-versionné, régénéré à chaque build, sharp s'installe avec `npm ci` sur Vercel). Three.js fait tourner
-le profil (`LatheGeometry`) et y projette la photo, devant et derrière (le dos reprend la face,
-retournée et assombrie, s'il n'y a pas de photo de dos), avec vernis et reflets. Sans photo, la
-bouteille dessinée en code reste affichée. Mode d'emploi et liste des 35 slugs : `photos/LISEZMOI.md`.
-
-Preuve de bout en bout : `npm run test:photos` (`scripts/test-packshot.mjs`) dessine un packshot de PAC
-Citron penché de 2° avec une ombre au sol (`scripts/test-packshot.png`), le fait passer dans le
-pipeline vers un dossier temporaire, vérifie la fiche produit (bouteille reconstruite à partir de la
-photo, captures sous quatre angles) et la photo de lieu sur « La maison », puis nettoie tout.
+- **63 produits** officiels (28 sirops, 35 spiritueux) ; chaque contenance est une **variante avec son
+  prix** (70 cl, 1 L, 1,5 L, 1,75 L, coffret) ; panier `blachere-panier` v3 (`{slug, v, qty}`).
+- **Filtres** : univers, gamme (les rayons officiels), famille d'arômes, contenance, prix, degré
+  (majeurs), meilleures ventes (le bloc « Best sellers » du site), recherche sans accents, tri, filtres
+  actifs, adresse synchronisée, panneau sur téléphone. Rayons en liens texte à filet, filtres à filets
+  fins, cartes sur fond neutre avec la vraie photo.
+- **Fiche produit** : bouteille 3D (face et dos quand la contre-étiquette existe), contenances avec leur
+  prix, quantité, panier ; textes officiels en tableau de détails (description, ingrédients, valeurs
+  nutritionnelles, conseils, « le saviez-vous ? ») ; « Expédition et paiement » d'après les CGV ;
+  formats vus seulement en grande surface (« Aussi en 70 cl en grande surface — voir Où trouver nos
+  produits ») ; recettes liées.
+- **Commande** (maquette) : coordonnées (case « J'ai 18 ans ou plus » avec de l'alcool) → retrait ou
+  livraison (expédition sous 3 jours ouvrés au plus après le règlement, livraison sous 30 jours, frais
+  indiqués avant validation) → récapitulatif (rétractation de 14 jours, casse) → paiement simulé (CB,
+  Visa, Mastercard ; PayPal ; virement : les moyens des CGV) avec acceptation des CGV obligatoire.
 
 ## Âge légal et loi Évin
 
-Les neuf règles de l'étude d'identité :
+1. Les sirops ne passent jamais derrière la porte d'âge.
+2. Date de naissance à la première visite, sortie « Continuer avec les sirops seulement » ; réponse
+   « mineur » gardée pour la session, « majeur » dans le navigateur (`blachere-age`).
+3. **Une personne mineure ne voit jamais d'alcool** : pages et fiches d'alcool remplacées par un
+   message ; carrousel, recherche, méga-menu et recettes filtrés ; sur la page Histoire, les phrases
+   qui parlent d'alcool sont retirées (jamais réécrites) ; sur les fiches de sirops, les conseils qui
+   en parlent (« Monaco : grenadine + bière »…) aussi ; photos de la boutique (des bouteilles d'alcool
+   y sont visibles) remplacées par des archives de la maison. La recette le vérifie sur dix-huit pages.
+4. Message sanitaire partout où un alcool apparaît ; bandeau « vente interdite aux mineurs » au
+   paiement.
+5. Fiches d'alcool limitées aux mentions autorisées. Les remèdes anciens sont de l'histoire.
+6. Un juriste valide l'ensemble (porte d'âge, patrimoine, photos où un alcool est visible).
 
-1. Les sirops ne passent jamais derrière la porte d'âge (PAC, Fun Blue, Couleur Provence® ouverts).
-2. Date de naissance à la première visite, sortie « Continuer avec les sirops seulement » ; question
-   reposée à l'entrée de tout contenu alcool ; réponse « mineur » gardée pour la session, « majeur »
-   dans le navigateur (`blachere-age`). Lien « Revoir la vérification de l'âge » en pied de page.
-3. La porte se superpose à la page : titres et descriptions réels dans le HTML. **Compromis** : le
-   contenu des pages d'alcool (noms, visuels, prix) n'est inséré qu'après la vérification, pour qu'une
-   personne mineure ne voie jamais d'alcool, même dans le code de la page. À arbitrer avec un juriste
-   (règle 9) si le référencement de ces pages compte.
-4. Message sanitaire partout où un alcool apparaît : cartes, fiches, bandeaux d'univers, panier,
-   paiement, musée, recettes, pied de page (majeurs).
-5. Paiement : bandeau « vente interdite aux mineurs » et case « J'ai 18 ans ou plus » obligatoire.
-6. Fiches d'alcool limitées aux mentions autorisées : degré, origine, dénomination, composition,
-   fabricant, élaboration, modalités de vente, mode de consommation.
-7. L'univers PAC ne côtoie jamais l'alcool : rayons séparés, recommandations dans le même univers,
-   recettes et notes « avec alcool » réservées aux majeurs même sur la fiche d'un sirop, porte d'âge
-   au cadre maison (sans rayures PAC).
-8. Les remèdes anciens sont de l'histoire (choléra, eau d'arquebuse) ; affiche de l'Origan et
-   étiquettes d'alcool dans l'aile du musée réservée aux majeurs.
-9. Un juriste valide l'ensemble (statut de la porte d'âge, exception éventuelle pour le patrimoine,
-   photos du lieu où un alcool est visible).
+## Données
 
-## Données et règles d'import
+- `npm run import-site` (`scripts/import-site.mjs --source <photos/site>`) régénère, depuis le
+  worktree de la branche `photos-site` : `src/data/catalogue.json`, `src/data/site/*.json`
+  (archives, recettes, textes), `photos/produits`, `photos/etiquettes`, `photos/lieux` (les deux
+  photos de la boutique sont redressées depuis le montage incliné du site), `public/archives`,
+  `public/recettes`, `public/logos`, `public/favicon.svg`. Les images sont réduites (build léger).
+- `scripts/archives-site.json` : les 46 pièces choisies, avec leur cartel. **Dates des cartels** :
+  seulement ce qui est imprimé sur la pièce (« Tampon « 16 mai 1962 » », « Nice, Exposition
+  internationale, 1884, médaille d'or ») ; sinon « Date à préciser ».
+- `src/data/products.js` : présentation (noms d'affichage, familles d'arômes, couleurs de secours,
+  notes sourcées) ; `src/data/site.js` : contacts, horaires, visites, actualités, points de vente.
+- `scripts/import-catalogue.mjs` (catalogue de la recherche) est gardé pour l'historique.
+- Les images de presse ne sont jamais reprises : titre, date et lien seulement.
 
-`npm run catalogue -- <chemin vers blachere_catalogue.json>` régénère `src/data/catalogue.json` :
-fiches de certitude « élevée » ou « moyenne » seulement, prix et degrés repris seulement si leur source
-est le site officiel, **jamais les prix revendeurs**. Résultat : **35 produits** (28 sirops,
-7 spiritueux), dont 27 avec un prix officiel. Écartés (certitude faible, présence en boutique non
-confirmée) : La Magistrale, La Comtadine, Origan du Comtat, Élixir du Mont Ventoux, liqueur de lavande,
-crème de châtaigne, millésimes de vieux marc « Elixir® », vieux marc de Provence Gros Calan.
+## À confirmer avec la distillerie
 
-La présentation (noms d'affichage, familles d'arômes, univers, couleurs, silhouettes 3D, notes
-sourcées) est dans `src/data/products.js` ; contacts, horaires, visites, frise, actualités, presse et
-points de vente dans `src/data/site.js`.
-
-## À faire valider par la distillerie
-
-**Prix « à vérifier »**, vus une seule fois pendant la collecte (affichés, avec la mention « prix à
-confirmer » sur la fiche) : sirop de figue 6,00 € / 70 cl, sirop de violette 6,00 € / 70 cl, sirop
-de kiwi 5,60 € / 70 cl, sirop de citron 4,00 € / 1 L.
-
-**Sans prix officiel** (« Prix en boutique ») : Pastis Marra, Le Camarguais, La Camarguaise, Réserve
-des Légats, Lou Gardian, Verveine Auguste vieilli, sirop fraise barbe à papa, sucre de canne.
-**Contenance connue seulement chez des revendeurs** (affichée « à confirmer ») : Marra, Le Camarguais,
-La Camarguaise, Réserve des Légats (70 cl). **Sans contenance** : fraise barbe à papa, sucre de canne,
-Lou Gardian, Verveine Auguste vieilli. **Degrés de revendeurs, non affichés** : Le Camarguais 45 %,
-verveine 40 %, Réserve des Légats 43 % (et Lou Gardian 16 %, vu une seule fois).
-
-**Horaires du magasin** : quatre versions se contredisent (site anglais 9 h-12 h / 14 h-17 h ; fiches
-françaises 10 h-18 h d'octobre à mars et 9 h-19 h d'avril à septembre ; Instagram 9 h-19 h ; Petit
-Futé). La maquette affiche la version des fiches françaises, avec la mention « à confirmer ».
-
-**Visites** : quatre formules (passage libre gratuit, séance en boutique, visite guidée d'une heure
-pour 25 personnes au plus, groupes) ; tarifs « à confirmer » (gratuit, 4 €, 5 €, 7 € ou 10 € selon les
-sources) ; langues proposées (français, anglais, allemand) à confirmer ; créneaux exacts confirmés par
-la distillerie (aucun horaire de visite inventé).
-
-**Citations, à relire dans les articles ou les fiches** :
-- « 100 % naturel au jus de citron, sans colorant ni conservateur » et « toujours fabriqué dans le
-  Vaucluse par la Distillerie A. Blachère » (fiche PAC) ;
-- « à la suite d'étés torrides » (L'Écho du Mardi) ;
-- « depuis les années 1960, nous fabriquions un sirop de menthe bleue nommé Menthe "Aurélie" »,
-  « très vite » et « le sirop de menthe bleu le plus populaire en Provence » (fiche Fun Blue) ;
-- « Le sirop citronné de l'enfance, le goût du soleil, les saveurs de l'été, les racines du Sud »
-  (le groupe Pakalo, InfoConcert) ;
-- « obtenue par distillation, macération et infusion de plus de 20 plantes et épices » (fiche
-  La Camarguaise) ; « L'essence de badiane qui se mélange à un alcoolat composé de plus de 30 plantes
-  et épices » (fiche Marra) ; « des notes d'amande grillée et de fleur d'oranger » (fiche orgeat) ;
-- paraphrases de la page Histoire anglaise (« l'un des derniers pastis faits à l'ancienne », « le
-  parfum puissant qui descend des hauteurs du Mont Ventoux ») : à reprendre de l'original français ;
-- les titres de la rubrique « On parle de nous », reconstitués d'après les adresses des articles.
-
-**Slogans à valider** : « Le seul, l'unique » (T-shirt) et « pac … le vrai » (capsule) ; mentions
-d'étiquette reprises : « Conserver et consommer frais », « Sans colorant », « Fabriqué en Provence »,
-« Summer PAC » (gobelets).
-
-**Formulations proposées par V2X** (ton de l'étude, à valider) : « Un PAC à l'eau, s'il vous plaît. »,
-« Le lagon en bouteille », « Pas marseillais : vauclusien », « 60 ans, deux artistes, quatre
-étiquettes », « Tout est parti d'un carton de sirop… », « Je suis née en 1835 au 14 rue Molière » (la
-maison qui parle à la première personne, comme sa page Histoire), « Quatre façons de passer la
-porte », « Un PAC près de chez vous », « Page évaporée ».
-
-**Couleurs « Proposition V2X »**, à recaler sur les vraies étiquettes et le fichier de l'imprimeur :
-maison (chaux, crème, sépia, encre, or, pierre ; le bois est mesuré sur le comptoir), Couleur
-Provence® (les couleurs de liquide de chaque parfum sont inventées), Comtat (or, crème, sépia,
-cardinal, chardon ; ciel, remparts et robe sont mesurés sur la photo de l'affiche), Camargue, Ventoux,
-marcs ; `--fb-lagon` #18AFC4 (liquide de Fun Blue) n'est pas mesuré, `--pac-fuchsia` est une valeur
-moyenne entre deux mesures.
-
-**Étiquettes jamais vues** : Couleur Provence® et tous les spiritueux (les bouteilles 3D portent des
-étiquettes neutres de maquette), étiquette actuelle de Fun Blue (évocation dessinée), sérigraphie de
-Lou Gardian.
-
-**Droits** : l'illustrateur de la femme à la paille est inconnu (ayant droit à identifier avant toute
-déclinaison, dont celle de la maquette) ; C215 et Claude Viallat (droit de reproduire les étiquettes
-collector, mention de crédit, société d'auteurs éventuelle) ; auteur et droits de l'affiche de
-l'Origan du Comtat, ici seulement évoquée en dessin et réservée aux majeurs ; accord écrit des
-personnes photographiées et des cafés cités (Café de la Banque, bar de la Relève).
-
-**Contradictions tranchées provisoirement** (comme le recommande l'étude) : PAC « marque déposée en
-1962 » (1960 sur la page Histoire) ; « les initiales de ses enfants », sans prénoms ; Fun Blue « créé
-en 1995 » ; choléra « à la fin du XIXe siècle » (1882 ou 1884) ; « des dizaines de plantes du
-Ventoux » pour l'Origan ; « recette de la distillerie Marra, rachetée en 1955 » ; aucun volume de
-ventes affiché ; Raphaël Vannelle « codirigeant » ; festival non numéroté.
-
-**Faits à confirmer** : disponibilité de l'Origan du Comtat, de La Magistrale, de La Comtadine et de
-l'Élixir du Mont Ventoux ; « Auguste » de la verveine ; nom exact « Le Camarguais » en boutique ;
-licence de vente à emporter, transporteur, frais et seuil de livraison, moyens de paiement, CGV de
-vente d'alcool à distance ; directeur de la publication ; liste officielle des points de vente ;
-dates du festival 2027.
+- **Naissance du PAC Citron** : 1960 sur la page Histoire, « voit le jour en 1963 » sur la fiche,
+  tampon « 16 mai 1962 » sur une étiquette ancienne, « 60 ans » fêtés en 2022-2023 par la presse. La
+  maquette écrit « depuis plus de 60 ans » et cite chaque texte tel quel.
+- **Capital social** : 165 493 € (mentions du site) ou 1 508 428 € (BODACC, 21 mai 2025).
+- **Étiquette PAC Citron** : le fichier à plat publié sur le site (ramené aux couleurs de la
+  photo) ; idéalement à remplacer par le fichier de l'imprimeur. L'ancienne étiquette « déroulée » d'une
+  photo de revendeur (v3 intermédiaire) n'est plus utilisée. Même remarque pour la **découpe des
+  étiquettes Couleur Provence**, déduite des photos.
+- **Collectors des 60 ans** (C215, Claude Viallat), **objets du PAC** (T-shirt, gobelets « Summer
+  PAC », verres) et **magnums numérotés** (une centaine, un été, sans doute 2025, sans doute épuisés) :
+  vus seulement dans la presse ; cartels sans image dans les archives, photos et droits à demander.
+- **Eaux-de-vie de fruits** : seule Flirt® (poire Williams) est au catalogue ; l'eau-de-vie de
+  framboise du complément n'y est pas (famille seulement évoquée).
+- **Fiches 122, 128 à 130, 133, 135, 138, 142, 143, 155 et 157** : absentes du catalogue officiel relevé
+  (numéros manquants) ; produits retirés ou masqués ?
+- **Visites** : tarifs (gratuit, 4 €, 5 €, 7 € ou 10 € selon les sources), langues, créneaux ;
+  horaires de retrait des commandes (9 h-12 h et 14 h-17 h sur la page « Achat express ») face aux
+  horaires du magasin (page Contact, qui fait référence ailleurs).
+- **Chiffres de presse** affichés comme tels : 800 000 bouteilles de PAC par an (L'Écho du Mardi,
+  décembre 2025) ou un million (Made in Marseille) ; 4,9/5 sur TripAdvisor (environ 354 avis, relevé
+  d'octobre 2026).
+- **Textes repris tels quels**, coquilles comprises (« Mente « Aurélie » », « Ajoutez les des deux
+  sirops ») : à corriger sur le site officiel d'abord.
+- **Directeur de la publication**, licence de vente à emporter, transporteur et frais réels, liste
+  officielle des points de vente, dates du festival 2027.
 
 ## Ce qui est simulé
 
-Paiement, envoi de la commande, réservation de visite, connexion et demande de compte pro, inscription
-aux actualités : les formulaires vérifient la saisie, affichent une confirmation et n'envoient rien.
-La carte des points de vente est un emplacement réservé ; la liste est indicative (relevée en ligne le
-14 octobre 2026). Les bouteilles et étiquettes sont dessinées en code tant que les photos manquent.
+Paiement, envoi de la commande, réservation de visite, connexion et demande de compte pro, lettre
+d'information : les formulaires vérifient la saisie, affichent une confirmation et n'envoient rien.
+La carte des points de vente est un emplacement réservé ; la liste est indicative.
 
 ## Lancer, construire, vérifier
 
 ```bash
 npm ci
 npm run dev            # http://localhost:5173 (traite d'abord photos/)
-npm run build          # dist/ (traite d'abord photos/)
+npm run build          # dist/ (traite d'abord photos/, ~1 min pour 63 bouteilles)
 npm run preview        # http://localhost:4173
-npm run qa             # recette complète sur le build (voir ci-dessous)
+npm run qa             # recette complète sur le build
 npm run test:photos    # preuve du pipeline photo
-npm run catalogue -- "../V2X-Studio/research_notes/Sites web datés entreprises Vaucluse/blachere_catalogue.json"
 ```
 
-`npm run qa` (`scripts/qa.mjs`) lance `vite preview`, parcourt toutes les pages au format bureau
-(1440 × 900) et téléphone (390 × 844), prend les captures (`--sortie <dossier>`, par défaut
-`.cache/qa`) et vérifie : absence d'erreur dans la console, absence de défilement horizontal à
-390 px, compteurs des filtres, adresse synchronisée, totaux du panier, case 18 ans, parcours de
-commande, formulaires en mode maquette, page 404, `robots.txt`, et qu'une personne mineure ne voit
-aucun alcool sur dix-huit pages. Les scripts de recette utilisent Playwright et le Chromium déjà
-installés sur la machine (variables `PLAYWRIGHT_MODULE` et `PLAYWRIGHT_CHROMIUM`) ; ils n'ajoutent
-aucune dépendance au projet.
+`npm run qa` (`scripts/qa.mjs`, `--sortie <dossier>`, `--rapide`) lance `vite preview`, parcourt les
+21 pages au format bureau (1440 × 900) et téléphone (390 × 844), puis la campagne, la boutique et une
+fiche aux **dix tailles d'écran** (1920 × 1080, 1920 × 950, 2560 × 1440, 3440 × 1440, 1440 × 900,
+1366 × 768, 1280 × 720, 1024 × 768, 768 × 1024, 390 × 844) et vérifie : aucune erreur de console ;
+rien ne dépasse de l'écran (en-tête, navigation, campagne, cartes de prix, cartes) ; **bouteilles 3D
+entières dans leur cadre et sous l'en-tête** ; compteurs des filtres (calculés depuis le catalogue),
+adresse synchronisée, variantes et prix ; totaux du panier, case 18 ans, CGV, parcours de commande ;
+méga-menus, recherche, menu mobile ; archives et recettes ; logotypes et police de marque ; aucune
+trace d'alcool pour une personne mineure ; 404, `robots.txt`. Playwright et Chromium sont ceux de la
+machine (`PLAYWRIGHT_MODULE`, `PLAYWRIGHT_CHROMIUM`, SwiftShader) ; aucune dépendance ajoutée.
 
-Dernière recette (14 octobre 2026, Chromium avec SwiftShader) : `npm ci && npm run build` sans
-erreur ; `npm run qa` 73/73 vérifications réussies, aucune erreur de console ; `npm run test:photos`
-11/11. Build : `dist/` 1,5 Mo, dont JavaScript 703 Kio (Three.js 480 Kio, 121 Kio compressé, chargé
-à part), CSS 95 Kio, polices 380 Kio.
-
-Adresses propres : réécritures de Vite en développement et en prévisualisation (`vite.config.js`),
-`cleanUrls`, réécriture `/boutique/:slug` → `produit.html` et redirection `/la-distillerie` →
-`/la-maison` dans `vercel.json`.
+Adresses propres : réécritures de Vite en développement (`vite.config.js`), `cleanUrls`, réécriture
+`/boutique/:slug` → `produit.html` et redirection `/la-distillerie` → `/la-maison` dans `vercel.json`.
 
 ## Code
 
-- `src/data/` : catalogue importé, présentation des produits et univers, informations du site.
-- `src/partials/` : en-tête, menu, pied de page, sceau, fenêtres communes (inclus au build).
-- `src/app/` : éléments communs (âge, panier latéral, apparitions), cartes, blocs éditoriaux, héros.
-- `src/pages/` : un module par page. `src/lib/` : panier, filtres, archives du musée, femme à la
-  paille, vignettes, stockage. `src/three/` : bouteilles, étiquettes, scènes 3D.
-- `src/styles/` : `base.css` (tokens et univers), `editorial.css`, `home.css`, `pages.css`,
-  `shop.css`, `product.css`, `checkout.css`.
+- `src/data/` : catalogue officiel importé, données du site (`site/`), présentation des produits.
+- `src/partials/` : en-tête (barre utilitaire, méga-menus, recherche, menu), pied de page, fenêtres.
+- `src/app/` : site commun (âge, en-tête, panier latéral), cartes, pièces d'archives, blocs de marque.
+- `src/pages/` : un module par page. `src/lib/` : panier, filtres, marques, alcool, vignettes, photos.
+- `src/three/` : studio (rendu, post-traitement), plateau, bouteilles en photo, garnitures, campagnes,
+  visionneuse, rendus de vignettes ; bouteilles et étiquettes dessinées de secours.
+- `src/styles/` : `base.css` (système), `home.css`, `brand.css` (pages de marque, archives, maison,
+  recettes, textes légaux), `shop.css`, `product.css`, `checkout.css`, `editorial.css`, `pages.css`.
 
 ## Robustesse
 
-- Téléphone (390 px) et ordinateur, sans défilement horizontal ; `prefers-reduced-motion` respecté.
-- Sans WebGL : affiche en CSS et bouteilles en SVG ; tout le contenu reste lisible.
+- De 390 à 3440 px de large sans défilement horizontal ; `prefers-reduced-motion` respecté.
+- Sans WebGL : photos détourées à la place de la 3D ; tout le contenu reste lisible.
 - Three.js dans son propre fichier, chargé après la page ; la résolution baisse si l'appareil peine.
 - Stockage du navigateur toujours protégé (navigation privée, stockage bloqué).
 
 ## Avant la mise en ligne réelle
 
-1. Visuels : photos des bouteilles (voir `photos/LISEZMOI.md`), étiquettes à plat, logos vectoriels,
-   photos du lieu après les travaux, portraits avec accord.
-2. Prix, degrés et contenances manquants ; paiement réel, CGV de vente d'alcool à distance.
-3. Agenda de visites branché (créneaux, confirmations, rappels), espace pro réel, liste des points de
-   vente, carte.
-4. Versions anglaise et allemande (puis néerlandaise), avec `hreflang`.
+1. Fichiers de l'imprimeur (étiquettes, logotypes), photos du lieu après les travaux, photos des
+   objets et des collectors avec leurs droits.
+2. Paiement réel, transporteur, CGV relues pour la vente d'alcool à distance.
+3. Agenda de visites branché, espace pro réel, liste des points de vente, carte.
+4. Versions anglaise et allemande, avec `hreflang`.
 5. Avis d'un juriste sur la porte d'âge et la loi Évin.
 6. Domaine dans Vercel, retirer `noindex` (`vercel.json`, balises `robots`, `public/robots.txt`) et la
    pastille (`public/v2x/` et les lignes qui la chargent dans les pages).

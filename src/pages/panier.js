@@ -234,7 +234,6 @@ const VIEWS = {
         <label class="mode"><input type="radio" name="paiement" value="virement"${pay === 'virement' ? ' checked' : ''} /><span class="mode__card">${icons.card}<span><strong>Virement bancaire</strong><span>Simulation : les coordonnées bancaires seraient envoyées par e-mail</span></span></span></label>
       </fieldset>
       <label class="check co-cgv"><input type="checkbox" name="cgv" required /><span>J’ai lu et j’accepte les <a class="link" href="/conditions-de-vente" target="_blank" rel="noopener">conditions générales de vente</a>.</span></label>
-      ${t.alcohol ? '<label class="check co-cgv"><input type="checkbox" name="majeur" required /><span>Je certifie avoir 18 ans révolus.</span></label>' : ''}
       <p class="form-msg" role="alert" id="co-msg"></p>
       <div class="co-actions"><button type="button" class="btn btn--ghost" data-prev>Retour</button><button type="submit" class="btn btn--primary" id="pay">Payer ${euro(payable(t))} (simulation)</button></div>
     </form>`;
@@ -366,7 +365,6 @@ function bindStep() {
       // Conditions générales de vente acceptées (et majorité certifiée si la commande contient de l'alcool)
       const bad = [];
       if (!form.elements.cgv?.checked) bad.push(['cgv', 'Merci de lire et d’accepter les conditions générales de vente.']);
-      if (form.elements.majeur && !form.elements.majeur.checked) bad.push(['majeur', 'La vente d’alcool est interdite aux mineurs : merci de certifier avoir 18 ans révolus.']);
       if (bad.length) {
         const msg = $('#co-msg', form);
         if (msg) msg.textContent = bad.map((b) => b[1]).join(' ');

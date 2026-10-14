@@ -3,6 +3,8 @@
 // droite, Origine). Vraie photo quand elle existe, sinon bouteille construite en code.
 import { Stage } from './stage.js';
 
+const TEST = typeof location !== 'undefined' && new URLSearchParams(location.search).has('test');
+
 export class BottleViewer {
   constructor(canvas, product, { calm = false, colors = null, target = null } = {}) {
     this.canvas = canvas;
@@ -37,7 +39,8 @@ export class BottleViewer {
       this.angle += this.velocity * dt;
       this.velocity *= Math.pow(0.04, dt);
       // rotation automatique très lente (sauf spiritueux et mouvement réduit)
-      if (!this.calm && Math.abs(this.velocity) < 0.05) this.angle += dt * 0.12;
+      // (pas en recette : la bouteille reste de face)
+      if (!this.calm && !TEST && Math.abs(this.velocity) < 0.05) this.angle += dt * 0.12;
     }
     slot.angle = this.angle;
   }

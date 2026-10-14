@@ -220,6 +220,7 @@ export class Stage {
     this.anisotropy = Math.min(r.capabilities.getMaxAnisotropy(), 8);
     this.slots = [];
     this.ready = this.setBottles(bottles);
+    this.ready.then(() => (this.isReady = true));
 
     this.clock = new THREE.Clock();
     this.frames = [];
@@ -515,6 +516,16 @@ export class Stage {
     requestAnimationFrame(this.loop);
     const dt = Math.min(this.clock.getDelta(), 0.05);
     if (!this.visible || document.hidden) return;
+    // Mode recette (?test) : l'image est fixe (t = 6) ; une fois la scène prête et quelques images
+    // rendues, on ne la redessine plus que si quelque chose change (taille, défilement, bouteilles).
+    if (TEST) {
+      const sig = `${this.width}x${this.height}|${this.state.scroll}|${this.slots.map((x) => (x.bottle ? 1 : 0)).join('')}|${this.slots.map((x) => x.angle).join(',')}`;
+      if (sig !== this.testSig) {
+        this.testSig = sig;
+        this.testFrames = 0;
+      }
+      if (this.isReady && ++this.testFrames > 20) return;
+    }
     const t = TEST ? 6 : this.calm ? 0 : this.clock.elapsedTime;
     this.adapt(dt);
     this.update(t, TEST ? 1 : dt);
