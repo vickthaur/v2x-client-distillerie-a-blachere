@@ -112,7 +112,7 @@
 .bgamme__group + .bgamme__group { margin-top: 56px; }
 .bgamme__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 20px; margin-bottom: 22px; padding-bottom: 12px; border-bottom: 1px solid var(--ink); }
 .bgamme__title { font: 760 1.4rem/1.1 var(--font); letter-spacing: -0.02em; }
-.bgamme__title span { margin-left: 8px; font: 600 0.84rem/1 var(--font); color: var(--ink-3); }
+.bgamme__title > span:not([class]) { margin-left: 8px; font: 600 0.84rem/1 var(--font); color: var(--ink-3); }
 
 /* ---------- Spiritueux : sobre, photographique ---------- */
 .sp-hero { padding: calc(var(--header-h) + clamp(28px, 5vw, 64px)) 0 clamp(40px, 6vw, 80px); background: var(--u-bg, #1d1b18); color: #fff; }

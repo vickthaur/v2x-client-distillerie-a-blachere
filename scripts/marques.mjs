@@ -10,6 +10,7 @@
 //   mot, sans le blason ni l'ovale « SIROP CITRON »), agrandies ×2 puis tracées (potrace) ; le
 //   liseré sombre et le halo blanc du mot, mesurés sur l'étiquette (épaisseurs en pixels), sont
 //   rendus par des contours SVG arrondis autour du même tracé : forme exacte, couleurs exactes.
+//   pac-clair.svg, pour les fonds clairs : même tracé, sans le halo blanc, liseré triplé.
 // - « Fun Blue » : la silhouette (lettres blanches + relief bleu marine) et les lettres blanches sont
 //   isolées puis tracées séparément ; le relief marine est dessiné sous les lettres.
 // Les couleurs sont les médianes mesurées sur l'étiquette.
@@ -300,10 +301,13 @@ const bboxOf = (mask, W, H) => {
   const vb = [bb.x0 - m, bb.y0 - m, bb.x1 - bb.x0 + 2 * m, bb.y1 - bb.y0 + 2 * m].map((v) => Math.round(v));
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb.join(' ')}" width="${vb[2]}" height="${vb[3]}"><defs><path id="l" d="${d}"/></defs><use href="#l" fill="#fff" stroke="#fff" stroke-width="${2 * halo}" stroke-linejoin="round"/><use href="#l" fill="${liseré}" stroke="${liseré}" stroke-width="${2 * outline}" stroke-linejoin="round"/><use href="#l" fill="${jaune}"/></svg>\n`;
   writeFileSync(join(OUT, 'pac.svg'), svg);
-  const m2 = outline + 2;
+  // Version pour les fonds clairs : le halo blanc de l'étiquette y disparaît ; le liseré, triplé,
+  // détache le jaune du papier, comme le trait noir des étiquettes anciennes du PAC (archives).
+  const clair = 3 * outline;
+  const m2 = clair + 2;
   writeFileSync(
-    join(OUT, 'pac-simple.svg'),
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${[bb.x0 - m2, bb.y0 - m2, bb.x1 - bb.x0 + 2 * m2, bb.y1 - bb.y0 + 2 * m2].map(Math.round).join(' ')}"><defs><path id="l" d="${d}"/></defs><use href="#l" fill="${liseré}" stroke="${liseré}" stroke-width="${2 * outline}" stroke-linejoin="round"/><use href="#l" fill="${jaune}"/></svg>\n`,
+    join(OUT, 'pac-clair.svg'),
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${[bb.x0 - m2, bb.y0 - m2, bb.x1 - bb.x0 + 2 * m2, bb.y1 - bb.y0 + 2 * m2].map(Math.round).join(' ')}"><defs><path id="l" d="${d}"/></defs><use href="#l" fill="${liseré}" stroke="${liseré}" stroke-width="${2 * clair}" stroke-linejoin="round"/><use href="#l" fill="${jaune}"/></svg>\n`,
   );
   writeFileSync(join(OUT, 'pac.json'), `${JSON.stringify({ source: 'photos/site/produits/pac-citron-2.jpg (étiquette à plat du site officiel)', jaune, lisere: liseré, halo: '#ffffff', epaisseurs: { lisere: outline, halo }, ratio: +(vb[2] / vb[3]).toFixed(4) }, null, 1)}\n`);
   log(`pac : public/marques/pac.svg (${(svg.length / 1024).toFixed(1)} Ko)`);

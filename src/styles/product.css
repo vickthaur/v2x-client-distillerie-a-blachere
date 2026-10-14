@@ -51,9 +51,9 @@
 .pp__one { font-weight: 650; }
 .pp__price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
 .pp__price strong { font: 760 2rem/1 var(--font); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
-.pp__price span { font-size: 0.86rem; color: var(--ink-3); }
+.pp__price > span { font-size: 0.86rem; color: var(--ink-3); }
 .pp__price--none strong { font-size: 1.3rem; }
-.pp__price--none span { flex-basis: 100%; }
+.pp__price--none > span { flex-basis: 100%; }
 .pp__row { display: flex; flex-wrap: wrap; gap: 10px; }
 .pp__add { flex: 1 1 220px; }
 .pp__add svg { width: 20px; height: 20px; }

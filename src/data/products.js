@@ -517,6 +517,11 @@ export const bySlug = Object.fromEntries(products.map((p) => [p.slug, p]));
 
 export const DISPO_BOUTIQUE = 'Disponible à la boutique de la distillerie';
 
+// Ligne au-dessus du nom (cartes, recherche) : la gamme ; pour PAC et Fun Blue, dont le nom porte
+// déjà le logo de la marque, ce qu'est le produit (« Sirop de citron »).
+const MARQUES = new Set(['pac', 'fun-blue']);
+export const surtitre = (p) => (MARQUES.has(p.gamme) ? p.type : p.gammeNom);
+
 // « Aussi en 70 cl en grande surface » : formats vus hors du site officiel, jamais vendus en ligne.
 export function formatsAilleursTexte(p) {
   if (!p.formatsAilleurs?.length) return null;

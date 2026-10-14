@@ -9,7 +9,9 @@
 // contenus générés par les pages (cartes, fiches, recettes, archives…) sont traités de la même façon.
 
 // Contextes « logotype » : titres et étiquettes.
-const WORDMARK = 'h1, h2, h3, h4, .card__name, .brand__name, .mega-brand__name, .menu__brand-name, .hero__tag-name, .line__name, .co-line__name, .ft__brands a, .piece__brand, [data-wordmark]';
+const WORDMARK = 'h1, h2, h3, h4, .card__name, .search__name, .brand__name, .mega-brand__name, .menu__brand-name, .hero__tag-name, .bprice__name, .line__name, .co-line__name, .ft__brands a, .piece__brand, [data-wordmark]';
+// Titres qui restent du texte courant : titres d'articles de presse cités tels quels.
+const TEXTE = '.newscard__title, .bpress__title, [data-texte]';
 // Jamais touchés : code, champs, options de liste, éléments déjà traités, textes masqués.
 const SKIP = 'script, style, title, textarea, select, option, input, code, pre, svg, canvas, .marque, .wm, .sr-only, [data-no-marque]';
 // « PAC », « Pac » (Pac à l'eau), « pac », « Fun Blue » : mot entier, hors adresses (www.pac…,
@@ -54,7 +56,7 @@ export function brandify(root = document.body) {
   const found = [];
   while (walker.nextNode()) found.push(walker.currentNode);
   for (const n of found) {
-    const logo = !!n.parentElement.closest(WORDMARK);
+    const logo = !!n.parentElement.closest(WORDMARK) && !n.parentElement.closest(TEXTE);
     const text = n.data;
     const frag = document.createDocumentFragment();
     let last = 0;

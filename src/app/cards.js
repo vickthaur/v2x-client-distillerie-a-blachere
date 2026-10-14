@@ -1,5 +1,5 @@
 // Cartes produit (boutique, « Vous aimerez aussi », aperçu de la boutique en page d'accueil).
-import { EVIN, products, minPrice, euro, DISPO_BOUTIQUE } from '../data/products.js';
+import { EVIN, products, minPrice, euro, DISPO_BOUTIQUE, surtitre } from '../data/products.js';
 import { esc, plural } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
 import { thumbHTML } from '../lib/thumbs.js';
@@ -13,7 +13,7 @@ export function cardHTML(p, { tag = 'li' } = {}) {
     <a class="card__media" href="/boutique/${p.slug}" tabindex="-1" aria-hidden="true">${thumbHTML(p)}</a>
     ${badges ? `<div class="card__badges">${badges}</div>` : ''}
     <div class="card__body">
-      <p class="card__gamme">${esc(p.gammeNom)}</p>
+      <p class="card__gamme">${esc(surtitre(p))}</p>
       <h3 class="card__name"><a href="/boutique/${p.slug}">${esc(p.nom)}</a></h3>
       <p class="card__meta">${esc(p.alcool && p.degre ? `${volumes} · ${p.degre} % vol.` : volumes)}</p>
       ${

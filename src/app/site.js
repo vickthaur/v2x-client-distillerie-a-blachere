@@ -5,7 +5,7 @@
 // - première visite : la date de naissance est demandée ; les sirops restent accessibles sans répondre ;
 // - moins de 18 ans : les spiritueux sont retirés de toutes les pages pour la session ;
 // - 18 ans ou plus : réponse gardée dans le navigateur (clé blachere-age).
-import { bySlug, products, euro, EVIN, MINEURS, DISPO_BOUTIQUE } from '../data/products.js';
+import { bySlug, products, euro, EVIN, MINEURS, DISPO_BOUTIQUE, surtitre } from '../data/products.js';
 import { readAge, saveAge, resetAge, ageFrom } from '../lib/age.js';
 import { cart } from '../lib/cart.js';
 import { $, $$, esc, calm, plural, fold } from '../lib/dom.js';
@@ -167,11 +167,12 @@ function spiritsMenu() {
     });
     return;
   }
+  // Les quatre rayons de la boutique officielle, chacun avec l'un de ses produits
   const picks = [
-    ['pastis-marra', 'Les Apéritifs et Pastis', '/boutique?gamme=pastis-aperitifs'],
-    ['la-camarguaise', 'Liqueurs régionales', '/boutique?gamme=liqueurs-regionales'],
-    ['marc-chateauneuf-du-pape-reserve-des-legats', 'Vieux marcs', '/boutique?gamme=marcs'],
-    ['eau-de-vie-poire-williams-flirt', 'Les Crèmes et Eaux de Vie', '/boutique?gamme=cremes-eaux-de-vie'],
+    ['pastis-marra', 'Les Apéritifs et Pastis', '/spiritueux#pastis-aperitifs'],
+    ['la-camarguaise', 'Les Liqueurs', '/spiritueux#liqueurs'],
+    ['creme-de-chataigne', 'Les Crèmes et Eaux de Vie', '/spiritueux#cremes-eaux-de-vie'],
+    ['marc-chateauneuf-du-pape-reserve-des-legats', 'Les Vieux Marcs', '/spiritueux#marcs'],
   ];
   box.innerHTML = `<ul class="mega__brands mega__brands--4">${picks
     .map(([slug, label, href]) => {
@@ -305,7 +306,7 @@ function bindSearch() {
     out.innerHTML = `<div class="search__col"><p class="search__h">${q ? `Produits (${hits.length})` : 'Meilleures ventes'}</p>${
       hits.length
         ? `<ul class="search__products">${hits
-            .map((p) => `<li><a href="/boutique/${p.slug}"><span class="search__thumb">${thumbHTML(p)}</span><span><span class="search__name">${esc(p.nom)}</span><span class="search__meta">${esc(p.gammeNom)}</span></span></a></li>`)
+            .map((p) => `<li><a href="/boutique/${p.slug}"><span class="search__thumb">${thumbHTML(p)}</span><span><span class="search__name">${esc(p.nom)}</span><span class="search__meta">${esc(surtitre(p))}</span></span></a></li>`)
             .join('')}</ul>`
         : '<p class="search__none">Aucun produit ne correspond.</p>'
     }</div><div class="search__col"><p class="search__h">Pages</p><ul class="search__pages">${pages.map(([t, href]) => `<li><a href="${href}">${esc(t)}</a></li>`).join('') || '<li class="search__none">Aucune page.</li>'}</ul>${
