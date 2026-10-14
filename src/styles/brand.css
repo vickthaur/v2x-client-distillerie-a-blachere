@@ -131,6 +131,7 @@
 .sp-rayon__pieces { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 18px; }
 .sp-rayon__pieces .cartel { font-size: 0.9em; }
 .sp-rayon__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: clamp(28px, 2.6vw, 40px) clamp(14px, 1.6vw, 24px); }
+@media (max-width: 640px) { .sp-rayon__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px 12px; } }
 .sp-rayon__evin { margin-top: 28px; font-size: 0.82rem; color: var(--ink-2); }
 @media (max-width: 900px) {
   .sp-hero__in, .sp-rayon__head { grid-template-columns: 1fr; }
