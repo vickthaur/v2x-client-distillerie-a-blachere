@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Boutique · Distillerie A. Blachère</title>
+    <meta name="description" content="Fiche produit de la boutique de la Distillerie A. Blachère, Châteauneuf-du-Pape." />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#17170f" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/v2x/proposition.css" />
+  </head>
+  <body data-page="boutique">
+    <!-- @include header.html -->
+    <main id="contenu" class="product-page">
+      <div id="product-root" aria-live="polite">
+        <div class="wrap product-loading"><p>Chargement de la fiche…</p></div>
+      </div>
+      <section class="related wrap" id="related" aria-labelledby="related-title" hidden>
+        <h2 class="h-section" id="related-title">Vous aimerez aussi</h2>
+        <ul class="grid related__grid" id="related-grid"></ul>
+      </section>
+    </main>
+    <!-- @include footer.html -->
+    <!-- @include dialogs.html -->
+    <script type="module" src="/src/pages/produit.js"></script>
+    <script src="/v2x/proposition.js" defer></script>
+  </body>
+</html>

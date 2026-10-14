@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Panier et commande · Distillerie A. Blachère</title>
+    <meta name="description" content="Votre panier et votre commande à la Distillerie A. Blachère : retrait à la distillerie ou livraison." />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#17170f" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/v2x/proposition.css" />
+  </head>
+  <body data-page="panier">
+    <!-- @include header.html -->
+    <main id="contenu" class="checkout-page">
+      <div class="wrap">
+        <header class="co-head">
+          <p class="kicker">Commande · maquette</p>
+          <h1 class="h-serif" id="co-title">Votre panier</h1>
+          <ol class="steps" id="steps" aria-label="Étapes de la commande"></ol>
+        </header>
+        <div class="co">
+          <section class="co__main" id="co-main" aria-labelledby="co-title" tabindex="-1"></section>
+          <aside class="co__side" id="co-side" aria-label="Récapitulatif de la commande"></aside>
+        </div>
+      </div>
+    </main>
+    <!-- @include footer.html -->
+    <!-- @include dialogs.html -->
+    <script type="module" src="/src/pages/panier.js"></script>
+    <script src="/v2x/proposition.js" defer></script>
+  </body>
+</html>

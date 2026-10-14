@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Boutique · Distillerie A. Blachère</title>
+    <meta name="description" content="PAC Citron, Fun Blue, sirops Couleur Provence® et spiritueux de la Distillerie A. Blachère, à Châteauneuf-du-Pape. Retrait à la distillerie ou livraison." />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#17170f" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/v2x/proposition.css" />
+  </head>
+  <body data-page="boutique">
+    <!-- @include header.html -->
+    <main id="contenu" class="shop-page">
+      <section class="shop-hero" aria-labelledby="shop-title">
+        <div class="wrap shop-hero__in">
+          <div class="shop-hero__text">
+            <p class="kicker">Boutique de la distillerie</p>
+            <h1 class="h-serif" id="shop-title">La boutique</h1>
+            <p class="lead">Les sirops pour tout le monde, les spiritueux pour les majeurs. Prix TTC du site de la distillerie ; retrait sur place ou livraison.</p>
+          </div>
+          <nav class="tiles" aria-label="Gammes" id="shop-tiles"></nav>
+        </div>
+      </section>
+
+      <div class="wrap shop">
+        <div class="shop__bar">
+          <label class="search">
+            <span class="sr-only">Rechercher un produit</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="M20 20l-4.2-4.2" /></svg>
+            <input type="search" id="shop-q" placeholder="Rechercher : citron, menthe, pastis…" autocomplete="off" enterkeyhint="search" />
+          </label>
+          <label class="sort">
+            <span>Trier</span>
+            <select id="shop-sort">
+              <option value="ventes">Meilleures ventes d’abord</option>
+              <option value="prix-asc">Prix croissant</option>
+              <option value="prix-desc">Prix décroissant</option>
+              <option value="nom">Nom, de A à Z</option>
+            </select>
+          </label>
+          <button type="button" class="btn btn--ink shop__filters-btn" id="filters-open" aria-haspopup="dialog">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4" /></svg>
+            Filtres <span class="shop__filters-n" id="filters-n" hidden></span>
+          </button>
+        </div>
+
+        <div class="shop__status">
+          <p class="shop__count" id="shop-count" role="status" aria-live="polite"></p>
+          <div class="chips" id="shop-chips" aria-label="Filtres actifs"></div>
+        </div>
+
+        <div class="shop__layout">
+          <aside class="shop__side" id="filters-home" aria-label="Filtres">
+            <form class="filters" id="filters" novalidate></form>
+          </aside>
+          <div class="shop__results">
+            <ul class="grid" id="shop-grid" aria-label="Produits"></ul>
+            <div class="empty" id="shop-empty" hidden>
+              <p class="empty__title">Aucun produit ne correspond à ces filtres.</p>
+              <p>Essayez une autre recherche, ou retirez un filtre.</p>
+              <button type="button" class="oval" data-reset>Tout effacer</button>
+            </div>
+            <p class="shop__note" id="shop-note"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filtres sur téléphone : panneau qui monte du bas -->
+      <dialog class="sheet" id="filter-sheet" aria-labelledby="sheet-title">
+        <div class="sheet__in">
+          <div class="sheet__head">
+            <h2 id="sheet-title">Filtres</h2>
+            <button type="button" class="icon-btn" id="sheet-close" aria-label="Fermer les filtres">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+            </button>
+          </div>
+          <div class="sheet__body" id="sheet-body"></div>
+          <div class="sheet__foot">
+            <button type="button" class="btn btn--ghost" data-reset>Tout effacer</button>
+            <button type="button" class="oval" id="sheet-apply">Voir les produits</button>
+          </div>
+        </div>
+      </dialog>
+    </main>
+    <!-- @include footer.html -->
+    <!-- @include dialogs.html -->
+    <script type="module" src="/src/pages/boutique.js"></script>
+    <script src="/v2x/proposition.js" defer></script>
+  </body>
+</html>
