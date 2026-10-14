@@ -37,6 +37,7 @@ const PORT = Number(opt('port', 4173));
 const BASE = `http://localhost:${PORT}`;
 const require = createRequire(import.meta.url);
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || '/opt/node22/lib/node_modules/playwright');
+const sharp = require('sharp');
 
 if (!existsSync(join(root, 'dist/index.html'))) {
   console.error('Lancez d’abord « npm run build ».');
@@ -127,8 +128,12 @@ async function open(ctx, path, { wait = 2500, label = path, hero = false } = {})
   return { page, res };
 }
 
-// Capture pleine page : images décodées d'abord (sinon Chromium peut les laisser blanches).
+// Capture pleine page : images décodées d'abord (sinon Chromium peut les laisser blanches). Au-delà
+// de 8 192 px de haut, le rendu logiciel (SwiftShader) recopie le haut de la page en bas de
+// l'image : les pages longues sont donc prises par tranches de 6 000 px, puis assemblées.
+const TRANCHE = 6000;
 async function shot(page, name, full = true) {
+  const file = join(OUT, `${name}.png`);
   if (full) {
     const H = await page.evaluate(() => document.body.scrollHeight);
     for (let y = 0; y < H; y += 800) {
@@ -139,12 +144,22 @@ async function shot(page, name, full = true) {
     await page.waitForTimeout(400);
   }
   await page.evaluate(() => Promise.all([...document.images].map((i) => ((i.loading = 'eager'), i.decode().catch(() => {})))));
-  await page.screenshot({ path: join(OUT, `${name}.png`), fullPage: full, timeout: 180000 });
+  if (!full) return page.screenshot({ path: file, timeout: 180000 });
+  const { W, H } = await page.evaluate(() => ({ W: document.documentElement.clientWidth, H: document.documentElement.scrollHeight }));
+  if (H <= TRANCHE) return page.screenshot({ path: file, fullPage: true, timeout: 180000 });
+  const parts = [];
+  for (let y = 0; y < H; y += TRANCHE) {
+    const input = await page.screenshot({ fullPage: true, clip: { x: 0, y, width: W, height: Math.min(TRANCHE, H - y) }, timeout: 180000 });
+    parts.push({ input, left: 0, top: y });
+  }
+  await sharp({ create: { width: W, height: H, channels: 3, background: '#ffffff' }, limitInputPixels: false }).composite(parts).png().toFile(file);
 }
 
 // Éléments qui sortent de l'écran (hors conteneurs à défilement horizontal voulu).
+// Largeur de référence : la fenêtre de mise en page (clientWidth). innerWidth ne convient pas : sur
+// téléphone, Chromium l'élargit au contenu quand quelque chose dépasse (et masquerait le défaut).
 const overflowProbe = () => {
-  const W = innerWidth;
+  const W = document.documentElement.clientWidth;
   const sel = '.hd, .hd__util, .hd__main, .nav, .hd__tools, .hero__copy, .hero__tags, .hero__tag, .bhero__copy, .bprice, .brand, .card, .mega-brand, .pp__info, .pp__stage, .shop__layout, .ft, h1, h2';
   const scrollers = (el) => {
     for (let n = el.parentElement; n && n !== document.body; n = n.parentElement) {

@@ -107,7 +107,9 @@ Labo de réglage (développement seulement, non versionné) : `labo.html?scene=d
 - `scripts/marques.mjs` (outil ponctuel ; `npm i --no-save potrace@2.1.8`) vectorise les logotypes
   depuis les étiquettes à plat du site : **« pac »** (lettres jaunes #feed01, liseré #403512 et halo
   blanc, épaisseurs mesurées sur l'étiquette) et **« Fun Blue »** (lettres blanches et relief marine
-  #2d2b6a) → `public/marques/pac.svg`, `pac-simple.svg`, `fun-blue.svg` (+ `.json` des mesures).
+  #2d2b6a) → `public/marques/pac.svg` (tel que sur l'étiquette, pour les fonds sombres et colorés),
+  `pac-clair.svg` (même tracé, liseré renforcé et sans halo, pour le papier, où le halo blanc ne se
+  verrait pas), `fun-blue.svg` (+ `.json` des mesures).
 - `src/lib/marques.js` parcourt tout le texte des pages, y compris ce qui est généré : dans un titre
   ou une étiquette (h1–h4, noms de produits et de marques, méga-menu, menu, pied de page, carte des
   prix, panier), le nom devient le **logotype** (nom gardé en texte masqué pour les lecteurs d'écran
@@ -116,6 +118,8 @@ Labo de réglage (développement seulement, non versionné) : `labo.html?scene=d
   Blue) **et la couleur de la marque**, contrastée pour le fond : fuchsia foncé #ad1270 (6,2:1 sur le
   papier) et bleu #1f56a8 (6,5:1) sur fond clair, jaune du logo et bleu clair sur fond sombre ou sur
   les aplats de marque (AA). « Citron » et « Sirop de menthe » restent dans la police de l'interface.
+  Les titres d'articles de presse cités restent du texte courant. Sur les cartes produit, le logo
+  tient lieu de nom ; la ligne du dessus dit ce qu'est le produit (« Sirop de citron »).
 
 ## Boutique, fiches et commande
 
@@ -175,6 +179,9 @@ Labo de réglage (développement seulement, non versionné) : `labo.html?scene=d
   photo) ; idéalement à remplacer par le fichier de l'imprimeur. L'ancienne étiquette « déroulée » d'une
   photo de revendeur (v3 intermédiaire) n'est plus utilisée. Même remarque pour la **découpe des
   étiquettes Couleur Provence**, déduite des photos.
+- **Logotypes PAC et Fun Blue** : vectorisés depuis les étiquettes à plat publiées sur le site ; la
+  version « fonds clairs » du pac (liseré renforcé, sans le halo blanc) est une proposition de la
+  maquette. À remplacer par les fichiers vectoriels de la marque et à faire valider.
 - **Collectors des 60 ans** (C215, Claude Viallat), **objets du PAC** (T-shirt, gobelets « Summer
   PAC », verres) et **magnums numérotés** (une centaine, un été, sans doute 2025, sans doute épuisés) :
   vus seulement dans la presse ; cartels sans image dans les archives, photos et droits à demander.
@@ -214,12 +221,15 @@ npm run test:photos    # preuve du pipeline photo
 21 pages au format bureau (1440 × 900) et téléphone (390 × 844), puis la campagne, la boutique et une
 fiche aux **dix tailles d'écran** (1920 × 1080, 1920 × 950, 2560 × 1440, 3440 × 1440, 1440 × 900,
 1366 × 768, 1280 × 720, 1024 × 768, 768 × 1024, 390 × 844) et vérifie : aucune erreur de console ;
-rien ne dépasse de l'écran (en-tête, navigation, campagne, cartes de prix, cartes) ; **bouteilles 3D
+rien ne dépasse de l'écran (largeur de la page comparée à la fenêtre de mise en page, et en-tête,
+navigation, campagne, cartes de prix, cartes) ; **bouteilles 3D
 entières dans leur cadre et sous l'en-tête** ; compteurs des filtres (calculés depuis le catalogue),
 adresse synchronisée, variantes et prix ; totaux du panier, case 18 ans, CGV, parcours de commande ;
 méga-menus, recherche, menu mobile ; archives et recettes ; logotypes et police de marque ; aucune
 trace d'alcool pour une personne mineure ; 404, `robots.txt`. Playwright et Chromium sont ceux de la
-machine (`PLAYWRIGHT_MODULE`, `PLAYWRIGHT_CHROMIUM`, SwiftShader) ; aucune dépendance ajoutée.
+machine (`PLAYWRIGHT_MODULE`, `PLAYWRIGHT_CHROMIUM`, SwiftShader) ; aucune dépendance ajoutée. Les
+captures pleine page de plus de 6 000 px sont prises par tranches puis assemblées (au-delà de
+8 192 px, le rendu logiciel recopierait le haut de la page).
 
 Adresses propres : réécritures de Vite en développement (`vite.config.js`), `cleanUrls`, réécriture
 `/boutique/:slug` → `produit.html` et redirection `/la-distillerie` → `/la-maison` dans `vercel.json`.
@@ -233,7 +243,8 @@ Adresses propres : réécritures de Vite en développement (`vite.config.js`), `
 - `src/three/` : studio (rendu, post-traitement), plateau, bouteilles en photo, garnitures, campagnes,
   visionneuse, rendus de vignettes ; bouteilles et étiquettes dessinées de secours.
 - `src/styles/` : `base.css` (système), `home.css`, `brand.css` (pages de marque, archives, maison,
-  recettes, textes légaux), `shop.css`, `product.css`, `checkout.css`, `editorial.css`, `pages.css`.
+  recettes, textes légaux), `pratique.css` (visiter, où trouver, espace pro : formulaires, formules,
+  points de vente), `shop.css`, `product.css`, `checkout.css`.
 
 ## Robustesse
 
