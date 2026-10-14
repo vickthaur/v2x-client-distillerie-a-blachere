@@ -21,7 +21,8 @@
       "bestSeller": true,
       "url": "https://www.distillerieablachere.com/fr/boutique/sirop/pac-citron_158",
       "presence": "fiche",
-      "certitude": "élevée"
+      "certitude": "élevée",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "fun-blue",
@@ -43,7 +44,8 @@
       "bestSeller": true,
       "url": "https://www.distillerieablachere.com/fr/boutique/sirop/fun-blue_159",
       "presence": "fiche",
-      "certitude": "élevée"
+      "certitude": "élevée",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "sirop-couleur-provence-cola",
@@ -65,7 +67,8 @@
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique//sirop-couleur-provence-cola_52?f%5B%5D=23",
       "presence": "fiche",
-      "certitude": "élevée"
+      "certitude": "élevée",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "sirop-couleur-provence-orgeat",
@@ -87,7 +90,8 @@
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique//sirop-couleur-provence-orgeat_12?f%5B%5D=23",
       "presence": "fiche",
-      "certitude": "élevée"
+      "certitude": "élevée",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "sirop-couleur-provence-grenadine",
@@ -109,7 +113,8 @@
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique//sirop-grenadine-couleur-provence_49?f%5B%5D=23",
       "presence": "fiche",
-      "certitude": "élevée"
+      "certitude": "élevée",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "sirop-couleur-provence-figue",
@@ -132,7 +137,8 @@
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique//sirop-couleur-provence-figue_62?f%5B%5D=21",
       "presence": "fiche",
-      "certitude": "moyenne"
+      "certitude": "moyenne",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "sirop-couleur-provence-violette",
@@ -155,7 +161,8 @@
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique//sirop-couleur-provence-violette_57?f%5B%5D=21",
       "presence": "fiche",
-      "certitude": "moyenne"
+      "certitude": "moyenne",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "sirop-couleur-provence-reglisse",
@@ -177,7 +184,8 @@
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique//sirop-couleur-provence-reglisse_61?f%5B%5D=21",
       "presence": "fiche",
-      "certitude": "élevée"
+      "certitude": "élevée",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "sirop-couleur-provence-kiwi",
@@ -200,7 +208,8 @@
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique//sirop-couleur-provence-kiwi_60?f%5B%5D=21",
       "presence": "fiche",
-      "certitude": "moyenne"
+      "certitude": "moyenne",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "sirop-anis",
@@ -222,7 +231,8 @@
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique//sirop-d-orgeat_45?f%5B%5D=21",
       "presence": "fiche",
-      "certitude": "élevée"
+      "certitude": "élevée",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "sirop-chataigne",
@@ -244,7 +254,8 @@
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique//sirop-d-orgeat_46?f%5B%5D=21",
       "presence": "fiche",
-      "certitude": "élevée"
+      "certitude": "élevée",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "sirop-fraise-barbe-a-papa",
@@ -260,7 +271,8 @@
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique//sirop-fraise-barbe-a-papa_58?f%5B%5D=21",
       "presence": "fiche",
-      "certitude": "moyenne"
+      "certitude": "moyenne",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "sucre-de-canne",
@@ -276,7 +288,8 @@
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique//sucre-de-canne_63?f%5B%5D=23",
       "presence": "fiche",
-      "certitude": "moyenne"
+      "certitude": "moyenne",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "sirop-menthe",
@@ -298,7 +311,8 @@
       "bestSeller": false,
       "url": null,
       "presence": "liste",
-      "certitude": "élevée"
+      "certitude": "élevée",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "sirop-fraise",
@@ -320,7 +334,8 @@
       "bestSeller": false,
       "url": null,
       "presence": "liste",
-      "certitude": "élevée"
+      "certitude": "élevée",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "sirop-citron",
@@ -343,7 +358,8 @@
       "bestSeller": false,
       "url": null,
       "presence": "liste",
-      "certitude": "moyenne"
+      "certitude": "moyenne",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "sirop-framboise",
@@ -365,7 +381,8 @@
       "bestSeller": false,
       "url": null,
       "presence": "liste",
-      "certitude": "élevée"
+      "certitude": "élevée",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "sirop-peche",
@@ -387,7 +404,8 @@
       "bestSeller": false,
       "url": null,
       "presence": "liste",
-      "certitude": "élevée"
+      "certitude": "élevée",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "sirop-cassis",
@@ -409,7 +427,8 @@
       "bestSeller": false,
       "url": null,
       "presence": "liste",
-      "certitude": "élevée"
+      "certitude": "élevée",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "sirop-orange",
@@ -431,7 +450,8 @@
       "bestSeller": false,
       "url": null,
       "presence": "liste",
-      "certitude": "élevée"
+      "certitude": "élevée",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "sirop-lavande",
@@ -453,7 +473,8 @@
       "bestSeller": false,
       "url": null,
       "presence": "liste",
-      "certitude": "élevée"
+      "certitude": "élevée",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "sirop-melon",
@@ -475,7 +496,8 @@
       "bestSeller": false,
       "url": null,
       "presence": "liste",
-      "certitude": "élevée"
+      "certitude": "élevée",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "sirop-vanille",
@@ -497,7 +519,8 @@
       "bestSeller": false,
       "url": null,
       "presence": "liste",
-      "certitude": "élevée"
+      "certitude": "élevée",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "sirop-passion",
@@ -519,7 +542,8 @@
       "bestSeller": false,
       "url": null,
       "presence": "liste",
-      "certitude": "élevée"
+      "certitude": "élevée",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "sirop-pomme",
@@ -541,7 +565,8 @@
       "bestSeller": false,
       "url": null,
       "presence": "liste",
-      "certitude": "élevée"
+      "certitude": "élevée",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "sirop-banane",
@@ -563,7 +588,8 @@
       "bestSeller": false,
       "url": null,
       "presence": "liste",
-      "certitude": "élevée"
+      "certitude": "élevée",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "sirop-caramel",
@@ -585,7 +611,8 @@
       "bestSeller": false,
       "url": null,
       "presence": "liste",
-      "certitude": "élevée"
+      "certitude": "élevée",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "sirop-caramel-fleur-de-sel-camargue",
@@ -607,7 +634,8 @@
       "bestSeller": false,
       "url": null,
       "presence": "liste",
-      "certitude": "élevée"
+      "certitude": "élevée",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "pastis-marra",
@@ -630,7 +658,8 @@
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique/pastis/pastis-marra_16",
       "presence": "fiche",
-      "certitude": "moyenne"
+      "certitude": "moyenne",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "pastis-le-camarguais",
@@ -653,7 +682,8 @@
       "bestSeller": false,
       "url": null,
       "presence": "mention",
-      "certitude": "moyenne"
+      "certitude": "moyenne",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "aperitif-lou-gardian",
@@ -669,7 +699,8 @@
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique/les-aperitifs/aperitif-vin-et-peche-lou-gardian-_134",
       "presence": "fiche",
-      "certitude": "moyenne"
+      "certitude": "moyenne",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "la-camarguaise",
@@ -692,7 +723,76 @@
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique/les-regionales/la-camarguaise-_131",
       "presence": "fiche",
-      "certitude": "moyenne"
+      "certitude": "moyenne",
+      "disponibilite": "en-ligne"
+    },
+    {
+      "slug": "la-magistrale",
+      "nomOfficiel": "La Magistrale",
+      "categorie": "Liqueurs régionales",
+      "gamme": "Les Régionales",
+      "arome": "eau d'arquebuse (plantes)",
+      "contenances": [],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": null,
+      "presence": "mention",
+      "certitude": "faible",
+      "disponibilite": "boutique"
+    },
+    {
+      "slug": "la-comtadine",
+      "nomOfficiel": "La Comtadine",
+      "categorie": "Liqueurs régionales",
+      "gamme": "Les Régionales",
+      "arome": null,
+      "contenances": [],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": null,
+      "presence": "absent",
+      "certitude": "faible",
+      "disponibilite": "boutique"
+    },
+    {
+      "slug": "origan-du-comtat",
+      "nomOfficiel": "Origan du Comtat",
+      "categorie": "Liqueurs régionales",
+      "gamme": "Les Régionales",
+      "arome": null,
+      "contenances": [],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": null,
+      "presence": "mention",
+      "certitude": "faible",
+      "disponibilite": "boutique"
+    },
+    {
+      "slug": "elixir-du-mont-ventoux",
+      "nomOfficiel": "Elixir du Mont-Ventoux",
+      "categorie": "Liqueurs régionales",
+      "gamme": "Les Régionales",
+      "arome": null,
+      "contenances": [],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": null,
+      "presence": "absent",
+      "certitude": "faible",
+      "disponibilite": "boutique"
     },
     {
       "slug": "verveine-auguste-vieilli",
@@ -708,7 +808,42 @@
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique/132/verveine-auguste-vieilli-",
       "presence": "fiche",
-      "certitude": "moyenne"
+      "certitude": "moyenne",
+      "disponibilite": "en-ligne"
+    },
+    {
+      "slug": "liqueur-de-lavande",
+      "nomOfficiel": "Liqueur de lavande",
+      "categorie": "Liqueurs régionales",
+      "gamme": "Les Régionales",
+      "arome": "lavande",
+      "contenances": [],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": null,
+      "presence": "absent",
+      "certitude": "faible",
+      "disponibilite": "boutique"
+    },
+    {
+      "slug": "creme-de-chataigne",
+      "nomOfficiel": "Crème de châtaigne",
+      "categorie": "Crèmes",
+      "gamme": null,
+      "arome": "châtaigne",
+      "contenances": [],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": null,
+      "presence": "mention",
+      "certitude": "faible",
+      "disponibilite": "boutique"
     },
     {
       "slug": "eau-de-vie-poire-williams-flirt",
@@ -730,7 +865,8 @@
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique/127/poires-williams-blachere-43vol",
       "presence": "fiche",
-      "certitude": "élevée"
+      "certitude": "élevée",
+      "disponibilite": "en-ligne"
     },
     {
       "slug": "marc-chateauneuf-du-pape-reserve-des-legats",
@@ -753,7 +889,42 @@
       "bestSeller": false,
       "url": null,
       "presence": "liste",
-      "certitude": "moyenne"
+      "certitude": "moyenne",
+      "disponibilite": "en-ligne"
+    },
+    {
+      "slug": "vieux-marc-elixir-millesimes",
+      "nomOfficiel": "Millésimes VIEUX MARC « Elixir® »",
+      "categorie": "Eaux-de-vie de marc",
+      "gamme": "Vieux Marc de Châteauneuf-du-Pape",
+      "arome": "marc de raisin",
+      "contenances": [],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": null,
+      "presence": "liste",
+      "certitude": "faible",
+      "disponibilite": "boutique"
+    },
+    {
+      "slug": "vieux-marc-de-provence-gros-calan",
+      "nomOfficiel": "Vieux Marc de Provence « GROS CALAN »",
+      "categorie": "Eaux-de-vie de marc",
+      "gamme": "Vieux Marc de Provence",
+      "arome": "marc de raisin (Provence)",
+      "contenances": [],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": null,
+      "presence": "mention",
+      "certitude": "faible",
+      "disponibilite": "boutique"
     }
   ]
 }

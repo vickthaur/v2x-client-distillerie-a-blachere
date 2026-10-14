@@ -7,7 +7,7 @@ import '../styles/shop.css';
 import '../styles/product.css';
 import { initSite, addToCart } from '../app/site.js';
 import { cardHTML } from '../app/cards.js';
-import { bySlug, products, visibleProducts, recettes, FAMILLES, UNIVERS, EVIN, MINEURS, euro } from '../data/products.js';
+import { bySlug, products, visibleProducts, recettes, FAMILLES, UNIVERS, EVIN, MINEURS, euro, DISPO_BOUTIQUE } from '../data/products.js';
 import { infos } from '../data/site.js';
 import { $, $$, esc, calm, hasWebGL } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
@@ -62,6 +62,16 @@ function priceHTML() {
   return `<p class="pp__price pp__price--none"><strong>Prix en boutique</strong><span>Ce prix n’est pas affiché en ligne : la distillerie vous le donne au magasin ou par téléphone (${infos.magasin.tel}).</span></p>`;
 }
 
+// Produit présent dans les archives de la distillerie mais pas dans la boutique en ligne :
+// ni prix, ni contenance inventés, ni ajout au panier.
+function boutiqueHTML() {
+  return `<div class="pp__dispo">
+    <p class="pp__dispo-title">${icons.store}<strong>${esc(DISPO_BOUTIQUE)}</strong></p>
+    <p>Ce produit n’est pas vendu en ligne. Prix, contenance${p.alcool ? ' et degré' : ''} à confirmer avec la distillerie : ${esc(infos.magasin.tel)}.</p>
+    <a class="link" href="/visiter">Préparer une visite</a>
+  </div>`;
+}
+
 function render() {
   document.title = `${p.nom} · Boutique · Distillerie A. Blachère`;
   const majeur = site.majeur;
@@ -105,7 +115,8 @@ function render() {
       <h1 class="pp__name">${esc(p.nom).replace(/®/g, '<sup>®</sup>')}</h1>
       <p class="pp__type">${esc(p.type)}</p>
       ${phrase ? `<p class="pp__phrase">« ${esc(phrase)} »</p>` : ''}
-      <form class="pp__buy" id="buy" novalidate>
+      ${p.enLigne ? '' : boutiqueHTML()}
+      <form class="pp__buy" id="buy" novalidate${p.enLigne ? '' : ' hidden'}>
         ${volumes}
         <div id="price">${priceHTML()}</div>
         <div class="pp__row">
@@ -156,11 +167,16 @@ function bindBuy() {
   };
   $$('[data-step]', form).forEach((b) => b.addEventListener('click', () => setQty(qty + Number(b.dataset.step))));
   input.addEventListener('change', () => setQty(parseInt(input.value, 10)));
+  if (!p.enLigne) return bindSides();
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const c = p.contenances[selected];
     addToCart(p.slug, c?.ml ?? null, qty, { open: true });
   });
+  bindSides();
+}
+
+function bindSides() {
   $$('[data-side]').forEach((b) =>
     b.addEventListener('click', () => {
       viewer?.setAngle(Number(b.dataset.side) ? Math.PI : 0);

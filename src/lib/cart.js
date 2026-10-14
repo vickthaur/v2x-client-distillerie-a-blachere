@@ -11,7 +11,7 @@ const listeners = new Set();
 function load() {
   const saved = readJSON(KEY, null);
   if (!saved || saved.v !== VERSION || !Array.isArray(saved.items)) return [];
-  return saved.items.filter((i) => bySlug[i.slug] && Number.isInteger(i.qty) && i.qty > 0 && i.qty < 100);
+  return saved.items.filter((i) => bySlug[i.slug]?.enLigne && Number.isInteger(i.qty) && i.qty > 0 && i.qty < 100);
 }
 
 let items = load();
@@ -41,10 +41,13 @@ export const cart = {
     return items.reduce((s, i) => s + i.qty, 0);
   },
   add(slug, ml = null, qty = 1) {
+    // Produits « disponibles à la boutique de la distillerie » : jamais dans le panier en ligne.
+    if (!bySlug[slug]?.enLigne) return false;
     const line = items.find((i) => same(i, slug, ml));
     if (line) line.qty = Math.min(99, line.qty + qty);
     else items = [...items, { slug, ml, qty: Math.min(99, qty) }];
     save();
+    return true;
   },
   set(slug, ml, qty) {
     if (qty <= 0) items = items.filter((i) => !same(i, slug, ml));

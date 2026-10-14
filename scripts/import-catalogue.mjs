@@ -4,7 +4,10 @@
 //   npm run catalogue -- "/chemin/vers/blachere_catalogue.json"
 //
 // Règles appliquées (voir README) :
-// - seules les fiches de certitude « élevée » ou « moyenne » sont gardées ;
+// - les fiches de certitude « élevée » ou « moyenne » sont vendues en ligne ;
+// - les fiches de certitude « faible » (produit attesté par la page Histoire, la boutique, la presse
+//   ou les offices de tourisme, mais sans fiche ni prix officiels) sont gardées comme « disponibles
+//   à la boutique de la distillerie », sans prix ni contenance, et signalées « à confirmer » ;
 // - les prix revendeurs (prix_revendeurs) ne sont JAMAIS repris ;
 // - un prix n'est gardé que si sa source est le site officiel (distillerieablachere.com) ;
 // - un degré n'est gardé que si sa source est le site officiel (les degrés relevés chez des
@@ -20,7 +23,7 @@ const input = process.argv[2] ? resolve(process.argv[2]) : DEFAULT;
 const output = resolve(root, 'src/data/catalogue.json');
 
 const OFFICIEL = /distillerieablachere\.com/i;
-const GARDER = new Set(['élevée', 'moyenne']);
+const EN_LIGNE = new Set(['élevée', 'moyenne']);
 // Prix officiels vus une seule fois pendant la collecte (à revérifier avant la mise en ligne).
 const PRIX_A_VERIFIER = new Set(['sirop-couleur-provence-figue', 'sirop-couleur-provence-violette', 'sirop-couleur-provence-kiwi', 'sirop-citron']);
 
@@ -49,14 +52,12 @@ function millilitres(volume) {
 const isEnglish = (text) => /\b(my|the|it's|as for|used in|i drew)\b/i.test(text || '');
 
 const kept = [];
-const report = { exclus: [], prixAVerifier: [], degresRevendeurs: [], volumesRevendeurs: [], sansPrix: [], sansContenance: [] };
+const report = { boutique: [], prixAVerifier: [], degresRevendeurs: [], volumesRevendeurs: [], sansPrix: [], sansContenance: [] };
 
 for (const p of data.produits) {
-  if (!GARDER.has(p.certitude)) {
-    report.exclus.push(`${p.slug} (${p.certitude})`);
-    continue;
-  }
-  const contenances = (p.contenances || [])
+  const enLigne = EN_LIGNE.has(p.certitude);
+  if (!enLigne) report.boutique.push(`${p.slug} (${p.certitude})`);
+  const contenances = (enLigne ? p.contenances || [] : [])
     .map((c) => {
       const officiel = typeof c.prix_ttc === 'number' && OFFICIEL.test(c.source || '');
       const entry = { volume: c.volume.replace(/\bCL\b/, 'cl'), ml: millilitres(c.volume), prix: officiel ? c.prix_ttc : null };
@@ -72,8 +73,8 @@ for (const p of data.produits) {
       return entry;
     })
     .filter((c) => c.ml);
-  if (!contenances.length) report.sansContenance.push(p.slug);
-  else if (contenances.every((c) => c.prix === null)) report.sansPrix.push(p.slug);
+  if (enLigne && !contenances.length) report.sansContenance.push(p.slug);
+  else if (enLigne && contenances.every((c) => c.prix === null)) report.sansPrix.push(p.slug);
 
   const degreOfficiel = typeof p.degre === 'number' && OFFICIEL.test(p.degre_source || '') && !/revendeur/i.test(p.degre_source || '');
   if (typeof p.degre === 'number' && !degreOfficiel) report.degresRevendeurs.push(`${p.slug} : ${p.degre} % (${p.degre_source})`);
@@ -86,13 +87,16 @@ for (const p of data.produits) {
     arome: p.arome,
     contenances,
     degre: degreOfficiel ? p.degre : null,
-    citation: p.description || null,
-    citationLangue: p.description ? (isEnglish(p.description) ? 'en' : 'fr') : null,
+    citation: enLigne ? p.description || null : null,
+    citationLangue: enLigne && p.description ? (isEnglish(p.description) ? 'en' : 'fr') : null,
     ingredients: p.ingredients || null,
     bestSeller: p.best_seller === true,
     url: p.url && OFFICIEL.test(p.url) ? p.url : null,
     presence: p.presence_site_officiel,
     certitude: p.certitude,
+    // « en-ligne » : vendu sur le site ; « boutique » : disponible à la boutique de la distillerie
+    // (existence sourcée, présence actuelle à confirmer), jamais ajouté au panier.
+    disponibilite: enLigne ? 'en-ligne' : 'boutique',
   });
 }
 
@@ -105,7 +109,7 @@ writeFileSync(output, `${JSON.stringify(out, null, 2)}\n`);
 const n = (k) => kept.filter(k).length;
 console.log(`Catalogue : ${kept.length} produits gardés sur ${data.produits.length} (${n((p) => p.categorie === 'Sirops')} sirops, ${n((p) => p.categorie !== 'Sirops')} alcools).`);
 console.log(`Prix officiels : ${n((p) => p.contenances.some((c) => c.prix !== null))} produits.`);
-console.log(`Exclus (certitude faible) : ${report.exclus.join(', ') || 'aucun'}`);
+console.log(`Disponibles à la boutique, à confirmer (certitude faible) : ${report.boutique.join(', ') || 'aucun'}`);
 console.log(`Prix à vérifier : ${report.prixAVerifier.join(' ; ') || 'aucun'}`);
 console.log(`Degrés de source revendeur (non affichés) : ${report.degresRevendeurs.join(' ; ') || 'aucun'}`);
 console.log(`Contenances de source revendeur (affichées « à confirmer ») : ${report.volumesRevendeurs.join(' ; ') || 'aucune'}`);

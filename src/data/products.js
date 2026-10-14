@@ -86,6 +86,7 @@ const GAMME_DU_CATALOGUE = {
   'Les Régionales': 'liqueurs-regionales',
   'Eaux-de-vie de fruits': 'eaux-de-vie',
   'Vieux Marc de Châteauneuf-du-Pape': 'marcs',
+  'Vieux Marc de Provence': 'marcs',
 };
 
 // Présentation de chaque produit.
@@ -329,6 +330,112 @@ const P = {
       { t: 'Son nom évoque les légats qui ont gouverné Avignon et le Comtat après les papes.' },
     ],
   },
+  // Produits attestés (page Histoire, boutique officielle, presse, offices de tourisme) mais sans
+  // fiche ni prix officiels : « disponibles à la boutique de la distillerie », à confirmer.
+  'origan-du-comtat': {
+    nom: 'Origan du Comtat',
+    lignes: ['Origan', 'du Comtat'],
+    type: 'Liqueur de plantes',
+    famille: 'fleurs-plantes',
+    liquide: '#b88a2e',
+    bouteille: 'liqueur',
+    bouchon: '#405e77',
+    habillage: 'comtat',
+    notes: [
+      { t: 'Une recette de la fin du XIXe siècle, faite de dizaines de plantes du Ventoux.' },
+      { t: 'Elle entre dans la recette des papalines d’Avignon, chocolats au cœur de liqueur.' },
+    ],
+  },
+  'la-comtadine': {
+    nom: 'La Comtadine',
+    lignes: ['La', 'Comtadine'],
+    type: 'Liqueur',
+    liquide: '#c49a52',
+    bouteille: 'liqueur',
+    bouchon: '#9e1b32',
+    habillage: 'comtat',
+    notes: [{ t: 'Citée par une fiche touristique parmi les liqueurs que l’on déguste gratuitement à la boutique ; absente du site actuel.' }],
+  },
+  'la-magistrale': {
+    nom: 'La Magistrale',
+    lignes: ['La', 'Magistrale'],
+    type: 'Eau d’arquebuse',
+    famille: 'fleurs-plantes',
+    liquide: '#a3ad5c',
+    bouteille: 'apothicaire',
+    bouchage: 'cork',
+    habillage: 'ventoux',
+    notes: [
+      { t: 'La page Histoire de la maison la relie au « Révérend Frère Imbert », chimiste religieux du XVIIIe siècle.' },
+      { t: 'Une eau d’arquebuse aux plantes de Provence, dont l’armoise, selon le blog de Gilles Pudlowski.' },
+    ],
+  },
+  'elixir-du-mont-ventoux': {
+    nom: 'Élixir du Mont-Ventoux',
+    lignes: ['Élixir', 'du Mont-Ventoux'],
+    type: 'Liqueur',
+    famille: 'fleurs-plantes',
+    liquide: '#7a913f',
+    bouteille: 'liqueur',
+    bouchon: '#55613a',
+    habillage: 'ventoux',
+    notes: [
+      { t: 'Marque déposée à l’INPI par la maison le 29 mai 2000.' },
+      { t: 'Vendue par un caviste ; absente du site actuel.' },
+      { t: 'À ne pas confondre avec les millésimes de vieux marc « Elixir® ».' },
+    ],
+  },
+  'liqueur-de-lavande': {
+    nom: 'Liqueur de lavande',
+    lignes: ['Liqueur', 'de lavande'],
+    type: 'Liqueur de lavande',
+    famille: 'fleurs-plantes',
+    liquide: '#8f7bc4',
+    bouteille: 'liqueur',
+    bouchon: '#6e5c9e',
+    habillage: 'ventoux',
+    notes: [{ t: 'Vue seulement chez des revendeurs ; absente du site actuel.' }],
+  },
+  'creme-de-chataigne': {
+    nom: 'Crème de châtaigne',
+    lignes: ['Crème', 'de châtaigne'],
+    type: 'Crème de liqueur',
+    famille: 'gourmands',
+    liquide: '#6b3f22',
+    trouble: true,
+    bouteille: 'liqueur',
+    bouchon: '#6e4526',
+    habillage: 'maison',
+    notes: [
+      { t: 'La fiche du sirop de châtaigne la cite : « notre crème de châtaigne », dont le sirop est la version sans alcool.' },
+      { t: 'La même fiche évoque des liens « très forts » de la maison avec la terre ardéchoise.' },
+    ],
+  },
+  'vieux-marc-elixir-millesimes': {
+    nom: 'Vieux marc « Elixir® », millésimes',
+    lignes: ['Vieux marc', '« Elixir® »'],
+    type: 'Vieux marc de Châteauneuf-du-Pape',
+    famille: 'vigne',
+    liquide: '#b9772f',
+    bouteille: 'marc',
+    bouchon: '#5e1a2b',
+    habillage: 'marcs',
+    notes: [
+      { t: 'Libellé de la rubrique des vieux marcs de Châteauneuf-du-Pape de la boutique officielle ; millésimes à confirmer.' },
+      { t: 'À ne pas confondre avec l’Élixir du Mont-Ventoux, une liqueur.' },
+    ],
+  },
+  'vieux-marc-de-provence-gros-calan': {
+    nom: 'Vieux marc de Provence « Gros Calan »',
+    lignes: ['Gros', 'Calan'],
+    type: 'Vieux marc de Provence',
+    famille: 'vigne',
+    liquide: '#a8692a',
+    bouteille: 'marc',
+    bouchon: '#6e4526',
+    habillage: 'marcs',
+    notes: [{ t: 'La page Histoire le cite parmi les créations de la période Louis Guiot (1951-1989).' }],
+  },
 };
 
 // Couleurs dérivées d'une teinte de liquide (fond, dégradé, fond sombre, texte clair).
@@ -358,7 +465,8 @@ export const euro = (n) => `${n.toFixed(2).replace('.', ',')} €`;
 
 export const products = catalogue.produits.map((c, index) => {
   const e = P[c.slug] || {};
-  const gamme = GAMME_DU_CATALOGUE[c.gamme];
+  // Crème de châtaigne : pas de gamme dans le catalogue officiel, rangée avec les liqueurs régionales.
+  const gamme = GAMME_DU_CATALOGUE[c.gamme] || (c.categorie === 'Crèmes' ? 'liqueurs-regionales' : undefined);
   const g = GAMMES.find((x) => x.id === gamme);
   const alcool = c.categorie !== 'Sirops';
   const contenances = c.contenances.map((k) => ({ ...k, prixTexte: k.prix !== null ? euro(k.prix) : null }));
@@ -390,6 +498,9 @@ export const products = catalogue.produits.map((c, index) => {
     url: c.url,
     presence: c.presence,
     certitude: c.certitude,
+    // « boutique » : disponible à la boutique de la distillerie, présence à confirmer, hors panier.
+    disponibilite: c.disponibilite || 'en-ligne',
+    enLigne: (c.disponibilite || 'en-ligne') === 'en-ligne',
     notes: e.notes || [],
     conseil: e.conseil || null,
     ...palette(e.liquide || '#c9a24a'),
@@ -407,6 +518,8 @@ export const products = catalogue.produits.map((c, index) => {
 });
 
 export const bySlug = Object.fromEntries(products.map((p) => [p.slug, p]));
+
+export const DISPO_BOUTIQUE = 'Disponible à la boutique de la distillerie';
 
 // Plus petit prix officiel connu (« à partir de »), ou null.
 export const minPrice = (p) => {

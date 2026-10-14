@@ -5,7 +5,7 @@
 // - première visite : la date de naissance est demandée ; les sirops restent accessibles sans répondre ;
 // - moins de 18 ans : les spiritueux sont retirés de toutes les pages pour la session ;
 // - 18 ans ou plus : réponse gardée dans le navigateur (clé blachere-age).
-import { bySlug, euro, EVIN, MINEURS } from '../data/products.js';
+import { bySlug, euro, EVIN, MINEURS, DISPO_BOUTIQUE } from '../data/products.js';
 import { readAge, saveAge, resetAge, ageFrom } from '../lib/age.js';
 import { cart } from '../lib/cart.js';
 import { $, $$, esc, calm, plural } from '../lib/dom.js';
@@ -253,7 +253,11 @@ export function addToCart(slug, ml = null, qty = 1, { open = false } = {}) {
     requireAge();
     return false;
   }
-  cart.add(slug, ml, qty);
+  if (!p.enLigne) {
+    toast(`${p.nom} : ${DISPO_BOUTIQUE.charAt(0).toLowerCase()}${DISPO_BOUTIQUE.slice(1)}`);
+    return false;
+  }
+  if (!cart.add(slug, ml, qty)) return false;
   const btn = $('#cart-open');
   btn?.classList.add('is-bump');
   setTimeout(() => btn?.classList.remove('is-bump'), 320);
