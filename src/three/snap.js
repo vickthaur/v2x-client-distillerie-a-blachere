@@ -21,7 +21,9 @@ export async function renderShots(jobs, onDone) {
   for (const [fmt, list] of groups) {
     const [width, height] = FORMATS[fmt] || FORMATS.portrait;
     const canvas = document.createElement('canvas');
-    canvas.style.cssText = `position:fixed;left:-10000px;top:0;width:${width}px;height:${height}px;pointer-events:none;`;
+    // max-width:none : sur téléphone, le « max-width: 100% » des canvas (base.css) ramènerait le rendu
+    // à la largeur de l'écran et changerait son cadrage
+    canvas.style.cssText = `position:fixed;left:-10000px;top:0;width:${width}px;height:${height}px;max-width:none;max-height:none;pointer-events:none;`;
     document.body.appendChild(canvas);
     // cadre des bouteilles dans l'image (format « carte » : la moitié haute, le texte vient dessous)
     const frame = fmt === 'carte' ? { x: 0.1, y: 0.07, w: 0.8, h: 0.53 } : null;

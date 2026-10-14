@@ -88,7 +88,9 @@ a { color: inherit; }
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
 h1, h2, h3, h4, p, ul, ol, dl, dd, figure, blockquote { margin: 0; }
-ul[class], ol[class] { list-style: none; padding: 0; }
+/* sans spécificité : les marges intérieures données par les classes des listes (carrousels, panier
+   latéral, étapes…) s'appliquent */
+:where(ul[class], ol[class]) { list-style: none; padding: 0; }
 sup { font-size: 0.55em; line-height: 0; vertical-align: 0.9em; }
 :focus-visible { outline: 2px solid var(--fb); outline-offset: 3px; }
 [hidden] { display: none !important; }
@@ -233,11 +235,13 @@ body[data-hero] .hd[data-state='top']:not(.has-mega) .logo__img--light { opacity
 .mega__brands--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .mega-brand { position: relative; display: block; aspect-ratio: 4 / 3; overflow: hidden; border-radius: var(--r); background: var(--b, var(--thumb-bg)); color: #fff; text-decoration: none; transition: transform 0.4s var(--ease), box-shadow 0.4s var(--ease); }
 .mega-brand:hover { transform: translateY(-3px); box-shadow: var(--shadow-1); }
-.mega-brand__render { position: absolute; inset: 0; }
+/* la bouteille à droite, le texte à gauche : ils ne se chevauchent jamais ; le bord gauche du rendu
+   se fond dans la couleur de la carte (pas de raccord visible) */
+.mega-brand__render { position: absolute; inset: 0 -24% 0 24%; -webkit-mask-image: linear-gradient(90deg, transparent, #000 32%); mask-image: linear-gradient(90deg, transparent, #000 32%); }
 .mega-brand__render .thumb { width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s var(--ease); }
 .mega-brand__render .thumb--wait { padding: 30% 16% 7%; background: transparent; }
 .mega-brand:hover .mega-brand__render .thumb { transform: scale(1.04); }
-.mega-brand__txt { position: absolute; inset: 0 0 auto; display: grid; gap: 3px; padding: 16px 18px; }
+.mega-brand__txt { position: absolute; inset: 0 auto auto 0; display: grid; gap: 3px; max-width: 62%; padding: 16px 18px; }
 .mega-brand__name { font: 720 1.12rem/1.15 var(--font); letter-spacing: -0.01em; }
 .mega-brand__line { max-width: 22ch; font-size: 0.84rem; line-height: 1.35; opacity: 0.86; }
 .mega-brand[style*='--provence'], .mega-brand--sober { color: var(--ink); }
@@ -286,12 +290,12 @@ body[data-hero] .hd[data-state='top']:not(.has-mega) .logo__img--light { opacity
 .menu__top { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; min-height: 68px; padding: 10px var(--gutter); background: var(--paper); border-bottom: 1px solid var(--line); }
 .menu__body { display: grid; gap: 30px; padding: 26px var(--gutter) 32px; }
 .menu__h { margin-bottom: 12px; font: 650 0.74rem/1.2 var(--font); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); }
-.menu__brands { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(200px, 1fr); gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; margin-inline: calc(-1 * var(--gutter)); padding-inline: var(--gutter); scrollbar-width: none; }
+.menu__brands { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(200px, 1fr); gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter); margin-inline: calc(-1 * var(--gutter)); padding-inline: var(--gutter); scrollbar-width: none; }
 .menu__brands::-webkit-scrollbar { display: none; }
-.menu__brands a { position: relative; display: block; aspect-ratio: 4 / 3; overflow: hidden; border-radius: var(--r); background: var(--b); color: #fff; text-decoration: none; font-weight: 700; scroll-snap-align: start; }
-.menu__brands a[style*='--provence'] { color: var(--ink); }
-.menu__brands a > span:last-child { position: absolute; left: 12px; top: 10px; }
-.menu__thumb { position: absolute; inset: 0; }
+/* vignette de la marque, son nom dessous : le nom ne passe jamais sur la bouteille */
+.menu__brands a { display: grid; align-content: start; gap: 8px; color: var(--ink); text-decoration: none; font-weight: 700; scroll-snap-align: start; }
+.menu__brand-name { padding-inline: 2px; line-height: 1.2; }
+.menu__thumb { position: relative; display: block; aspect-ratio: 4 / 3; overflow: hidden; border-radius: var(--r); background: var(--b); }
 .menu__thumb .thumb { width: 100%; height: 100%; object-fit: cover; }
 .menu__thumb .thumb--wait { padding: 14% 20% 6%; background: transparent; }
 .menu__list li + li { border-top: 1px solid var(--line); }

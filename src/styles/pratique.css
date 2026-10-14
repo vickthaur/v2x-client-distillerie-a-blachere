@@ -42,6 +42,7 @@ legend.field__label { margin-bottom: 7px; padding: 0; }
 .choice label > span { font-size: 0.8rem; line-height: 1.4; color: var(--ink-3); }
 .choice--inline { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .choice--inline label { min-height: 52px; align-content: center; padding-block: 12px; }
+.choice--inline input { top: 50%; transform: translateY(-50%); }
 
 /* Demande prête (maquette) */
 .done { display: grid; justify-items: start; gap: 16px; }

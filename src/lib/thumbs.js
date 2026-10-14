@@ -11,7 +11,7 @@ import { esc, hasWebGL } from './dom.js';
 import { photoIndex } from './photos.js';
 import { readJSON, writeJSON } from './store.js';
 
-const RENDER_VERSION = 12; // à incrémenter quand le rendu des bouteilles change
+const RENDER_VERSION = 13; // à incrémenter quand le rendu des bouteilles change
 const KEY = `blachere-rendus-${RENDER_VERSION}`;
 const snaps = readJSON(KEY, {}, 'session') || {};
 let photos = {};
