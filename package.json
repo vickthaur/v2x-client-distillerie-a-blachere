@@ -1,11 +1,15 @@
 {
   "name": "v2x-client-distillerie-a-blachere",
   "private": true,
-  "version": "1.0.0",
+  "version": "2.0.0",
   "type": "module",
-  "description": "Distillerie A. Blachère : maquette de refonte (V2X Studio), vitrine 3D des sirops et spiritueux",
+  "description": "Distillerie A. Blachère : maquette de refonte (V2X Studio), vitrine 3D, boutique et visites",
   "scripts": {
+    "predev": "node scripts/photos.mjs",
     "dev": "vite",
+    "photos": "node scripts/photos.mjs",
+    "catalogue": "node scripts/import-catalogue.mjs",
+    "prebuild": "node scripts/photos.mjs",
     "build": "vite build",
     "preview": "vite preview"
   },
@@ -15,6 +19,7 @@
     "three": "0.169.0"
   },
   "devDependencies": {
+    "sharp": "0.35.5",
     "vite": "5.4.21"
   }
 }

@@ -3,3 +3,7 @@ dist
 .vercel
 .env*
 .DS_Store
+# Généré à chaque build depuis photos/ (scripts/photos.mjs) : ne pas versionner.
+public/bouteilles/
+public/lieux/
+.cache/
