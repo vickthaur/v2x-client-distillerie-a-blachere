@@ -10,17 +10,6 @@
 .shop-hero h1 { font: 780 clamp(2.6rem, 5.4vw, 4.8rem)/0.95 var(--font); letter-spacing: -0.045em; }
 .shop-hero .lead { max-width: 60ch; }
 
-/* Rayons : liens texte à filet, sans tuiles de couleur */
-.cats { display: flex; flex-wrap: wrap; gap: 0; border-bottom: 1px solid var(--line); }
-.cat { position: relative; display: inline-flex; align-items: baseline; gap: 8px; padding: 14px 18px 14px 0; margin-right: 18px; border: 0; background: none; color: var(--ink-2); font: 620 1rem/1.2 var(--font); text-decoration: none; cursor: pointer; }
-.cat::after { content: ''; position: absolute; left: 0; right: 18px; bottom: -1px; height: 2px; background: var(--ink); transform: scaleX(0); transform-origin: left; transition: transform 0.35s var(--ease); }
-.cat:hover { color: var(--ink); }
-.cat.is-on { color: var(--ink); }
-.cat.is-on::after { transform: scaleX(1); }
-.cat__n { font-size: 0.8rem; font-weight: 600; color: var(--ink-3); font-variant-numeric: tabular-nums; }
-.cat svg { width: 14px; height: 14px; align-self: center; }
-.cat--locked { color: var(--ink-3); }
-
 /* ---------- Barre d'outils ---------- */
 .shop__bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 18px 0 14px; }
 .shop-search { position: relative; flex: 1 1 320px; min-width: 0; }

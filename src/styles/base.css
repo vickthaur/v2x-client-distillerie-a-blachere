@@ -536,3 +536,15 @@ body.menu-ouvert, body.search-ouverte { overflow: hidden; }
 .ft__brands .wm--fb { width: 4.4em; height: 2.27em; vertical-align: -0.8em; }
 .ft__brands .wm--pac { width: 2.4em; height: 1.97em; vertical-align: -0.72em; }
 .card__name .wm--pac, .hero__tag-name .wm--pac, .line__name .wm--pac, .co-line__name .wm--pac, .ft__brands .wm--pac, .menu__brand-name .wm--pac { width: 2.1em; height: 1.72em; vertical-align: -0.62em; }
+
+/* ---------- Onglets texte à filet (rayons de la boutique, ailes des archives) ---------- */
+.cats { display: flex; flex-wrap: wrap; gap: 0; border-bottom: 1px solid var(--line); }
+.cat { position: relative; display: inline-flex; align-items: baseline; gap: 8px; padding: 14px 18px 14px 0; margin-right: 18px; border: 0; background: none; color: var(--ink-2); font: 620 1rem/1.2 var(--font); text-decoration: none; cursor: pointer; }
+.cat::after { content: ''; position: absolute; left: 0; right: 18px; bottom: -1px; height: 2px; background: var(--ink); transform: scaleX(0); transform-origin: left; transition: transform 0.35s var(--ease); }
+.cat:hover { color: var(--ink); }
+.cat.is-on { color: var(--ink); }
+.cat.is-on::after { transform: scaleX(1); }
+.cat__n { font-size: 0.8rem; font-weight: 600; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.cat svg { width: 14px; height: 14px; align-self: center; }
+.cat--locked { color: var(--ink-3); }
+
