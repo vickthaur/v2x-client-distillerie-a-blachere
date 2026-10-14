@@ -172,3 +172,29 @@
   .mus-dialog__in { grid-template-columns: 1fr; }
 }
 @media (max-width: 560px) { .mus-wall { columns: 2 140px; column-gap: 18px; } }
+
+/* ---------- La maison ---------- */
+.mh-hero { padding: calc(var(--header-h) + clamp(32px, 5vw, 72px)) 0 clamp(40px, 6vw, 80px); }
+.mh-hero__in { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: clamp(28px, 5vw, 88px); align-items: center; }
+.mh-hero__copy { display: grid; gap: 20px; }
+.mh-epi { max-width: 40ch; margin: 8px 0 0; padding-left: 16px; border-left: 2px solid var(--ink); font: italic 420 1.06rem/1.5 var(--serif); color: var(--ink-2); }
+.mh-hero__fig { display: grid; gap: 16px; }
+.mh-periode { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 6fr) minmax(0, 4fr); gap: clamp(20px, 3vw, 56px); align-items: start; padding: clamp(32px, 4vw, 56px) 0; border-top: 1px solid var(--ink); }
+.mh-periode:last-child { border-bottom: 1px solid var(--ink); }
+.mh-periode__dates { display: grid; gap: 4px; font: 800 clamp(2.4rem, 4.4vw, 4rem)/0.92 var(--font); letter-spacing: -0.045em; font-variant-numeric: tabular-nums; }
+.mh-periode__to { font-size: 0.45em; font-weight: 650; letter-spacing: -0.01em; color: var(--ink-3); }
+.mh-periode__body { max-width: 62ch; color: var(--ink-2); }
+.mh-periode__body p + p { margin-top: 12px; }
+.mh-periode__pieces { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 18px; }
+.mh-savoir { background: var(--u-bg); color: var(--u-ink); }
+.mh-savoir__in { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: clamp(28px, 5vw, 88px); align-items: center; }
+.mh-savoir__copy { display: grid; gap: 18px; justify-items: start; }
+.mh-savoir__copy .prose { color: var(--u-soft); max-width: 56ch; }
+.mh-savoir .bsource { color: rgba(255, 255, 255, 0.55); }
+.mh-savoir__photos { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.mh-savoir__photos .ph { aspect-ratio: 4 / 5; }
+.mh-chantier__in { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: clamp(28px, 5vw, 88px); align-items: start; }
+@media (max-width: 1000px) {
+  .mh-periode { grid-template-columns: 1fr; }
+  .mh-hero__in, .mh-savoir__in, .mh-chantier__in { grid-template-columns: 1fr; }
+}

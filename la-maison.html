@@ -3,95 +3,76 @@
   <head>
     <!-- @include head.html -->
     <title>La maison · Distillerie A. Blachère</title>
-    <meta name="description" content="La Distillerie A. Blachère, de la rue Molière à Avignon en 1835 aux vignes de Châteauneuf-du-Pape depuis 1993 : la frise de 1835 à 2035, la famille, le lieu, le chantier." />
-    <meta name="theme-color" content="#f6f1e7" />
+    <meta name="description" content="La Distillerie A. Blachère, la plus ancienne distillerie de Provence : fondée en 1835 au 14 rue Molière à Avignon, à Châteauneuf-du-Pape depuis 1993. Son histoire, racontée par la maison, son savoir-faire et ses archives." />
+    <meta name="theme-color" content="#f7f5f0" />
     <meta property="og:title" content="La maison · Distillerie A. Blachère" />
   </head>
   <body data-page="maison" class="maison-page">
     <!-- @include header.html -->
     <main id="contenu">
-      <section class="page-hero" data-univers="maison" aria-labelledby="maison-title">
-        <div class="wrap maison-hero">
-          <div class="page-hero__in">
-            <p class="kicker">La maison · Avignon 1835 → Châteauneuf-du-Pape</p>
-            <h1 class="page-hero__title" id="maison-title">Je suis née en 1835<br /><em>au 14 rue Molière</em></h1>
-            <p class="lead">V.L. Blachère et son fils Auguste fondent la maison à Avignon. Depuis 1993, elle vit au milieu des vignes de Châteauneuf-du-Pape, route de Sorgues. Elle se présente comme la plus ancienne distillerie de Provence.</p>
+      <section class="mh-hero" aria-labelledby="maison-title">
+        <div class="wrap mh-hero__in">
+          <div class="mh-hero__copy">
+            <p class="kicker">La maison · depuis 1835</p>
+            <h1 class="h-display" id="maison-title">La plus ancienne distillerie <span class="accent">de Provence</span></h1>
+            <p class="lead">Fondée en 1835 au 14 rue Molière, à Avignon, installée à Châteauneuf-du-Pape depuis 1993. La maison raconte elle-même son histoire, à la première personne.</p>
+            <blockquote class="mh-epi" id="maison-epi" data-majeur hidden></blockquote>
           </div>
-          <figure class="trajet" aria-label="D’Avignon à Châteauneuf-du-Pape (schéma)">
-            <svg viewBox="0 0 440 300" role="img" aria-label="Schéma : Avignon, 14 rue Molière (1835), puis Châteauneuf-du-Pape, route de Sorgues (1993), au bord du Rhône">
-              <path d="M84 300 C120 230 60 170 110 110 C150 60 120 20 160 0" fill="none" stroke="#6faeb6" stroke-width="16" stroke-linecap="round" opacity=".55" />
-              <text x="58" y="250" font-family="Della Respira, serif" font-size="13" letter-spacing="2" fill="#3b2a1e" transform="rotate(-62 58 250)">LE RHÔNE</text>
-              <path d="M250 232 C226 170 214 120 214 78" fill="none" stroke="#3b2a1e" stroke-width="2.5" stroke-dasharray="2 9" stroke-linecap="round" />
-              <circle cx="250" cy="240" r="13" fill="#aa752e" />
-              <circle cx="214" cy="68" r="13" fill="#c2167f" />
-              <text x="270" y="236" font-family="Fraunces, serif" font-size="20" font-weight="600" fill="#1d150c">Avignon</text>
-              <text x="270" y="256" font-family="Archivo, sans-serif" font-size="12" fill="#3b2a1e">14 rue Molière · 1835</text>
-              <text x="234" y="56" font-family="Fraunces, serif" font-size="20" font-weight="600" fill="#1d150c">Châteauneuf-</text>
-              <text x="234" y="78" font-family="Fraunces, serif" font-size="20" font-weight="600" fill="#1d150c">du-Pape</text>
-              <text x="234" y="98" font-family="Archivo, sans-serif" font-size="12" fill="#3b2a1e">route de Sorgues · 1993</text>
-            </svg>
-            <figcaption class="note">Schéma sans échelle.</figcaption>
-          </figure>
+          <figure class="mh-hero__fig" id="maison-hero-fig"></figure>
         </div>
       </section>
 
-      <section class="section" data-univers="maison" aria-labelledby="frise-title" id="histoire">
+      <section class="section mh-histoire" id="histoire" aria-labelledby="histoire-title">
         <div class="wrap">
-          <div class="section__head" data-reveal>
-            <p class="kicker">De 1835 à 2035</p>
-            <h2 class="h-univers" id="frise-title">La frise de la maison</h2>
-            <p class="lead">Les dates que les sources confirment. Celles qui se contredisent sont écrites prudemment, en attendant la famille.</p>
+          <div class="section__head">
+            <div>
+              <p class="kicker">Notre histoire</p>
+              <h2 class="h-section" id="histoire-title">Quatre époques</h2>
+            </div>
+            <p class="bsource">Texte de la page Histoire du site de la distillerie.</p>
           </div>
-          <div id="frise"></div>
-          <p class="note" id="frise-note"></p>
+          <div id="periodes"></div>
+          <p class="bnote" id="histoire-note"></p>
         </div>
       </section>
 
-      <section class="section" data-univers="citronnade" aria-labelledby="famille-title" id="famille">
-        <div class="wrap split">
-          <div class="section__head" data-reveal>
-            <p class="kicker">La famille</p>
-            <h2 class="h-univers h-maison" id="famille-title">Huit générations du nom</h2>
-            <p class="lead">En 1993, Sandrine Blachère, 8e génération du nom, et Raphaël Vannelle, 22 ans, reprennent une maison en difficulté et la relancent par le sirop, des bars marseillais jusqu’à la grande distribution.</p>
-            <p class="lead">Raphaël Vannelle, passionné de bande dessinée, a lancé le festival « Châteauneuf-du-Pape en Bulles », gratuit, au cœur du village.</p>
+      <section class="section mh-savoir" id="savoir-faire" data-univers="encre" aria-labelledby="savoir-title">
+        <div class="wrap mh-savoir__in">
+          <div class="mh-savoir__copy">
+            <p class="kicker kicker--light">Le savoir-faire</p>
+            <h2 class="h-section" id="savoir-title">Des plantes, des secrets <span class="accent">et des mains</span></h2>
+            <div class="prose" id="savoir-texte"></div>
+            <p class="bsource">Page Histoire du site de la distillerie ; parcours de la visite d’après Pop Tourisme.</p>
+            <a class="btn btn--light" href="/visiter">Visiter la distillerie</a>
           </div>
-          <div class="portraits" data-reveal>
-            <figure><div class="ph" data-lieu="sandrine-blachere" data-alt="Sandrine Blachère">Portrait à fournir, avec accord écrit</div><figcaption><strong>Sandrine Blachère</strong> · gérante</figcaption></figure>
-            <figure><div class="ph" data-lieu="raphael-vannelle" data-alt="Raphaël Vannelle">Portrait à fournir, avec accord écrit</div><figcaption><strong>Raphaël Vannelle</strong> · codirigeant</figcaption></figure>
-          </div>
+          <div class="mh-savoir__photos" id="savoir-photos"></div>
         </div>
       </section>
 
-      <section class="section" data-univers="maison" aria-labelledby="lieu-title" id="lieu">
-        <div class="wrap split">
-          <div class="section__head" data-reveal>
-            <p class="kicker">Le lieu</p>
-            <h2 class="h-univers" id="lieu-title">Au milieu des vignes</h2>
-            <p class="lead">Depuis 1993, la distillerie est un site de production au 1695 route de Sorgues, avec un magasin de vente et de dégustation décoré d’objets du patrimoine de la maison, dont d’anciennes récompenses.</p>
-            <ul class="facts-list" id="lieu-alcool"></ul>
-            <a class="oval" href="/visiter">Visiter la distillerie</a>
+      <section class="section barch" data-univers="pierre" aria-labelledby="maison-archives">
+        <div class="wrap">
+          <div class="section__head">
+            <div>
+              <p class="kicker">Les archives</p>
+              <h2 class="h-section" id="maison-archives">Les papiers de la rue Molière</h2>
+            </div>
+            <a class="arrow-link" href="/musee#aile-maison">Toutes les archives <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>
           </div>
-          <div class="lieu-ph lieu-grid" data-reveal>
-            <div class="ph" data-lieu="comptoir" data-alt="Le comptoir de dégustation">Photo à faire : le comptoir</div>
-            <div class="ph" data-lieu="herboristerie" data-alt="L’herboristerie">Photo à faire : l’herboristerie</div>
-            <div class="ph" data-lieu="chai" data-alt="Le vieux chai">Photo à faire : le vieux chai</div>
-            <div class="ph" data-lieu="vignes" data-alt="Les vignes autour de la distillerie">Photo à faire : les vignes</div>
-            <p class="note">De préférence après les travaux.</p>
-          </div>
+          <div id="maison-pieces"></div>
         </div>
       </section>
 
-      <section class="section" data-univers="encre" aria-labelledby="chantier-title" id="chantier">
-        <div class="wrap split">
-          <div class="section__head" data-reveal>
+      <section class="section mh-chantier" aria-labelledby="chantier-title" id="chantier">
+        <div class="wrap mh-chantier__in">
+          <div>
             <p class="kicker">Le chantier</p>
-            <h2 class="h-univers" id="chantier-title">Un grand projet à partir de 2026</h2>
-            <p class="lead">Moderniser, agrandir et restructurer la production, le stockage, l’accueil et la vente. Pour le rendre possible, la commune a adapté son plan local d’urbanisme ; l’enquête publique s’est tenue du 24 février au 25 mars 2025.</p>
+            <h2 class="h-section" id="chantier-title">Un grand projet à partir de 2026</h2>
           </div>
-          <ul class="steps steps--light" data-reveal>
-            <li><strong>Une nouvelle ligne d’embouteillage</strong> Environ 500 000 €, soutenus à 20 % par France Relance, pour atteindre à terme 6 000 bouteilles à l’heure.</li>
-            <li><strong>2035</strong> Le bicentenaire de la maison.</li>
-          </ul>
+          <div class="prose">
+            <p>Moderniser, agrandir et restructurer la production, le stockage, l’accueil et la vente. Pour le rendre possible, la commune a adapté son plan local d’urbanisme ; l’enquête publique s’est tenue du 24 février au 25 mars 2025.</p>
+            <p>Une nouvelle ligne d’embouteillage : environ 500 000 €, soutenus à 20 % par France Relance, pour atteindre à terme 6 000 bouteilles à l’heure.</p>
+            <p class="bsource">L’Écho du Mardi (décembre 2025).</p>
+          </div>
         </div>
       </section>
     </main>
