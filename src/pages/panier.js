@@ -84,7 +84,7 @@ function stepsHTML() {
 
 function lineHTML(l, editable) {
   const p = l.product;
-  return `<li class="co-line" data-slug="${p.slug}" data-ml="${l.ml ?? ''}">
+  return `<li class="co-line" data-slug="${p.slug}" data-v="${l.v ?? ''}">
     <a class="co-line__img" href="/boutique/${p.slug}" style="--c:${p.light}" tabindex="-1" aria-hidden="true">${thumbHTML(p)}</a>
     <div class="co-line__info">
       <a class="co-line__name" href="/boutique/${p.slug}">${esc(p.nom)}</a>
@@ -384,12 +384,12 @@ document.addEventListener('click', (e) => {
   const li = e.target.closest('.co-line');
   if (!li || step !== 'panier') return;
   const slug = li.dataset.slug;
-  const ml = li.dataset.ml ? Number(li.dataset.ml) : null;
-  const line = cart.items.find((i) => i.slug === slug && (i.ml ?? null) === ml);
+  const v = li.dataset.v || null;
+  const line = cart.items.find((i) => i.slug === slug && (i.v ?? null) === v);
   if (!line) return;
-  if (e.target.closest('[data-del]')) cart.set(slug, ml, 0);
+  if (e.target.closest('[data-del]')) cart.set(slug, v, 0);
   const q = e.target.closest('[data-q]');
-  if (q) cart.set(slug, ml, line.qty + Number(q.dataset.q));
+  if (q) cart.set(slug, v, line.qty + Number(q.dataset.q));
 });
 
 cart.subscribe(() => {

@@ -1,74 +1,171 @@
 <a class="skip" href="#contenu">Aller au contenu</a>
-<header class="site-header" id="site-header">
-  <div class="site-header__bar">
-    <a class="brand" href="/" aria-label="Distillerie A. Blachère, accueil">
-      <span class="brand__name">A.&nbsp;Blachère</span>
-      <span class="brand__sub">Distillerie · depuis 1835</span>
-    </a>
-    <nav class="site-nav" aria-label="Navigation principale">
-      <a href="/pac-citron" data-nav="pac">PAC Citron</a>
-      <a href="/fun-blue" data-nav="funblue">Fun Blue</a>
-      <a href="/couleur-provence" data-nav="provence">Sirops</a>
-      <a href="/spiritueux" data-nav="spiritueux">Spiritueux <small>18+</small></a>
-      <a href="/la-maison" data-nav="maison">La maison</a>
-      <a href="/visiter" data-nav="visiter">Visiter</a>
-    </nav>
-    <div class="site-header__actions">
-      <a class="oval oval--small site-header__cta" href="/boutique" data-nav-cta="boutique">Boutique</a>
-      <button type="button" class="cart-btn" id="cart-open" aria-label="Panier, 0 article" aria-haspopup="dialog">
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8z" /><path d="M9 8V6.5a3 3 0 0 1 6 0V8" /></svg>
-        <span class="cart-btn__label">Panier</span>
-        <span class="cart-btn__count" id="cart-count">0</span>
-      </button>
-      <button type="button" class="menu-btn" id="menu-open" aria-expanded="false" aria-controls="menu">
-        <span class="menu-btn__bars" aria-hidden="true"><i></i><i></i></span>
-        <span class="menu-btn__label">Menu</span>
-      </button>
+<header class="hd" id="site-header" data-state="top">
+  <div class="hd__util">
+    <div class="hd__util-in wrap">
+      <p class="hd__util-note">Distillerie A. Blachère · Châteauneuf-du-Pape · depuis 1835</p>
+      <nav class="hd__util-nav" aria-label="Liens pratiques">
+        <a href="/ou-trouver" data-nav="ou-trouver">Où acheter</a>
+        <a href="/espace-pro" data-nav="pro">Espace pro</a>
+        <a href="/visiter" data-nav="visiter">Visiter</a>
+        <span class="hd__lang" role="group" aria-label="Langue du site">
+          <a href="/" lang="fr" aria-current="true">FR</a><button type="button" lang="en" data-lang="en">EN</button><button type="button" lang="de" data-lang="de">DE</button>
+        </span>
+        <button type="button" class="hd__util-btn" data-account>Compte</button>
+        <button type="button" class="hd__util-btn" data-cart-open>Panier <span class="hd__util-count" data-cart-count>0</span></button>
+      </nav>
+    </div>
+  </div>
+  <div class="hd__main">
+    <div class="hd__main-in wrap">
+      <a class="logo" href="/" aria-label="Distillerie A. Blachère, accueil">
+        <span class="logo__name">A.&nbsp;Blachère</span>
+        <span class="logo__sub">Distillerie · depuis 1835</span>
+      </a>
+      <nav class="nav" aria-label="Navigation principale">
+        <ul class="nav__list">
+          <li class="nav__item"><button type="button" class="nav__link" data-mega="marques" aria-expanded="false" aria-controls="mega-marques">Nos marques</button></li>
+          <li class="nav__item"><button type="button" class="nav__link" data-mega="spiritueux" aria-expanded="false" aria-controls="mega-spiritueux">Spiritueux <span class="tag18">18+</span></button></li>
+          <li class="nav__item"><button type="button" class="nav__link" data-mega="maison" aria-expanded="false" aria-controls="mega-maison">La maison</button></li>
+          <li class="nav__item"><a class="nav__link" href="/visiter" data-nav="visiter">Visiter</a></li>
+          <li class="nav__item"><a class="nav__link" href="/boutique" data-nav="boutique">Boutique</a></li>
+        </ul>
+      </nav>
+      <div class="hd__tools">
+        <button type="button" class="tool" id="search-open" aria-label="Rechercher" aria-expanded="false" aria-controls="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="6.5" /><path d="M20 20l-4.2-4.2" /></svg>
+        </button>
+        <button type="button" class="tool cart-btn" id="cart-open" aria-label="Panier, 0 article" aria-haspopup="dialog">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8z" /><path d="M9 8V6.5a3 3 0 0 1 6 0V8" /></svg>
+          <span class="cart-btn__count" id="cart-count">0</span>
+        </button>
+        <a class="btn btn--primary btn--sm hd__cta" href="/boutique" data-nav-cta="boutique">Acheter en ligne</a>
+        <button type="button" class="tool menu-btn" id="menu-open" aria-expanded="false" aria-controls="menu" aria-label="Ouvrir le menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h11" /></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="mega" id="mega-marques" data-panel="marques" hidden>
+    <div class="mega__in wrap">
+      <ul class="mega__brands">
+        <li>
+          <a class="mega-brand" href="/pac-citron" data-nav="pac" style="--b: var(--pac)">
+            <span class="mega-brand__render" data-render="pac-citron" data-bg="#c2177f"></span>
+            <span class="mega-brand__txt"><span class="mega-brand__name">PAC Citron<sup>®</sup></span><span class="mega-brand__line">Le sirop de citron de Provence, depuis 1962</span></span>
+          </a>
+        </li>
+        <li>
+          <a class="mega-brand" href="/fun-blue" data-nav="funblue" style="--b: var(--fb)">
+            <span class="mega-brand__render" data-render="fun-blue" data-bg="#1f56a8"></span>
+            <span class="mega-brand__txt"><span class="mega-brand__name">Fun Blue<sup>®</sup></span><span class="mega-brand__line">Sirop de menthe bleue, depuis 1995</span></span>
+          </a>
+        </li>
+        <li>
+          <a class="mega-brand" href="/couleur-provence" data-nav="provence" style="--b: var(--provence)">
+            <span class="mega-brand__render mega-brand__render--trio" data-render="sirop-couleur-provence-grenadine sirop-lavande sirop-menthe" data-bg="#e9dfc8"></span>
+            <span class="mega-brand__txt"><span class="mega-brand__name">Couleur Provence<sup>®</sup></span><span class="mega-brand__line">Sirops de fruits, de fleurs et de plantes</span></span>
+          </a>
+        </li>
+      </ul>
+      <div class="mega__aside">
+        <p class="mega__h">Sirops</p>
+        <a href="/boutique?univers=sirops">Tous les sirops</a>
+        <a href="/recettes" data-nav="recettes">Recettes et cocktails sans alcool</a>
+        <a href="/ou-trouver">Où trouver nos produits</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="mega" id="mega-spiritueux" data-panel="spiritueux" hidden>
+    <div class="mega__in wrap">
+      <div class="mega__spirits" data-spirits-menu></div>
+      <div class="mega__aside">
+        <p class="mega__h">Spiritueux · 18+</p>
+        <a href="/spiritueux" data-nav="spiritueux">Pastis, liqueurs, marcs et eaux-de-vie</a>
+        <a href="/boutique?univers=spiritueux">La boutique des spiritueux</a>
+        <p class="mega__evin">L’abus d’alcool est dangereux pour la santé, à consommer avec modération.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="mega" id="mega-maison" data-panel="maison" hidden>
+    <div class="mega__in wrap">
+      <ul class="mega__links">
+        <li><a href="/la-maison" data-nav="maison"><span class="mega__k">1835 → 2035</span><span class="mega__t">Notre histoire</span><span class="mega__d">Huit générations, d’Avignon à Châteauneuf-du-Pape.</span></a></li>
+        <li><a href="/la-maison#savoir-faire"><span class="mega__k">Le métier</span><span class="mega__t">Le savoir-faire</span><span class="mega__d">Distillation, macération, infusion, vieillissement.</span></a></li>
+        <li><a href="/musee" data-nav="musee"><span class="mega__k">Collection</span><span class="mega__t">Les archives</span><span class="mega__d">Étiquettes et affiches de la maison, présentées comme au musée.</span></a></li>
+        <li><a href="/actualites" data-nav="actualites"><span class="mega__k">Presse</span><span class="mega__t">Actualités</span><span class="mega__d">Ce que la presse dit de la distillerie.</span></a></li>
+      </ul>
+      <div class="mega__aside">
+        <p class="mega__h">Venir à la distillerie</p>
+        <a href="/visiter">Visites et dégustation</a>
+        <a href="/visiter#reserver">Réserver une visite</a>
+        <a href="/ou-trouver">Où trouver nos produits</a>
+      </div>
     </div>
   </div>
 </header>
 
+<div class="search" id="search" role="dialog" aria-modal="true" aria-label="Rechercher sur le site" hidden>
+  <div class="search__in wrap">
+    <form class="search__form" action="/boutique" role="search">
+      <label class="sr-only" for="search-q">Rechercher un produit ou une page</label>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="6.5" /><path d="M20 20l-4.2-4.2" /></svg>
+      <input id="search-q" name="q" type="search" placeholder="Un sirop, un parfum, une page…" autocomplete="off" />
+      <button type="button" class="tool" data-search-close aria-label="Fermer la recherche">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" /></svg>
+      </button>
+    </form>
+    <div class="search__results" id="search-results" aria-live="polite"></div>
+  </div>
+</div>
+
 <nav class="menu" id="menu" aria-label="Menu" inert>
   <div class="menu__in">
     <div class="menu__top">
-      <span class="menu__title">Menu</span>
-      <button type="button" class="icon-btn" id="menu-close" aria-label="Fermer le menu">
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" /></svg>
+      <a class="logo" href="/"><span class="logo__name">A.&nbsp;Blachère</span><span class="logo__sub">Distillerie · depuis 1835</span></a>
+      <button type="button" class="tool" id="menu-close" aria-label="Fermer le menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" /></svg>
       </button>
     </div>
-    <div class="menu__cols">
-      <div>
-        <p class="menu__h">Nos sirops</p>
-        <ul class="menu__list">
-          <li><a href="/pac-citron" data-nav="pac"><span class="menu__k" style="--k: var(--pac-fuchsia)"></span>PAC Citron</a></li>
-          <li><a href="/fun-blue" data-nav="funblue"><span class="menu__k" style="--k: var(--fb-lagon)"></span>Fun Blue</a></li>
-          <li><a href="/couleur-provence" data-nav="provence"><span class="menu__k" style="--k: var(--pop-orange)"></span>Couleur Provence®</a></li>
-          <li><a href="/recettes" data-nav="recettes"><span class="menu__k" style="--k: var(--pac-citronnade)"></span>Recettes</a></li>
+    <div class="menu__body">
+      <section class="menu__sec" aria-labelledby="mm-marques">
+        <h2 class="menu__h" id="mm-marques">Nos marques</h2>
+        <ul class="menu__brands">
+          <li><a href="/pac-citron" data-nav="pac" style="--b: var(--pac)"><span class="menu__thumb" data-render="pac-citron" data-bg="#c2177f"></span><span>PAC Citron<sup>®</sup></span></a></li>
+          <li><a href="/fun-blue" data-nav="funblue" style="--b: var(--fb)"><span class="menu__thumb" data-render="fun-blue" data-bg="#1f56a8"></span><span>Fun Blue<sup>®</sup></span></a></li>
+          <li><a href="/couleur-provence" data-nav="provence" style="--b: var(--provence)"><span class="menu__thumb" data-render="sirop-couleur-provence-grenadine" data-bg="#e9dfc8"></span><span>Couleur Provence<sup>®</sup></span></a></li>
         </ul>
-      </div>
-      <div>
-        <p class="menu__h">La maison</p>
+      </section>
+      <section class="menu__sec" aria-labelledby="mm-acheter">
+        <h2 class="menu__h" id="mm-acheter">Acheter</h2>
         <ul class="menu__list">
-          <li><a href="/spiritueux" data-nav="spiritueux"><span class="menu__k" style="--k: var(--comtat-remparts)"></span>Nos spiritueux <small>18+</small></a></li>
-          <li><a href="/la-maison" data-nav="maison"><span class="menu__k" style="--k: var(--maison-bois)"></span>Notre histoire</a></li>
-          <li><a href="/musee" data-nav="musee"><span class="menu__k" style="--k: var(--pac-violet)"></span>Le musée de l’étiquette</a></li>
-          <li><a href="/visiter" data-nav="visiter"><span class="menu__k" style="--k: var(--pop-vert)"></span>Visiter la distillerie</a></li>
+          <li><a href="/boutique" data-nav="boutique">Boutique en ligne</a></li>
+          <li><a href="/spiritueux" data-nav="spiritueux">Spiritueux <span class="tag18">18+</span></a></li>
+          <li><a href="/recettes" data-nav="recettes">Recettes</a></li>
+          <li><a href="/ou-trouver" data-nav="ou-trouver">Où acheter</a></li>
         </ul>
-      </div>
-      <div>
-        <p class="menu__h">Acheter</p>
+      </section>
+      <section class="menu__sec" aria-labelledby="mm-maison">
+        <h2 class="menu__h" id="mm-maison">La maison</h2>
         <ul class="menu__list">
-          <li><a href="/boutique" data-nav="boutique"><span class="menu__k" style="--k: var(--pac-jaune)"></span>Boutique</a></li>
-          <li><a href="/ou-trouver" data-nav="ou-trouver"><span class="menu__k" style="--k: var(--pop-cyan)"></span>Où trouver nos produits</a></li>
-          <li><a href="/actualites" data-nav="actualites"><span class="menu__k" style="--k: var(--pop-magenta)"></span>Actualités</a></li>
-          <li><a href="/espace-pro" data-nav="pro"><span class="menu__k" style="--k: var(--maison-pierre)"></span>Espace pro</a></li>
+          <li><a href="/la-maison" data-nav="maison">Notre histoire</a></li>
+          <li><a href="/la-maison#savoir-faire">Le savoir-faire</a></li>
+          <li><a href="/musee" data-nav="musee">Les archives</a></li>
+          <li><a href="/visiter" data-nav="visiter">Visiter la distillerie</a></li>
+          <li><a href="/actualites" data-nav="actualites">Actualités</a></li>
+          <li><a href="/espace-pro" data-nav="pro">Espace pro</a></li>
         </ul>
-      </div>
+      </section>
     </div>
     <div class="menu__foot">
-      <p>1695 route de Sorgues · 84230 Châteauneuf-du-Pape</p>
-      <p><a href="tel:+33490835565">Magasin : 04 90 83 55 65</a></p>
-      <a class="oval" href="/visiter#reserver">Réserver une visite</a>
+      <a class="btn btn--primary btn--block" href="/visiter#reserver">Réserver une visite</a>
+      <p class="menu__util">
+        <span class="hd__lang" role="group" aria-label="Langue du site"><a href="/" lang="fr" aria-current="true">FR</a><button type="button" lang="en" data-lang="en">EN</button><button type="button" lang="de" data-lang="de">DE</button></span>
+        <button type="button" class="hd__util-btn" data-account>Compte</button>
+        <a href="tel:+33490835565">04 90 83 55 65</a>
+      </p>
     </div>
   </div>
 </nav>

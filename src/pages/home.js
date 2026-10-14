@@ -1,360 +1,168 @@
-// Accueil : les meilleures ventes en 3D (PAC Citron et Fun Blue, champ bestSeller du catalogue)
-// devant une affiche coupée en deux, la femme à la paille coupée par le bord gauche dont la paille
-// pointe vers l'ovale jaune ; puis le gros plan (PAC, puis Fun Blue), la grille du T-shirt, les
-// deux portes (sirops pour tous, spiritueux pour les majeurs), les collectors, le musée, la
-// maison, les visites et les actualités.
+// Accueil, dans l'ordre d'un grand site de marque : campagne (meilleures ventes en 3D, citrons,
+// glaçons et menthe en suspension), nos marques, la boutique (carrousel avec prix), la maison en
+// chiffres, le savoir-faire (photos à venir), les archives, la visite, la presse, où acheter et
+// l'espace pro ; la lettre d'information et le pied de page complet suivent.
 import '../styles/base.css';
-import '../styles/editorial.css';
 import '../styles/home.css';
 import { initSite, addToCart, reveal } from '../app/site.js';
-import { collectorsHTML, formulesHTML, saisonHTML, newsHTML, timelineHTML, lockHTML, evinHTML } from '../app/blocks.js';
-import { products, bySlug, minPrice, euro, ETAGERES } from '../data/products.js';
-import { archives } from '../lib/archives.js';
-import { bottleSVG } from '../lib/bottleSvg.js';
-import { femmeSVG } from '../lib/femme.js';
+import { cardHTML } from '../app/cards.js';
+import { fillPlaces } from '../app/lieux.js';
+import { products, minPrice, euro, EVIN } from '../data/products.js';
+import { actualites, formules, saison } from '../data/site.js';
+import { archives, pieceSVG } from '../lib/archives.js';
 import { $, $$, esc, calm, clamp, hasWebGL } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
+import { renderHTML, upgradeThumbs } from '../lib/thumbs.js';
 
 const site = initSite();
 const best = products.filter((p) => p.bestSeller);
-const reduced = calm();
+const TEST = new URLSearchParams(location.search).has('test');
 
-// ---------- Héros : l'ardoise des meilleures ventes ----------
-function renderTickets() {
-  const rows = best
-    .map((p, i) => {
+// ---------- 1. Campagne ----------
+function heroTags() {
+  $('#hero-tags').innerHTML = best
+    .map((p) => {
       const c = p.contenances[0];
       const price = minPrice(p);
-      return `<li class="board__row board__row--${p.theme}" data-i="${i}">
-        <a class="board__name" href="/boutique/${p.slug}">${esc(p.nom).replace('®', '<sup>®</sup>')}</a>
-        <span class="board__vol">${c ? esc(c.volume) : ''}</span>
-        <span class="board__dots" aria-hidden="true"></span>
-        <span class="board__price">${price !== null ? euro(price) : 'Prix en boutique'}</span>
-        <button type="button" class="board__add" data-add="${p.slug}" data-ml="${c?.ml ?? ''}" aria-label="Ajouter ${esc(p.nom)}${c ? ` (${esc(c.volume)})` : ''} au panier">${icons.plus}</button>
+      return `<li class="hero__tag hero__tag--${p.theme}">
+        <a href="/boutique/${p.slug}">
+          <span class="hero__tag-name">${esc(p.nom).replace('®', '<sup>®</sup>')}</span>
+          <span class="hero__tag-meta">${esc(p.type)}${c ? ` · ${esc(c.volume)}` : ''}</span>
+        </a>
+        <strong class="hero__tag-price">${price !== null ? euro(price) : 'Prix en boutique'}</strong>
+        ${p.enLigne && c ? `<button type="button" class="hero__tag-add" data-add="${p.slug}" data-v="${c.id}" aria-label="Ajouter ${esc(p.nom)} (${esc(c.volume)}) au panier">${icons.plus}</button>` : ''}
       </li>`;
     })
     .join('');
-  $('#hero-tickets').innerHTML = `<div class="board">
-    <p class="board__head">Au comptoir · prix TTC</p>
-    <ul class="board__rows">${rows}</ul>
-    <p class="board__links"><a href="/pac-citron">L’histoire du PAC</a><a href="/fun-blue">Le monde de Fun Blue</a></p>
-  </div>`;
-}
-
-// ---------- Héros : la femme à la paille ----------
-function renderFemme() {
-  $('#hero-femme').innerHTML = femmeSVG({ className: 'femme' });
-}
-
-// La paille part des lèvres (repère 400 × 1000 du dessin) et pointe vers l'ovale jaune.
-function drawStraw() {
-  const svg = $('#hero-straw');
-  const femme = $('#hero-femme .femme');
-  const cta = $('#hero-cta');
-  if (!svg || !femme || !cta) return;
-  const hero = $('#meilleures-ventes').getBoundingClientRect();
-  const f = femme.getBoundingClientRect();
-  const c = cta.getBoundingClientRect();
-  if (!f.width || getComputedStyle($('#hero-femme')).display === 'none') {
-    svg.innerHTML = '';
-    return;
-  }
-  const x0 = f.left + (60 / 400) * f.width - hero.left;
-  const y0 = f.top + (912 / 1000) * f.height - hero.top;
-  const x1 = c.left + 14 - hero.left;
-  const y1 = c.top + c.height / 2 - hero.top;
-  svg.setAttribute('viewBox', `0 0 ${hero.width} ${hero.height}`);
-  svg.innerHTML = `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="#17170f" stroke-width="15" stroke-linecap="round"/>
-    <line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="#fff" stroke-width="10" stroke-linecap="round"/>`;
-}
-
-// ---------- Gros plan : chapitres ----------
-const chapters = [
-  {
-    slug: 'pac-citron',
-    kicker: 'PAC Citron · 1962',
-    title: '<span class="ch-pac">pac</span>',
-    text: 'Louis Guiot crée le PAC « à la suite d’étés torrides », après deux ans d’essais, et le baptise des initiales de ses enfants. Marque déposée en 1962.',
-  },
-  {
-    slug: 'pac-citron',
-    kicker: 'Le rituel',
-    title: 'Un PAC à l’eau',
-    text: '1 volume de sirop pour 8 à 10 volumes d’eau plate ou gazeuse. « 100 % naturel au jus de citron, sans colorant ni conservateur », dit sa fiche.',
-    mention: 'Conserver et consommer frais',
-  },
-  {
-    slug: 'pac-citron',
-    kicker: 'Né dans le Vaucluse',
-    title: 'Pas marseillais : vauclusien',
-    text: 'Beaucoup de Marseillais le croient de chez eux. Il est « toujours fabriqué dans le Vaucluse par la Distillerie A. Blachère », rappelle sa fiche.',
-    cta: { href: '/pac-citron', label: 'L’histoire du PAC' },
-  },
-  {
-    slug: 'fun-blue',
-    kicker: 'Fun Blue · 1995',
-    title: 'D’« Aurélie » à Fun Blue',
-    text: 'Depuis les années 1960, la maison fabriquait une menthe bleue, « Aurélie ». Fun Blue lui succède en 1995.',
-  },
-  {
-    slug: 'fun-blue',
-    kicker: 'Le lagon en bouteille',
-    title: 'Bleu turquoise, goût chlorophylle',
-    text: 'Un sirop de menthe goût chlorophylle, « le sirop de menthe bleu le plus populaire en Provence », selon sa fiche.',
-  },
-  {
-    slug: 'fun-blue',
-    kicker: 'La recette de la maison',
-    title: 'Le Blue Mojito',
-    text: '2 cl de Fun Blue, 2 cl de PAC, 15 cl d’eau pétillante et un tiers de glace pilée. Sans alcool.',
-    cta: { href: '/fun-blue', label: 'Le monde de Fun Blue' },
-  },
-];
-
-function renderStory() {
-  $('#story-panels').innerHTML = chapters
-    .map((c, i) => {
-      const p = bySlug[c.slug];
-      return `<article class="chapter chapter--${p.theme}" data-ch="${i}" aria-hidden="${i ? 'true' : 'false'}">
-        <p class="chapter__kicker">${esc(c.kicker)}</p>
-        <h2 class="chapter__title">${c.title}</h2>
-        <p class="chapter__text">${esc(c.text)}</p>
-        ${c.mention ? `<p class="chapter__mention">${esc(c.mention)}</p>` : ''}
-        ${c.cta ? `<a class="oval oval--small chapter__cta" href="${c.cta.href}">${esc(c.cta.label)}</a>` : ''}
-      </article>`;
-    })
-    .join('');
-  $('#story-dots').innerHTML = chapters.map((c, i) => `<li><button type="button" data-goto="${i}" aria-label="Chapitre ${i + 1} : ${esc(c.kicker)}"></button></li>`).join('');
-}
-
-// ---------- La grille du T-shirt (sirops seulement) ----------
-function renderTshirt() {
-  const cp = products.filter((p) => p.gamme === 'couleur-provence');
-  $('#tshirt-grid').innerHTML = `
-    <a class="tbox tbox--vert" href="/pac-citron" data-reveal>
-      <span class="tbox__small">Le seul, l’unique</span>
-      <span class="tbox__pac">PAC</span>
-      <span class="tbox__label">Son histoire</span>
-    </a>
-    <a class="tbox tbox--magenta" href="/musee" data-reveal>
-      <span class="tbox__femme">${femmeSVG({ className: 'tbox__femme-svg' })}</span>
-      <span class="tbox__label">La femme à la paille</span>
-    </a>
-    <a class="tbox tbox--orange" href="/recettes" data-reveal>
-      <span class="tbox__oval"><small>Sirop</small><b>citron</b><small>sans colorant</small></span>
-      <span class="tbox__label">Un PAC à l’eau</span>
-    </a>
-    <a class="tbox tbox--cyan" href="/fun-blue" data-reveal>
-      <span class="tbox__sun" aria-hidden="true"></span>
-      <span class="tbox__fb">Fun Blue</span>
-      <span class="tbox__label">Le lagon</span>
-    </a>
-    <a class="tbox tbox--jaune" href="/pac-citron#collectors" data-reveal>
-      <span class="tbox__big">60</span>
-      <span class="tbox__label">Les collectors</span>
-    </a>
-    <a class="tbox tbox--noir" href="/couleur-provence" data-reveal>
-      <span class="tbox__dots" aria-hidden="true">${cp
-        .slice(0, 12)
-        .map((p) => `<i style="--c:${p.bottle.liquid}"></i>`)
-        .join('')}</span>
-      <span class="tbox__label">Couleur Provence®</span>
-    </a>`;
-}
-
-// ---------- Deux portes ----------
-function renderDoors() {
-  const cp = products.filter((p) => p.gamme === 'couleur-provence');
-  const majeur = site.majeur;
-  const sirops = `<article class="porte porte--sirops" data-reveal>
-    <p class="porte__k">Ouvert à tous</p>
-    <h3 class="porte__title">Nos sirops</h3>
-    <p class="porte__text">PAC Citron, Fun Blue et ${cp.length} parfums Couleur Provence® : ${ETAGERES.map((e) => e.titre.charAt(0).toLowerCase() + e.titre.slice(1)).join(', ')}.</p>
-    <ul class="porte__swatches" aria-hidden="true">${cp.map((p) => `<li style="--c:${p.bottle.liquid}"></li>`).join('')}</ul>
-    <p class="porte__note">Couleurs indicatives, en attendant les photos des bouteilles.</p>
-    <div class="porte__links">
-      <a class="oval oval--small" href="/couleur-provence">Les sirops Couleur Provence®</a>
-      <a class="btn btn--ink" href="/recettes">Les recettes</a>
-    </div>
-  </article>`;
-  const spiritueux = majeur
-    ? `<article class="porte porte--spiritueux" data-univers="comtat" data-reveal>
-        <p class="porte__k">18+ · réservé aux personnes majeures</p>
-        <h3 class="porte__title">Nos spiritueux</h3>
-        <p class="porte__text">Pastis et apéritifs, liqueurs, marcs et eaux-de-vie, dans l’habillage de leur univers.</p>
-        <ul class="porte__univers">
-          <li><a href="/spiritueux#comtat">Comtat et papes</a></li>
-          <li><a href="/spiritueux#camargue">Camargue</a></li>
-          <li><a href="/spiritueux#ventoux">Ventoux et garrigue</a></li>
-          <li><a href="/spiritueux#marcs">Marcs et eaux-de-vie</a></li>
-        </ul>
-        <div class="porte__links"><a class="btn btn--ink" href="/spiritueux">Entrer</a></div>
-        ${evinHTML()}
-      </article>`
-    : `<article class="porte porte--spiritueux is-locked" data-univers="comtat" data-reveal>
-        <p class="porte__k">18+</p>
-        <h3 class="porte__title">Nos spiritueux</h3>
-        ${lockHTML({ mineur: site.age === 'mineur', titre: 'Réservé aux personnes majeures' })}
-      </article>`;
-  $('#portes-grid').innerHTML = sirops + spiritueux;
-  $('[data-verify]', $('#portes-grid'))?.addEventListener('click', () => site.requireAge());
-  reveal($('#portes-grid'));
-}
-
-// ---------- Musée, maison, visites, actualités ----------
-function renderSections() {
-  $('#collectors-frames').innerHTML = collectorsHTML();
-  const pick = ['pac-art-deco', 'pac-chapeau', 'pac-roue', 'pac-classique', 'aurelie', 'fun-blue-ancien'];
-  $('#musee-wall').innerHTML = `<ul class="wall__grid">${pick
-    .map((id, i) => {
-      const a = archives.find((x) => x.id === id);
-      return `<li class="wall__item" style="--tilt:${[-2.2, 1.4, -0.8, 2, -1.6, 0.9][i]}deg"><a href="/musee#${a.id}" aria-label="${esc(a.titre)}">${a.svg()}</a></li>`;
-    })
-    .join('')}</ul>`;
-  renderFrise();
-  $('#visites-saison').innerHTML = saisonHTML();
-  $('#visites-formules').innerHTML = formulesHTML({ compact: true });
-  $('#actus-list').innerHTML = newsHTML(undefined, { limit: 3 });
-  reveal();
-}
-
-function renderFrise() {
-  $('#maison-frise').innerHTML = timelineHTML({ majeur: site.majeur, only: ['1835', '1962', '1993', '1995', '2023', '2035'], compact: true });
-  reveal($('#maison-frise'));
-}
-
-// ---------- Scène 3D ----------
-let hero = null;
-let raf = 0;
-const state = { focus: 0, story: 0, chapter: 0, visible: true };
-
-function fallbackStage() {
-  document.documentElement.classList.add('no-3d');
-  $('#stage-bottles').innerHTML = best.map((p) => `<div class="stage__bottle">${bottleSVG(p)}</div>`).join('');
 }
 
 async function mountHero() {
-  if (!hasWebGL()) return fallbackStage();
+  const hero = $('#hero');
+  const stageEl = $('#hero-stage');
+  if (!hasWebGL()) {
+    hero.classList.add('is-static');
+    stageEl.innerHTML = renderHTML(best.map((p) => p.slug), { bg: '', fmt: 'paysage' });
+    return;
+  }
   try {
     const { HeroScene } = await import('../three/hero.js');
-    hero = new HeroScene($('#hero-canvas'), best, { calm: reduced });
-    await hero.ready;
-    // Captures de recette (?test) : bouteilles posées tout de suite, sans l'animation d'entrée.
-    if (new URLSearchParams(location.search).has('test')) hero.slots.forEach((s) => (s.pivot.userData.appear = 1));
-    document.documentElement.classList.add('has-3d');
-    if (import.meta.env.DEV || new URLSearchParams(location.search).has('test')) window.__hero = hero;
-    loop();
+    const scene = new HeroScene($('#hero-canvas'), { scene: 'duo', products: best, target: () => stageEl.getBoundingClientRect(), calm: calm() });
+    window.__hero = scene;
+    await scene.ready;
+    hero.classList.add('is-live');
+    // défilement : les éléments montent et les bouteilles tournent un peu, au rythme de la page
+    const onScroll = () => scene.setScroll(clamp(scrollY / Math.max(hero.offsetHeight, 1), 0, 1));
+    addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    if (TEST) setTimeout(() => (window.__heroReady = true), 600);
   } catch (err) {
-    console.warn('3D indisponible, affiche dessinée.', err);
-    fallbackStage();
+    console.warn('3D indisponible, visuel fixe affiché.', err);
+    hero.classList.add('is-static');
   }
 }
 
-function loop() {
-  raf = requestAnimationFrame(loop);
-  if (!hero || !state.visible || document.hidden) return;
-  hero.state.focus = state.focus;
-  hero.state.story = state.story;
-  hero.update();
+// ---------- 2. Nos marques ----------
+function brands() {
+  const majeur = site.majeur;
+  const cp = products.filter((p) => p.gamme === 'couleur-provence').length;
+  const cards = [
+    { cls: 'pac', href: '/pac-citron', slugs: ['pac-citron'], bg: '#c2177f', k: 'Depuis 1962', name: 'PAC Citron<sup>®</sup>', text: 'Le sirop de citron créé par Louis Guiot « à la suite d’étés torrides ».' },
+    { cls: 'fb', href: '/fun-blue', slugs: ['fun-blue'], bg: '#1f56a8', k: 'Depuis 1995', name: 'Fun Blue<sup>®</sup>', text: 'Le sirop de menthe goût chlorophylle, héritier de la menthe bleue « Aurélie ».' },
+    { cls: 'provence', href: '/couleur-provence', slugs: ['sirop-couleur-provence-grenadine', 'sirop-lavande', 'sirop-menthe'], bg: '#e9dfc8', k: `${cp} parfums`, name: 'Couleur Provence<sup>®</sup>', text: 'Les sirops de fruits, de fleurs et de plantes de la maison.' },
+  ];
+  const spirits = majeur
+    ? `<li class="brand brand--spirits" data-reveal><a href="/spiritueux">
+        <span class="brand__render">${renderHTML(['pastis-marra', 'marc-chateauneuf-du-pape-reserve-des-legats'], { bg: '#2b2723', fmt: 'portrait' })}</span>
+        <span class="brand__txt"><span class="kicker kicker--light">18+</span><span class="brand__name">Spiritueux</span><span class="brand__text">Pastis, liqueurs, marcs et eaux-de-vie de la maison.</span><span class="brand__cta">Découvrir ${icons.arrow}</span></span>
+      </a><p class="brand__evin">${esc(EVIN)}</p></li>`
+    : `<li class="brand brand--spirits brand--locked" data-reveal><div class="brand__lock">
+        <span class="brand__lock-icon">${icons.lock}</span>
+        <span class="kicker kicker--light">18+</span>
+        <span class="brand__name">Spiritueux</span>
+        <span class="brand__text">${site.age === 'mineur' ? 'Cette partie du site est réservée aux personnes majeures.' : 'Réservés aux personnes majeures : indiquez votre date de naissance pour les voir.'}</span>
+        ${site.age === 'mineur' ? '' : '<button type="button" class="btn btn--light btn--sm" data-verify>Vérifier mon âge</button>'}
+      </div></li>`;
+  $('#brands').innerHTML =
+    cards
+      .map(
+        (c) => `<li class="brand brand--${c.cls}" data-reveal><a href="${c.href}">
+        <span class="brand__render">${renderHTML(c.slugs, { bg: c.bg, fmt: 'portrait' })}</span>
+        <span class="brand__txt"><span class="kicker kicker--light">${esc(c.k)}</span><span class="brand__name">${c.name}</span><span class="brand__text">${esc(c.text)}</span><span class="brand__cta">Découvrir ${icons.arrow}</span></span>
+      </a></li>`,
+      )
+      .join('') + spirits;
+  $('[data-verify]', $('#brands'))?.addEventListener('click', () => site.requireAge());
+  upgradeThumbs($('#brands'));
+  reveal($('#brands'));
 }
 
-// Survol et clic sur les bouteilles (souris seulement).
-function bindPointer() {
-  const heroEl = $('#meilleures-ventes');
-  let pending = false;
-  addEventListener('pointermove', (e) => {
-    if (!hero || e.pointerType !== 'mouse') return;
-    hero.state.mouseX = (e.clientX / innerWidth) * 2 - 1;
-    hero.state.mouseY = -((e.clientY / innerHeight) * 2 - 1);
-    if (pending || state.focus > 0.2) return;
-    pending = true;
-    requestAnimationFrame(() => {
-      pending = false;
-      const over = e.target.closest?.('a, button, .board') ? -1 : hero.pick(e.clientX, e.clientY);
-      hero.state.hover = over;
-      heroEl.classList.toggle('is-pointing', over >= 0);
-      $$('.board__row').forEach((t) => t.classList.toggle('is-hot', Number(t.dataset.i) === over));
-    });
-  });
-  heroEl.addEventListener('click', (e) => {
-    if (!hero || e.target.closest('a, button, .board')) return;
-    const i = hero.pick(e.clientX, e.clientY);
-    if (i >= 0) location.href = `/boutique/${best[i].slug}`;
-  });
+// ---------- 3. La boutique ----------
+function shelf() {
+  const prices = (p) => p.enLigne && minPrice(p) !== null;
+  const picks = [...best, ...products.filter((p) => p.gamme === 'couleur-provence' && prices(p) && !p.contenances.some((c) => c.aVerifier))].slice(0, 12);
+  $('#shelf-track').innerHTML = picks.map((p) => cardHTML(p)).join('');
+  upgradeThumbs($('#shelf-track'));
+  const vp = $('#shelf');
+  $$('[data-shelf]').forEach((b) => b.addEventListener('click', () => vp.scrollBy({ left: Number(b.dataset.shelf) * vp.clientWidth * 0.8, behavior: calm() ? 'auto' : 'smooth' })));
 }
 
-// ---------- Défilement : héros → gros plan → reste de la page ----------
-function onScroll() {
-  const y = scrollY;
-  const vh = innerHeight;
-  const story = $('#gros-plan');
-  const top = story.offsetTop;
-  const len = Math.max(1, story.offsetHeight - vh);
-  state.focus = clamp((y - vh * 0.15) / (top - vh * 0.15 || 1), 0, 1);
-  state.story = clamp((y - top) / len, 0, 1);
-  const ch = Math.min(chapters.length - 1, Math.floor(state.story * chapters.length * 0.9999));
-  if (ch !== state.chapter || !document.body.dataset.chapter) {
-    state.chapter = ch;
-    document.body.dataset.chapter = ch;
-    $$('.chapter').forEach((el, i) => {
-      el.classList.toggle('is-on', i === ch);
-      el.setAttribute('aria-hidden', i === ch ? 'false' : 'true');
-    });
-    $$('#story-dots button').forEach((b, i) => b.classList.toggle('is-on', i === ch));
-  }
-  document.body.classList.toggle('in-story', state.focus > 0.6 && state.story < 1);
-  document.body.dataset.side = state.story < 0.5 ? 'pac' : 'funblue';
-  // La scène s'efface après le gros plan.
-  const end = top + story.offsetHeight - vh;
-  const fade = clamp((y - end) / (vh * 0.5), 0, 1);
-  const stage = $('#stage');
-  stage.style.opacity = String(1 - fade);
-  state.visible = fade < 1;
-  stage.style.visibility = state.visible ? '' : 'hidden';
-  $('#meilleures-ventes').style.setProperty('--out', String(state.focus));
+// ---------- 6. Les archives ----------
+function pieces() {
+  const ids = ['pac-classique', 'aurelie', 'fun-blue-ancien'];
+  $('#pieces').innerHTML = ids
+    .map((id) => archives.find((a) => a.id === id))
+    .filter(Boolean)
+    .map(
+      (a) => `<li class="piece" data-reveal><a href="/musee#${a.id}">
+        <span class="piece__frame"><span class="piece__mat">${pieceSVG(a)}</span></span>
+        <span class="cartel"><span class="cartel__title">${esc(a.titre)}</span><span class="cartel__meta">${esc(a.periode)}</span><span class="cartel__meta">${esc(a.technique)} · ${esc(a.statut)}</span></span>
+      </a></li>`,
+    )
+    .join('');
 }
 
-function bindStory() {
-  $('#story-dots').addEventListener('click', (e) => {
-    const b = e.target.closest('[data-goto]');
-    if (!b) return;
-    const story = $('#gros-plan');
-    const len = story.offsetHeight - innerHeight;
-    const i = Number(b.dataset.goto);
-    scrollTo({ top: story.offsetTop + ((i + 0.5) / chapters.length) * len, behavior: reduced ? 'auto' : 'smooth' });
-  });
+// ---------- 7. Visiter ----------
+function visit() {
+  const g = formules.find((f) => f.id === 'guidee');
+  const facts = [
+    [icons.clock, `<strong>Visite guidée : ${esc(g.duree)}</strong>`],
+    [icons.people, `Groupes de ${saison.groupeMax} personnes au plus, sur réservation`],
+    [icons.route, `<strong>Saison 2026 :</strong> ${esc(saison.texte.replace('Du ', 'du '))} · ${esc(saison.ferme.toLowerCase())}`],
+    [icons.pin, '1695 route de Sorgues, 84230 Châteauneuf-du-Pape'],
+    [icons.card, 'Tarifs à confirmer avec la distillerie'],
+  ];
+  $('#visit-facts').innerHTML = facts.map(([i, t]) => `<li>${i}<span>${t}</span></li>`).join('');
 }
 
-// ---------- Démarrage ----------
-renderTickets();
-renderFemme();
-renderStory();
-renderTshirt();
-renderDoors();
-renderSections();
-bindStory();
-bindPointer();
-onScroll();
-addEventListener('scroll', onScroll, { passive: true });
-addEventListener('resize', () => {
-  onScroll();
-  drawStraw();
-});
-document.fonts?.ready.then(drawStraw);
-requestAnimationFrame(drawStraw);
-mountHero();
+// ---------- 8. Actualités ----------
+function news() {
+  const ids = ['magnums', 'collectors', 'projet'];
+  $('#newsgrid').innerHTML = ids
+    .map((id) => actualites.find((a) => a.id === id))
+    .filter(Boolean)
+    .map(
+      (a) => `<li class="newscard" data-reveal>
+        <p class="newscard__meta"><span>${esc(a.rubrique)}</span><span>${esc(a.quand)}</span></p>
+        <h3 class="newscard__title">${esc(a.titre)}</h3>
+        <p class="newscard__text">${esc(a.texte)}</p>
+        ${a.source ? `<a class="newscard__src" href="${a.source.url}" target="_blank" rel="noopener">${esc(a.source.nom)}<span class="sr-only"> (nouvel onglet)</span></a>` : ''}
+      </li>`,
+    )
+    .join('');
+}
 
 document.addEventListener('click', (e) => {
   const add = e.target.closest('[data-add]');
-  if (add) addToCart(add.dataset.add, add.dataset.ml ? Number(add.dataset.ml) : null);
+  if (add) addToCart(add.dataset.add, add.dataset.v || null);
 });
 
-site.onAge(() => {
-  renderDoors();
-  renderFrise();
-});
-
-addEventListener('pagehide', () => {
-  cancelAnimationFrame(raf);
-  hero?.dispose();
-});
+heroTags();
+mountHero();
+brands();
+shelf();
+pieces();
+visit();
+news();
+fillPlaces();
+reveal();
+site.onAge(() => brands());

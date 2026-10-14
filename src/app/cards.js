@@ -20,7 +20,7 @@ export function cardHTML(p, { tag = 'li' } = {}) {
         p.enLigne
           ? `<div class="card__row">
         ${price !== null ? `<p class="card__price">${p.contenances.length > 1 ? 'dès ' : ''}${euro(price)}</p>` : '<p class="card__price card__price--none">Prix en boutique</p>'}
-        <button type="button" class="card__add" data-add="${p.slug}" data-ml="${c?.ml ?? ''}" aria-label="Ajouter ${esc(p.nom)}${c ? ` (${esc(c.volume)})` : ''} au panier">${icons.plus}<span>Ajouter</span></button>
+        <button type="button" class="card__add" data-add="${p.slug}" data-v="${c?.id ?? ''}" aria-label="Ajouter ${esc(p.nom)}${c ? ` (${esc(c.volume)})` : ''} au panier">${icons.plus}<span>Ajouter</span></button>
       </div>`
           : `<p class="card__dispo">${icons.store}<span>${esc(DISPO_BOUTIQUE)}</span></p>`
       }

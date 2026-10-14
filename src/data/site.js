@@ -215,10 +215,10 @@ export const actualites = [
   },
   {
     id: 'magnums',
-    quand: 'Été 2025',
+    quand: 'Un été, sans doute 2025',
     rubrique: 'Édition limitée',
     titre: 'Une centaine de magnums numérotés',
-    texte: 'Les deux sirops phares de la maison en magnums numérotés, le temps d’un été.',
+    texte: 'Les deux sirops phares de la maison en magnums numérotés, le temps d’un été. Une édition limitée, sans doute épuisée : pas de vente en ligne.',
     source: { nom: 'L’Écho du Mardi, décembre 2025', url: 'https://www.echodumardi.com/economie/depuis-1835-la-distillerie-a-blachere-saffaire-pour-creer-des-saveurs-seduire-et-fideliser-sa-clientele/' },
   },
   {

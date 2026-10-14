@@ -4,14 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Distillerie A. Blachère · PAC Citron, Fun Blue, sirops et spiritueux depuis 1835</title>
-    <meta name="description" content="La Distillerie A. Blachère, fondée à Avignon en 1835, à Châteauneuf-du-Pape depuis 1993 : PAC Citron, Fun Blue, une trentaine de sirops Couleur Provence®, des pastis, liqueurs et marcs. Boutique, visites, musée de l’étiquette." />
+    <meta name="description" content="La Distillerie A. Blachère, fondée à Avignon en 1835, à Châteauneuf-du-Pape depuis 1993 : PAC Citron, Fun Blue, les sirops Couleur Provence®, des pastis, liqueurs et marcs. Boutique, visites, archives." />
     <meta name="robots" content="noindex, nofollow" />
-    <meta name="theme-color" content="#c2167f" />
+    <meta name="theme-color" content="#c2177f" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Distillerie A. Blachère" />
     <meta property="og:title" content="Distillerie A. Blachère · maquette de refonte" />
-    <meta property="og:description" content="Avignon 1835 · Châteauneuf-du-Pape. PAC Citron et Fun Blue en 3D, la boutique, le musée de l’étiquette, les visites." />
+    <meta property="og:description" content="Avignon 1835 · Châteauneuf-du-Pape. PAC Citron et Fun Blue, la boutique, les archives, les visites." />
     <meta property="og:image" content="https://v2x-client-distillerie-a-blachere.vercel.app/og.jpg" />
     <meta property="og:locale" content="fr_FR" />
     <script type="application/ld+json">
@@ -33,138 +33,168 @@
     </script>
     <link rel="stylesheet" href="/v2x/proposition.css" />
   </head>
-  <body data-page="accueil" class="home">
+  <body data-page="accueil" data-hero>
     <!-- @include header.html -->
     <main id="contenu">
-      <!-- Scène 3D fixe derrière le héros et le gros plan. Sans WebGL : affiche en CSS et bouteilles en SVG. -->
-      <div class="stage" id="stage" aria-hidden="true">
-        <div class="stage__poster">
-          <div class="stage__pac"></div>
-          <div class="stage__fb"><div class="stage__island" id="stage-island"></div></div>
-        </div>
-        <div class="stage__bottles" id="stage-bottles"></div>
-        <canvas class="stage__canvas" id="hero-canvas"></canvas>
-      </div>
-
-      <section class="hero" id="meilleures-ventes" aria-labelledby="hero-title">
-        <div class="hero__femme" id="hero-femme" aria-hidden="true"></div>
-        <svg class="hero__straw" id="hero-straw" aria-hidden="true" focusable="false"></svg>
-        <div class="hero__head">
-          <p class="hero__kicker"><span class="hero__kicker-a">Distillerie A. Blachère · </span>Avignon 1835 · Châteauneuf-du-Pape</p>
-          <h1 class="hero__title" id="hero-title"><span class="hero__l1">Nos meilleures</span> <span class="hero__l2">ventes</span></h1>
-        </div>
-        <p class="hero__mention" aria-hidden="true">Conserver et consommer frais</p>
-        <div class="hero__tickets" id="hero-tickets"></div>
-        <div class="hero__foot">
-          <a class="oval hero__cta" id="hero-cta" href="/boutique">Toute la boutique</a>
-        </div>
-        <p class="hero__scroll" aria-hidden="true">Défiler</p>
-      </section>
-
-      <section class="story" id="gros-plan" aria-label="PAC Citron et Fun Blue en gros plan">
-        <div class="story__sticky">
-          <div class="story__panels" id="story-panels"></div>
-          <ol class="story__dots" id="story-dots" aria-label="Chapitres"></ol>
-        </div>
-      </section>
-
-      <div id="apres-3d"></div>
-
-      <!-- La grille du T-shirt « Le seul, l'unique » : le sommaire des sirops -->
-      <section class="tshirt" aria-labelledby="tshirt-title" data-univers="pop">
-        <div class="wrap">
-          <div class="tshirt__head">
-            <p class="kicker">Le seul, l’unique</p>
-            <h2 class="h-pop" id="tshirt-title">Un PAC à l’eau,<br />s’il vous plaît</h2>
-          </div>
-          <div class="tshirt__grid" id="tshirt-grid"></div>
-        </div>
-      </section>
-
-      <!-- Deux portes : les sirops pour tous, les spiritueux pour les majeurs -->
-      <section class="portes" id="portes" aria-labelledby="portes-title" data-univers="maison">
-        <div class="wrap">
-          <div class="portes__head" data-reveal>
-            <p class="kicker">Deux portes, une maison</p>
-            <h2 class="h-section" id="portes-title">Les sirops pour tout le monde,<br /><em>les spiritueux pour les majeurs</em></h2>
-          </div>
-          <div class="portes__grid" id="portes-grid"></div>
-        </div>
-      </section>
-
-      <!-- Les 60 ans en collector -->
-      <section class="collectors" id="collectors" aria-labelledby="collectors-title" data-univers="collectors">
-        <div class="wrap collectors__in">
-          <div class="collectors__head" data-reveal>
-            <p class="kicker">2023 · les 60 ans du « Pac à l’eau »</p>
-            <h2 class="h-section" id="collectors-title">60 ans, deux artistes,<br /><em>quatre étiquettes</em></h2>
-            <p class="lead">Trois signées par le graffeur <strong>C215</strong>, une par le peintre <strong>Claude Viallat</strong>, glissées au hasard dans la production. Tout est parti d’un carton de sirop envoyé à l’association de C215.</p>
-            <a class="oval" href="/pac-citron#collectors">La salle des collectors</a>
-          </div>
-          <div id="collectors-frames"></div>
-          <p class="collectors__credit">Œuvres de C215 et de Claude Viallat : reproduction soumise à l’accord des artistes.</p>
-        </div>
-      </section>
-
-      <!-- Le musée de l'étiquette -->
-      <section class="musee-t" id="musee" aria-labelledby="musee-title" data-univers="maison">
-        <div class="wrap musee-t__in">
-          <div class="musee-t__head" data-reveal>
-            <p class="kicker">Le musée de l’étiquette</p>
-            <h2 class="h-section" id="musee-title">Soixante ans<br /><em>en étiquettes</em></h2>
-            <p class="lead">Lettres Art déco, danseuses, psychédélisme, lettres bulles, puis la femme à la paille et le lagon de Fun Blue : le mur du magasin, redessiné pour la maquette en attendant les scans.</p>
-            <a class="oval" href="/musee">Entrer au musée</a>
-          </div>
-          <div class="wall wall--teaser" id="musee-wall" data-reveal></div>
-        </div>
-      </section>
-
-      <!-- La maison, de 1835 à 2035 -->
-      <section class="maison-t" id="maison" aria-labelledby="maison-title" data-univers="maison">
-        <div class="wrap">
-          <div class="maison-t__head" data-reveal>
-            <p class="kicker">Avignon 1835 · Châteauneuf-du-Pape</p>
-            <h2 class="h-section" id="maison-title">Huit générations,<br /><em>de la rue Molière aux vignes</em></h2>
-            <p class="lead">Fondée en 1835 au 14 rue Molière, à Avignon. Installée depuis 1993 au milieu des vignes de Châteauneuf-du-Pape, route de Sorgues. Elle se présente comme la plus ancienne distillerie de Provence, et prépare son bicentenaire.</p>
-          </div>
-          <div id="maison-frise"></div>
-          <a class="oval" href="/la-maison">Toute l’histoire</a>
-        </div>
-      </section>
-
-      <!-- Visiter -->
-      <section class="visites-t" id="visites" aria-labelledby="visites-title" data-univers="citronnade">
-        <div class="wrap">
-          <div class="visites-t__head" data-reveal>
-            <p class="kicker">Visiter la distillerie</p>
-            <h2 class="h-section" id="visites-title">Quatre façons<br /><em>de passer la porte</em></h2>
-            <div id="visites-saison"></div>
-          </div>
-          <div id="visites-formules"></div>
-          <div class="visites-t__cta">
-            <a class="oval" href="/visiter#reserver">Réserver une visite</a>
-            <p>1695 route de Sorgues, quartier Cansaud, 84230 Châteauneuf-du-Pape</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- Actualités et points de vente -->
-      <section class="actus-t" id="actualites" aria-labelledby="actus-title" data-univers="maison">
-        <div class="wrap">
-          <div class="actus-t__head" data-reveal>
-            <p class="kicker">Actualités</p>
-            <h2 class="h-section" id="actus-title">La vie<br /><em>de la distillerie</em></h2>
-            <a class="link" href="/actualites">Toutes les actualités</a>
-          </div>
-          <div id="actus-list"></div>
-          <div class="trouver-t" data-reveal>
-            <div>
-              <p class="kicker">Où trouver nos produits</p>
-              <p class="trouver-t__title">Un PAC près de chez vous</p>
-              <p>En grande surface, chez les cavistes et les épiceries fines, et dans les cafés où l’on commande un PAC à l’eau.</p>
+      <!-- 1. Campagne : les meilleures ventes en 3D, citrons, glaçons et menthe en suspension -->
+      <section class="hero" id="hero" aria-labelledby="hero-title">
+        <div class="hero__bg" aria-hidden="true"></div>
+        <canvas class="hero__canvas" id="hero-canvas" aria-hidden="true"></canvas>
+        <div class="hero__in wrap">
+          <div class="hero__copy">
+            <p class="kicker kicker--light">Nos meilleures ventes</p>
+            <h1 class="h-display hero__title" id="hero-title">PAC Citron <span class="hero__amp">&amp;</span> Fun Blue</h1>
+            <p class="hero__lead">Le sirop de citron « 100&nbsp;% naturel au jus de citron, sans colorant ni conservateur » et le sirop de menthe bleu « le plus populaire en Provence », fabriqués à Châteauneuf-du-Pape.</p>
+            <div class="hero__ctas">
+              <a class="btn btn--light" href="/boutique">Acheter en ligne</a>
+              <a class="btn btn--ghost-light" href="#marques">Découvrir nos marques</a>
             </div>
-            <a class="oval" href="/ou-trouver">Trouver un PAC</a>
           </div>
+          <div class="hero__stage" id="hero-stage" aria-hidden="true"></div>
+          <ul class="hero__tags" id="hero-tags" aria-label="Prix de la boutique"></ul>
+        </div>
+      </section>
+
+      <!-- 2. Nos marques -->
+      <section class="section marques" id="marques" aria-labelledby="marques-title">
+        <div class="wrap">
+          <div class="section__head">
+            <div>
+              <p class="kicker">Nos marques</p>
+              <h2 class="h-section" id="marques-title">Les sirops et les spiritueux <span class="accent">de la maison</span></h2>
+            </div>
+            <a class="arrow-link" href="/boutique">Toute la boutique <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>
+          </div>
+          <ul class="brands" id="brands"></ul>
+        </div>
+      </section>
+
+      <!-- 3. La boutique : carrousel avec prix -->
+      <section class="section section--tight shelf" aria-labelledby="shelf-title">
+        <div class="wrap">
+          <div class="section__head">
+            <div>
+              <p class="kicker">La boutique</p>
+              <h2 class="h-section" id="shelf-title">Au prix de la distillerie</h2>
+            </div>
+            <div class="shelf__nav">
+              <button type="button" class="tool tool--line" data-shelf="-1" aria-label="Produits précédents"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg></button>
+              <button type="button" class="tool tool--line" data-shelf="1" aria-label="Produits suivants"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg></button>
+            </div>
+          </div>
+        </div>
+        <div class="shelf__viewport" id="shelf" tabindex="0" aria-label="Produits de la boutique, faites défiler">
+          <ul class="shelf__track" id="shelf-track"></ul>
+        </div>
+      </section>
+
+      <!-- 4. La maison en chiffres -->
+      <section class="section chiffres" data-univers="encre" aria-labelledby="chiffres-title">
+        <div class="wrap">
+          <div class="section__head">
+            <div>
+              <p class="kicker">La maison en chiffres</p>
+              <h2 class="h-section" id="chiffres-title">Huit générations <span class="accent">depuis 1835</span></h2>
+            </div>
+          </div>
+          <dl class="chiffres__list">
+            <div class="chiffre" data-reveal><dt>1835</dt><dd>Fondation à Avignon, au 14 rue Molière, par V.L. Blachère et son fils Auguste.</dd></div>
+            <div class="chiffre" data-reveal><dt>8<sup>e</sup></dt><dd>génération : Sandrine Blachère et Raphaël Vannelle dirigent la maison.</dd></div>
+            <div class="chiffre" data-reveal><dt>1993</dt><dd>Reprise de la distillerie et installation à Châteauneuf-du-Pape, au milieu des vignes.</dd></div>
+            <div class="chiffre" data-reveal>
+              <dt>800&nbsp;000</dt>
+              <dd>bouteilles de PAC par an selon L’Écho du Mardi (décembre 2025) ; un million selon Made in Marseille.</dd>
+              <dd class="chiffre__flag">Chiffres de presse</dd>
+            </div>
+            <div class="chiffre" data-reveal>
+              <dt>4,9<small>/5</small></dt>
+              <dd>sur TripAdvisor, pour environ 354 avis de visiteurs.</dd>
+              <dd class="chiffre__flag">Relevé d’octobre 2026</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <!-- 5. Savoir-faire et histoire (photos à venir) -->
+      <section class="section savoir" aria-labelledby="savoir-title">
+        <div class="wrap savoir__in">
+          <div class="savoir__copy" data-reveal>
+            <p class="kicker">Le savoir-faire</p>
+            <h2 class="h-section" id="savoir-title">Une distillerie de Provence, <span class="accent">pas une marque de catalogue</span></h2>
+            <div class="prose">
+              <p>La maison naît en 1835 au 14 rue Molière, à Avignon. Depuis 1993, elle produit au milieu des vignes de Châteauneuf-du-Pape une trentaine de sirops<span data-majeur hidden>, ainsi que ses pastis, ses liqueurs et ses marcs</span>.</p>
+              <p>Le PAC Citron, créé par Louis Guiot « à la suite d’étés torrides », après deux ans d’essais, porte les initiales de ses enfants. Le Fun Blue a succédé en 1995 à la menthe bleue « Aurélie ».</p>
+              <p>La visite de la distillerie passe par l’herboristerie, la salle d’étiquetage, le vieux chai et la production, derrière les vitres.</p>
+            </div>
+            <a class="arrow-link" href="/la-maison">Notre histoire <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>
+          </div>
+          <div class="savoir__photos">
+            <figure class="ph savoir__ph savoir__ph--a" data-lieu="herboristerie" data-reveal><span class="ph__label">Photo à venir : l’herboristerie</span></figure>
+            <figure class="ph savoir__ph savoir__ph--b" data-lieu="chai" data-reveal><span class="ph__label">Photo à venir : le vieux chai</span></figure>
+            <figure class="ph savoir__ph savoir__ph--c" data-lieu="comptoir" data-reveal><span class="ph__label">Photo à venir : le comptoir de dégustation</span></figure>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. Les archives -->
+      <section class="section archives-teaser" data-univers="pierre" aria-labelledby="archives-title">
+        <div class="wrap">
+          <div class="section__head">
+            <div>
+              <p class="kicker">Les archives</p>
+              <h2 class="h-section" id="archives-title">Soixante ans d’étiquettes, <span class="accent">présentées comme au musée</span></h2>
+            </div>
+            <a class="arrow-link" href="/musee">Visiter les archives <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>
+          </div>
+          <ul class="pieces" id="pieces"></ul>
+        </div>
+      </section>
+
+      <!-- 7. Visiter -->
+      <section class="section visit" aria-labelledby="visit-title">
+        <div class="wrap visit__in">
+          <figure class="ph visit__ph" data-lieu="comptoir" data-reveal><span class="ph__label">Photo à venir : la boutique de la distillerie</span></figure>
+          <div class="visit__copy" data-reveal>
+            <p class="kicker">Visiter la distillerie</p>
+            <h2 class="h-section" id="visit-title">Une heure à la distillerie, <span class="accent">dégustation comprise</span></h2>
+            <ul class="visit__facts" id="visit-facts"></ul>
+            <div class="visit__ctas">
+              <a class="btn btn--primary" href="/visiter#reserver">Réserver une visite</a>
+              <a class="btn btn--ghost" href="/visiter">Infos pratiques</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 8. Actualités et presse -->
+      <section class="section section--tight news-sec" aria-labelledby="news-title">
+        <div class="wrap">
+          <div class="section__head">
+            <div>
+              <p class="kicker">Actualités</p>
+              <h2 class="h-section" id="news-title">La distillerie dans la presse</h2>
+            </div>
+            <a class="arrow-link" href="/actualites">Toutes les actualités <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>
+          </div>
+          <ul class="newsgrid" id="newsgrid"></ul>
+        </div>
+      </section>
+
+      <!-- 9. Où acheter et espace pro -->
+      <section class="section section--tight duo-sec" aria-label="Où acheter, espace professionnel">
+        <div class="wrap duo">
+          <a class="duo__card duo__card--buy" href="/ou-trouver" data-reveal>
+            <p class="kicker kicker--light">Où acheter</p>
+            <p class="duo__title">À la distillerie, en ligne, chez nos revendeurs</p>
+            <p class="duo__text">Grandes surfaces de la région, cavistes et épiceries fines : la carte des points de vente connus.</p>
+            <span class="btn btn--light btn--sm">Trouver un point de vente</span>
+          </a>
+          <a class="duo__card duo__card--pro" href="/espace-pro" data-reveal>
+            <p class="kicker kicker--light">Espace professionnel</p>
+            <p class="duo__title">Cafés, restaurants, cavistes, épiceries fines</p>
+            <p class="duo__text">Référencer nos sirops et nos spiritueux, demander une fiche technique ou un rendez-vous.</p>
+            <span class="btn btn--light btn--sm">Ouvrir l’espace pro</span>
+          </a>
         </div>
       </section>
     </main>

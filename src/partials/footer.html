@@ -1,41 +1,64 @@
-<footer class="site-footer" data-univers="encre">
-  <div class="site-footer__in">
-    <div class="site-footer__top">
-      <div class="site-footer__brand">
-        <p class="site-footer__name">Distillerie A. Blachère</p>
-        <p>Fondée à Avignon en 1835, au 14 rue Molière. À Châteauneuf-du-Pape depuis 1993, au milieu des vignes.</p>
-        <span class="sceau" aria-hidden="true"><!-- @include sceau.svg --></span>
+<footer class="ft">
+  <div class="ft__news">
+    <div class="wrap ft__news-in">
+      <div>
+        <p class="kicker kicker--light">Lettre de la distillerie</p>
+        <p class="ft__news-title">Recevez les offres et les actualités de la distillerie.</p>
       </div>
-      <div class="site-footer__col">
-        <p class="site-footer__h">Nos sirops</p>
+      <form class="ft__news-form" data-newsletter novalidate>
+        <label class="sr-only" for="ft-email">Adresse e-mail</label>
+        <input id="ft-email" type="email" name="email" placeholder="Votre adresse e-mail" autocomplete="email" required />
+        <button type="submit" class="btn btn--light">S’inscrire</button>
+        <p class="ft__news-msg" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </div>
+  <div class="wrap ft__in">
+    <div class="ft__brand">
+      <a class="logo logo--light" href="/"><span class="logo__name">A.&nbsp;Blachère</span><span class="logo__sub">Distillerie · depuis 1835</span></a>
+      <p>Fondée à Avignon en 1835, au 14 rue Molière. À Châteauneuf-du-Pape depuis 1993, au milieu des vignes.</p>
+      <address>1695 route de Sorgues · Quartier Cansaud<br />84230 Châteauneuf-du-Pape</address>
+      <p class="ft__social"><a href="https://www.instagram.com/distillerieablachere/" target="_blank" rel="noopener" aria-label="Instagram de la distillerie (nouvel onglet)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false"><rect x="3.5" y="3.5" width="17" height="17" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.3" cy="6.7" r="0.6" fill="currentColor" /></svg><span>@distillerieablachere</span></a></p>
+    </div>
+    <nav class="ft__cols" aria-label="Plan du site">
+      <div class="ft__col">
+        <p class="ft__h">Nos marques</p>
         <a href="/pac-citron">PAC Citron</a>
         <a href="/fun-blue">Fun Blue</a>
         <a href="/couleur-provence">Couleur Provence®</a>
+        <a href="/spiritueux">Spiritueux · 18+</a>
         <a href="/recettes">Recettes</a>
-        <a href="/boutique">Boutique</a>
       </div>
-      <div class="site-footer__col">
-        <p class="site-footer__h">La maison</p>
+      <div class="ft__col">
+        <p class="ft__h">Boutique</p>
+        <a href="/boutique">Toute la boutique</a>
+        <a href="/boutique?univers=sirops">Les sirops</a>
+        <a href="/panier">Panier</a>
+        <a href="/ou-trouver">Où acheter</a>
+        <a href="/espace-pro">Espace pro</a>
+      </div>
+      <div class="ft__col">
+        <p class="ft__h">La maison</p>
         <a href="/la-maison">Notre histoire</a>
-        <a href="/musee">Le musée de l’étiquette</a>
+        <a href="/musee">Les archives</a>
         <a href="/visiter">Visiter la distillerie</a>
-        <a href="/spiritueux">Nos spiritueux · 18+</a>
-        <a href="/ou-trouver">Où trouver nos produits</a>
         <a href="/actualites">Actualités</a>
-        <a href="/espace-pro">Espace professionnel</a>
       </div>
-      <div class="site-footer__col site-footer__contact">
-        <p class="site-footer__h">Nous trouver</p>
-        <p>1695 route de Sorgues<br />Quartier Cansaud<br />84230 Châteauneuf-du-Pape</p>
-        <p>Magasin : <a href="tel:+33490835565">04 90 83 55 65</a><br /><a href="mailto:magasin@distillerieablachere.com">magasin@distillerieablachere.com</a></p>
-        <p>Bureaux : <a href="tel:+33490835381">04 90 83 53 81</a><br /><a href="mailto:info@distillerieablachere.com">info@distillerieablachere.com</a></p>
-        <p>Magasin du lundi au samedi, hors jours fériés : 10 h – 18 h d’octobre à mars, 9 h – 19 h d’avril à septembre <small>(horaires à confirmer)</small></p>
+      <div class="ft__col ft__contact">
+        <p class="ft__h">Contact</p>
+        <p>Magasin<br /><a href="tel:+33490835565">04 90 83 55 65</a><br /><a href="mailto:magasin@distillerieablachere.com">magasin@distillerieablachere.com</a></p>
+        <p>Bureaux<br /><a href="tel:+33490835381">04 90 83 53 81</a><br /><a href="mailto:info@distillerieablachere.com">info@distillerieablachere.com</a></p>
+        <p class="ft__hours">Magasin du lundi au samedi, hors jours fériés : 10 h – 18 h d’octobre à mars, 9 h – 19 h d’avril à septembre <span>(horaires à confirmer)</span></p>
       </div>
-    </div>
+    </nav>
+  </div>
+  <div class="wrap">
     <p class="evin evin--footer" data-evin-majeur hidden>L’abus d’alcool est dangereux pour la santé, à consommer avec modération. La vente d’alcool est interdite aux mineurs de moins de 18 ans.</p>
-    <div class="site-footer__legal">
+  </div>
+  <div class="ft__legal">
+    <div class="wrap ft__legal-in">
       <span>© <span data-year>2026</span> Distillerie A. Blachère · Maquette non officielle réalisée par V2X Studio</span>
-      <span class="site-footer__links"><span class="site-footer__lang">Français · <span lang="en">English</span> et <span lang="de">Deutsch</span> à venir</span><a href="/mentions-legales">Mentions légales</a><button type="button" data-age-reset>Revoir la vérification de l’âge</button></span>
+      <span class="ft__links"><a href="/mentions-legales">Mentions légales</a><a href="/mentions-legales#donnees">Données personnelles</a><button type="button" data-age-reset>Revoir la vérification de l’âge</button><span class="ft__lang">Français · <span lang="en">English</span> et <span lang="de">Deutsch</span> à venir</span></span>
     </div>
   </div>
 </footer>

@@ -1,31 +1,29 @@
-// Catalogue affiché par le site : faits issus de catalogue.json (généré depuis la recherche par
-// scripts/import-catalogue.mjs, à ne pas modifier à la main) + présentation (noms d'affichage,
-// familles d'arômes, couleurs, bouteilles 3D) définie ici.
+// Catalogue affiché par le site : le catalogue officiel du site de la distillerie (relevé du
+// 14 octobre 2026, src/data/catalogue.json généré par scripts/import-site.mjs : noms, rubriques,
+// contenances et prix TTC, degrés, descriptions et ingrédients exacts) + présentation définie ici
+// (noms d'affichage, familles d'arômes, couleurs de liquide pour la 3D de secours, notes sourcées).
 //
 // Règles de la maquette (voir README) :
 // - aucun prix, degré, contenance ou texte inventé : un champ vide n'est pas affiché ;
-// - prix : seulement les prix TTC du site officiel, jamais ceux des revendeurs ;
 // - alcool: true → visible seulement après la vérification de l'âge, toujours avec le message
 //   sanitaire (loi Évin). Les notes marquées alcool: true (une recette avec alcool, par exemple)
 //   ne s'affichent qu'aux personnes majeures, même sur la fiche d'un sirop.
 import catalogue from './catalogue.json';
+import recettesSite from './site/recettes.json';
 
 export const EVIN = 'L’abus d’alcool est dangereux pour la santé, à consommer avec modération.';
 export const MINEURS = 'La vente d’alcool est interdite aux mineurs de moins de 18 ans.';
 
-// Catégories de la boutique officielle (rubriques et pages catégories du site actuel).
-// « Le rayon dit l'usage, l'habillage dit l'univers, la porte d'âge dit le public » (étude
-// d'identité) : la gamme range le produit, son univers (theme) l'habille.
+// Rubriques de la boutique officielle (fil d'Ariane des fiches) ; la gamme range le produit,
+// son univers (theme) l'habille.
 export const GAMMES = [
   { id: 'pac', nom: 'PAC Citron', univers: 'sirops', theme: 'pac' },
   { id: 'fun-blue', nom: 'Fun Blue', univers: 'sirops', theme: 'funblue' },
   { id: 'couleur-provence', nom: 'Sirops Couleur Provence®', court: 'Couleur Provence®', univers: 'sirops', theme: 'provence' },
   { id: 'pastis-aperitifs', nom: 'Les Apéritifs et Pastis', univers: 'spiritueux', theme: 'maison' },
-  { id: 'liqueurs-regionales', nom: 'Liqueurs régionales', univers: 'spiritueux', theme: 'maison' },
-  // Rubrique officielle « Les Crèmes et Eaux de Vie » (complément du catalogue) : crème de
-  // châtaigne, eau-de-vie de poire Flirt®, La Magistrale (eau-de-vie de plantes).
+  { id: 'liqueurs', nom: 'Les Liqueurs', univers: 'spiritueux', theme: 'maison' },
   { id: 'cremes-eaux-de-vie', nom: 'Les Crèmes et Eaux de Vie', univers: 'spiritueux', theme: 'marcs' },
-  { id: 'marcs', nom: 'Vieux marcs', univers: 'spiritueux', theme: 'marcs' },
+  { id: 'marcs', nom: 'Les Vieux Marcs', univers: 'spiritueux', theme: 'marcs' },
 ];
 
 // Les neuf univers de la maison (étude d'identité). Couleurs : PAC, Fun Blue et collectors sont
@@ -79,18 +77,6 @@ export const FAMILLES = [
   { id: 'vigne', nom: 'Vigne & raisin' },
 ];
 
-const GAMME_DU_CATALOGUE = {
-  PAC: 'pac',
-  'Fun Blue': 'fun-blue',
-  'Couleur Provence®': 'couleur-provence',
-  Pastis: 'pastis-aperitifs',
-  Apéritifs: 'pastis-aperitifs',
-  'Les Régionales': 'liqueurs-regionales',
-  'Les Crèmes et Eaux de Vie': 'cremes-eaux-de-vie',
-  'Eaux-de-vie de fruits': 'cremes-eaux-de-vie',
-  'Vieux Marc de Châteauneuf-du-Pape': 'marcs',
-  'Vieux Marc de Provence': 'marcs',
-};
 
 // Présentation de chaque produit.
 // nom      : nom d'affichage (le nom officiel reste dans nomOfficiel) ; lignes : nom sur deux lignes
@@ -114,8 +100,8 @@ const P = {
     garnish: ['lemonSlice', 'lemon', 'ice'],
     phrase: '100 % naturel au jus de citron, sans colorant ni conservateur',
     notes: [
-      { t: 'Créé par Louis Guiot « à la suite d’étés torrides », après deux ans d’essais ; marque déposée en 1962.' },
-      { t: 'Son nom reprend les initiales des enfants de Louis Guiot.' },
+      { t: 'Lancé en 1960 selon la page Histoire de la maison (marque déposée en 1962) : « sirop à base de sucre et de citron, sans colorants ».' },
+      { t: 'Louis Guiot le compose « de chaque première lettre du prénom de ses enfants : Pierre, Annick, Christian et Colette » (page Histoire).' },
       { t: '« Toujours fabriqué dans le Vaucluse par la Distillerie A. Blachère », dit sa fiche.' },
       { t: 'Pour ses 60 ans, en 2023 : quatre étiquettes collector, trois de C215 et une de Claude Viallat.' },
     ],
@@ -233,24 +219,20 @@ const P = {
     famille: 'gourmands',
     liquide: '#9a5226',
   },
+  // ---------- Spiritueux (noms d'affichage ; faits : fiches officielles, page Histoire) ----------
   'pastis-marra': {
-    nom: 'Pastis Marra®',
+    nom: 'Pastis « Marra® »',
     lignes: ['Pastis', 'Marra'],
     type: 'Pastis',
     famille: 'anis-reglisse',
     liquide: '#d39a2c',
     bouteille: 'pastis',
     bouchon: '#1d4f91',
-    garnish: ['anise', 'anise'],
     habillage: 'maison',
-    notes: [
-      { t: 'Recette de la distillerie Marra, à L’Isle-sur-la-Sorgue, rachetée par la maison en 1955.' },
-      { t: 'Réglisse en bâton macérée dans la préparation.' },
-    ],
-    conseil: '1 volume de pastis pour 5 à 7 volumes d’eau fraîche.',
+    notes: [{ t: 'La page Histoire de la maison raconte qu’il a été créé par un confrère de L’Isle-sur-la-Sorgue, Michel Marra.' }],
   },
   'pastis-le-camarguais': {
-    nom: 'Le Camarguais®',
+    nom: 'Pastis « Le Camarguais® »',
     lignes: ['Le', 'Camarguais'],
     type: 'Pastis',
     famille: 'anis-reglisse',
@@ -258,189 +240,175 @@ const P = {
     bouteille: 'pastis',
     bouchon: '#8a1c2b',
     habillage: 'camargue',
-    phrase: 'L’un des derniers pastis faits à l’ancienne, selon la page Histoire de la maison',
-    notes: [
-      { t: 'Créé au milieu des années 1970 par Jean-Claude Blachère, inspiré de la Camargue.' },
-      { t: 'Nom exact en boutique à confirmer (« Pastis Camarguais » sur la page Histoire).' },
-    ],
+    notes: [{ t: 'Selon la page Histoire, « un des derniers pastis fabriqué à l’ancienne », né de l’amour de Jean-Claude Blachère pour la Camargue.' }],
   },
   'aperitif-lou-gardian': {
-    nom: 'Apéritif vin et pêche « Lou Gardian »',
+    nom: 'Lou Gardian®',
     lignes: ['Lou', 'Gardian'],
-    type: 'Apéritif vin et pêche',
+    type: 'Apéritif à la pêche',
     famille: 'vigne',
     liquide: '#e48b6d',
     bouteille: 'liqueur',
     bouchon: '#6d1b2a',
     habillage: 'camargue',
-    notes: [
-      { t: 'Créé au milieu des années 1970 par Jean-Claude Blachère ; son nom évoque le gardian, figure de la culture camarguaise.' },
-      { t: 'Sa bouteille est sérigraphiée de motifs camarguais.' },
-    ],
+    notes: [{ t: 'La page Histoire le décrit comme « un doux mélange de vin et de pêche ».' }],
+  },
+  'aperitif-a-l-olive-bronzini': {
+    nom: 'Apéritif à l’olive « Bronzini® »',
+    lignes: ['Bronzini', 'à l’olive'],
+    type: 'Apéritif à l’olive',
+    famille: 'fleurs-plantes',
+    liquide: '#b6a24a',
+    bouteille: 'liqueur',
+    habillage: 'maison',
   },
   'la-camarguaise': {
     nom: 'La Camarguaise®',
     lignes: ['La', 'Camarguaise'],
-    type: 'Liqueur de plantes et d’épices',
+    type: 'Liqueur des gardians',
     famille: 'fleurs-plantes',
     liquide: '#b4651f',
     bouteille: 'apothicaire',
     bouchon: '#8a5a32',
     bouchage: 'cork',
-    garnish: ['origan', 'anise'],
     habillage: 'camargue',
-    notes: [
-      { t: 'Créée au milieu des années 1970 par Jean-Claude Blachère, inspirée de la Camargue.' },
-      { t: 'Elle se boit à température ambiante ou sur glace pilée, et sert aussi à flamber les crustacés.' },
-    ],
+    notes: [{ t: 'Selon la page Histoire, la première bouteille sérigraphiée de la maison, « à base de thym et de romarin de l’arrière-pays ».' }],
+  },
+  'la-camarguaise-luxe': {
+    nom: 'La Camarguaise® Luxe',
+    lignes: ['La Camarguaise', 'Luxe'],
+    type: 'Liqueur des gardians',
+    famille: 'fleurs-plantes',
+    liquide: '#b4651f',
+    bouteille: 'apothicaire',
+    habillage: 'camargue',
   },
   'verveine-auguste-vieilli': {
-    nom: 'Verveine Auguste vieilli',
+    nom: 'Verveine « Auguste® » vieillie',
     lignes: ['Verveine', 'Auguste'],
-    type: 'Liqueur de verveine vieillie en fût de chêne',
+    type: 'Liqueur de verveine vieillie',
     habillage: 'ventoux',
     famille: 'fleurs-plantes',
     liquide: '#5f7a26',
     bouteille: 'liqueur',
     bouchon: '#3f5a1a',
-    notes: [
-      { t: 'D’après sa fiche : une eau-de-vie de verveine et une macération des feuilles de plus de neuf mois, puis un vieillissement en fût de chêne.' },
-      { t: 'Bouteilles numérotées à la main, en hommage à Auguste Blachère.' },
-      { t: 'La maison dit avoir fabriqué de la verveine dès le début des années 1880.' },
-    ],
+  },
+  'verveine-l-ardechoise': {
+    nom: 'Verveine « L’Ardéchoise® »',
+    lignes: ['Verveine', 'L’Ardéchoise'],
+    type: 'Liqueur de verveine',
+    habillage: 'ventoux',
+    famille: 'fleurs-plantes',
+    liquide: '#6d8f2a',
+    bouteille: 'liqueur',
   },
   'eau-de-vie-poire-williams-flirt': {
-    nom: 'Eau-de-vie Poires Williams « Flirt® »',
+    nom: 'Flirt®, eau-de-vie de poires Williams',
     lignes: ['Flirt', 'Poires Williams'],
-    type: 'Eau-de-vie de poire Williams',
+    type: 'Eau-de-vie de fruits',
     famille: 'fruits',
     liquide: '#f6f2e6',
     bouteille: 'liqueur',
     bouchon: '#c9a14a',
     habillage: 'marcs',
-    notes: [{ t: 'Sa fiche la conseille aussi en cuisine : tartes aux poires, confitures, sorbets.' }],
   },
   'marc-chateauneuf-du-pape-reserve-des-legats': {
-    nom: 'Réserve des Légats',
+    nom: 'Réserve des Légats®',
     lignes: ['Réserve', 'des Légats'],
-    type: 'Vieux marc de Châteauneuf-du-Pape',
+    type: 'Vieux marc de Châteauneuf-du-Pape hors d’âge',
     famille: 'vigne',
     liquide: '#c4863a',
     bouteille: 'marc',
     bouchon: '#5a1630',
-    garnish: ['grape', 'vineLeaf'],
     habillage: 'comtat',
     notes: [
-      { t: 'La page Histoire de la maison la cite parmi les créations de la période Louis Guiot (1951-1989).' },
+      { t: 'La page Histoire la cite parmi les vieux marcs développés à partir de 1951, sous la direction de Louis Guiot.' },
       { t: 'Son nom évoque les légats qui ont gouverné Avignon et le Comtat après les papes.' },
     ],
   },
-  // Produits attestés (page Histoire, boutique officielle, presse, offices de tourisme) mais sans
-  // fiche ni prix officiels : « disponibles à la boutique de la distillerie », à confirmer.
+  'vieux-marc-de-provence-gros-calan': {
+    nom: 'Marc de Provence « Gros Calan® » 2016',
+    lignes: ['Gros', 'Calan'],
+    type: 'Vieux marc de Provence, millésime 2016',
+    famille: 'vigne',
+    liquide: '#a8692a',
+    bouteille: 'marc',
+    bouchon: '#6e4526',
+    habillage: 'marcs',
+  },
+  'marc-elixir-millesime': {
+    type: 'Vieux marc de Châteauneuf-du-Pape « Elixir® »',
+    famille: 'vigne',
+    liquide: '#b9772f',
+    bouteille: 'marc',
+    bouchon: '#5e1a2b',
+    habillage: 'marcs',
+  },
   'origan-du-comtat': {
-    nom: 'Origan du Comtat',
+    nom: 'Origan du Comtat®',
     lignes: ['Origan', 'du Comtat'],
-    type: 'Liqueur de plantes',
+    type: 'Liqueur d’Avignon',
     famille: 'fleurs-plantes',
     liquide: '#b88a2e',
     bouteille: 'liqueur',
     bouchon: '#405e77',
     habillage: 'comtat',
-    notes: [
-      { t: 'Une recette de la fin du XIXe siècle, faite de dizaines de plantes du Ventoux.' },
-      { t: 'Elle entre dans la recette des papalines d’Avignon, chocolats au cœur de liqueur.' },
-    ],
   },
   'la-comtadine': {
-    nom: 'La Comtadine',
+    nom: 'La Comtadine®',
     lignes: ['La', 'Comtadine'],
-    type: 'Liqueur',
+    type: 'Liqueur de Provence',
+    famille: 'fleurs-plantes',
     liquide: '#c49a52',
     bouteille: 'liqueur',
     bouchon: '#9e1b32',
     habillage: 'comtat',
-    notes: [{ t: 'Citée par une fiche touristique parmi les liqueurs que l’on déguste gratuitement à la boutique ; absente du site actuel.' }],
   },
   'la-magistrale': {
-    nom: 'La Magistrale',
+    nom: 'La Magistrale®',
     lignes: ['La', 'Magistrale'],
-    type: 'Eau-de-vie de plantes (eau d’arquebuse)',
+    type: 'Eau d’arquebuse',
     famille: 'fleurs-plantes',
     liquide: '#a3ad5c',
     bouteille: 'apothicaire',
     bouchage: 'cork',
     habillage: 'ventoux',
-    notes: [
-      { t: 'La page Histoire de la maison la relie au « Révérend Frère Imbert », chimiste religieux du XVIIIe siècle.' },
-      { t: 'Une eau d’arquebuse aux plantes de Provence, dont l’armoise, selon le blog de Gilles Pudlowski.' },
-    ],
+    notes: [{ t: 'Selon la page Histoire, inspirée des produits du révérend frère Imbert, chimiste religieux du XVIIIe siècle.' }],
   },
   'elixir-du-mont-ventoux': {
-    nom: 'Élixir du Mont-Ventoux',
-    lignes: ['Élixir', 'du Mont-Ventoux'],
-    type: 'Liqueur',
+    nom: 'Élixir du Mont Ventoux®',
+    lignes: ['Élixir', 'du Mont Ventoux'],
+    type: 'Liqueur du Ventoux',
     famille: 'fleurs-plantes',
     liquide: '#7a913f',
     bouteille: 'liqueur',
     bouchon: '#55613a',
     habillage: 'ventoux',
-    notes: [
-      { t: 'Marque déposée à l’INPI par la maison le 29 mai 2000.' },
-      { t: 'Absente du site actuel.' },
-      { t: 'À ne pas confondre avec les millésimes de vieux marc « Elixir® ».' },
-    ],
   },
   'liqueur-de-lavande': {
-    nom: 'Liqueur de lavande',
+    nom: 'Liqueur de lavande « A. Blachère® »',
     lignes: ['Liqueur', 'de lavande'],
-    type: 'Liqueur de lavande',
+    type: 'Liqueur régionale',
     famille: 'fleurs-plantes',
     liquide: '#8f7bc4',
     bouteille: 'liqueur',
     bouchon: '#6e5c9e',
     habillage: 'ventoux',
-    notes: [{ t: 'L’office de tourisme du Vaucluse (Provence Guide) la cite parmi les nouvelles créations de la distillerie ; absente du site actuel.' }],
   },
   'creme-de-chataigne': {
-    nom: 'Crème de châtaigne',
+    nom: 'Crème de châtaigne « L’Ardéchoise® »',
     lignes: ['Crème', 'de châtaigne'],
     type: 'Crème de liqueur',
     famille: 'gourmands',
     liquide: '#6b3f22',
     trouble: true,
     bouteille: 'liqueur',
-    bouchon: '#6e4526',
     habillage: 'maison',
-    notes: [
-      { t: 'La fiche du sirop de châtaigne la cite : « notre crème de châtaigne », dont le sirop est la version sans alcool.' },
-      { t: 'La même fiche évoque des liens « très forts » de la maison avec la terre ardéchoise.' },
-    ],
+    notes: [{ t: 'Selon la page Histoire, inspirée par Jean-Claude Blachère, natif de l’Ardèche.' }],
   },
-  'vieux-marc-elixir-millesimes': {
-    nom: 'Vieux marc « Elixir® », millésimes',
-    lignes: ['Vieux marc', '« Elixir® »'],
-    type: 'Vieux marc de Châteauneuf-du-Pape',
-    famille: 'vigne',
-    liquide: '#b9772f',
-    bouteille: 'marc',
-    bouchon: '#5e1a2b',
-    habillage: 'marcs',
-    notes: [
-      { t: 'Libellé de la rubrique des vieux marcs de Châteauneuf-du-Pape de la boutique officielle ; millésimes à confirmer.' },
-      { t: 'À ne pas confondre avec l’Élixir du Mont-Ventoux, une liqueur.' },
-    ],
-  },
-  'vieux-marc-de-provence-gros-calan': {
-    nom: 'Vieux marc de Provence « Gros Calan »',
-    lignes: ['Gros', 'Calan'],
-    type: 'Vieux marc de Provence',
-    famille: 'vigne',
-    liquide: '#a8692a',
-    bouteille: 'marc',
-    bouchon: '#6e4526',
-    habillage: 'marcs',
-    notes: [{ t: 'La page Histoire le cite parmi les créations de la période Louis Guiot (1951-1989).' }],
-  },
+  'creme-de-myrtille': { nom: 'Crème de myrtille « L’Ardéchoise® »', lignes: ['Crème', 'de myrtille'], type: 'Crème de liqueur', famille: 'fruits-rouges', liquide: '#3a1530', bouteille: 'liqueur', habillage: 'maison' },
+  'creme-de-framboise': { nom: 'Crème de framboise « L’Ardéchoise® »', lignes: ['Crème', 'de framboise'], type: 'Crème de liqueur', famille: 'fruits-rouges', liquide: '#8a1530', bouteille: 'liqueur', habillage: 'maison' },
+  'creme-de-cassis': { nom: 'Crème de cassis « L’Ardéchoise® »', lignes: ['Crème', 'de cassis'], type: 'Crème de liqueur', famille: 'fruits-rouges', liquide: '#2a0a1a', bouteille: 'liqueur', habillage: 'maison' },
 };
 
 // Couleurs dérivées d'une teinte de liquide (fond, dégradé, fond sombre, texte clair).
@@ -468,53 +436,74 @@ function palette(liquide) {
 const THEME_GAMME = Object.fromEntries(GAMMES.map((g) => [g.id, g.theme]));
 export const euro = (n) => `${n.toFixed(2).replace('.', ',')} €`;
 
+// Formats vus seulement en grande surface ou chez des revendeurs (complément de la recherche) :
+// jamais vendus en ligne, mentionnés sur la fiche.
+const AILLEURS = {
+  'pac-citron': [{ volume: '70 cl', ou: 'en grande surface' }],
+  'fun-blue': [{ volume: '70 cl', ou: 'en grande surface' }],
+  'sirop-couleur-provence-orgeat': [{ volume: '70 cl', ou: 'en grande surface' }],
+};
+
+const ELIXIR = /ELIXIR®.*MILLESIME (\d{4})/i;
+// Nom d'affichage par défaut : le nom officiel, en minuscules soignées.
+function displayName(c) {
+  const m = c.nomOfficiel.match(ELIXIR);
+  if (m) return `Vieux marc « Elixir® » ${m[1]}`;
+  return c.nomOfficiel;
+}
+
 export const products = catalogue.produits.map((c, index) => {
-  const e = P[c.slug] || {};
-  const gamme = GAMME_DU_CATALOGUE[c.gamme] || (c.categorie === 'Crèmes' ? 'cremes-eaux-de-vie' : undefined);
+  const e = P[c.slug] || (ELIXIR.test(c.nomOfficiel) ? P['marc-elixir-millesime'] : {}) || {};
+  const gamme = c.gamme;
   const g = GAMMES.find((x) => x.id === gamme);
-  const alcool = c.categorie !== 'Sirops';
+  const alcool = c.categorie === 'Alcools';
   const contenances = c.contenances.map((k) => ({ ...k, prixTexte: k.prix !== null ? euro(k.prix) : null }));
-  const premier = contenances[0];
+  const premier = contenances.find((k) => k.ml) || contenances[0];
   const bouteille = e.bouteille || (premier?.ml === 700 ? 'sirop70' : premier?.ml === 500 ? 'sirop50' : 'pac1l');
+  const millesime = (c.nomOfficiel.match(ELIXIR) || [])[1] || null;
   return {
     index,
     id: c.slug,
     slug: c.slug,
-    nom: e.nom || c.nomOfficiel,
+    idSite: c.idSite,
+    nom: e.nom || displayName(c),
     nomOfficiel: c.nomOfficiel,
-    lignes: e.lignes || [c.nomOfficiel, ''],
-    type: e.type || (alcool ? c.categorie : `Sirop ${g?.court || ''}`.trim()),
+    lignes: e.lignes || (millesime ? ['Elixir®', millesime] : [displayName(c), '']),
+    type: e.type || (alcool ? (c.rubrique || '').split('>').pop().trim() || 'Spiritueux' : `Sirop ${g?.court || ''}`.trim()),
     categorie: c.categorie,
+    rubrique: c.rubrique,
     gamme,
-    gammeNom: g?.nom || c.gamme,
+    gammeNom: g?.nom || c.rubrique || '',
     univers: alcool ? 'spiritueux' : 'sirops',
     alcool,
-    theme: e.habillage || THEME_GAMME[gamme] || 'provence',
-    arome: c.arome,
-    famille: e.famille || null,
+    theme: e.habillage || g?.theme || 'provence',
+    famille: e.famille || (alcool ? null : null),
     contenances,
     degre: c.degre,
-    citation: c.citationLangue === 'fr' ? c.citation : null,
-    phrase: e.phrase || (c.citationLangue === 'fr' ? c.citation : null),
-    phraseAlcool: !!e.phraseAlcool,
+    description: c.description,
     ingredients: c.ingredients,
+    nutrition: c.nutrition,
+    application: c.application,
+    saviezVous: c.saviezVous,
+    reference: c.reference,
+    // accroche : la première ligne de la description officielle
+    phrase: e.phrase || (c.description ? c.description.split('\n').find((l) => l.trim()) : null),
+    phraseAlcool: alcool,
     bestSeller: c.bestSeller,
     url: c.url,
-    presence: c.presence,
-    certitude: c.certitude,
-    // « boutique » : disponible à la boutique de la distillerie, présence à confirmer, hors panier.
+    millesime,
+    plat: !!c.plat,
+    certitude: 'officielle',
     disponibilite: c.disponibilite || 'en-ligne',
     enLigne: (c.disponibilite || 'en-ligne') === 'en-ligne',
-    // formats vus seulement en grande surface ou chez des revendeurs : jamais vendus en ligne
-    formatsAilleurs: c.formatsAilleurs || [],
-    citationCaviste: c.citationCaviste || null,
+    formatsAilleurs: AILLEURS[c.slug] || [],
     notes: e.notes || [],
     conseil: e.conseil || null,
-    ...palette(e.liquide || '#c9a24a'),
-    // 3D : bouteille dessinée en code tant qu'il n'y a pas de photo (voir photos/LISEZMOI.md)
+    ...palette(e.liquide || (alcool ? '#c4863a' : '#e2c46a')),
+    // 3D de secours (bouteille construite en code) quand la photo manque
     bottle: {
       shape: bouteille,
-      liquid: e.liquide || '#c9a24a',
+      liquid: e.liquide || (alcool ? '#c4863a' : '#e2c46a'),
       cloudy: !!e.trouble,
       cap: e.bouchon || mix(e.liquide || '#c9a24a', '#1d150c', 0.35),
       closure: e.bouchage || (alcool ? 'capsule' : 'screw'),
@@ -547,21 +536,6 @@ export const minPrice = (p) => {
 // Produits visibles selon la réponse à la vérification de l'âge.
 export const visibleProducts = (age) => products.filter((p) => !p.alcool || age === 'majeur');
 
-// Recettes de la maison : titres de l'index officiel. Une seule a une adresse et une recette
-// connues (Le Blue Mojito, sans alcool) ; les autres sont listées sans lien ni ingrédients.
-// Type incertain ou inconnu → traité comme « avec alcool » (réservé aux majeurs).
-export const recettes = [
-  {
-    titre: 'Le Blue Mojito',
-    url: 'https://www.distillerieablachere.com/fr/recettes/34/le-blue-mojito',
-    alcool: false,
-    produits: ['fun-blue', 'pac-citron'],
-    ingredients: ['2 cl de Fun Blue®', '2 cl de PAC®', '15 cl d’eau pétillante', '1/3 de glace pilée', 'Pour décorer : sucre, citron vert, feuilles de menthe'],
-    preparation: 'Ajoutez 1/3 de glace pilée, les deux sirops, puis l’eau pétillante ; ajoutez les tranches de citron et la menthe (verre de 50 cl).',
-  },
-  { titre: 'Pink Lady (sans alcool)', alcool: false },
-  { titre: 'Pink Lady milkshake', alcool: true },
-  { titre: 'Colarotte', alcool: true },
-  { titre: 'Pink Lady', alcool: true },
-  { titre: 'Gambas flambées à la liqueur La Camarguaise®', alcool: true, produits: ['la-camarguaise'] },
-];
+// Recettes et cocktails : les fiches officielles (textes exacts et photos, src/data/site/recettes.json).
+// alcool: true → réservées aux personnes majeures.
+export const recettes = recettesSite.recettes;

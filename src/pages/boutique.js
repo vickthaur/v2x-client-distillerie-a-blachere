@@ -102,7 +102,7 @@ function readForm() {
   state.univers = fd.get('univers') || 'tous';
   state.gammes = new Set(fd.getAll('gamme'));
   state.familles = new Set(fd.getAll('arome'));
-  state.volumes = new Set(fd.getAll('contenance').map(Number));
+  state.volumes = new Set(fd.getAll('contenance'));
   state.best = fd.get('meilleures') === '1';
   ['prix', 'degre'].forEach((name) => {
     const fs = $(`[data-range="${name}"]`, form);
@@ -258,7 +258,7 @@ $('#shop-sort').addEventListener('change', () => {
 document.addEventListener('click', (e) => {
   const add = e.target.closest('[data-add]');
   if (add) {
-    addToCart(add.dataset.add, add.dataset.ml ? Number(add.dataset.ml) : null);
+    addToCart(add.dataset.add, add.dataset.v || null);
     return;
   }
   if (e.target.closest('[data-verify]')) {

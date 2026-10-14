@@ -1,11 +1,11 @@
 // Panier (maquette) : gardé dans le navigateur (localStorage), synchronisé entre onglets.
-// Une ligne = un produit dans une contenance. Les prix sont relus dans le catalogue à chaque
+// Une ligne = un produit dans une variante (contenance ou coffret, id de la variante officielle). Les prix sont relus dans le catalogue à chaque
 // affichage (jamais stockés) : seuls les prix officiels connus comptent dans le total.
 import { bySlug } from '../data/products.js';
 import { readJSON, writeJSON } from './store.js';
 
 const KEY = 'blachere-panier';
-const VERSION = 2;
+const VERSION = 3;
 const listeners = new Set();
 
 function load() {
@@ -27,7 +27,7 @@ addEventListener('storage', (e) => {
   listeners.forEach((fn) => fn(items));
 });
 
-const same = (a, slug, ml) => a.slug === slug && (a.ml ?? null) === (ml ?? null);
+const same = (a, slug, v) => a.slug === slug && (a.v ?? null) === (v ?? null);
 
 export const cart = {
   get items() {
@@ -40,18 +40,18 @@ export const cart = {
   count() {
     return items.reduce((s, i) => s + i.qty, 0);
   },
-  add(slug, ml = null, qty = 1) {
+  add(slug, v = null, qty = 1) {
     // Produits « disponibles à la boutique de la distillerie » : jamais dans le panier en ligne.
     if (!bySlug[slug]?.enLigne) return false;
-    const line = items.find((i) => same(i, slug, ml));
+    const line = items.find((i) => same(i, slug, v));
     if (line) line.qty = Math.min(99, line.qty + qty);
-    else items = [...items, { slug, ml, qty: Math.min(99, qty) }];
+    else items = [...items, { slug, v, qty: Math.min(99, qty) }];
     save();
     return true;
   },
-  set(slug, ml, qty) {
-    if (qty <= 0) items = items.filter((i) => !same(i, slug, ml));
-    else items = items.map((i) => (same(i, slug, ml) ? { ...i, qty: Math.min(99, qty) } : i));
+  set(slug, v, qty) {
+    if (qty <= 0) items = items.filter((i) => !same(i, slug, v));
+    else items = items.map((i) => (same(i, slug, v) ? { ...i, qty: Math.min(99, qty) } : i));
     save();
   },
   clear() {
@@ -71,7 +71,7 @@ export const cart = {
       .map((i) => {
         const product = bySlug[i.slug];
         if (!product) return null;
-        const contenance = product.contenances.find((c) => c.ml === i.ml) || null;
+        const contenance = product.contenances.find((c) => c.id === i.v) || null;
         const prix = contenance?.prix ?? null;
         return { ...i, product, contenance, prix, total: prix !== null ? prix * i.qty : null };
       })

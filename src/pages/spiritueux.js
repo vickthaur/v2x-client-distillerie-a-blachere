@@ -142,7 +142,7 @@ function render() {
 
 document.addEventListener('click', (e) => {
   const add = e.target.closest('[data-add]');
-  if (add) addToCart(add.dataset.add, add.dataset.ml ? Number(add.dataset.ml) : null);
+  if (add) addToCart(add.dataset.add, add.dataset.v || null);
 });
 
 site.onAge(render);

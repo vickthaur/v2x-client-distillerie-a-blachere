@@ -14,18 +14,20 @@ const LAYER_REFL = 1;
 const MAX_BOTTLES = 4;
 const MAX_BLOBS = 16;
 const TEST = typeof location !== 'undefined' && new URLSearchParams(location.search).has('test');
+const DEBUG = new Set(typeof location !== 'undefined' ? (new URLSearchParams(location.search).get('debug3d') || '').split(',') : []);
 
 // ------------------------------------------------------------------ fond cyclo
 
 function sweepGeometry() {
   const prof = [];
-  for (let i = 0; i <= 40; i++) prof.push([60 - i * (64 / 40), 0]);
+  for (let i = 0; i <= 40; i++) prof.push([32 - i * (36 / 40), 0]);
   for (let i = 1; i <= 28; i++) {
     const a = (i / 28) * (Math.PI / 2);
     prof.push([-4 - Math.sin(a) * 6, 6 - Math.cos(a) * 6]);
   }
   for (let i = 1; i <= 16; i++) prof.push([-10, 6 + i * 3]);
-  const xs = [-120, -40, 0, 40, 120];
+  // maillage fin, sans colonne de sommets en x = 0 (axe de la caméra : évite une fissure d'un pixel)
+  const xs = Array.from({ length: 48 }, (_, i) => -120 + (i * 240) / 47);
   const pos = [];
   const idx = [];
   prof.forEach(([z, y]) => xs.forEach((x) => pos.push(x, y + FLOOR_Y, z)));
@@ -236,6 +238,13 @@ export class Stage {
     }
     this.loop = this.loop.bind(this);
     requestAnimationFrame(this.loop);
+  }
+
+  setColors(colors) {
+    const u = this.sweep.material.uniforms;
+    u.uColA.value.set(colors.a);
+    u.uColB.value.set(colors.b || colors.a);
+    if (colors.split !== undefined) u.uSplitX.value = colors.split;
   }
 
   // Remplace les bouteilles posées (fiche produit, vignettes).
@@ -496,7 +505,9 @@ export class Stage {
     r.setClearColor(0x000000, 1);
     // 2. scène, puis post-traitement
     const H = this.height * this.dpr;
-    this.post.render(this.scene, this.camera, { focus: this.focus || 10, aperture: this.mobile ? 0.012 : 0.02, maxBlur: H * 0.008, time: t });
+    const dbg = DEBUG;
+    if (dbg.has('nobloom')) this.post.settings.bloom = 0;
+    this.post.render(this.scene, this.camera, { focus: this.focus || 10, aperture: dbg.has('nodof') ? 0 : this.mobile ? 0.012 : 0.02, maxBlur: dbg.has('nodof') ? 0 : H * 0.008, time: t });
   }
 
   loop() {

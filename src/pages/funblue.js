@@ -42,7 +42,7 @@ function lagonSVG() {
 }
 
 $('#lagon').innerHTML = lagonSVG();
-$('#bhero-buy').innerHTML = `<button type="button" class="btn btn--white" data-add="${p.slug}" data-ml="${c.ml}">${icons.bag}<span>Ajouter · ${esc(c.volume)} · ${euro(c.prix)}</span></button>`;
+$('#bhero-buy').innerHTML = `<button type="button" class="btn btn--white" data-add="${p.slug}" data-v="${c.id}">${icons.bag}<span>Ajouter · ${esc(c.volume)} · ${euro(c.prix)}</span></button>`;
 $('#fb-card').innerHTML = cardHTML(p);
 upgradeThumbs($('#fb-card'));
 $('#fb-wall').innerHTML = `<ul class="wall__grid">${archives
@@ -59,5 +59,5 @@ reveal();
 
 document.addEventListener('click', (e) => {
   const add = e.target.closest('[data-add]');
-  if (add) addToCart(add.dataset.add, add.dataset.ml ? Number(add.dataset.ml) : null);
+  if (add) addToCart(add.dataset.add, add.dataset.v || null);
 });

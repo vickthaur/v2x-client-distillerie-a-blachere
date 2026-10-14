@@ -5,12 +5,12 @@
 // - première visite : la date de naissance est demandée ; les sirops restent accessibles sans répondre ;
 // - moins de 18 ans : les spiritueux sont retirés de toutes les pages pour la session ;
 // - 18 ans ou plus : réponse gardée dans le navigateur (clé blachere-age).
-import { bySlug, euro, EVIN, MINEURS, DISPO_BOUTIQUE } from '../data/products.js';
+import { bySlug, products, euro, EVIN, MINEURS, DISPO_BOUTIQUE } from '../data/products.js';
 import { readAge, saveAge, resetAge, ageFrom } from '../lib/age.js';
 import { cart } from '../lib/cart.js';
-import { $, $$, esc, calm, plural } from '../lib/dom.js';
+import { $, $$, esc, calm, plural, fold } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
-import { thumbHTML, upgradeThumbs } from '../lib/thumbs.js';
+import { thumbHTML, renderHTML, upgradeThumbs } from '../lib/thumbs.js';
 
 let age = readAge(); // 'majeur' | 'mineur' | 'sirops' | null
 const TEST = typeof location !== 'undefined' && new URLSearchParams(location.search).has('test');
@@ -42,7 +42,8 @@ function setAge(value) {
     const removed = cart.purgeAlcohol();
     if (removed) toast('Les spiritueux ont été retirés du panier.');
   }
-  $$('[data-evin-majeur]').forEach((el) => (el.hidden = age !== 'majeur'));
+  $$('[data-evin-majeur], [data-majeur]').forEach((el) => (el.hidden = age !== 'majeur'));
+  if (!$('#mega-spiritueux')?.hidden) spiritsMenu();
   ageListeners.forEach((fn) => fn(age));
 }
 
@@ -139,7 +140,185 @@ function bindGate() {
   );
 }
 
-// ---------- Menu ----------
+// ---------- En-tête : état collant, méga-menus, recherche, menu plein écran ----------
+
+// Vignettes des menus (rendus 3D ou photos) : posées à la première ouverture.
+function fillRenders(root) {
+  $$('[data-render]', root).forEach((el) => {
+    if (el.dataset.done) return;
+    el.dataset.done = '1';
+    el.innerHTML = renderHTML(el.dataset.render.split(' '), { bg: el.dataset.bg || '', fmt: 'paysage' });
+  });
+  upgradeThumbs(root);
+}
+
+// Méga-menu « Spiritueux » : produits visibles seulement après la vérification de l'âge.
+function spiritsMenu() {
+  const box = $('[data-spirits-menu]');
+  if (!box) return;
+  if (age !== 'majeur') {
+    box.innerHTML = `<div class="mega__lock">${icons.lock}<div><p class="mega__t">Réservé aux personnes majeures</p><p class="mega__d">${
+      age === 'mineur' ? 'Bonne découverte de nos sirops, de notre histoire et des visites.' : 'Indiquez votre date de naissance pour voir les pastis, liqueurs, marcs et eaux-de-vie de la maison.'
+    }</p>${age === 'mineur' ? '' : '<button type="button" class="btn btn--primary btn--sm" data-verify-menu>Vérifier mon âge</button>'}</div></div>`;
+    $('[data-verify-menu]', box)?.addEventListener('click', () => {
+      closeMegas();
+      requireAge();
+    });
+    return;
+  }
+  const picks = [
+    ['pastis-marra', 'Les Apéritifs et Pastis', '/boutique?gamme=pastis-aperitifs'],
+    ['la-camarguaise', 'Liqueurs régionales', '/boutique?gamme=liqueurs-regionales'],
+    ['marc-chateauneuf-du-pape-reserve-des-legats', 'Vieux marcs', '/boutique?gamme=marcs'],
+    ['eau-de-vie-poire-williams-flirt', 'Les Crèmes et Eaux de Vie', '/boutique?gamme=cremes-eaux-de-vie'],
+  ];
+  box.innerHTML = `<ul class="mega__brands mega__brands--4">${picks
+    .map(([slug, label, href]) => {
+      const p = bySlug[slug];
+      return p ? `<li><a class="mega-brand mega-brand--sober" href="${href}"><span class="mega-brand__render" data-render="${slug}"></span><span class="mega-brand__txt"><span class="mega-brand__name">${esc(label)}</span><span class="mega-brand__line">${esc(p.nom)}</span></span></a></li>` : '';
+    })
+    .join('')}</ul>`;
+}
+
+let megaTimer;
+function closeMegas(except = null) {
+  $$('.mega').forEach((m) => {
+    if (m === except) return;
+    m.hidden = true;
+    m.classList.remove('is-open');
+  });
+  $$('[data-mega]').forEach((b) => {
+    if (except && b.getAttribute('aria-controls') === except.id) return;
+    b.setAttribute('aria-expanded', 'false');
+  });
+  if (!except) $('#site-header')?.classList.remove('has-mega');
+}
+
+function openMega(btn) {
+  const panel = $(`#${btn.getAttribute('aria-controls')}`);
+  if (!panel) return;
+  closeMegas(panel);
+  if (panel.dataset.panel === 'spiritueux') spiritsMenu();
+  panel.hidden = false;
+  requestAnimationFrame(() => panel.classList.add('is-open'));
+  btn.setAttribute('aria-expanded', 'true');
+  $('#site-header').classList.add('has-mega');
+  fillRenders(panel);
+}
+
+function bindHeader() {
+  const hd = $('#site-header');
+  if (!hd) return;
+  // état collant : en haut de page (transparent sur un visuel), puis fond plein et barre réduite
+  let ticking = false;
+  const state = () => {
+    ticking = false;
+    const y = scrollY;
+    hd.dataset.state = y > 24 ? 'scrolled' : 'top';
+  };
+  addEventListener(
+    'scroll',
+    () => {
+      if (!ticking) requestAnimationFrame(state);
+      ticking = true;
+    },
+    { passive: true },
+  );
+  state();
+  // méga-menus : survol avec délai (souris), clic, clavier
+  const fine = matchMedia('(hover: hover) and (pointer: fine)');
+  $$('[data-mega]').forEach((btn) => {
+    btn.addEventListener('click', () => (btn.getAttribute('aria-expanded') === 'true' ? closeMegas() : openMega(btn)));
+    btn.addEventListener('mouseenter', () => {
+      if (!fine.matches) return;
+      clearTimeout(megaTimer);
+      megaTimer = setTimeout(() => openMega(btn), 120);
+    });
+  });
+  hd.addEventListener('mouseleave', () => {
+    if (!fine.matches) return;
+    clearTimeout(megaTimer);
+    megaTimer = setTimeout(() => closeMegas(), 220);
+  });
+  hd.addEventListener('mouseenter', () => clearTimeout(megaTimer));
+  $$('.nav__link:not([data-mega]), .logo, .hd__tools > *', hd).forEach((el) =>
+    el.addEventListener('mouseenter', () => {
+      if (fine.matches) closeMegas();
+    }),
+  );
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.mega') && !e.target.closest('[data-mega]')) closeMegas();
+  });
+  addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    const open = $('[data-mega][aria-expanded="true"]');
+    if (open) {
+      closeMegas();
+      open.focus();
+    }
+  });
+  // langues et compte : maquette
+  $$('[data-lang]').forEach((b) => b.addEventListener('click', () => toast(`Version ${b.dataset.lang === 'en' ? 'anglaise' : 'allemande'} : à venir (maquette).`)));
+  $$('[data-account]').forEach((b) => b.addEventListener('click', () => toast('Espace client : prévu pour la mise en ligne (maquette).')));
+  $$('[data-cart-open]').forEach((b) => b.addEventListener('click', openCart));
+}
+
+// Recherche : produits visibles (selon l'âge) et pages, sans accents ni majuscules.
+const PAGES = [
+  ['PAC Citron', '/pac-citron', 'pac citron sirop citron histoire collectors'],
+  ['Fun Blue', '/fun-blue', 'fun blue menthe bleue sirop'],
+  ['Couleur Provence®', '/couleur-provence', 'couleur provence sirops fruits fleurs plantes'],
+  ['Recettes', '/recettes', 'recettes cocktails blue mojito'],
+  ['Notre histoire', '/la-maison', 'histoire maison 1835 avignon generation savoir faire'],
+  ['Les archives', '/musee', 'archives etiquettes affiches musee collection'],
+  ['Visiter la distillerie', '/visiter', 'visite visiter degustation reservation horaires'],
+  ['Où acheter', '/ou-trouver', 'ou acheter points de vente magasins cavistes'],
+  ['Actualités', '/actualites', 'actualites presse'],
+  ['Espace pro', '/espace-pro', 'pro professionnels chr cavistes'],
+];
+function bindSearch() {
+  const box = $('#search');
+  const btn = $('#search-open');
+  if (!box || !btn) return;
+  const input = $('#search-q');
+  const out = $('#search-results');
+  const set = (on) => {
+    box.hidden = !on;
+    btn.setAttribute('aria-expanded', String(on));
+    document.body.classList.toggle('search-ouverte', on);
+    if (on) {
+      closeMegas();
+      requestAnimationFrame(() => box.classList.add('is-open'));
+      input.focus();
+      run();
+    } else {
+      box.classList.remove('is-open');
+      btn.focus({ preventScroll: true });
+    }
+  };
+  const run = () => {
+    const q = fold(input.value.trim());
+    const pool = products.filter((p) => !p.alcool || age === 'majeur');
+    const hits = q ? pool.filter((p) => fold(`${p.nom} ${p.gammeNom} ${p.arome || ''} ${p.type}`).includes(q)).slice(0, 6) : pool.filter((p) => p.bestSeller).slice(0, 4);
+    const pages = q ? PAGES.filter(([t, , k]) => fold(`${t} ${k}`).includes(q)).slice(0, 4) : PAGES.slice(0, 4);
+    out.innerHTML = `<div class="search__col"><p class="search__h">${q ? `Produits (${hits.length})` : 'Meilleures ventes'}</p>${
+      hits.length
+        ? `<ul class="search__products">${hits
+            .map((p) => `<li><a href="/boutique/${p.slug}"><span class="search__thumb">${thumbHTML(p)}</span><span><span class="search__name">${esc(p.nom)}</span><span class="search__meta">${esc(p.gammeNom)}</span></span></a></li>`)
+            .join('')}</ul>`
+        : '<p class="search__none">Aucun produit ne correspond.</p>'
+    }</div><div class="search__col"><p class="search__h">Pages</p><ul class="search__pages">${pages.map(([t, href]) => `<li><a href="${href}">${esc(t)}</a></li>`).join('') || '<li class="search__none">Aucune page.</li>'}</ul>${
+      q ? `<a class="btn btn--ghost btn--sm" href="/boutique?q=${encodeURIComponent(input.value.trim())}">Voir tous les résultats dans la boutique</a>` : ''
+    }</div>`;
+    upgradeThumbs(out);
+  };
+  btn.addEventListener('click', () => set(box.hidden));
+  $('[data-search-close]', box).addEventListener('click', () => set(false));
+  input.addEventListener('input', run);
+  box.addEventListener('click', (e) => e.target === box && set(false));
+  addEventListener('keydown', (e) => e.key === 'Escape' && !box.hidden && set(false));
+}
+
 function bindMenu() {
   const menu = $('#menu');
   const open = $('#menu-open');
@@ -149,8 +328,10 @@ function bindMenu() {
     menu.inert = !on;
     open.setAttribute('aria-expanded', String(on));
     document.body.classList.toggle('menu-ouvert', on);
-    if (on) $('#menu-close').focus();
-    else open.focus({ preventScroll: true });
+    if (on) {
+      fillRenders(menu);
+      $('#menu-close').focus();
+    } else open.focus({ preventScroll: true });
   };
   open.addEventListener('click', () => set(true));
   $('#menu-close').addEventListener('click', () => set(false));
@@ -160,11 +341,29 @@ function bindMenu() {
   addEventListener('keydown', (e) => e.key === 'Escape' && menu.classList.contains('is-open') && set(false));
 }
 
+// Lettre d'information (maquette : rien n'est envoyé).
+function bindNewsletter() {
+  $$('[data-newsletter]').forEach((f) =>
+    f.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = $('input[type="email"]', f);
+      const msg = $('.ft__news-msg, [data-newsletter-msg]', f);
+      const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value.trim());
+      input.classList.toggle('is-invalid', !ok);
+      if (msg) msg.textContent = ok ? 'Merci : inscription enregistrée (maquette, aucun envoi).' : 'Indiquez une adresse e-mail valide.';
+      if (ok) input.value = '';
+    }),
+  );
+}
+
 function markNav() {
   const page = document.body.dataset.page;
   $$('[data-nav]').forEach((a) => {
     if (a.dataset.nav === page) a.setAttribute('aria-current', 'page');
   });
+  // rubrique active dans la barre principale
+  const group = { pac: 'marques', funblue: 'marques', provence: 'marques', recettes: 'marques', spiritueux: 'spiritueux', maison: 'maison', musee: 'maison', actualites: 'maison' }[page];
+  if (group) $(`[data-mega="${group}"]`)?.classList.add('is-current');
 }
 
 // ---------- Panier latéral ----------
@@ -178,7 +377,7 @@ function openCart() {
 function lineHTML(l, { compact = false } = {}) {
   const p = l.product;
   const meta = [l.contenance?.volume || 'Contenance à confirmer', l.prix !== null ? euro(l.prix) : 'Prix en boutique'].join(' · ');
-  return `<li class="line" data-slug="${p.slug}" data-ml="${l.ml ?? ''}">
+  return `<li class="line" data-slug="${p.slug}" data-v="${l.v ?? ''}">
     <a class="line__img" href="/boutique/${p.slug}" style="--c:${p.light}" tabindex="-1" aria-hidden="true">${thumbHTML(p)}</a>
     <span>
       <a class="line__name" href="/boutique/${p.slug}">${esc(p.nom)}</a>
@@ -228,14 +427,18 @@ function bindCart() {
     if (!b) return;
     const li = b.closest('.line');
     const slug = li.dataset.slug;
-    const ml = li.dataset.ml ? Number(li.dataset.ml) : null;
-    const line = cart.items.find((i) => i.slug === slug && (i.ml ?? null) === ml);
-    if (line) cart.set(slug, ml, line.qty + Number(b.dataset.q));
+    const v = li.dataset.v || null;
+    const line = cart.items.find((i) => i.slug === slug && (i.v ?? null) === v);
+    if (line) cart.set(slug, v, line.qty + Number(b.dataset.q));
   });
   const count = () => {
     const n = cart.count();
     const c = $('#cart-count');
-    if (c) c.textContent = n;
+    if (c) {
+      c.textContent = n;
+      c.hidden = !n;
+    }
+    $$('[data-cart-count]').forEach((el) => (el.textContent = n));
     $('#cart-open')?.setAttribute('aria-label', `Panier, ${plural(n, 'article')}`);
   };
   count();
@@ -245,8 +448,8 @@ function bindCart() {
   });
 }
 
-// Ajout au panier depuis n'importe quelle page (bouton data-add="slug" data-ml="700").
-export function addToCart(slug, ml = null, qty = 1, { open = false } = {}) {
+// Ajout au panier depuis n'importe quelle page (bouton data-add="slug" data-v="700" : id de variante).
+export function addToCart(slug, v = null, qty = 1, { open = false } = {}) {
   const p = bySlug[slug];
   if (!p) return false;
   if (p.alcool && age !== 'majeur') {
@@ -257,7 +460,8 @@ export function addToCart(slug, ml = null, qty = 1, { open = false } = {}) {
     toast(`${p.nom} : ${DISPO_BOUTIQUE.charAt(0).toLowerCase()}${DISPO_BOUTIQUE.slice(1)}`);
     return false;
   }
-  if (!cart.add(slug, ml, qty)) return false;
+  if (!v) v = p.contenances[0]?.id ?? null;
+  if (!cart.add(slug, v, qty)) return false;
   const btn = $('#cart-open');
   btn?.classList.add('is-bump');
   setTimeout(() => btn?.classList.remove('is-bump'), 320);
@@ -301,11 +505,14 @@ export function reveal(root = document) {
 export function initSite({ askAge = true } = {}) {
   document.documentElement.dataset.age = age || 'inconnu';
   markNav();
+  bindHeader();
+  bindSearch();
   bindMenu();
   bindGate();
   bindCart();
+  bindNewsletter();
   $$('[data-year]').forEach((el) => (el.textContent = new Date().getFullYear()));
-  $$('[data-evin-majeur]').forEach((el) => (el.hidden = age !== 'majeur'));
+  $$('[data-evin-majeur], [data-majeur]').forEach((el) => (el.hidden = age !== 'majeur'));
   if (age !== 'majeur') cart.purgeAlcohol();
   reveal();
   // Première visite : on demande l'âge (les sirops restent accessibles sans répondre).
