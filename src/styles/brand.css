@@ -1,0 +1,115 @@
+/* Pages de marque (PAC Citron, Fun Blue, Couleur Provence) : campagne 3D sur l'aplat de la marque,
+   puis un récit sobre (textes officiels, archives encadrées, presse). */
+
+/* ---------- Campagne ---------- */
+.bhero { position: relative; isolation: isolate; min-height: max(620px, min(100svh, 1040px)); overflow: hidden; color: #fff; background: var(--pac); }
+.bhero--fb { background: var(--fb); }
+.bhero--cp { background: #e9dfc8; color: var(--ink); }
+.bhero__bg { position: absolute; inset: 0; z-index: -2; background: radial-gradient(120% 90% at 70% 40%, #d52a8f, #a3136c 70%); }
+.bhero--fb .bhero__bg { background: radial-gradient(120% 90% at 70% 40%, #2d6bc2, #173f84 72%); }
+.bhero--cp .bhero__bg { background: radial-gradient(120% 90% at 70% 40%, #f1e9d6, #ddd1b5 72%); }
+.bhero__canvas { position: absolute; inset: 0; z-index: -1; width: 100%; height: 100%; opacity: 0; transition: opacity 1.2s var(--ease); }
+.bhero.is-live .bhero__canvas { opacity: 1; }
+.bhero__in { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 0 clamp(24px, 4vw, 72px); min-height: inherit; padding-top: calc(var(--header-h) + clamp(20px, 4vh, 48px)); padding-bottom: clamp(28px, 5vh, 56px); }
+.bhero__copy { align-self: center; display: grid; gap: clamp(16px, 2.2vh, 26px); max-width: 600px; padding-bottom: 4vh; }
+.bhero__title { color: inherit; text-wrap: balance; }
+.bhero__lead { max-width: 44ch; font-size: clamp(1.02rem, 1.2vw, 1.18rem); line-height: 1.55; opacity: 0.92; }
+.bhero__ctas { display: flex; flex-wrap: wrap; gap: 12px; }
+.bhero__stage { min-height: 0; }
+.bhero.is-static .bhero__stage { display: flex; justify-content: center; align-items: center; }
+.bhero.is-static .bhero__stage .thumb { height: 100%; max-height: 64vh; width: auto; }
+.bprice { display: flex; align-items: center; gap: 16px; justify-self: start; padding: 10px 10px 10px 18px; border: 1px solid rgba(255, 255, 255, 0.24); border-radius: 14px; background: rgba(20, 16, 22, 0.24); -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%); }
+.bhero--cp .bprice { border-color: var(--line-2); background: rgba(255, 255, 255, 0.6); }
+.bprice__txt { display: grid; gap: 2px; }
+.bprice__name { font: 700 1rem/1.15 var(--font); }
+.bprice__meta { font-size: 0.8rem; opacity: 0.78; }
+.bprice__price { font: 760 1.2rem/1 var(--font); letter-spacing: -0.01em; }
+.bprice .btn svg { width: 18px; height: 18px; }
+@media (max-width: 900px) {
+  .bhero { min-height: max(760px, min(100svh, 980px)); }
+  .bhero__in { grid-template-columns: 1fr; grid-template-rows: auto minmax(320px, 1fr); }
+  .bhero__copy { align-self: start; padding-bottom: 0; }
+  .bhero__lead { font-size: 1rem; }
+}
+
+/* ---------- Récit ---------- */
+.bstory__in { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: clamp(32px, 5vw, 88px); align-items: center; }
+.bstory__copy { display: grid; gap: 20px; }
+.bquote { max-width: 62ch; }
+.bquote p:first-child { font: 500 clamp(1.1rem, 1.4vw, 1.3rem)/1.5 var(--font); color: var(--ink); }
+.bsource { font-size: 0.8rem; color: var(--ink-3); }
+.bstory__pieces .pieces { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 900px) { .bstory__in { grid-template-columns: 1fr; } }
+
+/* ---------- Rituel ---------- */
+.britual { background: var(--u-bg); color: var(--u-ink); }
+.britual__steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--u-line); }
+.britual__steps li { display: grid; align-content: start; gap: 10px; padding: 28px clamp(14px, 2vw, 28px) 10px 0; border-right: 1px solid var(--u-line); }
+.britual__steps li + li { padding-left: clamp(14px, 2vw, 28px); }
+.britual__steps li:last-child { border-right: 0; }
+.britual__n { font: 800 clamp(2.6rem, 5vw, 4.6rem)/0.95 var(--font); letter-spacing: -0.045em; }
+.britual__t { max-width: 26ch; color: var(--u-soft); }
+.britual__more { max-width: 70ch; margin-top: 36px; color: var(--u-soft); }
+.britual__more p + p { margin-top: 10px; }
+@media (max-width: 760px) {
+  .britual__steps { grid-template-columns: 1fr; }
+  .britual__steps li, .britual__steps li + li { padding: 20px 0; border-right: 0; border-bottom: 1px solid var(--u-line); }
+}
+
+/* ---------- Composition ---------- */
+.bcompo__in { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: clamp(28px, 5vw, 88px); align-items: start; }
+.bcompo__in > div:first-child { display: grid; gap: 16px; }
+.bfacts { display: grid; border-top: 1px solid var(--ink); }
+.bfacts > div { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 16px; padding: 13px 0; border-bottom: 1px solid var(--line); font-size: 0.95rem; }
+.bfacts dt { color: var(--ink-3); }
+.bfacts dd { margin: 0; font-variant-numeric: tabular-nums; }
+.bnote { margin-top: 14px; font-size: 0.82rem; color: var(--ink-3); }
+.bnote a { color: var(--ink); }
+@media (max-width: 900px) { .bcompo__in { grid-template-columns: 1fr; } }
+@media (max-width: 520px) { .bfacts > div { grid-template-columns: 1fr; gap: 2px; } }
+
+/* ---------- Recettes ---------- */
+.brecipes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(14px, 2vw, 24px); }
+.rcard a { display: grid; gap: 10px; color: inherit; text-decoration: none; }
+.rcard__img { display: block; aspect-ratio: 4 / 3; overflow: hidden; border-radius: var(--r); background: var(--paper-2); }
+.rcard__img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s var(--ease); }
+.rcard a:hover .rcard__img img { transform: scale(1.04); }
+.rcard__title { font: 700 1.02rem/1.25 var(--font); letter-spacing: 0.02em; }
+.rcard__meta { font-size: 0.82rem; color: var(--ink-3); }
+.rcard .badge { justify-self: start; }
+@media (max-width: 900px) { .brecipes { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) { .brecipes { grid-template-columns: 1fr; } }
+
+/* ---------- Archives ---------- */
+.barch { background: var(--u-bg); }
+.barch .pieces { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 1100px) { .barch .pieces { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .barch .pieces, .bstory__pieces .pieces { grid-template-columns: 1fr 1fr; gap: 18px; } }
+
+/* ---------- Presse ---------- */
+.bpress-sec__in { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 7fr); gap: clamp(28px, 5vw, 88px); align-items: start; }
+.bpress-sec__in > div:first-child { display: grid; gap: 14px; }
+.bpress { display: grid; border-top: 1px solid var(--ink); }
+.bpress a { display: grid; grid-template-columns: 170px minmax(0, 1fr) auto; gap: 16px; align-items: baseline; padding: 16px 0; border-bottom: 1px solid var(--line); color: inherit; text-decoration: none; }
+.bpress a:hover .bpress__title { text-decoration: underline; text-underline-offset: 3px; }
+.bpress__meta { font-size: 0.8rem; color: var(--ink-3); }
+.bpress__title { font: 650 1rem/1.35 var(--font); }
+.bpress__go svg { width: 18px; height: 18px; }
+@media (max-width: 900px) {
+  .bpress-sec__in { grid-template-columns: 1fr; }
+  .bpress a { grid-template-columns: minmax(0, 1fr) auto; }
+  .bpress__meta { grid-column: 1 / -1; }
+}
+
+/* ---------- Où le trouver ---------- */
+.bbuy__in { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px 48px; align-items: end; padding: clamp(28px, 4vw, 56px); border-radius: var(--r-l); background: var(--paper-2); }
+.bbuy__in > div:first-child { display: grid; gap: 12px; }
+.bbuy__ctas { display: flex; flex-wrap: wrap; gap: 12px; }
+@media (max-width: 760px) { .bbuy__in { grid-template-columns: 1fr; } }
+
+/* ---------- Gamme (Couleur Provence) ---------- */
+.bgamme .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: clamp(28px, 2.6vw, 40px) clamp(14px, 1.6vw, 24px); }
+.bgamme__group + .bgamme__group { margin-top: 56px; }
+.bgamme__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 20px; margin-bottom: 22px; padding-bottom: 12px; border-bottom: 1px solid var(--ink); }
+.bgamme__title { font: 760 1.4rem/1.1 var(--font); letter-spacing: -0.02em; }
+.bgamme__title span { margin-left: 8px; font: 600 0.84rem/1 var(--font); color: var(--ink-3); }

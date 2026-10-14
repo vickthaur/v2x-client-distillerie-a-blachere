@@ -80,7 +80,8 @@ body {
   text-rendering: optimizeLegibility;
   overflow-x: clip;
 }
-body[data-hero] { padding-top: 0; }
+body[data-hero], body[data-hero-light] { padding-top: 0; }
+body[data-hero-light] .hd[data-state='top']:not(.has-mega) .hd__main { background: transparent; border-color: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
 img, svg, video, canvas { display: block; max-width: 100%; }
 img { height: auto; }
 a { color: inherit; }
@@ -517,11 +518,11 @@ body.menu-ouvert, body.search-ouverte { overflow: hidden; }
    logo et bleu clair sur fond sombre ou sur les aplats de marque. */
 :root { --mq-pac: #ad1270; --mq-fb: #1f56a8; }
 [data-univers='pac'], [data-univers='funblue'], [data-univers='encre'], [data-univers='marcs'], [data-univers='collectors'],
-.ft, .hero, .brand--pac, .brand--fb, .brand--spirits, .duo__card, .mega-brand--pac, .mega-brand--fb, .hd__util, .toast, .chiffres {
+.ft, .hero, .bhero--pac, .bhero--fb, .brand--pac, .brand--fb, .brand--spirits, .duo__card, .mega-brand--pac, .mega-brand--fb, .hd__util, .toast, .chiffres {
   --mq-pac: #feed01;
   --mq-fb: #a9d4ff;
 }
-[data-univers='funblue'], .brand--fb, .mega-brand--fb { --mq-fb: #fff; }
+[data-univers='funblue'], .bhero--fb, .brand--fb, .mega-brand--fb { --mq-fb: #fff; }
 .marque { font-weight: 700; font-style: italic; letter-spacing: 0; line-height: 1; white-space: nowrap; }
 .marque--pac { font-family: 'Lobster Two', var(--font); font-size: 1.14em; color: var(--mq-pac); text-transform: lowercase; }
 .marque--fb { font-family: 'Molle', var(--font); font-weight: 400; font-size: 1.04em; color: var(--mq-fb); }

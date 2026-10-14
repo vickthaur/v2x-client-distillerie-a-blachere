@@ -16,6 +16,13 @@ export const SCENES = {
     ],
   }),
   pac: (products) => ({ colors: { a: '#c2177f' }, gels: { left: 0xff6fbf, right: 0xffd36f }, layout: 'pac', bottles: [{ product: products[0], x: 0, ry: -0.4 }] }),
+  // Couleur Provence : trois bouteilles sur le plateau crème, sans décor
+  provence: (products) => ({
+    colors: { a: '#e6dcc5' },
+    gels: null,
+    layout: null,
+    bottles: products.slice(0, 3).map((product, i, all) => ({ product, x: (i - (all.length - 1) / 2) * 1.15, z: i === 1 ? 0.3 : 0, ry: 0 })),
+  }),
   funblue: (products) => ({ colors: { a: '#1f56a8' }, gels: { left: 0x6fd8ff, right: 0x6fb2ff }, layout: 'funblue', bottles: [{ product: products[0], x: 0, ry: -0.05 }] }),
 };
 

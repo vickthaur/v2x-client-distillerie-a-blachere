@@ -1,38 +1,51 @@
-// Page de marque PAC Citron : plein écran fuchsia rayé, femme à la paille coupée par le bord
-// gauche (sa paille pointe vers l'ovale « Trouver un PAC »), bouteille 3D, histoire, rituel,
-// formats, salle des collectors (cadres « visuel à fournir »), étiquettes anciennes.
+// Page de marque PAC Citron : campagne 3D (la vraie bouteille sur l'aplat fuchsia, citrons et
+// glaçons), l'histoire racontée par la fiche officielle, le rituel du PAC à l'eau, la composition,
+// les recettes, les étiquettes d'archives et la presse.
 import '../styles/base.css';
-import '../styles/shop.css';
-import '../styles/editorial.css';
-import '../styles/pages.css';
-import { initSite, addToCart, reveal } from '../app/site.js';
-import { collectorsHTML } from '../app/blocks.js';
-import { cardHTML } from '../app/cards.js';
-import { mountFemme, mountBottle } from '../app/hero-tools.js';
-import { bySlug, euro, UNIVERS } from '../data/products.js';
-import { archives } from '../lib/archives.js';
+import '../styles/home.css';
+import '../styles/brand.css';
+import { initSite } from '../app/site.js';
+import { mountBrandHero, priceCardHTML, compositionHTML, recipesHTML, piecesHTML, pressHTML, ailleursHTML, bindAdd, bySlug, reveal } from '../app/brand.js';
+import textes from '../data/site/textes.json';
 import { $, esc } from '../lib/dom.js';
-import { icons } from '../lib/icons.js';
-import { upgradeThumbs } from '../lib/thumbs.js';
 
-initSite();
+const site = initSite();
 const p = bySlug['pac-citron'];
-const c = p.contenances[0];
 
-$('#bhero-buy').innerHTML = `<button type="button" class="btn btn--white" data-add="${p.slug}" data-v="${c.id}">${icons.bag}<span>Ajouter · ${esc(c.volume)} · ${euro(c.prix)}</span></button>`;
-$('#pac-card').innerHTML = cardHTML(p);
-upgradeThumbs($('#pac-card'));
-$('#collectors-frames').innerHTML = collectorsHTML();
-$('#pac-wall').innerHTML = `<ul class="wall__grid">${archives
-  .filter((a) => a.gamme === 'PAC' && a.aile === 'sirops' && a.svg)
-  .map((a, i) => `<li class="wall__item" style="--tilt:${[-2, 1.2, -0.6, 1.8, -1.4, 0.8, -1.8, 1.1, -0.9][i % 9]}deg"><a href="/musee#${a.id}" aria-label="${esc(a.titre)}">${a.svg()}</a></li>`)
-  .join('')}</ul>`;
+$('#bhero-price').innerHTML = priceCardHTML(p);
 
-mountFemme($('#bhero-femme'), { straw: $('#bhero-straw'), target: '#bhero-cta', scope: $('#bhero') });
-mountBottle($('#bstage'), p, UNIVERS.pac.scene);
+// « Le saviez-vous ? » de la fiche (sans sa question finale, à laquelle répond la page Histoire),
+// puis l'origine du nom, telle que la raconte la page Histoire.
+const nom = textes.histoire.periodes.flatMap((x) => x.paragraphes).find((x) => /On doit son nom, PAC Citron/.test(x));
+const saviez = (p.saviezVous || '')
+  .split(/\n\s*\n/)
+  .map((x) => x.trim())
+  .filter((x) => x && !/d’où vient le nom/i.test(x));
+$('#pac-saviez').innerHTML = [...saviez.map((x) => `<p>${esc(x)}</p>`), nom ? `<p>${esc(nom)}</p>` : ''].join('');
+$('#pac-pieces-a').innerHTML = piecesHTML(['pac-1962', 'pac-boisson-1971']);
+
+// Usages de la fiche : sans la bière pour les personnes non majeures.
+function usages() {
+  const lines = (p.application || '')
+    .split(/\n\s*\n/)
+    .map((x) => x.trim())
+    .filter(Boolean)
+    .map((x) => (site.majeur ? x : x.replace(/,\s*de la bière/gi, '')));
+  $('#pac-usages').innerHTML = lines.map((x) => `<p>${esc(x)}</p>`).join('');
+}
+usages();
+
+$('#pac-facts').innerHTML = compositionHTML(p);
+const recipes = () => ($('#pac-recipes').innerHTML = recipesHTML(['pac-citron'], site.majeur, 3) || '<p class="lead">Les recettes de la maison sont dans la rubrique Recettes.</p>');
+recipes();
+$('#pac-pieces').innerHTML = piecesHTML(['pac-1962', 'pac-boisson-1971', 'pac-fuchsia', 'pac-art-deco']);
+$('#pac-press').innerHTML = pressHTML((t) => /\bpac\b/i.test(t), 7);
+$('#pac-ailleurs').innerHTML = `<p class="lead">À la boutique de la distillerie, à Châteauneuf-du-Pape, et dans la boutique en ligne : ${esc(p.contenances.map((c) => c.volume).join(', '))}.</p>${ailleursHTML(p)}`;
+
+mountBrandHero('pac', [p]);
+bindAdd();
 reveal();
-
-document.addEventListener('click', (e) => {
-  const add = e.target.closest('[data-add]');
-  if (add) addToCart(add.dataset.add, add.dataset.v || null);
+site.onAge(() => {
+  usages();
+  recipes();
 });

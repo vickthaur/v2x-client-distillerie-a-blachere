@@ -3,31 +3,66 @@
   <head>
     <!-- @include head.html -->
     <title>Sirops Couleur Provence® · Distillerie A. Blachère</title>
-    <meta name="description" content="Les sirops Couleur Provence® de la Distillerie A. Blachère : une trentaine de parfums, des classiques du comptoir aux parfums de Provence, avec les prix du site de la distillerie." />
-    <meta name="theme-color" content="#f6f1e7" />
+    <meta name="description" content="Les sirops Couleur Provence® de la Distillerie A. Blachère : grenadine, menthe, lavande, violette, châtaigne, melon, réglisse et les autres parfums, avec leurs prix de la boutique." />
+    <meta name="theme-color" content="#e6dcc5" />
     <meta property="og:title" content="Sirops Couleur Provence® · Distillerie A. Blachère" />
   </head>
-  <body data-page="provence" class="brand-page brand-page--provence">
+  <body data-page="provence" class="brand-page brand-page--cp" data-hero-light>
     <!-- @include header.html -->
     <main id="contenu">
-      <section class="page-hero cp-hero" data-univers="provence" aria-labelledby="cp-title">
-        <div class="cp-dots" id="cp-dots" aria-hidden="true"></div>
-        <div class="wrap">
-          <div class="page-hero__in">
-            <p class="kicker">Nos sirops · Couleur Provence®</p>
-            <h1 class="page-hero__title" id="cp-title">Une trentaine<br /><em>de parfums</em></h1>
-            <p class="lead">De la grenadine du comptoir à la violette, une couleur par parfum. <strong>1 volume de sirop pour 8 à 10 volumes d’eau plate ou gazeuse</strong>, conseillent les fiches de la maison.</p>
-            <p class="note">Couleurs indicatives, en attendant les photos des bouteilles : l’étiquette Couleur Provence® n’a pas encore été fournie, les bouteilles sont dessinées pour la maquette.</p>
+      <section class="bhero bhero--cp" id="bhero" aria-labelledby="cp-title">
+        <div class="bhero__bg" aria-hidden="true"></div>
+        <canvas class="bhero__canvas" id="bhero-canvas" aria-hidden="true"></canvas>
+        <div class="wrap bhero__in">
+          <div class="bhero__copy">
+            <p class="kicker">Nos sirops</p>
+            <h1 class="h-display bhero__title" id="cp-title">Couleur Provence<sup>®</sup></h1>
+            <p class="bhero__lead" id="cp-lead"></p>
+            <div class="bhero__ctas">
+              <a class="btn btn--primary" href="#gamme">Voir les parfums</a>
+              <a class="btn btn--ghost" href="/recettes">Les recettes</a>
+            </div>
           </div>
+          <div class="bhero__stage" id="bhero-stage" aria-hidden="true"></div>
         </div>
       </section>
-      <section class="section" data-univers="provence" aria-label="Les trois étagères">
-        <div class="wrap" id="etageres"></div>
+
+      <section class="section bgamme" id="gamme" aria-labelledby="gamme-title">
+        <div class="wrap">
+          <div class="section__head">
+            <div>
+              <p class="kicker">La gamme</p>
+              <h2 class="h-section" id="gamme-title">Tous les parfums, <span class="accent">au prix de la boutique</span></h2>
+            </div>
+            <p class="bnote">1 volume de sirop pour 8 à 10 volumes d’eau plate ou gazeuse, conseillent les fiches de la maison.</p>
+          </div>
+          <div id="cp-groups"></div>
+        </div>
       </section>
-      <section class="section section--tight" data-univers="citronnade" aria-label="Aller plus loin">
-        <div class="wrap cta-band">
-          <p class="cta-band__title cta-band__title--cp">Et avec de l’eau fraîche ?</p>
-          <div class="cta-band__actions"><a class="oval" href="/recettes">Les recettes</a><a class="btn btn--ink" href="/boutique?gamme=couleur-provence">Tous les sirops dans la boutique</a></div>
+
+      <section class="section section--tight brec" aria-labelledby="cp-recettes">
+        <div class="wrap">
+          <div class="section__head">
+            <div>
+              <p class="kicker">Recettes de la maison</p>
+              <h2 class="h-section" id="cp-recettes">Avec les sirops Couleur Provence<sup>®</sup></h2>
+            </div>
+            <a class="arrow-link" href="/recettes">Toutes les recettes <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>
+          </div>
+          <div id="cp-recipes"></div>
+        </div>
+      </section>
+
+      <section class="section barch" data-univers="pierre" aria-labelledby="cp-archives">
+        <div class="wrap">
+          <div class="section__head">
+            <div>
+              <p class="kicker">Les archives</p>
+              <h2 class="h-section" id="cp-archives">Les sirops d’hier</h2>
+            </div>
+            <a class="arrow-link" href="/musee">Visiter les archives <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>
+          </div>
+          <div id="cp-pieces"></div>
         </div>
       </section>
     </main>

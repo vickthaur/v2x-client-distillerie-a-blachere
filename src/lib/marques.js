@@ -31,7 +31,8 @@ function node(match, logo) {
     span.append(t);
   } else {
     span.className = `marque marque--${b}`;
-    span.textContent = match;
+    // « FUN BLUE » en capitales : écrit « Fun Blue », comme sur l'étiquette
+    span.textContent = b === 'fb' ? 'Fun Blue' : match;
   }
   return span;
 }

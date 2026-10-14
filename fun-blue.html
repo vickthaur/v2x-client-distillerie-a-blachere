@@ -3,74 +3,117 @@
   <head>
     <!-- @include head.html -->
     <title>Fun Blue · Distillerie A. Blachère</title>
-    <meta name="description" content="Fun Blue, le sirop de menthe bleue de la Distillerie A. Blachère : créé en 1995 après la menthe « Aurélie », goût chlorophylle. La recette du Blue Mojito, les formats, les étiquettes d’hier." />
-    <meta name="theme-color" content="#2f64a8" />
+    <meta name="description" content="Fun Blue, le sirop de menthe bleu goût chlorophylle de la Distillerie A. Blachère, créé en 1995 après la menthe bleue « Aurélie » : son histoire, sa composition, ses recettes et ses étiquettes d’archives." />
+    <meta name="theme-color" content="#1f56a8" />
     <meta property="og:title" content="Fun Blue · Distillerie A. Blachère" />
   </head>
-  <body data-page="funblue" class="brand-page brand-page--funblue">
+  <body data-page="funblue" class="brand-page brand-page--funblue" data-hero>
     <!-- @include header.html -->
     <main id="contenu">
-      <section class="bhero bhero--funblue" id="bhero" data-univers="funblue" aria-labelledby="fb-title">
-        <div class="lagon" id="lagon" aria-hidden="true"></div>
+      <!-- Campagne -->
+      <section class="bhero bhero--fb" id="bhero" aria-labelledby="fb-title">
+        <div class="bhero__bg" aria-hidden="true"></div>
+        <canvas class="bhero__canvas" id="bhero-canvas" aria-hidden="true"></canvas>
         <div class="wrap bhero__in">
-          <div class="bhero__text">
-            <p class="kicker">Fun Blue® · créé en 1995</p>
-            <h1 class="bhero__title" id="fb-title">Le lagon en bouteille</h1>
-            <p class="bhero__lead">Un sirop de menthe goût chlorophylle, d’un turquoise que la maison associe aux lagons des Caraïbes. Sa fiche le présente comme « le sirop de menthe bleu le plus populaire en Provence ».</p>
-            <div class="bhero__actions">
-              <a class="oval" href="/ou-trouver">Trouver un Fun Blue</a>
-              <div id="bhero-buy"></div>
+          <div class="bhero__copy">
+            <p class="kicker kicker--light">Sirop de menthe · goût chlorophylle</p>
+            <h1 class="h-display bhero__title" id="fb-title">Fun Blue</h1>
+            <p class="bhero__lead">« La menthe FUN par excellence ! » Une combinaison tenue secrète de plusieurs essences de menthe, couleur « bleue azur ».</p>
+            <div id="bhero-price"></div>
+            <div class="bhero__ctas">
+              <a class="btn btn--light" href="/boutique/fun-blue">Voir la fiche</a>
+              <a class="btn btn--ghost-light" href="/ou-trouver">Où le trouver</a>
             </div>
           </div>
-          <div class="bstage bstage--funblue" id="bstage">
-            <div class="bstage__poster"></div>
-            <canvas class="bstage__canvas" tabindex="0" aria-label="Bouteille de Fun Blue en 3D : faites-la tourner en la faisant glisser, ou avec les flèches gauche et droite"></canvas>
-            <p class="bstage__hint">Glissez pour faire tourner</p>
-          </div>
+          <div class="bhero__stage" id="bhero-stage" aria-hidden="true"></div>
         </div>
       </section>
 
-      <section class="section" data-univers="maison" aria-labelledby="aurelie-title">
-        <div class="wrap split">
-          <div class="section__head" data-reveal>
-            <p class="kicker">Avant Fun Blue</p>
-            <h2 class="h-univers h-fb-title" id="aurelie-title">D’« Aurélie » à Fun Blue</h2>
-            <p class="lead">« Depuis les années 1960, nous fabriquions un sirop de menthe bleue nommé Menthe “Aurélie” », raconte la fiche de la maison. Fun Blue lui succède en 1995 et devient « très vite » le sirop à la mode chez les jeunes.</p>
-            <p class="note">Étiquettes anciennes redessinées pour la maquette : ce ne sont pas les emballages actuels. L’étiquette Fun Blue actuelle n’a pas encore été fournie ; la bouteille 3D en porte une évocation.</p>
+      <!-- Histoire -->
+      <section class="section bstory" aria-labelledby="fb-histoire">
+        <div class="wrap bstory__in">
+          <div class="bstory__copy" data-reveal>
+            <p class="kicker">L’histoire</p>
+            <h2 class="h-section" id="fb-histoire">D’« Aurélie » à Fun Blue</h2>
+            <div class="prose bquote" id="fb-saviez"></div>
+            <p class="bsource">Fiche Fun Blue et page Histoire du site de la distillerie.</p>
           </div>
-          <div class="wall" id="fb-wall" data-reveal></div>
+          <div class="bstory__pieces" id="fb-pieces-a"></div>
         </div>
       </section>
 
-      <section class="section" data-univers="funblue" aria-labelledby="mojito-title">
+      <!-- Le rituel -->
+      <section class="section britual" data-univers="funblue" aria-labelledby="fb-rituel">
         <div class="wrap">
-          <div class="recette" data-reveal>
+          <div class="section__head">
             <div>
-              <p class="badge-sans">Sans alcool</p>
-              <h2 class="recette__title" id="mojito-title">Le Blue Mojito</h2>
-              <p class="recette__prep">La recette de la maison relie ses deux sirops phares. Verre de 50 cl.</p>
+              <p class="kicker kicker--light">Le rituel</p>
+              <h2 class="h-section" id="fb-rituel">Un Fun Blue à l’eau</h2>
             </div>
-            <div id="mojito"></div>
           </div>
+          <ol class="britual__steps">
+            <li data-reveal><span class="britual__n">1</span><span class="britual__t">volume de sirop</span></li>
+            <li data-reveal><span class="britual__n">8 à 10</span><span class="britual__t">volumes d’eau plate ou gazeuse</span></li>
+            <li data-reveal><span class="britual__n">Bleu</span><span class="britual__t">« bleu Méditerranée », dit la page Histoire de la maison</span></li>
+          </ol>
+          <div class="prose britual__more" id="fb-usages"></div>
         </div>
       </section>
 
-      <section class="section" data-univers="maison" aria-labelledby="formats-title">
-        <div class="wrap split split--wide">
-          <div class="section__head" data-reveal>
-            <p class="kicker">Formats</p>
-            <h2 class="h-univers" id="formats-title">En boutique et au rayon</h2>
-            <p class="lead">Le litre est vendu sur le site de la distillerie, au même prix que le PAC. En grande surface, Fun Blue existe en 70 cl et en 1 L.</p>
-            <a class="link" href="/boutique?gamme=fun-blue">Voir dans la boutique</a>
+      <!-- Composition -->
+      <section class="section bcompo" aria-labelledby="fb-compo">
+        <div class="wrap bcompo__in">
+          <div>
+            <p class="kicker">La composition</p>
+            <h2 class="h-section" id="fb-compo">Sucre et essence de menthe</h2>
+            <p class="lead">Les ingrédients et les valeurs nutritionnelles de la fiche officielle.</p>
           </div>
-          <ul class="grid grid--one" id="fb-card"></ul>
+          <div id="fb-facts"></div>
         </div>
       </section>
 
-      <section class="section section--tight" data-univers="funblue" aria-label="Où trouver Fun Blue">
-        <div class="wrap cta-band">
-          <p class="cta-band__title cta-band__title--fb">Un Fun Blue près de chez vous</p>
-          <div class="cta-band__actions"><a class="oval" href="/ou-trouver">Où le trouver</a><a class="btn btn--white" href="/recettes">Les recettes</a></div>
+      <!-- Recettes -->
+      <section class="section section--tight brec" aria-labelledby="fb-recettes">
+        <div class="wrap">
+          <div class="section__head">
+            <div>
+              <p class="kicker">Recettes de la maison</p>
+              <h2 class="h-section" id="fb-recettes">Avec du Fun Blue</h2>
+            </div>
+            <a class="arrow-link" href="/recettes">Toutes les recettes <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>
+          </div>
+          <div id="fb-recipes"></div>
+        </div>
+      </section>
+
+      <!-- Archives -->
+      <section class="section barch" data-univers="pierre" aria-labelledby="fb-archives">
+        <div class="wrap">
+          <div class="section__head">
+            <div>
+              <p class="kicker">Les archives</p>
+              <h2 class="h-section" id="fb-archives">Les menthes de la maison</h2>
+            </div>
+            <a class="arrow-link" href="/musee">Visiter les archives <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>
+          </div>
+          <div id="fb-pieces"></div>
+        </div>
+      </section>
+
+      <!-- Où le trouver -->
+      <section class="section section--tight bbuy" aria-labelledby="fb-acheter">
+        <div class="wrap">
+          <div class="bbuy__in">
+            <div>
+              <p class="kicker">Où le trouver</p>
+              <h2 class="h-section" id="fb-acheter">À la distillerie, en ligne et en grande surface</h2>
+              <div id="fb-ailleurs"></div>
+            </div>
+            <div class="bbuy__ctas">
+              <a class="btn btn--primary" href="/boutique/fun-blue">Acheter en ligne</a>
+              <a class="btn btn--ghost" href="/ou-trouver">Trouver un point de vente</a>
+            </div>
+          </div>
         </div>
       </section>
     </main>
