@@ -1,16 +1,17 @@
-// Rendus produit (« packshots ») : la photo traitée (photos/produits → vignette.webp) quand elle
-// existe, sinon un rendu 3D de la bouteille construite en code (fait à la demande, quand l'image
-// devient visible, et gardé pour la session), sinon l'illustration SVG.
+// Rendus produit (« packshots ») :
+// - une bouteille sur fond neutre (cartes) : la vraie photo détourée (photos/produits → vignette) ;
+// - une photo de groupe ou un fond de couleur (menus, cartes de marque) : un rendu 3D des bouteilles
+//   tirées des photos (fait à la demande, quand l'image devient visible, et gardé pour la session) ;
+//   en attendant, ou sans WebGL, les photos détourées côte à côte sur le même fond.
+// Jamais d'illustration dessinée.
 // - bg  : couleur du plateau (fond neutre des cartes par défaut, aplat de marque dans les menus) ;
-// - fmt : 'portrait' (3:4, cartes) ou 'paysage' (4:3, menus et cartes de marque) ;
-// - plusieurs produits : photo de groupe (bouteilles côte à côte).
+// - fmt : 'portrait' (3:4, cartes) ou 'paysage' (4:3, menus et cartes de marque).
 import { bySlug } from '../data/products.js';
-import { bottleSVG } from './bottleSvg.js';
-import { hasWebGL } from './dom.js';
+import { esc, hasWebGL } from './dom.js';
 import { photoIndex } from './photos.js';
 import { readJSON, writeJSON } from './store.js';
 
-const RENDER_VERSION = 11; // à incrémenter quand le rendu des bouteilles change
+const RENDER_VERSION = 12; // à incrémenter quand le rendu des bouteilles change
 const KEY = `blachere-rendus-${RENDER_VERSION}`;
 const snaps = readJSON(KEY, {}, 'session') || {};
 let photos = {};
@@ -24,11 +25,19 @@ function src(slugs, bg, fmt) {
   return snaps[key(slugs, bg, fmt)] || null;
 }
 
-export function renderHTML(slugs, { eager = false, bg = '', fmt = 'portrait' } = {}) {
+const isPhoto = (url) => /\/bouteilles\//.test(url || '');
+const photosOf = (list) =>
+  list
+    .map((x) => photos[x]?.vignette)
+    .filter(Boolean)
+    .map((u) => `<img src="${u}" alt="" loading="lazy" decoding="async" />`)
+    .join('');
+
+export function renderHTML(slugs, { eager = false, bg = '', fmt = 'portrait', alt = '' } = {}) {
   const list = slugs.filter((s) => bySlug[s]);
   const s = src(list, bg, fmt);
-  if (s) return `<img class="thumb" src="${s}" alt="" ${eager ? '' : 'loading="lazy"'} decoding="async" />`;
-  return `<span class="thumb thumb--svg" data-shot="${list.join(' ')}" data-bg="${bg}" data-fmt="${fmt}"${bg ? ` style="background:${bg}"` : ''}>${list.map((x) => bottleSVG(bySlug[x])).join('')}</span>`;
+  if (s) return `<img class="thumb${isPhoto(s) ? ' thumb--photo' : ''}" src="${s}" alt="${esc(alt)}" ${eager ? '' : 'loading="lazy"'} decoding="async" />`;
+  return `<span class="thumb thumb--wait thumb--n${list.length}" data-shot="${list.join(' ')}" data-bg="${bg}" data-fmt="${fmt}"${bg ? ` style="background:${bg}"` : ''}>${photosOf(list)}</span>`;
 }
 
 export const thumbHTML = (p, opts = {}) => renderHTML([p.slug], opts);
@@ -65,7 +74,7 @@ function swap(job, root = document) {
     const j = jobOf(el);
     if (key(j.slugs, j.bg, j.fmt) !== key(job.slugs, job.bg, job.fmt)) return;
     const img = new Image();
-    img.className = 'thumb is-new';
+    img.className = `thumb is-new${isPhoto(s) ? ' thumb--photo' : ''}`;
     img.alt = '';
     img.decoding = 'async';
     img.src = s;
@@ -79,6 +88,7 @@ export async function upgradeThumbs(root = document) {
   root.querySelectorAll('[data-shot]').forEach((el) => {
     const j = jobOf(el);
     if (src(j.slugs, j.bg, j.fmt)) swap(j, root);
+    else if (!el.children.length) el.innerHTML = photosOf(j.slugs);
   });
   if (!webgl) return;
   io ||= new IntersectionObserver(

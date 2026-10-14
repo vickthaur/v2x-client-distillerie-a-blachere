@@ -1,26 +1,27 @@
-// Accueil, dans l'ordre d'un grand site de marque : campagne (meilleures ventes en 3D, citrons,
+// Accueil, dans l'ordre d'un grand site de marque : campagne (PAC Citron et Fun Blue en 3D, citrons,
 // glaçons et menthe en suspension), nos marques, la boutique (carrousel avec prix), la maison en
-// chiffres, le savoir-faire (photos à venir), les archives, la visite, la presse, où acheter et
-// l'espace pro ; la lettre d'information et le pied de page complet suivent.
+// chiffres, le savoir-faire (photos de la boutique), les archives, la visite, la presse, où acheter
+// et l'espace pro ; la lettre d'information et le pied de page complet suivent.
 import '../styles/base.css';
 import '../styles/home.css';
 import { initSite, addToCart, reveal } from '../app/site.js';
 import { cardHTML } from '../app/cards.js';
 import { fillPlaces } from '../app/lieux.js';
-import { products, minPrice, euro, EVIN } from '../data/products.js';
-import { actualites, formules, saison } from '../data/site.js';
-import { archives, pieceSVG } from '../lib/archives.js';
+import { pieceById, pieceHTML } from '../app/pieces.js';
+import { products, bySlug, minPrice, euro, EVIN } from '../data/products.js';
+import { infos, formules, saison } from '../data/site.js';
+import textes from '../data/site/textes.json';
 import { $, $$, esc, calm, clamp, hasWebGL } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
 import { renderHTML, upgradeThumbs } from '../lib/thumbs.js';
 
 const site = initSite();
-const best = products.filter((p) => p.bestSeller);
+const heroProducts = [bySlug['pac-citron'], bySlug['fun-blue']];
 const TEST = new URLSearchParams(location.search).has('test');
 
 // ---------- 1. Campagne ----------
 function heroTags() {
-  $('#hero-tags').innerHTML = best
+  $('#hero-tags').innerHTML = heroProducts
     .map((p) => {
       const c = p.contenances[0];
       const price = minPrice(p);
@@ -41,12 +42,12 @@ async function mountHero() {
   const stageEl = $('#hero-stage');
   if (!hasWebGL()) {
     hero.classList.add('is-static');
-    stageEl.innerHTML = renderHTML(best.map((p) => p.slug), { bg: '', fmt: 'paysage' });
+    stageEl.innerHTML = renderHTML(heroProducts.map((p) => p.slug), { bg: '', fmt: 'paysage' });
     return;
   }
   try {
     const { HeroScene } = await import('../three/hero.js');
-    const scene = new HeroScene($('#hero-canvas'), { scene: 'duo', products: best, target: () => stageEl.getBoundingClientRect(), calm: calm() });
+    const scene = new HeroScene($('#hero-canvas'), { scene: 'duo', products: heroProducts, target: () => stageEl.getBoundingClientRect(), calm: calm() });
     window.__hero = scene;
     await scene.ready;
     hero.classList.add('is-live');
@@ -66,14 +67,14 @@ function brands() {
   const majeur = site.majeur;
   const cp = products.filter((p) => p.gamme === 'couleur-provence').length;
   const cards = [
-    { cls: 'pac', href: '/pac-citron', slugs: ['pac-citron'], bg: '#c2177f', k: 'Depuis 1962', name: 'PAC Citron<sup>®</sup>', text: 'Le sirop de citron créé par Louis Guiot « à la suite d’étés torrides ».' },
-    { cls: 'fb', href: '/fun-blue', slugs: ['fun-blue'], bg: '#1f56a8', k: 'Depuis 1995', name: 'Fun Blue<sup>®</sup>', text: 'Le sirop de menthe goût chlorophylle, héritier de la menthe bleue « Aurélie ».' },
-    { cls: 'provence', href: '/couleur-provence', slugs: ['sirop-couleur-provence-grenadine', 'sirop-lavande', 'sirop-menthe'], bg: '#e9dfc8', k: `${cp} parfums`, name: 'Couleur Provence<sup>®</sup>', text: 'Les sirops de fruits, de fleurs et de plantes de la maison.' },
+    { cls: 'pac', href: '/pac-citron', slugs: ['pac-citron'], bg: '#c2177f', k: 'Depuis plus de 60 ans', name: 'PAC Citron<sup>®</sup>', text: 'Le sirop de citron sans colorant, devenu le produit phare de la maison.' },
+    { cls: 'fb', href: '/fun-blue', slugs: ['fun-blue'], bg: '#1f56a8', k: 'Le petit frère du PAC', name: 'Fun Blue<sup>®</sup>', text: 'Sucre et essence de menthe, couleur « bleu Méditerranée », goût chlorophylle.' },
+    { cls: 'provence', href: '/couleur-provence', slugs: ['sirop-couleur-provence-grenadine', 'sirop-menthe', 'sirop-lavande'], bg: '#e9dfc8', k: `${cp} parfums`, name: 'Couleur Provence<sup>®</sup>', text: 'Les sirops de fruits, de fleurs et de plantes de la maison.' },
   ];
   const spirits = majeur
     ? `<li class="brand brand--spirits" data-reveal><a href="/spiritueux">
         <span class="brand__render">${renderHTML(['pastis-marra', 'marc-chateauneuf-du-pape-reserve-des-legats'], { bg: '#2b2723', fmt: 'portrait' })}</span>
-        <span class="brand__txt"><span class="kicker kicker--light">18+</span><span class="brand__name">Spiritueux</span><span class="brand__text">Pastis, liqueurs, marcs et eaux-de-vie de la maison.</span><span class="brand__cta">Découvrir ${icons.arrow}</span></span>
+        <span class="brand__txt"><span class="kicker kicker--light">18+</span><span class="brand__name">Spiritueux</span><span class="brand__text">Pastis, liqueurs, crèmes, eaux-de-vie et vieux marcs de la maison.</span><span class="brand__cta">Découvrir ${icons.arrow}</span></span>
       </a><p class="brand__evin">${esc(EVIN)}</p></li>`
     : `<li class="brand brand--spirits brand--locked" data-reveal><div class="brand__lock">
         <span class="brand__lock-icon">${icons.lock}</span>
@@ -97,55 +98,75 @@ function brands() {
 }
 
 // ---------- 3. La boutique ----------
+// Meilleures ventes du site officiel, puis des sirops ; les spiritueux seulement pour les majeurs.
 function shelf() {
-  const prices = (p) => p.enLigne && minPrice(p) !== null;
-  const picks = [...best, ...products.filter((p) => p.gamme === 'couleur-provence' && prices(p) && !p.contenances.some((c) => c.aVerifier))].slice(0, 12);
+  const ok = (p) => p.enLigne && minPrice(p) !== null && (!p.alcool || site.majeur);
+  const best = products.filter((p) => p.bestSeller && ok(p));
+  const more = products.filter((p) => !p.bestSeller && p.gamme === 'couleur-provence' && ok(p));
+  const picks = [...best, ...more].slice(0, 12);
   $('#shelf-track').innerHTML = picks.map((p) => cardHTML(p)).join('');
   upgradeThumbs($('#shelf-track'));
-  const vp = $('#shelf');
-  $$('[data-shelf]').forEach((b) => b.addEventListener('click', () => vp.scrollBy({ left: Number(b.dataset.shelf) * vp.clientWidth * 0.8, behavior: calm() ? 'auto' : 'smooth' })));
+}
+const vp = $('#shelf');
+$$('[data-shelf]').forEach((b) => b.addEventListener('click', () => vp.scrollBy({ left: Number(b.dataset.shelf) * vp.clientWidth * 0.8, behavior: calm() ? 'auto' : 'smooth' })));
+
+// ---------- 5. Savoir-faire : photos de la boutique (pour les majeurs : des bouteilles d'alcool
+// y sont visibles), archives de la maison sinon ----------
+function savoir() {
+  const box = $('#savoir-photos');
+  if (!box) return;
+  const items = site.majeur
+    ? [
+        ['savoir__ph--a', '<figure class="ph"><span class="ph__slot" data-lieu="boutique-rayons"></span><figcaption>La boutique de la distillerie, à Châteauneuf-du-Pape</figcaption></figure>'],
+        ['savoir__ph--b', '<figure class="ph"><span class="ph__slot" data-lieu="boutique-salon"></span><figcaption>Le salon de la boutique</figcaption></figure>'],
+        ['savoir__ph--c', `<figure class="ph ph--archive"><img src="${pieceById['stand-palais-des-papes'].image}" alt="" loading="lazy" width="${pieceById['stand-palais-des-papes'].largeur}" height="${pieceById['stand-palais-des-papes'].hauteur}" /><figcaption>Le stand de la maison au Palais des Papes (carte postale)</figcaption></figure>`],
+      ]
+    : [
+        ['savoir__ph--a', `<figure class="ph ph--archive"><img src="${pieceById['stand-palais-des-papes'].image}" alt="" loading="lazy" width="${pieceById['stand-palais-des-papes'].largeur}" height="${pieceById['stand-palais-des-papes'].hauteur}" /><figcaption>Le stand de la maison au Palais des Papes (carte postale)</figcaption></figure>`],
+        ['savoir__ph--b', `<figure class="ph ph--archive ph--paper"><img src="${pieceById['lettre-14-rue-moliere'].image}" alt="" loading="lazy" width="${pieceById['lettre-14-rue-moliere'].largeur}" height="${pieceById['lettre-14-rue-moliere'].hauteur}" /><figcaption>Papier à en-tête, 14 rue Molière, Avignon</figcaption></figure>`],
+        ['savoir__ph--c', `<figure class="ph ph--archive"><img src="${pieceById['avenue-de-la-gare'].image}" alt="" loading="lazy" width="${pieceById['avenue-de-la-gare'].largeur}" height="${pieceById['avenue-de-la-gare'].hauteur}" /><figcaption>Avignon, avenue de la Gare (carte postale)</figcaption></figure>`],
+      ];
+  box.innerHTML = items.map(([cls, html]) => html.replace('<figure class="ph', `<figure class="${cls} ph`)).join('');
+  fillPlaces(box);
 }
 
 // ---------- 6. Les archives ----------
 function pieces() {
-  const ids = ['pac-classique', 'aurelie', 'fun-blue-ancien'];
+  const ids = site.majeur ? ['pac-1962', 'aurelie', 'magistrale-affiche', 'stand-palais-des-papes'] : ['pac-1962', 'aurelie', 'fun-blue-70cl', 'stand-palais-des-papes'];
   $('#pieces').innerHTML = ids
-    .map((id) => archives.find((a) => a.id === id))
+    .map((id) => pieceById[id])
     .filter(Boolean)
-    .map(
-      (a) => `<li class="piece" data-reveal><a href="/musee#${a.id}">
-        <span class="piece__frame"><span class="piece__mat">${pieceSVG(a)}</span></span>
-        <span class="cartel"><span class="cartel__title">${esc(a.titre)}</span><span class="cartel__meta">${esc(a.periode)}</span><span class="cartel__meta">${esc(a.technique)} · ${esc(a.statut)}</span></span>
-      </a></li>`,
-    )
+    .map((p) => pieceHTML(p))
     .join('');
+  reveal($('#pieces'));
 }
 
 // ---------- 7. Visiter ----------
 function visit() {
   const g = formules.find((f) => f.id === 'guidee');
   const facts = [
-    [icons.clock, `<strong>Visite guidée : ${esc(g.duree)}</strong>`],
-    [icons.people, `Groupes de ${saison.groupeMax} personnes au plus, sur réservation`],
-    [icons.route, `<strong>Saison 2026 :</strong> ${esc(saison.texte.replace('Du ', 'du '))} · ${esc(saison.ferme.toLowerCase())}`],
-    [icons.pin, '1695 route de Sorgues, 84230 Châteauneuf-du-Pape'],
-    [icons.card, 'Tarifs à confirmer avec la distillerie'],
+    [icons.clock, `<strong>Boutique :</strong> du lundi au samedi, ${infos.horaires.map((h) => `${esc(h.heures)} ${esc(h.periode.toLowerCase().replace('d’', 'd’'))}`).join(', ')} (hors jours fériés)`],
+    [icons.route, `<strong>Visite guidée :</strong> ${esc(g.duree)}, groupes de ${saison.groupeMax} personnes au plus, sur réservation`],
+    [icons.pin, esc(infos.adresseLigne)],
+    [icons.card, 'Tarif de la visite guidée à confirmer avec la distillerie'],
   ];
   $('#visit-facts').innerHTML = facts.map(([i, t]) => `<li>${i}<span>${t}</span></li>`).join('');
+  const stand = pieceById['stand-palais-des-papes'];
+  $('#visit-photo').innerHTML = site.majeur
+    ? '<span class="ph__slot" data-lieu="boutique-rayons"></span><figcaption>La boutique de la distillerie</figcaption>'
+    : `<img src="${stand.image}" alt="" loading="lazy" width="${stand.largeur}" height="${stand.hauteur}" /><figcaption>Le stand de la maison au Palais des Papes (carte postale ancienne)</figcaption>`;
+  fillPlaces($('#visit-photo'));
 }
 
-// ---------- 8. Actualités ----------
+// ---------- 8. Presse : la rubrique « On parle de nous » du site officiel ----------
 function news() {
-  const ids = ['magnums', 'collectors', 'projet'];
-  $('#newsgrid').innerHTML = ids
-    .map((id) => actualites.find((a) => a.id === id))
-    .filter(Boolean)
+  const items = textes.presse.slice(0, 3);
+  $('#newsgrid').innerHTML = items
     .map(
       (a) => `<li class="newscard" data-reveal>
-        <p class="newscard__meta"><span>${esc(a.rubrique)}</span><span>${esc(a.quand)}</span></p>
+        <p class="newscard__meta"><span>${a.type === 'video' ? 'Vidéo' : 'Presse'}</span><span>${esc(a.date)}</span></p>
         <h3 class="newscard__title">${esc(a.titre)}</h3>
-        <p class="newscard__text">${esc(a.texte)}</p>
-        ${a.source ? `<a class="newscard__src" href="${a.source.url}" target="_blank" rel="noopener">${esc(a.source.nom)}<span class="sr-only"> (nouvel onglet)</span></a>` : ''}
+        <a class="newscard__src" href="${a.url}" target="_blank" rel="noopener">${a.type === 'video' ? 'Voir la vidéo' : 'Lire l’article'} sur le site de la distillerie<span class="sr-only"> (nouvel onglet)</span></a>
       </li>`,
     )
     .join('');
@@ -160,9 +181,16 @@ heroTags();
 mountHero();
 brands();
 shelf();
+savoir();
 pieces();
 visit();
 news();
 fillPlaces();
 reveal();
-site.onAge(() => brands());
+site.onAge(() => {
+  brands();
+  shelf();
+  savoir();
+  pieces();
+  visit();
+});
