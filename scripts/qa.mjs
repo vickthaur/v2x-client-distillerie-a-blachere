@@ -70,6 +70,10 @@ const consoleErrors = [];
 // ---------- Serveur ----------
 // Vite lancé directement (et non par npx) pour que l'arrêt en fin de recette arrête bien le serveur.
 const server = spawn(process.execPath, [join(root, 'node_modules/vite/bin/vite.js'), 'preview', '--port', String(PORT), '--strictPort'], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
+// même si la recette s'interrompt (erreur, délai dépassé), le serveur ne reste pas en place : sinon
+// la recette suivante ne pourrait plus prendre le port
+process.on('exit', () => server.kill());
+for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, () => process.exit(130));
 await new Promise((ok, ko) => {
   const t = setTimeout(() => ko(new Error('vite preview ne démarre pas')), 30000);
   server.stdout.on('data', (d) => {
