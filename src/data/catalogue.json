@@ -1,0 +1,759 @@
+{
+  "_source": "Recherche V2X Studio, blachere_catalogue.json (collecte du 2026-10-14). Généré par scripts/import-catalogue.mjs : ne pas modifier à la main.",
+  "produits": [
+    {
+      "slug": "pac-citron",
+      "nomOfficiel": "PAC CITRON®",
+      "categorie": "Sirops",
+      "gamme": "PAC",
+      "arome": "citron",
+      "contenances": [
+        {
+          "volume": "1 L",
+          "ml": 1000,
+          "prix": 6.7
+        }
+      ],
+      "degre": null,
+      "citation": "100 % naturel au jus de citron, sans colorant ni conservateur",
+      "citationLangue": "fr",
+      "ingredients": null,
+      "bestSeller": true,
+      "url": "https://www.distillerieablachere.com/fr/boutique/sirop/pac-citron_158",
+      "presence": "fiche",
+      "certitude": "élevée"
+    },
+    {
+      "slug": "fun-blue",
+      "nomOfficiel": "FUN BLUE",
+      "categorie": "Sirops",
+      "gamme": "Fun Blue",
+      "arome": "menthe (menthe bleue, goût chlorophylle)",
+      "contenances": [
+        {
+          "volume": "1 L",
+          "ml": 1000,
+          "prix": 6.7
+        }
+      ],
+      "degre": null,
+      "citation": "sirop de menthe goût chlorophylle",
+      "citationLangue": "fr",
+      "ingredients": "Sirop de sucre, essence de menthe, colorant E131",
+      "bestSeller": true,
+      "url": "https://www.distillerieablachere.com/fr/boutique/sirop/fun-blue_159",
+      "presence": "fiche",
+      "certitude": "élevée"
+    },
+    {
+      "slug": "sirop-couleur-provence-cola",
+      "nomOfficiel": "SIROP COULEUR PROVENCE® COLA",
+      "categorie": "Sirops",
+      "gamme": "Couleur Provence®",
+      "arome": "cola",
+      "contenances": [
+        {
+          "volume": "1 L",
+          "ml": 1000,
+          "prix": 6.2
+        }
+      ],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": "https://www.distillerieablachere.com/fr/boutique//sirop-couleur-provence-cola_52?f%5B%5D=23",
+      "presence": "fiche",
+      "certitude": "élevée"
+    },
+    {
+      "slug": "sirop-couleur-provence-orgeat",
+      "nomOfficiel": "SIROP COULEUR PROVENCE® ORGEAT",
+      "categorie": "Sirops",
+      "gamme": "Couleur Provence®",
+      "arome": "orgeat (amande grillée, fleur d'oranger)",
+      "contenances": [
+        {
+          "volume": "1 L",
+          "ml": 1000,
+          "prix": 4.4
+        }
+      ],
+      "degre": null,
+      "citation": "un sirop concentré et velouté, d'une teinte blanchâtre",
+      "citationLangue": "fr",
+      "ingredients": null,
+      "bestSeller": false,
+      "url": "https://www.distillerieablachere.com/fr/boutique//sirop-couleur-provence-orgeat_12?f%5B%5D=23",
+      "presence": "fiche",
+      "certitude": "élevée"
+    },
+    {
+      "slug": "sirop-couleur-provence-grenadine",
+      "nomOfficiel": "SIROP COULEUR PROVENCE® GRENADINE",
+      "categorie": "Sirops",
+      "gamme": "Couleur Provence®",
+      "arome": "grenadine",
+      "contenances": [
+        {
+          "volume": "1 L",
+          "ml": 1000,
+          "prix": 4
+        }
+      ],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": "https://www.distillerieablachere.com/fr/boutique//sirop-grenadine-couleur-provence_49?f%5B%5D=23",
+      "presence": "fiche",
+      "certitude": "élevée"
+    },
+    {
+      "slug": "sirop-couleur-provence-figue",
+      "nomOfficiel": "SIROP COULEUR PROVENCE® FIGUE",
+      "categorie": "Sirops",
+      "gamme": "Couleur Provence®",
+      "arome": "figue",
+      "contenances": [
+        {
+          "volume": "70 cl",
+          "ml": 700,
+          "prix": 6,
+          "aVerifier": true
+        }
+      ],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": "https://www.distillerieablachere.com/fr/boutique//sirop-couleur-provence-figue_62?f%5B%5D=21",
+      "presence": "fiche",
+      "certitude": "moyenne"
+    },
+    {
+      "slug": "sirop-couleur-provence-violette",
+      "nomOfficiel": "SIROP COULEUR PROVENCE® VIOLETTE",
+      "categorie": "Sirops",
+      "gamme": "Couleur Provence®",
+      "arome": "violette",
+      "contenances": [
+        {
+          "volume": "70 cl",
+          "ml": 700,
+          "prix": 6,
+          "aVerifier": true
+        }
+      ],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": "https://www.distillerieablachere.com/fr/boutique//sirop-couleur-provence-violette_57?f%5B%5D=21",
+      "presence": "fiche",
+      "certitude": "moyenne"
+    },
+    {
+      "slug": "sirop-couleur-provence-reglisse",
+      "nomOfficiel": "SIROP COULEUR PROVENCE® REGLISSE",
+      "categorie": "Sirops",
+      "gamme": "Couleur Provence®",
+      "arome": "réglisse",
+      "contenances": [
+        {
+          "volume": "70 cl",
+          "ml": 700,
+          "prix": 7.5
+        }
+      ],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": "https://www.distillerieablachere.com/fr/boutique//sirop-couleur-provence-reglisse_61?f%5B%5D=21",
+      "presence": "fiche",
+      "certitude": "élevée"
+    },
+    {
+      "slug": "sirop-couleur-provence-kiwi",
+      "nomOfficiel": "SIROP COULEUR PROVENCE® KIWI",
+      "categorie": "Sirops",
+      "gamme": "Couleur Provence®",
+      "arome": "kiwi",
+      "contenances": [
+        {
+          "volume": "70 cl",
+          "ml": 700,
+          "prix": 5.6,
+          "aVerifier": true
+        }
+      ],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": "https://www.distillerieablachere.com/fr/boutique//sirop-couleur-provence-kiwi_60?f%5B%5D=21",
+      "presence": "fiche",
+      "certitude": "moyenne"
+    },
+    {
+      "slug": "sirop-anis",
+      "nomOfficiel": "Sirop d'anis",
+      "categorie": "Sirops",
+      "gamme": "Couleur Provence®",
+      "arome": "anis",
+      "contenances": [
+        {
+          "volume": "70 cl",
+          "ml": 700,
+          "prix": 4.9
+        }
+      ],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": "https://www.distillerieablachere.com/fr/boutique//sirop-d-orgeat_45?f%5B%5D=21",
+      "presence": "fiche",
+      "certitude": "élevée"
+    },
+    {
+      "slug": "sirop-chataigne",
+      "nomOfficiel": "Sirop de chataîgne",
+      "categorie": "Sirops",
+      "gamme": "Couleur Provence®",
+      "arome": "châtaigne",
+      "contenances": [
+        {
+          "volume": "70 cl",
+          "ml": 700,
+          "prix": 5.6
+        }
+      ],
+      "degre": null,
+      "citation": "Le sirop de Châtaigne est la version non alcoolisée de notre crème de chataîgne.",
+      "citationLangue": "fr",
+      "ingredients": null,
+      "bestSeller": false,
+      "url": "https://www.distillerieablachere.com/fr/boutique//sirop-d-orgeat_46?f%5B%5D=21",
+      "presence": "fiche",
+      "certitude": "élevée"
+    },
+    {
+      "slug": "sirop-fraise-barbe-a-papa",
+      "nomOfficiel": "SIROP FRAISE BARBE A PAPA",
+      "categorie": "Sirops",
+      "gamme": "Couleur Provence®",
+      "arome": "fraise, barbe à papa",
+      "contenances": [],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": "(extrait) colorants : E163 et E161b",
+      "bestSeller": false,
+      "url": "https://www.distillerieablachere.com/fr/boutique//sirop-fraise-barbe-a-papa_58?f%5B%5D=21",
+      "presence": "fiche",
+      "certitude": "moyenne"
+    },
+    {
+      "slug": "sucre-de-canne",
+      "nomOfficiel": "Sucre de canne",
+      "categorie": "Sirops",
+      "gamme": "Couleur Provence®",
+      "arome": "sucre de canne",
+      "contenances": [],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": "https://www.distillerieablachere.com/fr/boutique//sucre-de-canne_63?f%5B%5D=23",
+      "presence": "fiche",
+      "certitude": "moyenne"
+    },
+    {
+      "slug": "sirop-menthe",
+      "nomOfficiel": "SIROP MENTHE",
+      "categorie": "Sirops",
+      "gamme": "Couleur Provence®",
+      "arome": "menthe",
+      "contenances": [
+        {
+          "volume": "1 L",
+          "ml": 1000,
+          "prix": 4
+        }
+      ],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": null,
+      "presence": "liste",
+      "certitude": "élevée"
+    },
+    {
+      "slug": "sirop-fraise",
+      "nomOfficiel": "SIROP FRAISE",
+      "categorie": "Sirops",
+      "gamme": "Couleur Provence®",
+      "arome": "fraise",
+      "contenances": [
+        {
+          "volume": "1 L",
+          "ml": 1000,
+          "prix": 4.2
+        }
+      ],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": null,
+      "presence": "liste",
+      "certitude": "élevée"
+    },
+    {
+      "slug": "sirop-citron",
+      "nomOfficiel": "SIROP CITRON",
+      "categorie": "Sirops",
+      "gamme": "Couleur Provence®",
+      "arome": "citron",
+      "contenances": [
+        {
+          "volume": "1 L",
+          "ml": 1000,
+          "prix": 4,
+          "aVerifier": true
+        }
+      ],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": null,
+      "presence": "liste",
+      "certitude": "moyenne"
+    },
+    {
+      "slug": "sirop-framboise",
+      "nomOfficiel": "SIROP FRAMBOISE",
+      "categorie": "Sirops",
+      "gamme": "Couleur Provence®",
+      "arome": "framboise",
+      "contenances": [
+        {
+          "volume": "1 L",
+          "ml": 1000,
+          "prix": 6.9
+        }
+      ],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": null,
+      "presence": "liste",
+      "certitude": "élevée"
+    },
+    {
+      "slug": "sirop-peche",
+      "nomOfficiel": "SIROP PECHE",
+      "categorie": "Sirops",
+      "gamme": "Couleur Provence®",
+      "arome": "pêche",
+      "contenances": [
+        {
+          "volume": "1 L",
+          "ml": 1000,
+          "prix": 5.7
+        }
+      ],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": null,
+      "presence": "liste",
+      "certitude": "élevée"
+    },
+    {
+      "slug": "sirop-cassis",
+      "nomOfficiel": "SIROP CASSIS",
+      "categorie": "Sirops",
+      "gamme": "Couleur Provence®",
+      "arome": "cassis",
+      "contenances": [
+        {
+          "volume": "1 L",
+          "ml": 1000,
+          "prix": 5.6
+        }
+      ],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": null,
+      "presence": "liste",
+      "certitude": "élevée"
+    },
+    {
+      "slug": "sirop-orange",
+      "nomOfficiel": "SIROP ORANGE",
+      "categorie": "Sirops",
+      "gamme": "Couleur Provence®",
+      "arome": "orange",
+      "contenances": [
+        {
+          "volume": "1 L",
+          "ml": 1000,
+          "prix": 4.2
+        }
+      ],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": null,
+      "presence": "liste",
+      "certitude": "élevée"
+    },
+    {
+      "slug": "sirop-lavande",
+      "nomOfficiel": "SIROP LAVANDE",
+      "categorie": "Sirops",
+      "gamme": "Couleur Provence®",
+      "arome": "lavande",
+      "contenances": [
+        {
+          "volume": "70 cl",
+          "ml": 700,
+          "prix": 6
+        }
+      ],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": null,
+      "presence": "liste",
+      "certitude": "élevée"
+    },
+    {
+      "slug": "sirop-melon",
+      "nomOfficiel": "SIROP MELON",
+      "categorie": "Sirops",
+      "gamme": "Couleur Provence®",
+      "arome": "melon",
+      "contenances": [
+        {
+          "volume": "70 cl",
+          "ml": 700,
+          "prix": 5.6
+        }
+      ],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": null,
+      "presence": "liste",
+      "certitude": "élevée"
+    },
+    {
+      "slug": "sirop-vanille",
+      "nomOfficiel": "SIROP VANILLE",
+      "categorie": "Sirops",
+      "gamme": "Couleur Provence®",
+      "arome": "vanille",
+      "contenances": [
+        {
+          "volume": "70 cl",
+          "ml": 700,
+          "prix": 6.3
+        }
+      ],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": null,
+      "presence": "liste",
+      "certitude": "élevée"
+    },
+    {
+      "slug": "sirop-passion",
+      "nomOfficiel": "SIROP PASSION",
+      "categorie": "Sirops",
+      "gamme": "Couleur Provence®",
+      "arome": "fruit de la passion (nom affiché : « passion »)",
+      "contenances": [
+        {
+          "volume": "70 cl",
+          "ml": 700,
+          "prix": 5.6
+        }
+      ],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": null,
+      "presence": "liste",
+      "certitude": "élevée"
+    },
+    {
+      "slug": "sirop-pomme",
+      "nomOfficiel": "SIROP POMME",
+      "categorie": "Sirops",
+      "gamme": "Couleur Provence®",
+      "arome": "pomme",
+      "contenances": [
+        {
+          "volume": "70 cl",
+          "ml": 700,
+          "prix": 5.6
+        }
+      ],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": null,
+      "presence": "liste",
+      "certitude": "élevée"
+    },
+    {
+      "slug": "sirop-banane",
+      "nomOfficiel": "SIROP BANANE",
+      "categorie": "Sirops",
+      "gamme": "Couleur Provence®",
+      "arome": "banane",
+      "contenances": [
+        {
+          "volume": "70 cl",
+          "ml": 700,
+          "prix": 4.4
+        }
+      ],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": null,
+      "presence": "liste",
+      "certitude": "élevée"
+    },
+    {
+      "slug": "sirop-caramel",
+      "nomOfficiel": "SIROP CARAMEL",
+      "categorie": "Sirops",
+      "gamme": "Couleur Provence®",
+      "arome": "caramel",
+      "contenances": [
+        {
+          "volume": "70 cl",
+          "ml": 700,
+          "prix": 6
+        }
+      ],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": null,
+      "presence": "liste",
+      "certitude": "élevée"
+    },
+    {
+      "slug": "sirop-caramel-fleur-de-sel-camargue",
+      "nomOfficiel": "SIROP CARAMEL A LA FLEUR DE SEL DE CAMARGUE",
+      "categorie": "Sirops",
+      "gamme": "Couleur Provence®",
+      "arome": "caramel à la fleur de sel de Camargue",
+      "contenances": [
+        {
+          "volume": "50 cl",
+          "ml": 500,
+          "prix": 7
+        }
+      ],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": null,
+      "presence": "liste",
+      "certitude": "élevée"
+    },
+    {
+      "slug": "pastis-marra",
+      "nomOfficiel": "PASTIS MARRA®",
+      "categorie": "Pastis & apéritifs",
+      "gamme": "Pastis",
+      "arome": "anis (badiane) et réglisse",
+      "contenances": [
+        {
+          "volume": "70 cl",
+          "ml": 700,
+          "prix": null,
+          "volumeRevendeur": true
+        }
+      ],
+      "degre": 45,
+      "citation": "L'essence de badiane qui se mélange à un alcoolat composé de plus de 30 plantes et épices.",
+      "citationLangue": "fr",
+      "ingredients": "Eau, Alcool, Sucre, Essence de Badiane 2°/00, Macération de Réglisse de Bois, Alcoolat de plantes et épices, colorant : Caramel E150b",
+      "bestSeller": false,
+      "url": "https://www.distillerieablachere.com/fr/boutique/pastis/pastis-marra_16",
+      "presence": "fiche",
+      "certitude": "moyenne"
+    },
+    {
+      "slug": "pastis-le-camarguais",
+      "nomOfficiel": "LE CAMARGUAIS®",
+      "categorie": "Pastis & apéritifs",
+      "gamme": "Pastis",
+      "arome": "anis (pastis)",
+      "contenances": [
+        {
+          "volume": "70 cl",
+          "ml": 700,
+          "prix": null,
+          "volumeRevendeur": true
+        }
+      ],
+      "degre": null,
+      "citation": "As for my \"Pastis Camarguais\", it's one of the last pastis made the old-fashioned way.",
+      "citationLangue": "en",
+      "ingredients": null,
+      "bestSeller": false,
+      "url": null,
+      "presence": "mention",
+      "certitude": "moyenne"
+    },
+    {
+      "slug": "aperitif-lou-gardian",
+      "nomOfficiel": "APERITIF VIN ET PECHE « LOU GARDIAN »",
+      "categorie": "Pastis & apéritifs",
+      "gamme": "Apéritifs",
+      "arome": "vin et pêche",
+      "contenances": [],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": "https://www.distillerieablachere.com/fr/boutique/les-aperitifs/aperitif-vin-et-peche-lou-gardian-_134",
+      "presence": "fiche",
+      "certitude": "moyenne"
+    },
+    {
+      "slug": "la-camarguaise",
+      "nomOfficiel": "LA CAMARGUAISE ®",
+      "categorie": "Liqueurs régionales",
+      "gamme": "Les Régionales",
+      "arome": "plantes et épices (thym, anis, serpolet, origan, romarin, réglisse)",
+      "contenances": [
+        {
+          "volume": "70 cl",
+          "ml": 700,
+          "prix": null,
+          "volumeRevendeur": true
+        }
+      ],
+      "degre": 43,
+      "citation": "obtenue par distillation, macération et infusion de plus de 20 plantes et épices dont : Thym, Romarin, Réglisse…",
+      "citationLangue": "fr",
+      "ingredients": "Eau, Alcool, Sucre, Alcoolat de plantes et épices dont : Thym, Anis, Serpolet, Origan… Caramel : E150a",
+      "bestSeller": false,
+      "url": "https://www.distillerieablachere.com/fr/boutique/les-regionales/la-camarguaise-_131",
+      "presence": "fiche",
+      "certitude": "moyenne"
+    },
+    {
+      "slug": "verveine-auguste-vieilli",
+      "nomOfficiel": "VERVEINE AUGUSTE VIEILLI",
+      "categorie": "Liqueurs régionales",
+      "gamme": "Les Régionales",
+      "arome": "verveine",
+      "contenances": [],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": "https://www.distillerieablachere.com/fr/boutique/132/verveine-auguste-vieilli-",
+      "presence": "fiche",
+      "certitude": "moyenne"
+    },
+    {
+      "slug": "eau-de-vie-poire-williams-flirt",
+      "nomOfficiel": "Eau de vie Poires Williams « FLIRT® »",
+      "categorie": "Eaux-de-vie de fruits",
+      "gamme": "Eaux-de-vie de fruits",
+      "arome": "poire Williams",
+      "contenances": [
+        {
+          "volume": "70 cl",
+          "ml": 700,
+          "prix": 30.4
+        }
+      ],
+      "degre": 43,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": "https://www.distillerieablachere.com/fr/boutique/127/poires-williams-blachere-43vol",
+      "presence": "fiche",
+      "certitude": "élevée"
+    },
+    {
+      "slug": "marc-chateauneuf-du-pape-reserve-des-legats",
+      "nomOfficiel": "Réserve des LEGATS",
+      "categorie": "Eaux-de-vie de marc",
+      "gamme": "Vieux Marc de Châteauneuf-du-Pape",
+      "arome": "marc de raisin (Châteauneuf-du-Pape)",
+      "contenances": [
+        {
+          "volume": "70 cl",
+          "ml": 700,
+          "prix": null,
+          "volumeRevendeur": true
+        }
+      ],
+      "degre": null,
+      "citation": null,
+      "citationLangue": null,
+      "ingredients": null,
+      "bestSeller": false,
+      "url": null,
+      "presence": "liste",
+      "certitude": "moyenne"
+    }
+  ]
+}

@@ -1,7 +1,8 @@
-// Silhouettes des bouteilles, en millimètres : [rayon, hauteur], du centre du fond jusqu'à la bague.
-// Formes génériques (sirop 1 L, pastis, flacon d'apothicaire, liqueur, marc) en attendant les cotes
-// et les photos des vraies bouteilles. Utilisées par la 3D (LatheGeometry) et par l'illustration SVG
-// de secours quand WebGL n'est pas disponible.
+// Silhouettes des bouteilles dessinées en code, en millimètres : [rayon, hauteur], du centre du
+// fond jusqu'à la bague. Formes génériques en attendant les photos des vraies bouteilles : dès
+// qu'une photo est déposée dans photos/produits/, sa silhouette réelle remplace celle-ci
+// (voir photos/LISEZMOI.md). Utilisées par la 3D (LatheGeometry) et par l'illustration SVG de
+// secours quand WebGL n'est pas disponible.
 //
 // label   = [bas, haut] de l'étiquette sur la partie droite du corps
 // body    = rayon de la partie droite (étiquette)
@@ -9,15 +10,35 @@
 // closure = bouchon : [bas, haut, rayon]
 // fillTop = niveau du liquide (bouteille pleine)
 export const shapes = {
-  // Bouteille de sirop 1 L, épaule ronde, bouchon à vis.
+  // Sirop 1 L en verre (type PAC Citron) : long corps droit, épaule ronde, long col, capsule à vis.
   sirop: {
-    pts: [[0, 0], [34, 0.4], [39.5, 2.4], [41.6, 7], [42, 14], [42, 186], [41.4, 199], [37.5, 214], [29.5, 230], [21, 242], [16.6, 251], [15.8, 258], [15.8, 279], [17.3, 280.5], [17.3, 286.5], [15.6, 288.6], [13.2, 289]],
-    label: [36, 160],
-    body: 42,
+    pts: [[0, 0], [35, 0.4], [40, 2.4], [42, 7], [42.4, 14], [42.4, 168], [41.6, 180], [38.5, 193], [32, 205], [24, 214], [18.4, 221], [16.2, 229], [15.8, 240], [16.3, 262], [15.8, 276], [17.2, 277.5], [17.2, 284], [15.4, 286.2], [13, 286.6]],
+    label: [26, 160],
+    body: 42.4,
     neck: 15.8,
-    lip: 289,
-    closure: [275, 304, 18.8],
-    fillTop: 232,
+    lip: 286.6,
+    closure: [266, 306, 18.6],
+    fillTop: 248,
+  },
+  // Sirop 70 cl : même famille, un peu plus fin et plus court.
+  sirop70: {
+    pts: [[0, 0], [31, 0.4], [36, 2.4], [37.8, 7], [38.2, 14], [38.2, 150], [37.4, 162], [34.5, 174], [28.5, 185], [21.5, 193], [16.8, 199], [15, 207], [14.8, 218], [15.2, 238], [14.8, 250], [16.1, 251.5], [16.1, 257.5], [14.4, 259.6], [12.2, 260]],
+    label: [24, 142],
+    body: 38.2,
+    neck: 14.8,
+    lip: 260,
+    closure: [243, 278, 17.2],
+    fillTop: 222,
+  },
+  // Sirop 50 cl : bouteille trapue.
+  sirop50: {
+    pts: [[0, 0], [28, 0.4], [32, 2.4], [33.6, 7], [34, 14], [34, 126], [33.2, 137], [30, 148], [24.5, 158], [19, 165], [15.5, 170], [14, 178], [14, 206], [15.3, 207.5], [15.3, 213], [13.7, 215], [11.6, 215.4]],
+    label: [22, 118],
+    body: 34,
+    neck: 14,
+    lip: 215.4,
+    closure: [198, 232, 16.2],
+    fillTop: 182,
   },
   // Pastis 70 cl : épaule marquée, long goulot, capsule.
   pastis: {
