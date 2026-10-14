@@ -61,9 +61,10 @@
 .brand--fb > a { background: var(--fb); }
 .brand--provence > a { background: var(--provence); color: var(--ink); }
 .brand--spirits > a, .brand__lock { background: #2b2723; }
-.brand__render { position: relative; flex: 1 1 auto; min-height: 0; }
-.brand__render .thumb { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: 50% 100%; transition: transform 1s var(--ease); }
-.brand__render .thumb--wait { padding: 10% 14% 4%; background: transparent !important; }
+.brand__render { position: absolute; inset: 0; }
+.brand__render .thumb { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 0; transition: transform 1s var(--ease); }
+.brand__render .thumb--wait { padding: 7% 14% 42%; background: transparent !important; }
+.brand > a > .brand__txt { margin-top: auto; }
 .brand > a:hover .brand__render .thumb { transform: scale(1.04); }
 .brand__txt { position: relative; display: grid; gap: 6px; padding: 4px clamp(18px, 2vw, 26px) clamp(18px, 2vw, 26px); }
 .brand--provence .kicker--light { color: var(--ink-3); }

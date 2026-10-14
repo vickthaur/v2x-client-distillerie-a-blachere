@@ -17,16 +17,16 @@
         <div class="wrap shop-hero__in">
           <div class="shop-hero__text">
             <p class="kicker">Boutique de la distillerie</p>
-            <h1 class="h-serif" id="shop-title">La boutique</h1>
-            <p class="lead">Les sirops pour tout le monde, les spiritueux pour les majeurs. Prix TTC du site de la distillerie ; retrait sur place ou livraison.</p>
+            <h1 id="shop-title">La boutique</h1>
+            <p class="lead">Les sirops pour tout le monde, les spiritueux pour les personnes majeures. Prix TTC du site de la distillerie ; commande expédiée sous trois jours ouvrés au plus après le règlement.</p>
           </div>
-          <nav class="tiles" aria-label="Gammes" id="shop-tiles"></nav>
+          <nav class="cats" aria-label="Rayons" id="shop-tiles"></nav>
         </div>
       </section>
 
       <div class="wrap shop">
         <div class="shop__bar">
-          <label class="search">
+          <label class="shop-search">
             <span class="sr-only">Rechercher un produit</span>
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="M20 20l-4.2-4.2" /></svg>
             <input type="search" id="shop-q" placeholder="Rechercher : citron, menthe, grenadine…" autocomplete="off" enterkeyhint="search" />
@@ -40,7 +40,7 @@
               <option value="nom">Nom, de A à Z</option>
             </select>
           </label>
-          <button type="button" class="btn btn--ink shop__filters-btn" id="filters-open" aria-haspopup="dialog">
+          <button type="button" class="btn btn--ink btn--sm shop__filters-btn" id="filters-open" aria-haspopup="dialog">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4" /></svg>
             Filtres <span class="shop__filters-n" id="filters-n" hidden></span>
           </button>
@@ -60,7 +60,7 @@
             <div class="empty" id="shop-empty" hidden>
               <p class="empty__title">Aucun produit ne correspond à ces filtres.</p>
               <p>Essayez une autre recherche, ou retirez un filtre.</p>
-              <button type="button" class="oval" data-reset>Tout effacer</button>
+              <button type="button" class="btn btn--ghost btn--sm" data-reset>Tout effacer</button>
             </div>
             <p class="shop__note" id="shop-note"></p>
           </div>
@@ -72,14 +72,14 @@
         <div class="sheet__in">
           <div class="sheet__head">
             <h2 id="sheet-title">Filtres</h2>
-            <button type="button" class="icon-btn" id="sheet-close" aria-label="Fermer les filtres">
+            <button type="button" class="tool" id="sheet-close" aria-label="Fermer les filtres">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
             </button>
           </div>
           <div class="sheet__body" id="sheet-body"></div>
           <div class="sheet__foot">
             <button type="button" class="btn btn--ghost" data-reset>Tout effacer</button>
-            <button type="button" class="oval" id="sheet-apply">Voir les produits</button>
+            <button type="button" class="btn btn--primary" id="sheet-apply">Voir les produits</button>
           </div>
         </div>
       </dialog>

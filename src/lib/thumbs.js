@@ -17,7 +17,8 @@ const snaps = readJSON(KEY, {}, 'session') || {};
 let photos = {};
 const ready = photoIndex().then((p) => (photos = p));
 const webgl = typeof window !== 'undefined' && hasWebGL();
-export const FORMATS = { portrait: [420, 560], paysage: [640, 480] };
+// carte : cartes de marque de l'accueil (3:4,1), bouteilles dans le haut, sol sous le texte
+export const FORMATS = { portrait: [420, 560], paysage: [640, 480], carte: [420, 575] };
 const key = (slugs, bg, fmt) => `${slugs.join('+')}|${bg}|${fmt}`;
 
 function src(slugs, bg, fmt) {

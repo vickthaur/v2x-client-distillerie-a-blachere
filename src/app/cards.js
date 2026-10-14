@@ -38,7 +38,7 @@ export function lockedCardHTML({ tag = 'li' } = {}) {
       <span class="card__lock-icon">${icons.lock}</span>
       <p class="card__lock-title">Spiritueux · 18+</p>
       <p>${plural(spiritsCount, 'référence')} réservée${spiritsCount > 1 ? 's' : ''} aux personnes majeures.</p>
-      <button type="button" class="oval oval--small" data-verify>Vérifier mon âge</button>
+      <button type="button" class="btn btn--primary btn--sm" data-verify>Vérifier mon âge</button>
     </div>
   </${tag}>`;
 }

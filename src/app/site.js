@@ -11,6 +11,7 @@ import { cart } from '../lib/cart.js';
 import { $, $$, esc, calm, plural, fold } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
 import { thumbHTML, renderHTML, upgradeThumbs } from '../lib/thumbs.js';
+import { watchBrands } from '../lib/marques.js';
 
 let age = readAge(); // 'majeur' | 'mineur' | 'sirops' | null
 const TEST = typeof location !== 'undefined' && new URLSearchParams(location.search).has('test');
@@ -504,6 +505,8 @@ export function reveal(root = document) {
 // ---------- Démarrage ----------
 export function initSite({ askAge = true } = {}) {
   document.documentElement.dataset.age = age || 'inconnu';
+  // PAC et Fun Blue : logotypes dans les titres, police et couleur de marque dans le texte
+  watchBrands();
   markNav();
   bindHeader();
   bindSearch();

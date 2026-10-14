@@ -22,7 +22,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, wri
 import { basename, dirname, extname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const VERSION = 13; // à incrémenter quand le traitement change (invalide le cache)
+const VERSION = 15; // à incrémenter quand le traitement change (invalide le cache)
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
 const opt = (name, fallback) => {
@@ -833,6 +833,31 @@ async function processBottle(sharp, slug, front, back, dest, label = null, plat 
       .webp({ quality: 84, alphaQuality: 85, effort: 5 })
       .toFile(join(dest, 'vignette.webp'));
   const prof = profilePoints(a.hw, tex.R);
+  // Couleur « tout autour » : la bouteille est un solide de révolution ; sur ses côtés et son dos
+  // (que la photo ne montre pas), on reprend, ligne par ligne, la couleur médiane du centre de la
+  // face (verre, liquide, capsule), sans les reflets ni le bord sombre de la silhouette.
+  {
+    const rows = Buffer.alloc(tex.H * 3);
+    for (let k = 0; k < tex.H; k++) {
+      const half = a.hw[k] || 0;
+      const vals = [[], [], []];
+      // bandes latérales de la photo (entre 45 et 80 % du rayon, des deux côtés) : sans l'impression
+      // centrée (logo de la capsule) ni le bord sombre du verre
+      for (let f = 0.45; f <= 0.801; f += 0.035) for (const dx of [-half * f, half * f]) {
+        const x = Math.round(tex.W / 2 + dx);
+        const i = (k * tex.W + Math.min(tex.W - 1, Math.max(0, x))) * 4;
+        if (tex.buffer[i + 3] < 200) continue;
+        for (let c = 0; c < 3; c++) vals[c].push(tex.buffer[i + c]);
+      }
+      for (let c = 0; c < 3; c++) rows[k * 3 + c] = vals[c].length ? median(vals[c]) : 0;
+    }
+    // trous (lignes sans pixel) : couleur de la ligne voisine
+    for (let k = 1; k < tex.H; k++) if (!rows[k * 3] && !rows[k * 3 + 1] && !rows[k * 3 + 2]) rows.copy(rows, k * 3, (k - 1) * 3, k * 3);
+    await sharp(rows, { raw: { width: 1, height: tex.H, channels: 3 } })
+      .resize(4, 512, { kernel: 'cubic', fit: 'fill' })
+      .png()
+      .toFile(join(dest, 'corps.png'));
+  }
   let dos = null;
   if (back) {
     try {
@@ -861,6 +886,7 @@ async function processBottle(sharp, slug, front, back, dest, label = null, plat 
     rayonMax: prof.rayonMax,
     dos,
     vignette: 'vignette.webp',
+    corps: 'corps.png',
     points: prof.points,
     plat,
     photo,
@@ -1365,6 +1391,7 @@ async function main() {
         photoRatio: profil.photo?.ratio ?? null,
         etiquette: profil.etiquette ? `/bouteilles/${slug}/etiquette.webp` : null,
         etiquetteDos: profil.etiquetteDos ? `/bouteilles/${slug}/etiquette-dos.webp` : null,
+        corps: `/bouteilles/${slug}/corps.png`,
       };
     } catch (err) {
       errors++;

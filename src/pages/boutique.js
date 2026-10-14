@@ -18,26 +18,27 @@ let facetData = null;
 
 const spiritsCount = products.filter((p) => p.alcool).length;
 
-// ---------- Tuiles des gammes ----------
+// ---------- Rayons (liens texte) ----------
 function renderTiles() {
   const tiles = [
-    { id: 'pac', label: '<span class="tile__pac">pac</span>', sub: 'Citron', theme: 'pac' },
-    { id: 'fun-blue', label: '<span class="tile__fb">Fun Blue</span>', sub: 'Menthe bleue', theme: 'funblue' },
-    { id: 'couleur-provence', label: '<span class="tile__cp">Couleur Provence®</span>', sub: 'Sirops', theme: 'provence' },
+    { id: 'pac', label: 'PAC Citron<sup>®</sup>' },
+    { id: 'fun-blue', label: 'Fun Blue<sup>®</sup>' },
+    { id: 'couleur-provence', label: 'Couleur Provence<sup>®</sup>' },
   ];
+  const all = `<a class="cat" href="/boutique" data-tile="tout">Tout<span class="cat__n">${base.length}</span></a>`;
   const html = tiles
     .map((t) => {
       const n = base.filter((p) => p.gamme === t.id).length;
-      return `<a class="tile" data-theme="${t.theme}" href="/boutique?gamme=${t.id}" data-tile="${t.id}">${t.label}<span class="tile__sub">${t.sub} · ${n}</span></a>`;
+      return `<a class="cat" href="/boutique?gamme=${t.id}" data-tile="${t.id}">${t.label}<span class="cat__n">${n}</span></a>`;
     })
     .join('');
   const spirits =
     site.age === 'mineur'
       ? ''
       : site.majeur
-        ? `<a class="tile" data-theme="spiritueux" href="/boutique?univers=spiritueux" data-tile="spiritueux"><span class="tile__af">Spiritueux</span><span class="tile__sub">18+ · ${spiritsCount}</span></a>`
-        : `<button type="button" class="tile tile--locked" data-theme="spiritueux" data-verify><span class="tile__af">Spiritueux</span><span class="tile__sub">${icons.lock} 18+ · vérifier mon âge</span></button>`;
-  $('#shop-tiles').innerHTML = html + spirits;
+        ? `<a class="cat" href="/boutique?univers=spiritueux" data-tile="spiritueux">Spiritueux 18+<span class="cat__n">${spiritsCount}</span></a>`
+        : `<button type="button" class="cat cat--locked" data-verify>${icons.lock}Spiritueux 18+<span class="cat__n">vérifier mon âge</span></button>`;
+  $('#shop-tiles').innerHTML = all + html + spirits;
 }
 
 // ---------- Formulaire de filtres ----------
@@ -162,7 +163,10 @@ function render({ scroll = false } = {}) {
   const nActive = activeCount(state) - (state.q.trim() ? 1 : 0);
   $('#filters-n').hidden = !nActive;
   $('#filters-n').textContent = nActive;
-  $$('[data-tile]').forEach((t) => t.classList.toggle('is-on', (t.dataset.tile === 'spiritueux' && state.univers === 'spiritueux') || (state.gammes.size === 1 && state.gammes.has(t.dataset.tile))));
+  const tout = state.univers === 'tous' && !state.gammes.size;
+  $$('[data-tile]').forEach((t) =>
+    t.classList.toggle('is-on', (t.dataset.tile === 'tout' && tout) || (t.dataset.tile === 'spiritueux' && state.univers === 'spiritueux' && !state.gammes.size) || (state.gammes.size === 1 && state.gammes.has(t.dataset.tile))),
+  );
   const spiritsShown = results.some((p) => p.alcool);
   $('#shop-note').innerHTML = `<span>Prix TTC du site actuel de la distillerie. Les produits sans prix en ligne sont vendus au prix de la boutique. Maquette : le paiement n’est pas branché.</span>${spiritsShown ? `<span class="evin">${esc(EVIN)} ${esc(MINEURS)}</span>` : ''}`;
   history.replaceState(null, '', `${location.pathname}${serializeState(state)}`);
@@ -278,7 +282,7 @@ document.addEventListener('click', (e) => {
     const on = tile.classList.contains('is-on');
     state.gammes = new Set();
     state.univers = 'tous';
-    if (!on) {
+    if (!on && id !== 'tout') {
       if (id === 'spiritueux') state.univers = 'spiritueux';
       else state.gammes.add(id);
     }

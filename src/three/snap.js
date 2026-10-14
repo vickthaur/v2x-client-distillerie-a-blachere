@@ -23,7 +23,15 @@ export async function renderShots(jobs, onDone) {
     const canvas = document.createElement('canvas');
     canvas.style.cssText = `position:fixed;left:-10000px;top:0;width:${width}px;height:${height}px;pointer-events:none;`;
     document.body.appendChild(canvas);
-    const stage = new Stage(canvas, { colors: { a: THUMB_BG }, bottles: [], manual: true, dpr: 1, fill: fmt === 'paysage' ? 0.8 : 0.86, dof: false, sway: false, interactive: false, spot: [0, 0, -6.5, 7] });
+    // cadre des bouteilles dans l'image (format « carte » : la moitié haute, le texte vient dessous)
+    const frame = fmt === 'carte' ? { x: 0.1, y: 0.07, w: 0.8, h: 0.53 } : null;
+    const target = frame
+      ? () => {
+          const c = canvas.getBoundingClientRect();
+          return { left: c.left + c.width * frame.x, top: c.top + c.height * frame.y, width: c.width * frame.w, height: c.height * frame.h };
+        }
+      : null;
+    const stage = new Stage(canvas, { colors: { a: THUMB_BG }, bottles: [], manual: true, dpr: 1, target, fill: fmt === 'paysage' ? 0.8 : 0.86, dof: false, sway: false, interactive: false, spot: [0, 0, -6.5, 7] });
     try {
       for (const job of list) {
         stage.setColors({ a: job.bg || THUMB_BG });

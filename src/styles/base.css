@@ -509,3 +509,29 @@ body.menu-ouvert, body.search-ouverte { overflow: hidden; }
 .thumb--wait { display: flex; align-items: flex-end; justify-content: center; gap: 4%; width: 100%; height: 100%; padding: 12% 10% 8%; background: var(--thumb-bg); }
 .thumb--wait img { height: 100%; width: auto; max-width: 30%; object-fit: contain; filter: drop-shadow(0 16px 12px rgba(0, 0, 0, 0.22)); }
 .thumb--wait.thumb--n1 img { max-width: 60%; }
+
+/* ---------- Marques : PAC et Fun Blue (voir src/lib/marques.js) ----------
+   Logotype vectorisé depuis l'étiquette dans les titres et étiquettes ; dans le texte courant,
+   la police la plus proche du logo et la couleur de la marque, contrastée pour le fond :
+   fuchsia foncé et bleu Fun Blue sur fond clair (AA : 6,2:1 et 6,5:1 sur le papier), jaune du
+   logo et bleu clair sur fond sombre ou sur les aplats de marque. */
+:root { --mq-pac: #ad1270; --mq-fb: #1f56a8; }
+[data-univers='pac'], [data-univers='funblue'], [data-univers='encre'], [data-univers='marcs'], [data-univers='collectors'],
+.ft, .hero, .brand--pac, .brand--fb, .brand--spirits, .duo__card, .mega-brand--pac, .mega-brand--fb, .hd__util, .toast, .chiffres {
+  --mq-pac: #feed01;
+  --mq-fb: #a9d4ff;
+}
+[data-univers='funblue'], .brand--fb, .mega-brand--fb { --mq-fb: #fff; }
+.marque { font-weight: 700; font-style: italic; letter-spacing: 0; line-height: 1; white-space: nowrap; }
+.marque--pac { font-family: 'Lobster Two', var(--font); font-size: 1.14em; color: var(--mq-pac); text-transform: lowercase; }
+.marque--fb { font-family: 'Molle', var(--font); font-weight: 400; font-size: 1.04em; color: var(--mq-fb); }
+.wm { position: relative; display: inline-block; flex: none; background: no-repeat center / contain; vertical-align: middle; }
+/* pac : le « a » central (hauteur d'x du logo) mesure 0,85 em et pose sur la ligne de base ; le
+   jambage du « p » descend dessous. Fun Blue (deux lignes) : centré sur la hauteur d'x. */
+.wm--pac { width: 1.83em; height: 1.5em; margin: 0 0.1em 0 -0.04em; background-image: url('/marques/pac.svg'); vertical-align: -0.53em; }
+.wm--fb { width: 3.1em; height: 1.6em; margin: 0 0.06em 0 -0.04em; background-image: url('/marques/fun-blue.svg'); vertical-align: -0.45em; }
+/* petites étiquettes (cartes, prix, menus) : un peu plus grand pour rester lisible */
+.card__name .wm--fb, .hero__tag-name .wm--fb, .line__name .wm--fb, .co-line__name .wm--fb, .menu__brand-name .wm--fb { width: 3.5em; height: 1.8em; vertical-align: -0.58em; }
+.ft__brands .wm--fb { width: 4.4em; height: 2.27em; vertical-align: -0.8em; }
+.ft__brands .wm--pac { width: 2.4em; height: 1.97em; vertical-align: -0.72em; }
+.card__name .wm--pac, .hero__tag-name .wm--pac, .line__name .wm--pac, .co-line__name .wm--pac, .ft__brands .wm--pac, .menu__brand-name .wm--pac { width: 2.1em; height: 1.72em; vertical-align: -0.62em; }

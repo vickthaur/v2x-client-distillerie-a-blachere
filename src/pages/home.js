@@ -73,7 +73,7 @@ function brands() {
   ];
   const spirits = majeur
     ? `<li class="brand brand--spirits" data-reveal><a href="/spiritueux">
-        <span class="brand__render">${renderHTML(['pastis-marra', 'marc-chateauneuf-du-pape-reserve-des-legats'], { bg: '#2b2723', fmt: 'portrait' })}</span>
+        <span class="brand__render">${renderHTML(['pastis-marra', 'marc-chateauneuf-du-pape-reserve-des-legats'], { bg: '#2b2723', fmt: 'carte' })}</span>
         <span class="brand__txt"><span class="kicker kicker--light">18+</span><span class="brand__name">Spiritueux</span><span class="brand__text">Pastis, liqueurs, crèmes, eaux-de-vie et vieux marcs de la maison.</span><span class="brand__cta">Découvrir ${icons.arrow}</span></span>
       </a><p class="brand__evin">${esc(EVIN)}</p></li>`
     : `<li class="brand brand--spirits brand--locked" data-reveal><div class="brand__lock">
@@ -87,7 +87,7 @@ function brands() {
     cards
       .map(
         (c) => `<li class="brand brand--${c.cls}" data-reveal><a href="${c.href}">
-        <span class="brand__render">${renderHTML(c.slugs, { bg: c.bg, fmt: 'portrait' })}</span>
+        <span class="brand__render">${renderHTML(c.slugs, { bg: c.bg, fmt: 'carte' })}</span>
         <span class="brand__txt"><span class="kicker kicker--light">${esc(c.k)}</span><span class="brand__name">${c.name}</span><span class="brand__text">${esc(c.text)}</span><span class="brand__cta">Découvrir ${icons.arrow}</span></span>
       </a></li>`,
       )

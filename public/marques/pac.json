@@ -1,0 +1,11 @@
+{
+ "source": "photos/site/produits/pac-citron-2.jpg (étiquette à plat du site officiel)",
+ "jaune": "#feed01",
+ "lisere": "#403512",
+ "halo": "#ffffff",
+ "epaisseurs": {
+  "lisere": 4,
+  "halo": 14
+ },
+ "ratio": 1.2217
+}
