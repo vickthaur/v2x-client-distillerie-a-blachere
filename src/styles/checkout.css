@@ -433,3 +433,30 @@ body[data-step='panier'] .co {
     width: 100%;
   }
 }
+
+/* Bandeau « vente interdite aux mineurs » (étape de paiement, panier avec alcool) */
+.co-mineurs {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--maison-encre);
+  color: #fff;
+  font-size: 14.5px;
+  line-height: 1.5;
+}
+.co-mineurs strong {
+  font: 750 13px/1.2 var(--font-ui);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--pac-jaune);
+}
+
+/* Totaux sous les lignes du panier */
+.co-sum {
+  display: grid;
+  gap: 12px;
+  max-width: 520px;
+  margin: 20px 0 0 auto;
+}

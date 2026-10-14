@@ -29,7 +29,7 @@
           <label class="search">
             <span class="sr-only">Rechercher un produit</span>
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="M20 20l-4.2-4.2" /></svg>
-            <input type="search" id="shop-q" placeholder="Rechercher : citron, menthe, pastis…" autocomplete="off" enterkeyhint="search" />
+            <input type="search" id="shop-q" placeholder="Rechercher : citron, menthe, grenadine…" autocomplete="off" enterkeyhint="search" />
           </label>
           <label class="sort">
             <span>Trier</span>
@@ -56,7 +56,7 @@
             <form class="filters" id="filters" novalidate></form>
           </aside>
           <div class="shop__results">
-            <ul class="grid" id="shop-grid" aria-label="Produits"></ul>
+            <div class="shop-groups" id="shop-grid" aria-label="Produits"></div>
             <div class="empty" id="shop-empty" hidden>
               <p class="empty__title">Aucun produit ne correspond à ces filtres.</p>
               <p>Essayez une autre recherche, ou retirez un filtre.</p>

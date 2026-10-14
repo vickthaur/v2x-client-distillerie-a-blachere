@@ -154,8 +154,9 @@ const VIEWS = {
   panier() {
     const t = cart.totals();
     if (!t.lines.length)
-      return `<div class="co-empty"><p class="co-empty__title">Votre panier est vide.</p><p>PAC Citron, Fun Blue, une trentaine de sirops et les spiritueux de la maison vous attendent dans la boutique.</p><a class="oval" href="/boutique">Voir la boutique</a></div>`;
+      return `<div class="co-empty"><p class="co-empty__title">Votre panier est vide.</p><p>${site.majeur ? 'Les sirops et les spiritueux de la maison vous attendent dans la boutique.' : 'PAC Citron, Fun Blue et une trentaine de sirops vous attendent dans la boutique.'}</p><a class="oval" href="/boutique">Voir la boutique</a></div>`;
     return `<ul class="co-lines">${t.lines.map((l) => lineHTML(l, true)).join('')}</ul>
+      <div class="co-sum">${totalsHTML(t)}${t.alcohol ? `<p class="evin">${esc(EVIN)} ${esc(MINEURS)}</p>` : ''}</div>
       <div class="co-actions"><a class="btn btn--ghost" href="/boutique">Continuer mes achats</a><button type="button" class="oval" data-next>Commander</button></div>`;
   },
   coordonnees() {
@@ -221,6 +222,7 @@ const VIEWS = {
     const t = cart.totals();
     const pay = order.paiement || 'carte';
     return `<form class="co-form" id="co-form" novalidate>
+      ${t.alcohol ? `<div class="co-mineurs" role="note"><strong>Vente interdite aux mineurs</strong><span>Votre commande contient de l’alcool : la vente d’alcool est interdite aux mineurs de moins de 18 ans.</span><span class="evin">${esc(EVIN)}</span></div>` : ''}
       <div class="co-sim">
         <p class="co-sim__badge">Paiement simulé</p>
         <p>Maquette : aucun paiement n’est demandé. Sur le site en ligne, cette étape ouvrira le paiement sécurisé.</p>

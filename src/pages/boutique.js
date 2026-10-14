@@ -140,7 +140,19 @@ function render({ scroll = false } = {}) {
   const grid = $('#shop-grid');
   const showLocked = !site.majeur && site.age !== 'mineur' && state.univers !== 'sirops' && !state.q.trim() && !state.gammes.size && !state.familles.size;
   const lockedOnly = !site.majeur && state.univers === 'spiritueux';
-  grid.innerHTML = lockedOnly ? (site.age === 'mineur' ? '' : lockedCardHTML()) : results.map(cardHTML).join('') + (showLocked ? lockedCardHTML() : '');
+  // Règle 7 de l'étude : les sirops (univers pop) et les spiritueux ne se mélangent jamais dans
+  // une même grille ; quand les deux sont affichés, ils forment deux rayons séparés.
+  const sirops = results.filter((p) => !p.alcool);
+  const spirits = results.filter((p) => p.alcool);
+  const list = (items, locked = false) => `<ul class="grid">${items.map(cardHTML).join('')}${locked ? lockedCardHTML() : ''}</ul>`;
+  const group = (id, title, body, extra = '') =>
+    `<section class="shop-group shop-group--${id}"><div class="shop-group__head"><h2 class="shop-group__title">${title}</h2>${extra}</div>${body}</section>`;
+  if (lockedOnly) grid.innerHTML = site.age === 'mineur' ? '' : list([], true);
+  else if (sirops.length && (spirits.length || showLocked))
+    grid.innerHTML =
+      group('sirops', `Sirops <span>${plural(sirops.length, 'produit')}</span>`, list(sirops)) +
+      group('spiritueux', `Spiritueux · 18+ <span>${spirits.length ? plural(spirits.length, 'produit') : ''}</span>`, list(spirits, showLocked), spirits.length ? `<p class="evin">${esc(EVIN)}</p>` : '');
+  else grid.innerHTML = list(results, showLocked);
   $('#shop-empty').hidden = lockedOnly || results.length > 0;
   const n = lockedOnly ? 0 : results.length;
   $('#shop-count').innerHTML = `<strong>${plural(n, 'produit')}</strong>${activeCount(state) ? ' correspondent à votre sélection' : ' dans la boutique'}`;

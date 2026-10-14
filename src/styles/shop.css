@@ -107,8 +107,8 @@
   box-shadow: inset 0 0 0 4px var(--comtat-creme), inset 0 0 0 6px var(--comtat-sepia), 0 0 0 3px #fff, 0 0 0 6px var(--pac-jaune);
 }
 .tile__af {
-  font: 400 clamp(17px, 1.55vw, 23px) / 1 var(--font-affiche);
-  letter-spacing: 0.04em;
+  font: 400 clamp(14px, 1.2vw, 18px) / 1 var(--font-affiche);
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 .tile--locked {
@@ -839,4 +839,45 @@
     padding: 0 7px;
     font-size: 10px;
   }
+}
+
+/* Deux rayons séparés quand sirops et spiritueux sont affichés ensemble */
+.shop-group + .shop-group {
+  margin-top: 40px;
+}
+.shop-group__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 20px;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--encre);
+}
+.shop-group__title {
+  font: 650 26px/1.1 var(--font-recit);
+}
+.shop-group__title span {
+  margin-left: 8px;
+  font: 600 14px/1 var(--font-ui);
+  color: var(--encre-3);
+}
+.shop-group--spiritueux {
+  padding: 20px;
+  border-radius: 26px;
+  background: var(--maison-creme);
+  box-shadow: inset 0 0 0 10px var(--maison-creme), inset 0 0 0 11.5px var(--maison-sepia);
+}
+.shop-group--spiritueux .shop-group__head {
+  border-bottom-color: var(--maison-sepia);
+}
+.shop-group--spiritueux .shop-group__title {
+  font-family: var(--font-affiche);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.shop-group--spiritueux .evin {
+  font-size: 12.5px;
 }
