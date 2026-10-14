@@ -250,7 +250,7 @@ const VIEWS = {
       }</p>
       <p>Sur le site en ligne, vous recevriez une confirmation par e-mail à ${esc(d.email)}.</p>
       <p class="co-sim"><span class="co-sim__badge">Maquette</span> Rien n’a été payé ni envoyé.</p>
-      <div class="co-actions"><a class="oval" href="/boutique">Retour à la boutique</a><a class="btn btn--ghost" href="/la-distillerie#visites">Préparer une visite</a></div>
+      <div class="co-actions"><a class="oval" href="/boutique">Retour à la boutique</a><a class="btn btn--ghost" href="/visiter">Préparer une visite</a></div>
     </div>`;
   },
 };

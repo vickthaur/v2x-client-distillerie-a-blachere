@@ -47,7 +47,8 @@ const check = (name, ok, detail = '') => {
 const consoleErrors = [];
 
 // ---------- Serveur ----------
-const server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
+// Vite lancé directement (et non par npx) pour que l'arrêt en fin de recette arrête bien le serveur.
+const server = spawn(process.execPath, [join(root, 'node_modules/vite/bin/vite.js'), 'preview', '--port', String(PORT), '--strictPort'], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
 await new Promise((ok, ko) => {
   const t = setTimeout(() => ko(new Error('vite preview ne démarre pas')), 30000);
   server.stdout.on('data', (d) => {
@@ -261,7 +262,8 @@ for (const vp of ['bureau', 'mobile']) {
   check('Panier gardé dans le navigateur (3 lignes)', Array.isArray(lines) && lines.length === 3, JSON.stringify(lines));
   await page.goto(`${BASE}/panier?test`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(1500);
-  const sub = await page.evaluate(() => document.querySelector('[data-subtotal]')?.textContent.trim());
+  // Les montants s'affichent avec une espace insécable avant « € ».
+  const sub = await page.evaluate(() => document.querySelector('[data-subtotal]')?.textContent.replace(/\s+/g, ' ').trim());
   check('Sous-total : 2 × 6,70 € + 6,70 € = 20,10 € (+ un article au prix de la boutique)', sub === '20,10 €', sub);
   const unpriced = await page.evaluate(() => /au prix de la boutique/.test(document.querySelector('.totals')?.textContent || ''));
   check('Article sans prix en ligne : signalé « au prix de la boutique »', unpriced);
