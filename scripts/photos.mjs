@@ -22,7 +22,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, wri
 import { basename, dirname, extname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const VERSION = 5; // à incrémenter quand le traitement change (invalide le cache)
+const VERSION = 6; // à incrémenter quand le traitement change (invalide le cache)
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
 const opt = (name, fallback) => {
@@ -451,7 +451,129 @@ function profilePoints(hw, R, samples = 180) {
   return { points: pts, rayonMax: +(R / H).toFixed(5) };
 }
 
-async function processBottle(sharp, slug, front, back, dest) {
+// ---------------------------------------------------------------------------------------------
+// Étiquette à plat (fichier d'étiquette du site) posée sur la bouteille en photo : on cherche où
+// elle se trouve sur la photo de face (haut, bas, colonne de l'étiquette au centre de la face) en
+// comparant la photo et l'étiquette « enroulée » (corrélation normalisée, recherche grossière puis
+// fine). L'étiquette nette remplace alors la photo dans cette bande, et tourne avec la bouteille.
+async function calibrateLabel(sharp, tex, hw, labelFile) {
+  const H = tex.H;
+  const W = tex.W;
+  const R = Math.max(...hw);
+  const cx = W / 2;
+  // échantillons de la photo : 240 lignes, 25 colonnes sur ±62 % du rayon (centre de la face)
+  const ROWS = 240;
+  const COLS = 25;
+  const at = (x, y) => {
+    const i = (Math.min(H - 1, Math.max(0, Math.round(y))) * W + Math.min(W - 1, Math.max(0, Math.round(x)))) * 4;
+    return [tex.buffer[i], tex.buffer[i + 1], tex.buffer[i + 2], tex.buffer[i + 3]];
+  };
+  const F = [];
+  for (let r = 0; r < ROWS; r++) {
+    const y = ((r + 0.5) / ROWS) * H;
+    const row = [];
+    for (let j = 0; j < COLS; j++) {
+      const dx = (-0.62 + (1.24 * j) / (COLS - 1)) * R;
+      row.push(at(cx + dx, y));
+    }
+    F.push(row);
+  }
+  // étiquette réduite
+  const LW = 160;
+  const { data: L, info } = await sharp(labelFile).resize({ width: LW }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  const LH = info.height;
+  const lab = (u, v) => {
+    const x = Math.min(LW - 1, Math.max(0, u * (LW - 1)));
+    const y = Math.min(LH - 1, Math.max(0, v * (LH - 1)));
+    const x0 = Math.floor(x);
+    const y0 = Math.floor(y);
+    const tx = x - x0;
+    const ty = y - y0;
+    const g = (xx, yy, k) => L[(Math.min(LH - 1, yy) * LW + Math.min(LW - 1, xx)) * 3 + k];
+    return [0, 1, 2].map((k) => g(x0, y0, k) * (1 - tx) * (1 - ty) + g(x0 + 1, y0, k) * tx * (1 - ty) + g(x0, y0 + 1, k) * (1 - tx) * ty + g(x0 + 1, y0 + 1, k) * tx * ty);
+  };
+  const aspect = LW / LH;
+  // lignes du corps (largeur proche du maximum) : l'étiquette y est posée
+  const body = [];
+  for (let r = 0; r < ROWS; r++) if (hw[Math.min(H - 1, Math.round(((r + 0.5) / ROWS) * H))] > R * 0.86) body.push(r);
+  if (body.length < ROWS * 0.15) return null;
+  const rMin = body[0];
+  const rMax = body[body.length - 1];
+  const score = (r0, r1, u0) => {
+    const span = (aspect * ((r1 - r0) / ROWS) * H) / R; // angle couvert (rad)
+    let n = 0;
+    let sp = 0;
+    let sl = 0;
+    const P = [];
+    const Q = [];
+    for (let r = r0; r <= r1; r += 3) {
+      const v = (r - r0) / (r1 - r0);
+      for (let j = 0; j < COLS; j++) {
+        const f = F[r][j];
+        if (f[3] < 200) continue;
+        const dx = -0.62 + (1.24 * j) / (COLS - 1);
+        const u = u0 + Math.asin(dx) / span;
+        if (u < 0 || u > 1) continue;
+        const l = lab(u, v);
+        for (let k = 0; k < 3; k++) {
+          P.push(f[k]);
+          Q.push(l[k]);
+          sp += f[k];
+          sl += l[k];
+          n++;
+        }
+      }
+    }
+    if (n < 60) return -1;
+    const mp = sp / n;
+    const mq = sl / n;
+    let num = 0;
+    let dp = 0;
+    let dq = 0;
+    for (let i = 0; i < n; i++) {
+      const a = P[i] - mp;
+      const b = Q[i] - mq;
+      num += a * b;
+      dp += a * a;
+      dq += b * b;
+    }
+    return num / Math.sqrt(dp * dq + 1e-9);
+  };
+  let best = { s: -2 };
+  for (let r0 = rMin; r0 < rMax - ROWS * 0.12; r0 += 4)
+    for (let r1 = r0 + Math.round(ROWS * 0.12); r1 <= rMax; r1 += 4)
+      for (let u0 = 0.3; u0 <= 0.701; u0 += 0.04) {
+        const sc = score(r0, r1, u0);
+        if (sc > best.s) best = { s: sc, r0, r1, u0 };
+      }
+  // affinage
+  for (let pass = 0; pass < 2; pass++) {
+    const b0 = { ...best };
+    for (let r0 = b0.r0 - 4; r0 <= b0.r0 + 4; r0++)
+      for (let r1 = b0.r1 - 4; r1 <= b0.r1 + 4; r1++)
+        for (let u0 = b0.u0 - 0.04; u0 <= b0.u0 + 0.0401; u0 += 0.01) {
+          if (r0 < 0 || r1 >= ROWS || r1 - r0 < ROWS * 0.1) continue;
+          const sc = score(r0, r1, u0);
+          if (sc > best.s) best = { s: sc, r0, r1, u0 };
+        }
+  }
+  if (best.s < 0.35) return { ok: false, score: +best.s.toFixed(3) };
+  const y0 = (best.r0 / ROWS) * H;
+  const y1 = ((best.r1 + 1) / ROWS) * H;
+  const span = (aspect * (y1 - y0)) / R;
+  return {
+    ok: true,
+    score: +best.s.toFixed(3),
+    // hauteurs depuis le pied (0) jusqu'au sommet (1) de la bouteille
+    bas: +(1 - y1 / H).toFixed(5),
+    haut: +(1 - y0 / H).toFixed(5),
+    centre: +best.u0.toFixed(4), // colonne de l'étiquette (0…1) au centre de la face
+    angle: +span.toFixed(5), // angle couvert autour de la bouteille (radians)
+    rayon: +(R / H).toFixed(5),
+  };
+}
+
+async function processBottle(sharp, slug, front, back, dest, label = null, plat = false) {
   const a = await analyse(sharp, front);
   const tex = buildTexture(a);
   const scale = TEX_H / tex.H;
@@ -494,7 +616,20 @@ async function processBottle(sharp, slug, front, back, dest) {
     dos,
     vignette: 'vignette.webp',
     points: prof.points,
+    plat,
+    etiquette: null,
   };
+  if (label && !plat) {
+    try {
+      const cal = await calibrateLabel(sharp, tex, a.hw, label);
+      if (cal?.ok) {
+        await sharp(label).resize({ width: 1400, withoutEnlargement: true }).removeAlpha().webp({ quality: 88, effort: 5 }).toFile(join(dest, 'etiquette.webp'));
+        profil.etiquette = { fichier: 'etiquette.webp', ...cal };
+      } else warn(`${slug} : étiquette à plat non retrouvée sur la photo (score ${cal?.score ?? '—'}), photo seule.`);
+    } catch (err) {
+      warn(`${slug} : étiquette à plat illisible (${err.message}).`);
+    }
+  }
   writeJSON(join(dest, 'profil.json'), profil);
   return profil;
 }
@@ -860,13 +995,33 @@ async function main() {
 
   const manifest = { ...empty, produits: {} };
   let errors = 0;
+  // étiquettes à plat (photos/etiquettes/<slug>.webp|jpg|png + <slug>.json { "type": "plat" })
+  const flatLabel = (slug) => {
+    const j = join(IN, 'etiquettes', `${slug}.json`);
+    if (!existsSync(j)) return null;
+    try {
+      if (JSON.parse(readFileSync(j, 'utf8')).type !== 'plat') return null;
+    } catch {
+      return null;
+    }
+    return listImages(join(IN, 'etiquettes')).find((f) => basename(f, extname(f)).toLowerCase() === slug) || null;
+  };
+  // flacons non tournés (photo affichée à plat)
+  let plats = new Set();
+  try {
+    plats = new Set(JSON.parse(readFileSync(join(IN, 'produits', 'plats.json'), 'utf8')).slugs || []);
+  } catch {
+    /* facultatif */
+  }
   for (const [slug, g] of groups) {
     if (!g.front) {
       warn(`${slug} : photo de dos sans photo de face, ignorée.`);
       continue;
     }
     const dest = join(outBottles, slug);
-    const key = `${stamp(g.front)}|${g.back ? stamp(g.back) : '-'}`;
+    const label = flatLabel(slug);
+    const plat = plats.has(slug);
+    const key = `${stamp(g.front)}|${g.back ? stamp(g.back) : '-'}|${label ? stamp(label) : '-'}|${plat ? 'plat' : 'tour'}`;
     try {
       let profil;
       if (cache[slug] === key && existsSync(join(dest, 'profil.json'))) {
@@ -874,9 +1029,9 @@ async function main() {
       } else {
         rmSync(dest, { recursive: true, force: true });
         const t0 = Date.now();
-        profil = await processBottle(sharp, slug, g.front, g.back, dest);
+        profil = await processBottle(sharp, slug, g.front, g.back, dest, label, plat);
         cache[slug] = key;
-        log(`${slug} : ${profil.fond}${profil.redressement ? `, redressée de ${profil.redressement}°` : ''}${profil.dos ? ', avec dos' : ''} (${Date.now() - t0} ms)`);
+        log(`${slug} : ${profil.fond}${profil.redressement ? `, redressée de ${profil.redressement}°` : ''}${profil.dos ? ', avec dos' : ''}${profil.etiquette ? `, étiquette à plat (score ${profil.etiquette.score})` : ''}${plat ? ', photo à plat' : ''} (${Date.now() - t0} ms)`);
       }
       manifest.produits[slug] = {
         profil: `/bouteilles/${slug}/profil.json`,
@@ -884,6 +1039,8 @@ async function main() {
         dos: profil.dos ? `/bouteilles/${slug}/dos.webp` : null,
         vignette: `/bouteilles/${slug}/vignette.webp`,
         ratio: profil.ratio,
+        plat: !!profil.plat,
+        etiquette: profil.etiquette ? `/bouteilles/${slug}/etiquette.webp` : null,
       };
     } catch (err) {
       errors++;
@@ -937,6 +1094,8 @@ async function main() {
         warn(`${relative(root, pj)} : JSON illisible (${err.message}), réglages par défaut.`);
       }
     }
+    // étiquette à plat : traitée avec la bouteille en photo (voir calibrateLabel)
+    if (params.type === 'plat') continue;
     try {
       const t0 = Date.now();
       const meta = await processLabel(sharp, f, params, join(outLabels, `${slug}.webp`));

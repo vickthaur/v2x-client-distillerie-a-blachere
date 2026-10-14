@@ -1,0 +1,811 @@
+{
+ "_source": "Recettes et cocktails du site officiel (textes exacts), relevé du 14 octobre 2026.",
+ "recettes": [
+  {
+   "id": "blue-mojito",
+   "titre": "BLUE MOJITO",
+   "alcool": true,
+   "ingredients": [
+    "5cl de Rhum blanc Bellevue®",
+    "2cl de FUN BLUE®",
+    "2cl de PAC®",
+    "15cl d’eau pétillante",
+    "1/3 glace pilée"
+   ],
+   "decoration": [
+    "1c.à.c de sucre",
+    "1 citron vert",
+    "Quelques feuilles de menthe",
+    "Dans une assiette, versez le sucre et 3 gouttes de FUN BLUE®, mélangez.",
+    "Faites le contour du verre, réservez."
+   ],
+   "preparation": [
+    "Dans un verre de 50 cl :",
+    "Ajoutez 1/3 de glace pilée",
+    "Ajoutez le rhum blanc et les des deux sirops.",
+    "Versez l’eau pétillante.",
+    "Ajoutez les tranches de citrons et la menthe."
+   ],
+   "notes": [],
+   "produits": [
+    "pac-citron",
+    "fun-blue"
+   ],
+   "image": "/recettes/blue-mojito.webp",
+   "url": "https://www.distillerieablachere.com/fr/recettes/22/blue-mojito"
+  },
+  {
+   "id": "cafe-viennois-de-mr-auguste",
+   "titre": "CAFÉ VIENNOIS DE MR AUGUSTE",
+   "alcool": true,
+   "ingredients": [
+    "3cl de sirop d'Orgeat Couleur Provence®",
+    "3cl de Pastis Marra®",
+    "Une pointe de sirop de Caramel Fleur de Sel Couleur Provence®",
+    "25cl de café chaud",
+    "De la crème chantilly"
+   ],
+   "decoration": [
+    "Grain de café",
+    "Cookies",
+    "Cacao"
+   ],
+   "preparation": [
+    "Dans un shaker, ajoutez les ingrédients.",
+    "Mélangez le tout puis versez dans un verre.",
+    "Ajoutez la crème chantilly, un trait de Caramel Fleur de Sel Couleur Provence® et le cacao."
+   ],
+   "notes": [],
+   "produits": [
+    "sirop-couleur-provence-orgeat",
+    "pastis-marra",
+    "sirop-caramel-fleur-de-sel-camargue"
+   ],
+   "image": "/recettes/cafe-viennois-de-mr-auguste.webp",
+   "url": "https://www.distillerieablachere.com/fr/recettes/30/cafe-frappe-de-mr-auguste"
+  },
+  {
+   "id": "blue-mojito-sans-alcool",
+   "titre": "BLUE MOJITO SANS ALCOOL",
+   "alcool": false,
+   "ingredients": [
+    "2cl de FUN BLUE®",
+    "2cl de PAC®",
+    "15cl d’eau pétillante",
+    "1/3 glace pilée"
+   ],
+   "decoration": [
+    "1c.à.c de sucre",
+    "1 citron vert",
+    "Quelques feuilles de menthe",
+    "Dans une assiette, verser le sucre et 3 gouttes de FUN BLUE®, mélangez.",
+    "Faites le contour du verre, réservez"
+   ],
+   "preparation": [
+    "Dans un verre de 50 cl :",
+    "Ajoutez 1/3 de glace pilée",
+    "Ajoutez les des deux sirops.",
+    "Versez l’eau pétillante.",
+    "Ajoutez les tranches de citrons et la menthe."
+   ],
+   "notes": [],
+   "produits": [
+    "pac-citron",
+    "fun-blue"
+   ],
+   "image": "/recettes/blue-mojito-sans-alcool.webp",
+   "url": "https://www.distillerieablachere.com/fr/recettes/34/le-blue-mojito"
+  },
+  {
+   "id": "cafe-viennois-de-mr-auguste-sans-alcool",
+   "titre": "CAFÉ VIENNOIS DE MR AUGUSTE SANS ALCOOL",
+   "alcool": false,
+   "ingredients": [
+    "3cl de sirop d'Orgeat Couleur Provence®",
+    "3cl de sirop d'Anis Couleur Provence®",
+    "Une pointe de sirop de Caramel Fleur de Sel Couleur Provence®",
+    "25cl de café chaud",
+    "De la crème chantilly"
+   ],
+   "decoration": [
+    "Grain de café",
+    "Cookies",
+    "Cacao"
+   ],
+   "preparation": [
+    "Dans un shaker, ajoutez les ingrédients.",
+    "Mélangez le tout puis versez dans un verre.",
+    "Ajoutez la crème chantilly, un trait de Caramel Fleur de Sel Couleur Provence® et le cacao."
+   ],
+   "notes": [],
+   "produits": [
+    "sirop-couleur-provence-orgeat",
+    "sirop-caramel-fleur-de-sel-camargue"
+   ],
+   "image": "/recettes/cafe-viennois-de-mr-auguste-sans-alcool.webp",
+   "url": "https://www.distillerieablachere.com/fr/recettes/35/cafe-viennois-de-mr-auguste-sans-alcool"
+  },
+  {
+   "id": "banane-arrangee",
+   "titre": "BANANE ARRANGÉE",
+   "alcool": true,
+   "ingredients": [
+    "3 cl de Rhum Blanc Agricole Bellevue ®",
+    "1 cl de sirop de Vanille ou Caramel Couleur Provence ®",
+    "2 cl de sirop de Banane Couleur Provence ®",
+    "15 cl d'eau pétillante",
+    "1/3 glace pilée"
+   ],
+   "decoration": [
+    "Bananes séchées",
+    "Gousse de vanille"
+   ],
+   "preparation": [
+    "Dans une flûte, placez la glace pilée et la bananes séchées.",
+    "Dans un shaker, mélangez les sirops et rhum, puis versez le tout dans la flûte.",
+    "Ajoutez l’eau pétillante.",
+    "Déposez la gousse de vanille.",
+    "Régalez vous ! ✨"
+   ],
+   "notes": [],
+   "produits": [
+    "sirop-banane",
+    "sirop-vanille",
+    "sirop-caramel"
+   ],
+   "image": "/recettes/banane-arrangee.webp",
+   "url": "https://www.distillerieablachere.com/fr/recettes/37/banane-arrange"
+  },
+  {
+   "id": "banane-arrangee-sans-alcool",
+   "titre": "BANANE ARRANGÉE SANS ALCOOL",
+   "alcool": false,
+   "ingredients": [
+    "1 cl de sirop de Vanille ou Caramel Couleur Provence ®",
+    "2 cl de sirop de Banane Couleur Provence ®",
+    "15 cl d'eau pétillante",
+    "1/3 glace pilée"
+   ],
+   "decoration": [
+    "Bananes séchées",
+    "Gousse de vanille"
+   ],
+   "preparation": [
+    "Dans une flûte, placez la glace pilée et la bananes séchées.",
+    "Dans un shaker, mélangez les sirops, puis versez le tout dans la flûte.",
+    "Ajoutez l’eau pétillante.",
+    "Déposez la gousse de vanille."
+   ],
+   "notes": [],
+   "produits": [
+    "sirop-banane",
+    "sirop-vanille",
+    "sirop-caramel"
+   ],
+   "image": "/recettes/banane-arrangee-sans-alcool.webp",
+   "url": "https://www.distillerieablachere.com/fr/recettes/38/banane-arrangee-sans-alcool"
+  },
+  {
+   "id": "daikiwi",
+   "titre": "DAIKIWI",
+   "alcool": true,
+   "ingredients": [
+    "7 cl de Rhum blanc",
+    "6 cl de sirop de Kiwi Couleur Provence®",
+    "3 cl de jus de citron vert",
+    "14 cl de jus de poire",
+    "1/3 glace pilée"
+   ],
+   "decoration": [
+    "Une tranche de kiwi",
+    "Une tranche de citron vert"
+   ],
+   "preparation": [
+    "Dans un verre à Mojito de 40 cl :",
+    "Ajoutez la glace pilée, le jus de poire, le jus de citron vert, le rhum.",
+    "Et introduisez délicatement le sirop de Kiwi Couleur Provence®, pour avoir un effet dégradé."
+   ],
+   "notes": [],
+   "produits": [
+    "sirop-couleur-provence-kiwi"
+   ],
+   "image": "/recettes/daikiwi.webp",
+   "url": "https://www.distillerieablachere.com/fr/recettes/40/regalez-vous"
+  },
+  {
+   "id": "daikiwi-sans-alcool",
+   "titre": "DAIKIWI SANS ALCOOL",
+   "alcool": false,
+   "ingredients": [
+    "8 cl de sirop de Kiwi Couleur Provence®",
+    "5 cl de jus de citron vert",
+    "17 cl de jus de poire",
+    "1/3 glace pilée"
+   ],
+   "decoration": [
+    "Une tranche de kiwi",
+    "Une tranche de citron vert"
+   ],
+   "preparation": [
+    "Dans un verre à Mojito de 40 cl :",
+    "Ajoutez la glace pilée, le jus de poire, le jus de citron vert.",
+    "Et introduisez délicatement le sirop de Kiwi Couleur Provence®, pour avoir un effet dégradé."
+   ],
+   "notes": [],
+   "produits": [
+    "sirop-couleur-provence-kiwi"
+   ],
+   "image": "/recettes/daikiwi-sans-alcool.webp",
+   "url": "https://www.distillerieablachere.com/fr/recettes/41/recette-daikiwi-sans-alcool"
+  },
+  {
+   "id": "bora-bora",
+   "titre": "BORA BORA",
+   "alcool": true,
+   "ingredients": [
+    "1/3 glace pilée",
+    "25 cl de jus d’ananas",
+    "2 cl de sirop de Grenadine Couleur Provence®",
+    "1 cl de sirop de Fruit de la passion Couleur Provence®",
+    "2 cl jus de citron vert",
+    "2 cl de Rhum blanc"
+   ],
+   "decoration": [
+    "Une tranche d’orange"
+   ],
+   "preparation": [
+    "Dans un grand verre à vin de 40 cl :",
+    "Versez la glace pilée et le jus d’ananas.",
+    "Délicatement, ajoutez un à un le sirop de grenadine et le sirop de fruit de la passion.",
+    "Ajoutez le rhum."
+   ],
+   "notes": [],
+   "produits": [
+    "sirop-couleur-provence-grenadine",
+    "sirop-passion"
+   ],
+   "image": "/recettes/bora-bora.webp",
+   "url": "https://www.distillerieablachere.com/fr/recettes/42/bora-bora"
+  },
+  {
+   "id": "bora-bora-sans-alcool",
+   "titre": "BORA BORA SANS ALCOOL",
+   "alcool": false,
+   "ingredients": [
+    "1/3 glace pilée",
+    "25 cl de jus d’ananas",
+    "2 cl de sirop de Grenadine Couleur Provence®",
+    "1 cl de sirop de Fruit de la passion Couleur Provence®",
+    "2 cl jus de citron vert"
+   ],
+   "decoration": [
+    "Une tranche d’orange"
+   ],
+   "preparation": [
+    "Dans un grand verre à vin :",
+    "Versez la glace pilée et le jus d’ananas.",
+    "Délicatement, ajoutez un à un le sirop de grenadine et le sirop de fruit de la passion."
+   ],
+   "notes": [],
+   "produits": [
+    "sirop-couleur-provence-grenadine",
+    "sirop-passion"
+   ],
+   "image": "/recettes/bora-bora-sans-alcool.webp",
+   "url": "https://www.distillerieablachere.com/fr/recettes/43/bora-bora-sans-alcool"
+  },
+  {
+   "id": "el-miquel",
+   "titre": "EL MIQUEL",
+   "alcool": true,
+   "ingredients": [
+    "1/3 glace pilée",
+    "24 cl de jus d’orange",
+    "1 cl de sirop de Fruit de la passion Couleur Provence®",
+    "3 cl de sirop de Grenadine Couleur Provence®",
+    "2 cl de liqueur La Magistrale®"
+   ],
+   "decoration": [
+    "Une brochette de fruits rouges"
+   ],
+   "preparation": [
+    "Dans un verre tube de 35 cl :",
+    "Versez la glace pilée et le jus d’ananas.",
+    "Délicatement, ajoutez un à un le sirop de fruit de la passion et le sirop de grenadine.",
+    "Ajoutez la liqueur."
+   ],
+   "notes": [],
+   "produits": [
+    "sirop-couleur-provence-grenadine",
+    "sirop-passion"
+   ],
+   "image": "/recettes/el-miquel.webp",
+   "url": "https://www.distillerieablachere.com/fr/recettes/44/el-miquel"
+  },
+  {
+   "id": "el-miquel-sans-alcool",
+   "titre": "EL MIQUEL SANS ALCOOL",
+   "alcool": false,
+   "ingredients": [
+    "1/3 glace pilée",
+    "24 cl de jus d’orange",
+    "1 cl de sirop de Fruit de la passion Couleur Provence®",
+    "3 cl de sirop de Grenadine Couleur Provence®"
+   ],
+   "decoration": [
+    "Une brochette de fruits rouges"
+   ],
+   "preparation": [
+    "Dans un verre tube de 35 cl :",
+    "Versez la glace pilée et le jus d’ananas.",
+    "Délicatement, ajoutez un à un le sirop de fruit de la passion et le sirop de grenadine."
+   ],
+   "notes": [],
+   "produits": [
+    "sirop-couleur-provence-grenadine",
+    "sirop-passion"
+   ],
+   "image": "/recettes/el-miquel-sans-alcool.webp",
+   "url": "https://www.distillerieablachere.com/fr/recettes/45/el-miquel"
+  },
+  {
+   "id": "cafe-irlandais",
+   "titre": "CAFÉ IRLANDAIS",
+   "alcool": true,
+   "ingredients": [
+    "3 cl de Marc de Provence®",
+    "1,5 cl de sirop de Sucre de canne Couleur Provence®",
+    "1 grand café chaud",
+    "2 cl de crème fraîche liquide"
+   ],
+   "decoration": [
+    "De la chantilly",
+    "Du cacao",
+    "Un filet de sirop de Vanille Couleur Provence®"
+   ],
+   "preparation": [
+    "Dans un verre ballon :",
+    "Versez le Marc de Provence® et le sirop de sucre de canne.",
+    "Ajoutez le grand café chaud et la crème liquide, mélangez.",
+    "Ajoutez la chantilly, soupoudrez de cacao.",
+    "Ajoutez le filet de sirop de vanille."
+   ],
+   "notes": [],
+   "produits": [
+    "sucre-de-canne",
+    "vieux-marc-de-provence-gros-calan"
+   ],
+   "image": "/recettes/cafe-irlandais.webp",
+   "url": "https://www.distillerieablachere.com/fr/recettes/46/cafe-irlandais"
+  },
+  {
+   "id": "american-rose",
+   "titre": "AMERICAN ROSE",
+   "alcool": true,
+   "ingredients": [
+    "4 cl de Brandy®",
+    "2 cl de Pastis Marra®",
+    "1 cl de sirop de Grenadine Couleur Provence®",
+    "1 cl de sirop de Pêche Couleur Provence®",
+    "7 cl de Champagne®",
+    "1/3 glace pilée"
+   ],
+   "decoration": [
+    "Une brochette de framboises fraîches"
+   ],
+   "preparation": [
+    "Dans un shaker :",
+    "Ajoutez le Pastis Marra®, le Brandy®, les deux sirops et la glace pilée, mélangez.",
+    "Versez le mélange dans le verre (20cl).",
+    "Ajoutez le champagne."
+   ],
+   "notes": [],
+   "produits": [
+    "pastis-marra",
+    "sirop-peche",
+    "sirop-couleur-provence-grenadine"
+   ],
+   "image": "/recettes/american-rose.webp",
+   "url": "https://www.distillerieablachere.com/fr/recettes/47/american-rose"
+  },
+  {
+   "id": "d-ici-et-d-ailleurs",
+   "titre": "D'ICI ET D'AILLEURS",
+   "alcool": true,
+   "ingredients": [
+    "6 cl de liqueur de Lavande®",
+    "3 cl de sirop d’Orgeat Couleur Provence®",
+    "15 cl d’eau pétillante",
+    "1/3 glace pilée"
+   ],
+   "decoration": [
+    "Une banche de romarin ou de lavande"
+   ],
+   "preparation": [
+    "Dans un verre de 30 cl :",
+    "Ajoutez la glace pilée, la liqueur de Lavande® et le sirop d’orgeat.",
+    "Versez l’eau pétillante, mélangez."
+   ],
+   "notes": [],
+   "produits": [
+    "sirop-couleur-provence-orgeat",
+    "sirop-lavande"
+   ],
+   "image": "/recettes/d-ici-et-d-ailleurs.webp",
+   "url": "https://www.distillerieablachere.com/fr/recettes/48/dici-et-dailleurs"
+  },
+  {
+   "id": "carton-bleu",
+   "titre": "CARTON BLEU",
+   "alcool": true,
+   "ingredients": [
+    "4 cl de Pastis Marra®",
+    "2 cl de FUN BLUE®",
+    "20 cl d’eau fraîche",
+    "1/3 glace pilée"
+   ],
+   "decoration": [
+    "1 brochette de bonbons"
+   ],
+   "preparation": [
+    "Dans un verre de 28 cl :",
+    "Ajoutez 1/3 de glace pilée",
+    "Ajoutez le pastis et le FUN BLUE®",
+    "Verser l’eau fraîche."
+   ],
+   "notes": [],
+   "produits": [
+    "pastis-marra"
+   ],
+   "image": "/recettes/carton-bleu.webp",
+   "url": "https://www.distillerieablachere.com/fr/recettes/49/carton-bleu"
+  },
+  {
+   "id": "carton-bleu-sans-alcool",
+   "titre": "CARTON BLEU SANS ALCOOL",
+   "alcool": false,
+   "ingredients": [
+    "4 cl de sirop d’Anis Couleur Provence®",
+    "2 cl de FUN BLUE®",
+    "20 cl d’eau fraîche",
+    "1/3 glace pilée"
+   ],
+   "decoration": [
+    "1 brochette de bonbons"
+   ],
+   "preparation": [
+    "Dans un verre de 28 cl :",
+    "Ajoutez 1/3 de glace pilée",
+    "Ajoutez le sirop d’anis et le FUN BLUE®",
+    "Verser l’eau fraîche."
+   ],
+   "notes": [],
+   "produits": [
+    "sirop-anis"
+   ],
+   "image": "/recettes/carton-bleu-sans-alcool.webp",
+   "url": "https://www.distillerieablachere.com/fr/recettes/50/carton-bleu-sans-alcool"
+  },
+  {
+   "id": "colarotte",
+   "titre": "COLAROTTE",
+   "alcool": false,
+   "ingredients": [
+    "Pour 4 personnes",
+    "500 g de carottes",
+    "150 ml de sirop au Cola Couleur Provence®",
+    "20 g de beurre",
+    "1 c. à soupe de miel ou de sucre roux",
+    "1 c. à soupe de sauce soja (optionnel, pour une touche umami)",
+    "1 pincée de sel",
+    "Poivre noir au goût"
+   ],
+   "decoration": [
+    "Quelques feuilles de persil ciselé"
+   ],
+   "preparation": [
+    "Épluchez et coupez les carottes en rondelles ou en bâtonnets.",
+    "Les cuire à la vapeur ou à l’eau bouillante pendant environ 5 minutes pour les attendrir légèrement. Égouttez-les.",
+    "Dans une poêle, faites fondre le beurre à feu moyen. Ajoutez les carottes et faites-les revenir pendant 2-3 minutes.",
+    "Versez le sirop de cola et ajoutez le miel (ou le sucre roux). Laissez mijoter à feu moyen-doux jusqu’à réduction du liquide (environ 10-15 minutes).",
+    "Lorsque le sirop devient épais et enrobe bien les carottes, ajoutez une pincée de sel, du poivre et éventuellement la sauce soja pour équilibrer le goût sucré.",
+    "Parsemez de persil frais avant de servir.",
+    "Suggestions d’accompagnements",
+    "Du riz basmati ou thaï",
+    "Une viande grillée",
+    "Un poisson poêlé"
+   ],
+   "notes": [],
+   "produits": [
+    "sirop-couleur-provence-cola"
+   ],
+   "image": "/recettes/colarotte.webp",
+   "url": "https://www.distillerieablachere.com/fr/recettes/51/colarotte"
+  },
+  {
+   "id": "gambas-flambees-a-la-liqueur-la-camarguaise",
+   "titre": "GAMBAS FLAMBÉES À LA LIQUEUR LA CAMARGUAISE®",
+   "alcool": true,
+   "ingredients": [
+    "Pour 2-3 personnes",
+    "12 gambas ou grosses crevettes (décortiquées en gardant la tête et la queue)",
+    "3 c. à soupe de liqueur la Camarguaise®",
+    "2 c. à soupe d’huile d’olive",
+    "1 noix de beurre",
+    "2 gousses d’ail hachées",
+    "1 c. à soupe de miel ou de sirop d’érable",
+    "Le zeste et le jus d’1/2 citron",
+    "Sel & poivre"
+   ],
+   "decoration": [
+    "Quelques brins de thym et romarin frais"
+   ],
+   "preparation": [
+    "Rincez et séchez les gambas. Assaisonnez-les légèrement avec du sel, du poivre et un peu de zeste de citron.",
+    "Dans une poêle bien chaude, faites chauffer l’huile d’olive avec le beurre. Ajoutez les gambas et saisissez-les 1 à 2 minutes de chaque côté jusqu’à ce qu’elles deviennent bien roses.",
+    "Incorporez l’ail haché, le miel et les herbes fraîches. Mélangez bien pour que les gambas s’imprègnent des saveurs.",
+    "Versez la liqueur de thym et de romarin dans la poêle, puis faites flamber avec précaution (utilisez un briquet ou inclinez légèrement la poêle si vous êtes à l’aise). Laissez l’alcool s’évaporer et la sauce réduire légèrement.",
+    "Ajoutez un filet de jus de citron pour équilibrer les saveurs. Mélangez une dernière fois et servir immédiatement.",
+    "Suggestions d’accompagnements",
+    "Une purée de pommes de terre",
+    "Un risotto crémeux",
+    "Une salade de roquette avec des copeaux de parmesan"
+   ],
+   "notes": [],
+   "produits": [
+    "la-camarguaise"
+   ],
+   "image": "/recettes/gambas-flambees-a-la-liqueur-la-camarguaise.webp",
+   "url": "https://www.distillerieablachere.com/fr/recettes/52/gambas-flambees-a-la-liqueur-la-camarguaise"
+  },
+  {
+   "id": "tartare-de-saumon-et-fruit-de-la-passion",
+   "titre": "TARTARE DE SAUMON ET FRUIT DE LA PASSION",
+   "alcool": false,
+   "ingredients": [
+    "Pour 2 personnes :",
+    "200 g de saumon frais",
+    "1 c. à soupe de sirop de Fruit de la passion Couleur Provence®",
+    "1 c. à soupe de jus de citron vert",
+    "1 c. à soupe d’huile d’olive",
+    "1/2 échalote finement ciselée",
+    "1/2 avocat coupé en petits dés",
+    "1 c. à café de gingembre frais râpé",
+    "Quelques feuilles de coriandre ou basilic thaï (au choix)",
+    "Sel & poivre au goût",
+    "Graines de sésame ou zestes de citron vert pour la déco"
+   ],
+   "decoration": [],
+   "preparation": [
+    "Coupez le saumon en petits dés réguliers et placez-les dans un bol.",
+    "Mélangez le sirop de passion, le jus de citron vert, l’huile d’olive, le gingembre râpé et l’échalote.",
+    "Ajoutez le saumon dans la marinade et mélangez bien pour enrober chaque morceau. Laissez reposer 10 à 15 min au frais pour que les saveurs s’imprègnent.",
+    "Juste avant de servir, incorporez délicatement les dés d’avocat pour éviter qu’ils ne s’écrasent.",
+    "Disposez le tartare dans un emporte-pièce pour une jolie présentation. Parsemez de coriandre (ou basilic thaï), de graines de sésame et de zestes de citron vert.",
+    "Suggestions d’accompagnements",
+    "Des toasts grillés ou des blinis",
+    "Une salade fraîche avec une vinaigrette aux agrumes",
+    "Des chips de patate douce pour une touche croquante"
+   ],
+   "notes": [],
+   "produits": [
+    "sirop-passion"
+   ],
+   "image": "/recettes/tartare-de-saumon-et-fruit-de-la-passion.webp",
+   "url": "https://www.distillerieablachere.com/fr/recettes/53/tartare-de-saumon-et-fruit-de-la-passion"
+  },
+  {
+   "id": "meringue-francaise-au-sirop",
+   "titre": "MERINGUE FRANÇAISE AU SIROP",
+   "alcool": false,
+   "ingredients": [
+    "Pour environ 20 meringues",
+    "3 blancs d’œufs (à température ambiante)",
+    "90 g de sucre en poudre",
+    "90 g de sucre glace",
+    "2 c. à soupe de sirop de vanille Couleur Provence® (ou un autre sirop de la gamme)",
+    "1 pincée de sel"
+   ],
+   "decoration": [],
+   "preparation": [
+    "Préchauffez le four à 90°C (chaleur tournante).",
+    "Fouettez les blancs en neige à vitesse moyenne jusqu’à ce qu’ils deviennent mousseux.",
+    "Ajoutez progressivement le sucre en poudre en continuant de fouetter.",
+    "Quand les blancs deviennent bien fermes et brillants, incorporez délicatement le sirop de vanille.",
+    "Tamisez le sucre glace et ajoutez-le délicatement à la Maryse pour ne pas casser les blancs.",
+    "Dressage des meringues :",
+    "Remplissez une poche à douille avec la préparation",
+    "Dressez des petits tas sur une plaque recouverte de papier sulfurisé.",
+    "Cuisson :",
+    "Enfournez pour 1h30 à 2h à 90°C (les meringues doivent être sèches et se décoller facilement).",
+    "Laissez refroidir à température ambiante dans un endroit sec avant de déguster.",
+    "Astuces gourmandes",
+    "Ajoutez quelques éclats de noisettes ou d’amandes sur les meringues avant cuisson.",
+    "Ces meringues se marient parfaitement avec une crème fouettée ou une glace maison."
+   ],
+   "notes": [],
+   "produits": [
+    "sirop-vanille"
+   ],
+   "image": "/recettes/meringue-francaise-au-sirop.webp",
+   "url": "https://www.distillerieablachere.com/fr/recettes/54/meringue-francaise-au-sirop"
+  },
+  {
+   "id": "tiramisu-a-la-chataigne",
+   "titre": "TIRAMISU À LA CHÂTAIGNE",
+   "alcool": true,
+   "ingredients": [
+    "Pour 4-6 personnes",
+    "250 g de mascarpone",
+    "3 œufs",
+    "60 g de sucre",
+    "2 c. à soupe de sirop de Châtaigne Couleur Provence®",
+    "4 c. à soupe de crème de Châtaigne l’Ardéchoise®",
+    "12-15 biscuits à la cuillère",
+    "150 ml d’eau pour l’infusion de châtaigne",
+    "1 c. à soupe de cacao en poudre (pour la déco)"
+   ],
+   "decoration": [
+    "Quelques éclats de marrons glacés ou noisettes concassées"
+   ],
+   "preparation": [
+    "Faites chauffer l’eau et ajoutez le sirop de châtaigne et la crème de châtaigne, mélanger.",
+    "Attendez que ça refroidisse avant utilisation.",
+    "Séparez les blancs des jaunes d’œufs.",
+    "Fouettez les jaunes avec le sucre jusqu'à ce que le mélange blanchisse.",
+    "Ajoutez le mascarpone, la crème de châtaigne et le sirop de châtaigne. Mélangez bien jusqu'à obtenir une crème homogène.",
+    "Montez les blancs en neige bien ferme.",
+    "Incorporez-les délicatement à la crème mascarpone à l’aide d’une spatule pour ne pas casser la texture aérienne.",
+    "Trempage des biscuits :",
+    "Trempez rapidement les biscuits à la cuillère dans l’infusion.",
+    "Disposez une couche de biscuit au fond d’un plat ou de verinnes.",
+    "Montage :",
+    "Ajoutez une couche de crème mascarpone sur les biscuits.",
+    "Répétez l’opération en alternant biscuits imbibés et crème, jusqu'à épuisement des ingrédients.",
+    "Repos et finition :",
+    "Couvrez et laissez reposer au réfrigérateur pendant au moins 4 heures (idéalement une nuit pour que les saveurs se développent).",
+    "Avant de servir, saupoudrez de cacao et ajoutez quelques éclats de marrons glacés ou de noisettes pour une touche croquante.",
+    "Astuces gourmandes",
+    "Pour un goût plus prononcé, ajoutez un filet de sirop de châtaigne entre les biscuits et la crème mascarpone lors du montage."
+   ],
+   "notes": [],
+   "produits": [
+    "sirop-chataigne",
+    "creme-de-chataigne"
+   ],
+   "image": "/recettes/tiramisu-a-la-chataigne.webp",
+   "url": "https://www.distillerieablachere.com/fr/recettes/55/tiramisu-a-la-chataigne"
+  },
+  {
+   "id": "madeleine-a-la-lavande-ou-violette",
+   "titre": "MADELEINE À LA LAVANDE OU VIOLETTE",
+   "alcool": false,
+   "ingredients": [
+    "Pour 20-24 madeleines",
+    "3 œufs (à température ambiante)",
+    "120 g de sucre en poudre",
+    "120 g de farine",
+    "½ sachet de levure chimique",
+    "100 g de beurre",
+    "Le zeste d’un citron (optionnel)",
+    "Une pincée de sel",
+    "50 ml de sirop de lavande ou de violette"
+   ],
+   "decoration": [],
+   "preparation": [
+    "Préchauffez le four à 190 °C.",
+    "Beurrez et farinez légèrement un moule à madeleines pour faciliter le démoulage.",
+    "Dans un grand saladier, fouettez les œufs avec le sucre et, si tu l’utilises, le zeste de citron, jusqu’à ce que le mélange blanchisse et double de volume.",
+    "Tamisez la farine avec la levure et la pincée de sel, puis incorpore-les délicatement à la préparation.",
+    "Faites fondre le beurre et laisse-le tiédir. Ajoutez-le ensuite à la pâte en mélangeant doucement.",
+    "Laissez reposer la pâte au réfrigérateur pendant environ 30 minutes. Cela permet aux arômes de se développer et à la pâte de se raffermir.",
+    "Cuisson des madeleines :",
+    "Remplissez les moules à madeleines à l’aide d’une cuillère (sans trop les garnir pour éviter que la pâte ne déborde). Enfournez pour 10 à 12 minutes, jusqu’à ce que les bords soient dorés et que le ventre présente la fameuse bosse.",
+    "Pendant la cuisson, préparez le sirop : Dans une petite casserole, faites chauffer le sirop.",
+    "Imbibage :",
+    "Dès la sortie du four, démoulez les madeleines encore chaudes et pique-les légèrement à l’aide d’une brochette ou d’un cure-dent. À l’aide d’un pinceau, badigeonnez généreusement chaque madeleine avec le sirop parfumé.",
+    "Laissez refroidir afin que le sirop soit bien absorbé."
+   ],
+   "notes": [],
+   "produits": [
+    "sirop-lavande"
+   ],
+   "image": "/recettes/madeleine-a-la-lavande-ou-violette.webp",
+   "url": "https://www.distillerieablachere.com/fr/recettes/56/madeleine-a-la-lavande-ou-violette"
+  },
+  {
+   "id": "pink-lady-milkshake",
+   "titre": "PINK LADY (milkshake)",
+   "alcool": false,
+   "ingredients": [
+    "4cl de Sirop de Framboise Couleur Provence®",
+    "2cl de Sirop de Pomme Couleur Provence®",
+    "1cl de Sirop de PAC Citron®",
+    "125g de yaourt nature (1 pot de yaourt)",
+    "Du lait (1 pot et demi de yaourt)"
+   ],
+   "decoration": [
+    "Quelques framboises"
+   ],
+   "preparation": [
+    "Dans un shaker ajoutez l’ensemble des ingrédients",
+    "Blendez le tout",
+    "Versez le mélange dans un verre (25cl)"
+   ],
+   "notes": [],
+   "produits": [
+    "sirop-framboise",
+    "sirop-pomme",
+    "pac-citron"
+   ],
+   "image": "/recettes/pink-lady-milkshake.webp",
+   "url": "https://www.distillerieablachere.com/fr/recettes/57/pink-lady"
+  },
+  {
+   "id": "pink-lady",
+   "titre": "PINK LADY",
+   "alcool": true,
+   "ingredients": [
+    "4cl de Crème de Framboise L’Ardéchoise®",
+    "1cl de Sirop de Pomme Couleur Provence®",
+    "0.5cl de Sirop de PAC Citron®",
+    "15cl eau pétillante/tonic",
+    "Glace pilée"
+   ],
+   "decoration": [
+    "Quelques framboises",
+    "Pour avoir un effet dégradé respectez bien l’ordre de la recette et introduisez delicatement l’eau pétillante/tonic"
+   ],
+   "preparation": [
+    "Dans un verre (25cl) :",
+    "Ajoutez les sirops et la crème",
+    "Remplissez à ⅓ de glace pilée",
+    "Puis versez délicatement l’eau pétillante ou le tonic",
+    "À vous de jouer !",
+    "Notre stagiaire CLARA HENACHE-MICHELS",
+    "et la Distillerie A.Blachère"
+   ],
+   "notes": [],
+   "produits": [
+    "sirop-pomme",
+    "creme-de-framboise",
+    "pac-citron"
+   ],
+   "image": "/recettes/pink-lady.webp",
+   "url": "https://www.distillerieablachere.com/fr/recettes/58/pink-lady"
+  },
+  {
+   "id": "pink-lady-sans-alcool",
+   "titre": "PINK LADY SANS ALCOOL",
+   "alcool": false,
+   "ingredients": [
+    "4cl de Sirop de Framboise Couleur Provence®",
+    "2cl de Sirop de Pomme Couleur Provence®",
+    "1cl de Sirop de PAC Citron®",
+    "15cl eau pétillante/tonic",
+    "Glace pilée"
+   ],
+   "decoration": [
+    "Quelques framboises",
+    "Pour avoir un effet dégradé respectez bien l’ordre de la recette et introduisez delicatement l’eau pétillante/tonic"
+   ],
+   "preparation": [
+    "Dans un verre (25cl) :",
+    "Ajoutez les sirops",
+    "Remplissez à ⅓ de glace pilée",
+    "Puis versez délicatement l’eau pétillante ou le tonic",
+    "A vous de jouer ! 💫",
+    "Notre stagiaire CLARA HENACHE-MICHELS",
+    "et la Distillerie A.Blachère"
+   ],
+   "notes": [],
+   "produits": [
+    "sirop-framboise",
+    "sirop-pomme",
+    "pac-citron"
+   ],
+   "image": "/recettes/pink-lady-sans-alcool.webp",
+   "url": "https://www.distillerieablachere.com/fr/recettes/59/pink-lady"
+  }
+ ]
+}
