@@ -1,140 +1,100 @@
 // Nos spiritueux (porte d'âge) : rien n'est affiché (ni nom, ni visuel, ni prix) avant la
-// vérification de l'âge. Pour les personnes majeures : un bandeau par univers (habillage), des
-// fiches sobres (mentions autorisées par la loi Évin : degré, origine, dénomination, composition,
-// fabricant, élaboration, modalités de vente, mode de consommation), le message sanitaire partout.
-// Les remèdes anciens sont racontés comme de l'histoire, jamais comme des bienfaits.
+// vérification de l'âge. Pour les personnes majeures : les quatre rayons de la boutique
+// officielle (apéritifs et pastis, liqueurs, crèmes et eaux-de-vie, vieux marcs), chacun raconté
+// par la page Histoire de la maison et ses archives (affiches, étiquettes, photographies du chai),
+// avec les produits sur fond neutre. Mentions de la loi Évin seulement (degré, origine, composition,
+// fabricant, élaboration, mode de consommation), le message sanitaire dans chaque rayon.
 import '../styles/base.css';
-import '../styles/shop.css';
-import '../styles/editorial.css';
-import '../styles/pages.css';
+import '../styles/home.css';
+import '../styles/brand.css';
 import { initSite, addToCart, reveal } from '../app/site.js';
 import { evinHTML, lockHTML } from '../app/blocks.js';
 import { cardHTML } from '../app/cards.js';
-import { bySlug, products } from '../data/products.js';
-import { archives } from '../lib/archives.js';
-import { $, esc, calm } from '../lib/dom.js';
+import { pieceById, pieceHTML } from '../app/pieces.js';
+import { GAMMES, products } from '../data/products.js';
+import textes from '../data/site/textes.json';
+import { $, esc, calm, plural } from '../lib/dom.js';
 import { upgradeThumbs } from '../lib/thumbs.js';
 
 const site = initSite({ askAge: false });
 const root = $('#spirits-root');
+const H = textes.histoire.periodes.flatMap((x) => x.paragraphes);
+const find = (rx) => H.find((x) => rx.test(x)) || '';
+const sentence = (text, rx) => (text.match(/[^.!?]+[.!?]/g) || []).find((x) => rx.test(x))?.trim() || '';
 
-const cards = (slugs) => `<ul class="grid">${slugs.map((s) => bySlug[s]).filter(Boolean).map((p) => cardHTML(p)).join('')}</ul>`;
-
-// Feuilles stylisées pour l'herbier (dessin de la maquette, une seule forme déclinée).
-const leaf = (k) => `<svg viewBox="0 0 44 56" aria-hidden="true" focusable="false"><path d="M22 54 V12"/>${[0, 1, 2, 3]
-  .map((i) => {
-    const y = 16 + i * 9;
-    const w = 6 + ((k + i) % 3) * 3;
-    return `<path d="M22 ${y + 4} q-${w} -2 -${w + 6} -${8 + (i % 2) * 3} q${w} 0 ${w + 6} ${8 + (i % 2) * 3}"/><path d="M22 ${y + 8} q${w} -2 ${w + 6} -${8 + ((i + 1) % 2) * 3} q-${w} 0 -${w + 6} ${8 + ((i + 1) % 2) * 3}"/>`;
-  })
-  .join('')}</svg>`;
-const PLANTES = ['Thym', 'Romarin', 'Marjolaine', 'Mélisse', 'Lavande', 'Verveine', 'Armoise', 'Origan'];
+// Les rayons, dans l'ordre de la boutique officielle ; textes tirés de la page Histoire.
+const RAYONS = [
+  {
+    gamme: 'pastis-aperitifs',
+    titre: 'Les apéritifs et les pastis',
+    texte: [
+      sentence(find(/Pastis Marra/), /Pastis Marra/),
+      sentence(find(/Pastis Camarguais/), /Pastis Camarguais/),
+      sentence(find(/Lou Gardian/), /Lou Gardian/),
+    ],
+    pieces: ['mauresque', 'cordial-anis'],
+  },
+  {
+    gamme: 'liqueurs',
+    titre: 'Les liqueurs',
+    texte: [
+      sentence(find(/Thym, romarin/), /J’y puise/),
+      sentence(find(/frère Imbert/), /La Magistrale/),
+      sentence(find(/Papalines/), /Origan du Comtat/),
+      sentence(find(/sérigraphiée/), /sérigraphiée/),
+    ],
+    pieces: ['origan-1884', 'magistrale-affiche', 'camarguaise', 'lavande-flacons'],
+  },
+  {
+    gamme: 'cremes-eaux-de-vie',
+    titre: 'Les crèmes et les eaux-de-vie',
+    texte: [sentence(find(/l’Ardéchoise/), /l’Ardéchoise/).replace(/^.*?(j’élabore)/, 'J’élabore'), 'Et des eaux-de-vie de fruits (poire, framboise…), comme Flirt®, eau-de-vie de poires Williams.'],
+    pieces: ['ardechoise-chataigne', 'creme-banane', 'creme-cacao'],
+  },
+  {
+    gamme: 'marcs',
+    titre: 'Les vieux marcs',
+    texte: [sentence(find(/vieux marcs/), /vieux marcs/), sentence(find(/marc de Châteauneuf-du-Pape/), /marc de Châteauneuf-du-Pape/)],
+    pieces: ['chai-futs', 'petit-calan', 'cave-bouteilles'],
+  },
+];
 
 function render() {
   if (site.age !== 'majeur') {
     document.title = 'Nos spiritueux · réservé aux personnes majeures · Distillerie A. Blachère';
     $('#spirits-lead').innerHTML = '';
-    root.innerHTML = `<section class="section" data-univers="maison"><div class="wrap">${lockHTML({
-      mineur: site.age === 'mineur',
-      titre: 'Cette page est réservée aux personnes majeures',
-    })}</div></section>`;
+    $('#spirits-photo').innerHTML = '';
+    $('#spirits-photo').hidden = true;
+    root.innerHTML = `<section class="section"><div class="wrap">${lockHTML({ mineur: site.age === 'mineur', titre: 'Cette page est réservée aux personnes majeures' })}</div></section>`;
     $('[data-verify]', root)?.addEventListener('click', () => site.requireAge());
     return;
   }
   document.title = 'Nos spiritueux · Distillerie A. Blachère';
-  $('#spirits-lead').innerHTML =
-    '<p class="lead">Pastis et apéritifs, liqueurs, marcs et eaux-de-vie de la maison. Le rayon dit l’usage, l’habillage dit l’univers : Comtat et papes, Camargue, Ventoux et garrigue, le chai et la vigne.</p>';
-  const origan = archives.find((a) => a.id === 'affiche-origan');
-  root.innerHTML = `
-  <section class="univers-band" id="comtat" data-univers="comtat" aria-labelledby="u-comtat">
-    <div class="wrap univers-band__in">
-      <div class="univers-band__text" data-reveal>
-        <p class="kicker">Comtat et papes</p>
-        <h2 class="univers-band__title" id="u-comtat">Le Comtat des papes et des légats</h2>
-        <p class="lead">Après les papes, Avignon et le Comtat ont été gouvernés par des légats, puis par des vice-légats. Trois dates suffisent à expliquer le nom de la Réserve des Légats.</p>
-        <div class="legats">
-          <div><strong>1542</strong>La vice-légation devient permanente.</div>
-          <div><strong>1691</strong>La fonction de légat disparaît.</div>
-          <div><strong>1791</strong>Le rattachement à la France est décidé, le 14 septembre.</div>
+  const n = products.filter((p) => p.alcool).length;
+  const garrigue = sentence(find(/Thym, romarin/), /J’y puise/);
+  $('#spirits-lead').innerHTML = `<p class="lead">${esc(garrigue ? `« ${garrigue} »` : '')} ${plural(n, 'référence')} dans la boutique : apéritifs et pastis, liqueurs, crèmes, eaux-de-vie et vieux marcs.</p>`;
+  const chai = pieceById['chai-lumiere'];
+  $('#spirits-photo').hidden = false;
+  $('#spirits-photo').innerHTML = `<img src="${chai.image}" alt="" width="${chai.largeur}" height="${chai.hauteur}" /><figcaption>${esc(chai.titre)} · ${esc(chai.technique)}, archive de la distillerie</figcaption>`;
+  root.innerHTML = RAYONS.map((r) => {
+    const g = GAMMES.find((x) => x.id === r.gamme);
+    const items = products.filter((p) => p.gamme === r.gamme);
+    return `<section class="section sp-rayon" id="${r.gamme}" aria-labelledby="t-${r.gamme}">
+      <div class="wrap">
+        <div class="sp-rayon__head">
+          <div class="sp-rayon__copy" data-reveal>
+            <p class="kicker">${esc(g?.nom || r.titre)} · ${plural(items.length, 'produit')}</p>
+            <h2 class="h-section" id="t-${r.gamme}">${esc(r.titre)}</h2>
+            <div class="prose">${r.texte.filter(Boolean).map((t) => `<p>${esc(t)}</p>`).join('')}</div>
+            <p class="bsource">D’après la page Histoire du site de la distillerie.</p>
+          </div>
+          <ul class="pieces sp-rayon__pieces">${r.pieces.map((id) => pieceById[id]).filter(Boolean).map((p) => pieceHTML(p)).join('')}</ul>
         </div>
-        <ul class="facts-list">
-          <li>L’Origan du Comtat : une recette de la fin du XIXe siècle, faite de dizaines de plantes du Ventoux. Il entre dans les papalines d’Avignon, chocolats au cœur de liqueur.</li>
-          <li>Il n’est pas en vente sur le site : sa disponibilité est à confirmer avec la distillerie.</li>
-        </ul>
-        ${cards(['marc-chateauneuf-du-pape-reserve-des-legats'])}
+        <ul class="grid sp-rayon__grid">${items.map((p) => cardHTML(p)).join('')}</ul>
+        ${evinHTML('sp-rayon__evin')}
       </div>
-      <figure class="affiche" data-reveal>
-        ${origan.svg()}
-        <figcaption>Évocation dessinée de l’affiche peinte du comptoir, pour la maquette. Auteur, date et technique inconnus : photo haute définition à faire.</figcaption>
-      </figure>
-    </div>
-    <div class="wrap">${evinHTML()}</div>
-  </section>
-
-  <section class="univers-band" id="camargue" data-univers="camargue" aria-labelledby="u-camargue">
-    <div class="wrap univers-band__in">
-      <div class="univers-band__text" data-reveal>
-        <p class="kicker">Camargue · milieu des années 1970</p>
-        <h2 class="univers-band__title" id="u-camargue">Le trio camarguais</h2>
-        <p class="lead">Jean-Claude Blachère, amoureux de la Camargue, crée et dépose Le Camarguais, La Camarguaise et Lou Gardian.</p>
-        <ul class="facts-list">
-          <li>La Camarguaise : « obtenue par distillation, macération et infusion de plus de 20 plantes et épices », dont le thym, le romarin et la réglisse. À température ambiante ou sur glace pilée.</li>
-          <li>Lou Gardian : un apéritif vin et pêche, dans une bouteille sérigraphiée de motifs camarguais.</li>
-          <li>Le Camarguais : l’un des derniers pastis faits à l’ancienne, selon la page Histoire de la maison.</li>
-        </ul>
-        <p class="note">Aucune étiquette du trio n’a encore été vue : les motifs viendront de la sérigraphie de Lou Gardian.</p>
-      </div>
-      <div data-reveal>${cards(['pastis-le-camarguais', 'la-camarguaise', 'aperitif-lou-gardian'])}</div>
-    </div>
-    <div class="wrap">${evinHTML()}</div>
-  </section>
-
-  <section class="univers-band" id="ventoux" data-univers="ventoux" aria-labelledby="u-ventoux">
-    <div class="wrap univers-band__in">
-      <div class="univers-band__text" data-reveal>
-        <p class="kicker">Ventoux et garrigue</p>
-        <h2 class="univers-band__title" id="u-ventoux">L’herbier de la maison</h2>
-        <p class="lead">La page Histoire de la maison évoque le parfum puissant qui descend des hauteurs du Mont Ventoux. La visite de la distillerie passe par l’herboristerie.</p>
-        <ul class="facts-list">
-          <li>La maison dit avoir fabriqué de la verveine dès le début des années 1880.</li>
-        </ul>
-        <ul class="herbier" aria-label="Plantes citées par la maison">${PLANTES.map((n, k) => `<li>${leaf(k)}<span>${n}</span></li>`).join('')}</ul>
-      </div>
-      <div data-reveal>${cards(['verveine-auguste-vieilli'])}</div>
-    </div>
-    <div class="wrap">${evinHTML()}</div>
-  </section>
-
-  <section class="univers-band" id="marcs" data-univers="marcs" aria-labelledby="u-marcs">
-    <div class="wrap univers-band__in">
-      <div class="univers-band__text" data-reveal>
-        <p class="kicker">Le chai et la vigne</p>
-        <h2 class="univers-band__title" id="u-marcs">Marcs et eaux-de-vie</h2>
-        <p class="lead">Les marcs de la maison vieillissent en fûts de chêne. La boutique range la Réserve des Légats parmi les vieux marcs de Châteauneuf-du-Pape ; elle porte l’habillage du Comtat.</p>
-        <ul class="facts-list">
-          <li>Flirt®, eau-de-vie de fruits : poires Williams, 43 % vol. Sa fiche la conseille aussi en cuisine : tartes aux poires, confitures, sorbets.</li>
-        </ul>
-      </div>
-      <div data-reveal>${cards(['eau-de-vie-poire-williams-flirt'])}</div>
-    </div>
-    <div class="wrap">${evinHTML()}</div>
-  </section>
-
-  <section class="univers-band" id="marra" data-univers="maison" aria-labelledby="u-marra">
-    <div class="wrap univers-band__in">
-      <div class="univers-band__text" data-reveal>
-        <p class="kicker">Pastis</p>
-        <h2 class="univers-band__title" id="u-marra">Le pastis Marra</h2>
-        <p class="lead">Pastis Marra · 45 % vol · réglisse en bâton macérée dans la préparation · recette de la distillerie Marra, à L’Isle-sur-la-Sorgue, rachetée en 1955.</p>
-        <ul class="facts-list">
-          <li>« L’essence de badiane qui se mélange à un alcoolat composé de plus de 30 plantes et épices », dit sa fiche.</li>
-          <li>1 volume de pastis pour 5 à 7 volumes d’eau fraîche.</li>
-        </ul>
-      </div>
-      <div data-reveal>${cards(['pastis-marra'])}</div>
-    </div>
-    <div class="wrap">${evinHTML()}</div>
-  </section>`;
+    </section>`;
+  }).join('');
   upgradeThumbs(root);
   reveal(root);
   if (location.hash) $(location.hash)?.scrollIntoView({ behavior: calm() ? 'auto' : 'smooth' });

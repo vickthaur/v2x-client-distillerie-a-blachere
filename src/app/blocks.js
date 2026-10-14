@@ -104,7 +104,7 @@ export function lockHTML({ mineur = false, titre = 'Réservé aux personnes maje
     <p class="lockbox__text">${
       mineur ? 'Cette partie du site est réservée aux personnes majeures. Bonne découverte de nos sirops, de notre histoire et des visites.' : esc(texte || 'Indiquez votre date de naissance pour voir cette partie du site.')
     }</p>
-    ${mineur ? '<a class="btn btn--ink" href="/couleur-provence">Voir les sirops</a>' : '<button type="button" class="oval oval--small" data-verify>Vérifier mon âge</button>'}
+    ${mineur ? '<a class="btn btn--ink" href="/couleur-provence">Voir les sirops</a>' : '<button type="button" class="btn btn--primary btn--sm" data-verify>Vérifier mon âge</button>'}
     ${evinHTML('lockbox__evin')}
   </div>`;
 }

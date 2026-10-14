@@ -113,3 +113,24 @@
 .bgamme__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 20px; margin-bottom: 22px; padding-bottom: 12px; border-bottom: 1px solid var(--ink); }
 .bgamme__title { font: 760 1.4rem/1.1 var(--font); letter-spacing: -0.02em; }
 .bgamme__title span { margin-left: 8px; font: 600 0.84rem/1 var(--font); color: var(--ink-3); }
+
+/* ---------- Spiritueux : sobre, photographique ---------- */
+.sp-hero { padding: calc(var(--header-h) + clamp(28px, 5vw, 64px)) 0 clamp(40px, 6vw, 80px); background: var(--u-bg, #1d1b18); color: #fff; }
+.sp-hero__in { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: clamp(28px, 5vw, 80px); align-items: center; }
+.sp-hero__copy { display: grid; gap: 20px; }
+.sp-hero__copy .lead { color: rgba(255, 255, 255, 0.82); max-width: 56ch; }
+.sp-hero .evin { color: rgba(255, 255, 255, 0.72); font-size: 0.82rem; }
+.sp-hero__ph { position: relative; overflow: hidden; border-radius: var(--r); background: #000; }
+.sp-hero__ph img { display: block; width: 100%; height: auto; }
+.sp-hero__ph figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 36px 14px 12px; background: linear-gradient(transparent, rgba(0, 0, 0, 0.6)); font-size: 0.78rem; color: rgba(255, 255, 255, 0.85); }
+.sp-rayon + .sp-rayon { border-top: 1px solid var(--line); }
+.sp-rayon__head { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: clamp(28px, 5vw, 80px); align-items: end; margin-bottom: clamp(32px, 4vw, 56px); }
+.sp-rayon__copy { display: grid; gap: 16px; }
+.sp-rayon__copy .prose { max-width: 60ch; color: var(--ink-2); }
+.sp-rayon__pieces { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 18px; }
+.sp-rayon__pieces .cartel { font-size: 0.9em; }
+.sp-rayon__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: clamp(28px, 2.6vw, 40px) clamp(14px, 1.6vw, 24px); }
+.sp-rayon__evin { margin-top: 28px; font-size: 0.82rem; color: var(--ink-2); }
+@media (max-width: 900px) {
+  .sp-hero__in, .sp-rayon__head { grid-template-columns: 1fr; }
+}
