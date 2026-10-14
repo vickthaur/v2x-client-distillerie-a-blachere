@@ -3,6 +3,7 @@
 // dessinées en code et ses illustrations.
 let bottles = null;
 let places = null;
+let labels = null;
 
 async function fetchJSON(url) {
   try {
@@ -22,6 +23,12 @@ export function photoIndex() {
 export function placeIndex() {
   places ||= fetchJSON('/lieux/index.json').then((d) => d?.lieux || {});
   return places;
+}
+
+// Étiquettes déroulées depuis une photo (public/etiquettes/index.json).
+export function labelIndex() {
+  labels ||= fetchJSON('/etiquettes/index.json').then((d) => d?.etiquettes || {});
+  return labels;
 }
 
 export async function photoOf(slug) {

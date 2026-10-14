@@ -475,7 +475,7 @@ export const products = catalogue.produits.map((c, index) => {
   const alcool = c.categorie !== 'Sirops';
   const contenances = c.contenances.map((k) => ({ ...k, prixTexte: k.prix !== null ? euro(k.prix) : null }));
   const premier = contenances[0];
-  const bouteille = e.bouteille || (premier?.ml === 700 ? 'sirop70' : premier?.ml === 500 ? 'sirop50' : 'sirop');
+  const bouteille = e.bouteille || (premier?.ml === 700 ? 'sirop70' : premier?.ml === 500 ? 'sirop50' : 'pac1l');
   return {
     index,
     id: c.slug,

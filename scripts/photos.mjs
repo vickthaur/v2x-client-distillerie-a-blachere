@@ -11,14 +11,18 @@
 //   4. écrit dans public/bouteilles/<slug>/ : face.webp (texture RGBA, 1024 px de haut),
 //      dos.webp (si photo de dos), profil.json (silhouette), vignette.webp (cartes de la boutique).
 // Les photos de lieux photos/lieux/<nom>.jpg sont redimensionnées dans public/lieux/.
-// Les deux dossiers produits sont régénérés à chaque build (ils ne sont pas versionnés).
+// Étiquettes : photos/etiquettes/<slug>.jpg|png (photo de la bouteille de face, étiquette bien
+// visible) → public/etiquettes/<slug>.webp, l'étiquette « déroulée » (projection cylindrique
+// inverse, éclairage égalisé), posée sur la bouteille 3D dessinée en code à la place de
+// l'étiquette dessinée. Réglages facultatifs dans photos/etiquettes/<slug>.json (angle, source).
+// Les dossiers produits sont régénérés à chaque build (ils ne sont pas versionnés).
 //
 // Options : --entree <dossier> (défaut photos) --sortie <dossier> (défaut public) --force --strict
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, extname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const VERSION = 3; // à incrémenter quand le traitement change (invalide le cache)
+const VERSION = 5; // à incrémenter quand le traitement change (invalide le cache)
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
 const opt = (name, fallback) => {
@@ -41,6 +45,7 @@ const warn = (...a) => console.warn('[photos] ⚠', ...a);
 
 const outBottles = join(OUT, 'bouteilles');
 const outPlaces = join(OUT, 'lieux');
+const outLabels = join(OUT, 'etiquettes');
 
 function writeJSON(file, data) {
   mkdirSync(dirname(file), { recursive: true });
@@ -387,7 +392,7 @@ async function analyse(sharp, file) {
     tilt += t;
   }
   const hw = halfWidths(ext.left, ext.right, top, bottom, axis.cx);
-  return { raw, mask: m.mask, mode: m.mode, top, bottom, cx: axis.cx, hw, tilt };
+  return { raw, mask: m.mask, mode: m.mode, bg: m.bg, top, bottom, cx: axis.cx, hw, tilt };
 }
 
 // Texture RGBA centrée sur l'axe : alpha = silhouette symétrique (sans les franges de fond), couleurs
@@ -479,6 +484,9 @@ async function processBottle(sharp, slug, front, back, dest) {
     slug,
     source: relative(root, front),
     fond: a.mode,
+    // couleur du fond de la photo : là où on la retrouve à l'intérieur de la silhouette, on voit à
+    // travers le verre (col vide, épaule) ; la 3D y rend du verre transparent
+    couleurFond: a.mode === 'fond retiré' && a.bg ? `#${a.bg.map((v) => Math.round(v).toString(16).padStart(2, '0')).join('')}` : null,
     redressement: +a.tilt.toFixed(2),
     texture: { fichier: 'face.webp', largeur: width, hauteur: TEX_H },
     ratio: +(width / TEX_H).toFixed(5),
@@ -504,6 +512,306 @@ async function processPlace(sharp, file, name) {
 }
 
 // ---------------------------------------------------------------------------------------------
+// Étiquette déroulée depuis une photo de face (projection cylindrique inverse)
+//
+// 1. Bords de la bouteille (fond retiré) sur les lignes de l'étiquette : axe cx et rayon R (px).
+// 2. Haut et bas de l'étiquette, colonne par colonne : premier écart net avec la couleur du liquide
+//    au-dessus (et au-dessous), puis ajustement d'une parabole (perspective + légère inclinaison).
+// 3. Pour chaque colonne de la texture, l'angle θ ∈ [−angle, +angle] donne x = cx + R·sin θ ; la ligne
+//    est interpolée entre le haut et le bas de l'étiquette à cet x.
+// 4. Éclairage égalisé : la couleur dominante (fond de l'étiquette) doit garder la même luminosité
+//    d'un bord à l'autre (les bords d'un cylindre sont plus sombres sur la photo).
+// 5. Lignes manquantes (étiquette coupée par le bas de la photo) : couleur dominante.
+
+function quadFit(xs, ys) {
+  // moindres carrés y = a + b·x + c·x², deux passes (écarts > 3 px écartés)
+  let keep = xs.map((_, i) => i);
+  let coef = [0, 0, 0];
+  for (let pass = 0; pass < 3; pass++) {
+    const S = Array.from({ length: 3 }, () => [0, 0, 0, 0]);
+    for (const i of keep) {
+      const x = xs[i];
+      const v = [1, x, x * x];
+      for (let r = 0; r < 3; r++) {
+        for (let c = 0; c < 3; c++) S[r][c] += v[r] * v[c];
+        S[r][3] += v[r] * ys[i];
+      }
+    }
+    // Gauss
+    for (let c = 0; c < 3; c++) {
+      let piv = c;
+      for (let r = c + 1; r < 3; r++) if (Math.abs(S[r][c]) > Math.abs(S[piv][c])) piv = r;
+      [S[c], S[piv]] = [S[piv], S[c]];
+      for (let r = 0; r < 3; r++) {
+        if (r === c || !S[c][c]) continue;
+        const f = S[r][c] / S[c][c];
+        for (let k = c; k < 4; k++) S[r][k] -= f * S[c][k];
+      }
+    }
+    coef = [0, 1, 2].map((r) => (S[r][r] ? S[r][3] / S[r][r] : 0));
+    const f = (x) => coef[0] + coef[1] * x + coef[2] * x * x;
+    const next = keep.filter((i) => Math.abs(f(xs[i]) - ys[i]) < 3);
+    if (next.length < 8 || next.length === keep.length) break;
+    keep = next;
+  }
+  return (x) => coef[0] + coef[1] * x + coef[2] * x * x;
+}
+
+function rgbToHsv(r, g, b) {
+  const mx = Math.max(r, g, b);
+  const mn = Math.min(r, g, b);
+  const d = mx - mn;
+  let h = 0;
+  if (d) h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return [(h * 60 + 360) % 360, mx ? d / mx : 0, mx / 255];
+}
+
+async function processLabel(sharp, file, params, dest) {
+  const { data, info } = await sharp(file, { failOn: 'none' }).rotate().ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const W = info.width;
+  const H = info.height;
+  const at = (x, y) => {
+    const i = (Math.min(H - 1, Math.max(0, y)) * W + Math.min(W - 1, Math.max(0, x))) * 4;
+    return [data[i], data[i + 1], data[i + 2]];
+  };
+  // Bords de la bouteille ligne par ligne : premier écart net avec le fond local de la ligne (pris
+  // aux deux extrémités, coins sombres d'une vignette exclus). Plus robuste qu'un détourage global
+  // quand le fond est un dégradé (ombre d'un côté).
+  const ext = { left: new Int32Array(H).fill(-1), right: new Int32Array(H).fill(-1) };
+  for (let y = 0; y < H; y++) {
+    const side = (x0, x1) => {
+      const cs = [];
+      for (let x = x0; x < x1; x++) {
+        const c = at(x, y);
+        if (c[0] * 0.299 + c[1] * 0.587 + c[2] * 0.114 > 90) cs.push(c);
+      }
+      return cs.length > 4 ? [0, 1, 2].map((k) => median(cs.map((c) => c[k]))) : null;
+    };
+    const band = Math.max(6, Math.round(W * 0.04));
+    const bl = side(0, band);
+    const br = side(W - band, W);
+    if (!bl || !br) continue;
+    const far = (c, b) => dist(c[0], c[1], c[2], b[0], b[1], b[2]) > 38;
+    for (let x = band; x < W - band - 2; x++)
+      if (far(at(x, y), bl) && far(at(x + 1, y), bl) && far(at(x + 2, y), bl)) {
+        ext.left[y] = x;
+        break;
+      }
+    for (let x = W - band - 1; x > band + 2; x--)
+      if (far(at(x, y), br) && far(at(x - 1, y), br) && far(at(x - 2, y), br)) {
+        ext.right[y] = x;
+        break;
+      }
+    if (ext.left[y] < 0 || ext.right[y] <= ext.left[y]) ext.left[y] = ext.right[y] = -1;
+  }
+  // Lignes de l'étiquette : les plus « colorées » (saturation ou sombre) de la moitié basse.
+  const rowScore = new Float64Array(H);
+  for (let y = 0; y < H; y++) {
+    if (ext.left[y] < 0) continue;
+    let n = 0;
+    let c = 0;
+    for (let x = ext.left[y] + 4; x < ext.right[y] - 4; x += 2) {
+      const [r, g, b] = at(x, y);
+      const [, sat, val] = rgbToHsv(r, g, b);
+      if (sat > 0.45 || val < 0.35) c++;
+      n++;
+    }
+    rowScore[y] = n ? c / n : 0;
+  }
+  // Plus long bloc continu de lignes « étiquette » (petits trous tolérés : texte blanc, filets).
+  let best = [0, -1];
+  let start = -1;
+  let gap = 0;
+  for (let y = 0; y <= H; y++) {
+    const on = y < H && rowScore[y] > 0.5;
+    if (on) {
+      if (start < 0) start = y;
+      gap = 0;
+    } else if (start >= 0 && ++gap > 6) {
+      const end = y - gap;
+      if (end - start > best[1] - best[0]) best = [start, end];
+      start = -1;
+      gap = 0;
+    }
+  }
+  if (start >= 0 && H - 1 - start > best[1] - best[0]) best = [start, H - 1];
+  const labelRows = [];
+  for (let y = best[0]; y <= best[1]; y++) labelRows.push(y);
+  if (labelRows.length < H * 0.08) throw new Error('étiquette introuvable sur la photo');
+  const y0 = params.haut ?? labelRows[0];
+  const y1 = params.bas ?? labelRows[labelRows.length - 1];
+  const mid = labelRows.filter((y) => y > y0 + (y1 - y0) * 0.1 && y < y1 - (y1 - y0) * 0.1);
+  const lefts = mid.map((y) => ext.left[y]).filter((x) => x >= 0);
+  const rights = mid.map((y) => ext.right[y]).filter((x) => x >= 0);
+  const xl = median(lefts);
+  const xr = median(rights) + 1;
+  const cx = (xl + xr) / 2;
+  const R = (xr - xl) / 2;
+
+  // Haut / bas de l'étiquette colonne par colonne.
+  const tops = [];
+  const bots = [];
+  const xs = [];
+  const xb = [];
+  const DIFF = 70;
+  for (let x = Math.round(xl + R * 0.12); x <= Math.round(xr - R * 0.12); x += 2) {
+    const ref = (ya, yb) => {
+      const cs = [];
+      for (let y = ya; y <= yb; y++) if (y >= 0 && y < H) cs.push(at(x, y));
+      if (cs.length < 4) return null;
+      return [0, 1, 2].map((k) => median(cs.map((c) => c[k])));
+    };
+    const above = ref(y0 - 70, y0 - 30);
+    if (above) {
+      for (let y = y0 - 30; y < y0 + 40; y++) {
+        const ok = [0, 1, 2].every((d) => {
+          const c = at(x, y + d);
+          return dist(c[0], c[1], c[2], above[0], above[1], above[2]) > DIFF;
+        });
+        if (ok) {
+          xs.push(x);
+          tops.push(y);
+          break;
+        }
+      }
+    }
+    const below = y1 + 60 < H ? ref(y1 + 30, y1 + 60) : null;
+    if (below) {
+      for (let y = y1 + 30; y > y1 - 40; y--) {
+        const ok = [0, 1, 2].every((d) => {
+          const c = at(x, y - d);
+          return dist(c[0], c[1], c[2], below[0], below[1], below[2]) > DIFF;
+        });
+        if (ok) {
+          xb.push(x);
+          bots.push(y + 1);
+          break;
+        }
+      }
+    }
+  }
+  const top = tops.length >= 8 ? quadFit(xs, tops) : () => y0;
+  // Bas coupé par la photo : même courbure que le haut, décalée.
+  const bottom = bots.length >= 8 ? quadFit(xb, bots) : (x) => top(x) + (y1 - y0);
+  const heightPx = bottom(cx) - top(cx);
+  // Angles gardés à gauche et à droite de l'axe (au-delà, la photo est trop écrasée).
+  const degG = params.angleGauche ?? params.angle ?? 80;
+  const degD = params.angleDroite ?? params.angle ?? 80;
+  const aG = (degG * Math.PI) / 180;
+  const aD = (degD * Math.PI) / 180;
+  const arcPx = R * (aG + aD);
+  const OW = params.largeur ?? 1536;
+  const OH = Math.round((OW * heightPx) / arcPx);
+  const out = Buffer.alloc(OW * OH * 4);
+  const sample = (fx, fy) => {
+    const x0 = Math.floor(fx);
+    const y0s = Math.floor(fy);
+    const tx = fx - x0;
+    const ty = fy - y0s;
+    const a = at(x0, y0s);
+    const b = at(x0 + 1, y0s);
+    const c = at(x0, y0s + 1);
+    const d = at(x0 + 1, y0s + 1);
+    return [0, 1, 2].map((k) => a[k] * (1 - tx) * (1 - ty) + b[k] * tx * (1 - ty) + c[k] * (1 - tx) * ty + d[k] * tx * ty);
+  };
+  for (let i = 0; i < OW; i++) {
+    const th = -aG + ((i + 0.5) / OW) * (aG + aD);
+    const sx = cx + R * Math.sin(th) - 0.5;
+    const t = top(sx);
+    const b = bottom(sx);
+    for (let j = 0; j < OH; j++) {
+      const sy = t + ((j + 0.5) / OH) * (b - t) - 0.5;
+      const o = (j * OW + i) * 4;
+      if (sy > H - 1.5 || sy < 0) {
+        out[o + 3] = 0;
+        continue;
+      }
+      const c = sample(sx, sy);
+      out[o] = c[0];
+      out[o + 1] = c[1];
+      out[o + 2] = c[2];
+      out[o + 3] = 255;
+    }
+  }
+  // Couleur dominante (teinte la plus fréquente des pixels saturés du centre).
+  const hist = new Float64Array(36);
+  for (let j = Math.round(OH * 0.1); j < OH * 0.9; j += 3)
+    for (let i = Math.round(OW * 0.3); i < OW * 0.7; i += 3) {
+      const o = (j * OW + i) * 4;
+      const [h, sat, val] = rgbToHsv(out[o], out[o + 1], out[o + 2]);
+      if (sat > 0.5 && val > 0.3) hist[Math.floor(h / 10) % 36]++;
+    }
+  const peak = hist.indexOf(Math.max(...hist)) * 10 + 5;
+  const isDom = (o) => {
+    const [h, sat, val] = rgbToHsv(out[o], out[o + 1], out[o + 2]);
+    const dh = Math.min(Math.abs(h - peak), 360 - Math.abs(h - peak));
+    return out[o + 3] && dh < 16 && sat > 0.5 && val > 0.25;
+  };
+  // Luminosité du fond par colonne → gain (égalisation de l'éclairage).
+  const colL = new Float64Array(OW).fill(NaN);
+  const domRGB = [[], [], []];
+  for (let i = 0; i < OW; i++) {
+    const ls = [];
+    for (let j = 0; j < OH; j += 2) {
+      const o = (j * OW + i) * 4;
+      if (!isDom(o)) continue;
+      ls.push(Math.max(out[o], out[o + 1], out[o + 2]));
+      if (i > OW * 0.35 && i < OW * 0.65 && j % 8 === 0) for (let k = 0; k < 3; k++) domRGB[k].push(out[o + k]);
+    }
+    if (ls.length > OH * 0.04) colL[i] = median(ls);
+  }
+  // interpolation des colonnes sans mesure, lissage
+  let last = -1;
+  for (let i = 0; i < OW; i++) {
+    if (Number.isNaN(colL[i])) continue;
+    if (last < 0) for (let k = 0; k < i; k++) colL[k] = colL[i];
+    else for (let k = last + 1; k < i; k++) colL[k] = colL[last] + ((colL[i] - colL[last]) * (k - last)) / (i - last);
+    last = i;
+  }
+  for (let k = last + 1; k < OW && last >= 0; k++) colL[k] = colL[last];
+  const rad = Math.max(4, Math.round(OW * 0.03));
+  const smoothL = colL.map((_, i) => {
+    let s = 0;
+    let n = 0;
+    for (let k = Math.max(0, i - rad); k <= Math.min(OW - 1, i + rad); k++) (s += colL[k], n++);
+    return s / n;
+  });
+  const ref = median(Array.from(smoothL.slice(Math.round(OW * 0.4), Math.round(OW * 0.6))));
+  const dom = domRGB.map((v) => median(v));
+  for (let i = 0; i < OW; i++) {
+    const g = Math.min(1.6, Math.max(0.85, ref / (smoothL[i] || ref)));
+    for (let j = 0; j < OH; j++) {
+      const o = (j * OW + i) * 4;
+      if (!out[o + 3]) {
+        // ligne manquante : couleur dominante
+        out[o] = dom[0];
+        out[o + 1] = dom[1];
+        out[o + 2] = dom[2];
+        out[o + 3] = 255;
+        continue;
+      }
+      for (let k = 0; k < 3; k++) out[o + k] = Math.min(255, Math.round(out[o + k] * g));
+    }
+  }
+  mkdirSync(dirname(dest), { recursive: true });
+  await sharp(out, { raw: { width: OW, height: OH, channels: 4 } })
+    .removeAlpha()
+    .sharpen({ sigma: 0.8, m1: 0.6, m2: 1.2 })
+    .webp({ quality: 90, effort: 5 })
+    .toFile(dest);
+  return {
+    largeur: OW,
+    hauteur: OH,
+    // largeur physique / hauteur physique de la partie déroulée (arc / hauteur)
+    ratio: +(OW / OH).toFixed(5),
+    angleGauche: degG,
+    angleDroite: degD,
+    dominante: `#${dom.map((v) => Math.round(v).toString(16).padStart(2, '0')).join('')}`,
+    axe: { cx: +cx.toFixed(1), rayon: +R.toFixed(1), haut: +top(cx).toFixed(1), bas: +bottom(cx).toFixed(1), basDetecte: bots.length >= 8 },
+  };
+}
+
+// ---------------------------------------------------------------------------------------------
 
 async function main() {
   const productFiles = listImages(join(IN, 'produits'));
@@ -517,6 +825,7 @@ async function main() {
     warn(`sharp indisponible (${err.message}) : les bouteilles dessinées en code restent affichées.`);
     writeJSON(join(outBottles, 'index.json'), empty);
     writeJSON(join(outPlaces, 'index.json'), { version: VERSION, lieux: {} });
+    writeJSON(join(outLabels, 'index.json'), { version: VERSION, etiquettes: {} });
     if (STRICT) process.exit(1);
     return;
   }
@@ -609,6 +918,36 @@ async function main() {
     }
   }
   writeJSON(join(outPlaces, 'index.json'), places);
+
+  // Étiquettes déroulées (photos/etiquettes/<slug>.jpg|png + <slug>.json facultatif)
+  rmSync(outLabels, { recursive: true, force: true });
+  const labels = { version: VERSION, etiquettes: {} };
+  for (const f of listImages(join(IN, 'etiquettes'))) {
+    const slug = basename(f, extname(f)).toLowerCase();
+    if (slugs && !slugs.has(slug)) {
+      warn(`${relative(root, f)} : « ${slug} » ne correspond à aucun produit (le plus proche : « ${closest(slug, slugs)} »). Fichier ignoré.`);
+      continue;
+    }
+    let params = {};
+    const pj = join(IN, 'etiquettes', `${slug}.json`);
+    if (existsSync(pj)) {
+      try {
+        params = JSON.parse(readFileSync(pj, 'utf8'));
+      } catch (err) {
+        warn(`${relative(root, pj)} : JSON illisible (${err.message}), réglages par défaut.`);
+      }
+    }
+    try {
+      const t0 = Date.now();
+      const meta = await processLabel(sharp, f, params, join(outLabels, `${slug}.webp`));
+      labels.etiquettes[slug] = { texture: `/etiquettes/${slug}.webp`, source: params.source || relative(root, f), ...meta };
+      log(`étiquette ${slug} : ${meta.largeur}×${meta.hauteur}, de −${meta.angleGauche}° à +${meta.angleDroite}°, axe ${meta.axe.cx} / rayon ${meta.axe.rayon} px (${Date.now() - t0} ms)`);
+    } catch (err) {
+      errors++;
+      warn(`${relative(root, f)} : ${err.message}`);
+    }
+  }
+  writeJSON(join(outLabels, 'index.json'), labels);
 
   try {
     writeJSON(CACHE_FILE, cache);

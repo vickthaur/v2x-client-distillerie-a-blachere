@@ -1,9 +1,11 @@
-// Bouteille construite depuis une vraie photo (voir scripts/photos.mjs et photos/LISEZMOI.md) :
+// Bouteille construite depuis une vraie photo (voir scripts/photos.mjs et photos/LISEZMOI.md),
+// rendue comme un scan 3D :
 // - la silhouette mesurée sur la photo (profil.json) est tournée autour de l'axe (LatheGeometry) ;
 // - la photo de face est projetée sur la moitié avant ; la moitié arrière reçoit la photo de dos,
-//   ou, à défaut, la photo de face projetée en miroir (le texte se lit dans le bon sens vu de
-//   derrière) et un peu assombrie ; les deux se fondent sur les côtés ;
-// - un vernis (clearcoat) et les reflets de l'environnement donnent du volume quand elle tourne.
+//   ou, à défaut, la photo de face projetée en miroir et un peu assombrie ; fondu sur les côtés ;
+// - là où la photo montre son propre fond à travers le verre (col vide, épaule), la bouteille devient
+//   du verre transparent qui laisse voir le décor (transmission) ;
+// - un vernis (clearcoat) et les reflets du studio donnent le volume quand elle tourne.
 import * as THREE from 'three';
 import { BOTTLE_HEIGHT } from './bottle.js';
 
@@ -44,19 +46,31 @@ function loadAssets(slug, entry, anisotropy) {
   return assets.get(slug);
 }
 
-function photoMaterial(front, back, { lite }) {
-  const params = {
-    color: 0xffffff,
-    roughness: 0.36,
-    metalness: 0,
-    envMapIntensity: 0.85,
-  };
-  const mat = lite ? new THREE.MeshStandardMaterial(params) : new THREE.MeshPhysicalMaterial({ ...params, clearcoat: 0.75, clearcoatRoughness: 0.1, specularIntensity: 0.6 });
+const transmissionChunk = THREE.ShaderChunk.transmission_fragment.replace('material.transmission = transmission;', 'material.transmission = transmission * glassK;');
+
+// fade : { floorY, length } pour la copie en reflet au sol (rendu séparé), sinon null.
+export function photoMaterial(front, back, { lite = false, background = null, fade = null } = {}) {
+  const glass = !!background && !fade && !lite;
+  const params = { color: 0xffffff, roughness: 0.3, metalness: 0, envMapIntensity: 0.8 };
+  const mat =
+    lite || fade
+      ? new THREE.MeshStandardMaterial(params)
+      : new THREE.MeshPhysicalMaterial({
+          ...params,
+          clearcoat: 0.8,
+          clearcoatRoughness: 0.08,
+          specularIntensity: 0.7,
+          ...(glass ? { transmission: 1, thickness: 0.05, ior: 1.5, side: THREE.FrontSide } : {}),
+        });
+  if (fade) mat.side = THREE.DoubleSide;
   mat.userData.uniforms = {
     photoFront: { value: front },
     photoBack: { value: back || front },
-    backTint: { value: new THREE.Color(back ? 0xffffff : 0xd2d2d2) },
-    selfLit: { value: 0.5 },
+    backTint: { value: new THREE.Color(back ? 0xffffff : 0xcfcfcf) },
+    selfLit: { value: 0.42 },
+    bgColor: { value: new THREE.Color(background || '#ffffff').convertSRGBToLinear() },
+    uFloorY: fade?.floorY || { value: 0 },
+    uFadeLen: fade?.length || { value: 1 },
   };
   mat.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, mat.userData.uniforms);
@@ -69,7 +83,8 @@ function photoMaterial(front, back, { lite }) {
          attribute float side;
          varying vec2 vUvFront;
          varying vec2 vUvBack;
-         varying float vSide;`,
+         varying float vSide;
+         varying float vWorldY;`,
       )
       .replace(
         '#include <begin_vertex>',
@@ -77,8 +92,9 @@ function photoMaterial(front, back, { lite }) {
          vUvFront = uvFront;
          vUvBack = uvBack;
          vSide = side;`,
-      );
-    shader.fragmentShader = shader.fragmentShader
+      )
+      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWorldY = (modelMatrix * vec4(transformed, 1.0)).y;');
+    let frag = shader.fragmentShader
       .replace(
         '#include <common>',
         `#include <common>
@@ -86,9 +102,14 @@ function photoMaterial(front, back, { lite }) {
          uniform sampler2D photoBack;
          uniform vec3 backTint;
          uniform float selfLit;
+         uniform vec3 bgColor;
+         uniform float uFloorY;
+         uniform float uFadeLen;
          varying vec2 vUvFront;
          varying vec2 vUvBack;
-         varying float vSide;`,
+         varying float vSide;
+         varying float vWorldY;
+         float glassK = 0.0;`,
       )
       .replace(
         '#include <map_fragment>',
@@ -96,15 +117,25 @@ function photoMaterial(front, back, { lite }) {
          vec4 photoB = texture2D(photoBack, vUvBack);
          photoB.rgb *= backTint;
          vec4 photo = mix(photoB, photoF, smoothstep(-0.14, 0.14, vSide));
+         ${glass ? 'glassK = (1.0 - smoothstep(0.012, 0.06, distance(photo.rgb, bgColor))) * 0.92;' : ''}
          diffuseColor.rgb *= photo.rgb;`,
       )
       .replace(
         '#include <emissivemap_fragment>',
         `#include <emissivemap_fragment>
-         totalEmissiveRadiance += photo.rgb * selfLit;`,
+         totalEmissiveRadiance += photo.rgb * selfLit * (1.0 - glassK);`,
       );
+    if (glass) frag = frag.replace('#include <transmission_fragment>', transmissionChunk);
+    if (fade)
+      frag = frag.replace(
+        '#include <dithering_fragment>',
+        `#include <dithering_fragment>
+         float fadeK = 1.0 - smoothstep(0.0, uFadeLen, uFloorY - vWorldY);
+         gl_FragColor = vec4(gl_FragColor.rgb * fadeK, fadeK);`,
+      );
+    shader.fragmentShader = frag;
   };
-  mat.customProgramCacheKey = () => `photo-bottle-${lite ? 'l' : 'p'}`;
+  mat.customProgramCacheKey = () => `photo-bottle-${lite ? 'l' : 'p'}-${glass ? 'g' : 'o'}-${fade ? 'r' : 'n'}`;
   return mat;
 }
 
@@ -141,9 +172,24 @@ export async function createPhotoBottle(product, entry, { lite = false, anisotro
   geo.setAttribute('side', new THREE.BufferAttribute(side, 1));
   geo.computeVertexNormals();
 
-  const mesh = new THREE.Mesh(geo, photoMaterial(front, back, { lite }));
+  const background = profil.couleurFond || null;
+  const mesh = new THREE.Mesh(geo, photoMaterial(front, back, { lite, background }));
+  mesh.userData.part = 'photo';
+  mesh.userData.makeReflection = (fade) => photoMaterial(front, back, { fade });
   const group = new THREE.Group();
   group.add(mesh);
-  group.userData = { slug: product.slug, kind: 'photo', seed: Math.random() * 10, appear: 0, height: H, ratio: profil.ratio };
+  let rmax = 0;
+  for (const [r] of profil.points) rmax = Math.max(rmax, r);
+  group.userData = {
+    slug: product.slug,
+    kind: 'photo',
+    height: H,
+    radius: rmax * H,
+    ratio: profil.ratio,
+    liquid: product.bottle.liquid,
+    cloudy: !!product.bottle.cloudy,
+    bottom: -H / 2,
+    labelSource: 'photo',
+  };
   return group;
 }

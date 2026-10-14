@@ -1,46 +1,26 @@
-// Vignettes 3D des bouteilles dessinées en code (cartes de la boutique, panier) : chaque bouteille
-// est rendue seule sur fond transparent, puis exportée en image. Un seul contexte WebGL, libéré
-// après chaque série.
-import * as THREE from 'three';
-import { disposeObject } from './bottle.js';
-import { makeBottle } from './factory.js';
-import { studioEnvironment } from './textures.js';
+// Vignettes des bouteilles construites en code (cartes de la boutique, panier, menus) : chaque
+// bouteille est photographiée seule sur le fond neutre des cartes, avec son ombre et son reflet,
+// puis exportée en image. Un seul contexte WebGL, libéré après chaque série.
+import { Stage } from './stage.js';
 
 const nextFrame = () => new Promise((r) => requestAnimationFrame(() => r()));
+export const THUMB_BG = '#efece6';
 
-export async function renderThumbs(products, onDone, { width = 360, height = 480 } = {}) {
-  const r = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
-  r.setPixelRatio(1);
-  r.setSize(width, height, false);
-  r.setClearColor(0x000000, 0);
-  r.outputColorSpace = THREE.SRGBColorSpace;
-  r.toneMapping = THREE.NeutralToneMapping;
-  r.toneMappingExposure = 1.05;
-  const scene = new THREE.Scene();
-  scene.environment = studioEnvironment(r);
-  const key = new THREE.DirectionalLight(0xffffff, 1.4);
-  key.position.set(4, 6, 6);
-  const rim = new THREE.DirectionalLight(0xfff2e0, 1.2);
-  rim.position.set(-5, 2, -4);
-  scene.add(key, rim, new THREE.AmbientLight(0xffffff, 0.25));
-  const cam = new THREE.PerspectiveCamera(28, width / height, 0.1, 50);
-  cam.position.set(0, 0.1, 7.4);
-  cam.lookAt(0, 0, 0);
+export async function renderThumbs(products, onDone, { width = 420, height = 560 } = {}) {
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = `position:fixed;left:-10000px;top:0;width:${width}px;height:${height}px;`;
+  canvas.width = width;
+  canvas.height = height;
+  document.body.appendChild(canvas);
+  const stage = new Stage(canvas, { colors: { a: THUMB_BG }, bottles: [], manual: true, dpr: 1, fill: 0.86, dof: false, sway: false, interactive: false, spot: [0, 0, -6.5, 7] });
   try {
     for (const p of products) {
-      const bottle = await makeBottle(p, { lite: true, anisotropy: 4 });
-      // Légère rotation : on devine le volume (et, pour le PAC, la femme de l'étiquette).
-      bottle.rotation.set(0.04, p.label === 'pac' ? 0.42 : 0.18, -0.03);
-      scene.add(bottle);
-      r.render(scene, cam);
-      onDone(p.slug, r.domElement.toDataURL('image/webp', 0.86));
-      scene.remove(bottle);
-      disposeObject(bottle);
+      await stage.setBottles([{ product: p, x: 0, ry: p.label === 'pac' ? 0.05 : 0 }]);
+      onDone(p.slug, stage.snapshot());
       await nextFrame();
     }
   } finally {
-    scene.environment.dispose();
-    r.dispose();
-    r.forceContextLoss();
+    stage.dispose();
+    canvas.remove();
   }
 }

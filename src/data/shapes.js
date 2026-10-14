@@ -10,6 +10,19 @@
 // closure = bouchon : [bas, haut, rayon]
 // fillTop = niveau du liquide (bouteille pleine)
 export const shapes = {
+  // Sirop 1 L (PAC Citron, Fun Blue, sirops 1 L) : proportions relevées sur la photo du PAC 1 L
+  // (corps droit de 85 mm, épaules larges et carrées en tronc de cône, col court, bague, grand
+  // bouchon à vis). Étiquette de face de 130 mm de haut, à 10 mm du fond.
+  pac1l: {
+    pts: [[0, 0], [33, 0.4], [39.4, 2], [41.8, 5], [42.5, 9], [42.5, 158], [42.3, 161], [41.6, 164], [26.6, 196], [25.1, 198.5], [22.7, 200.6], [19.9, 202.6], [17.2, 205], [15.3, 208], [14.3, 211.5], [13.9, 215], [13.8, 218], [13.8, 228], [14.2, 228.6], [17, 229.2], [17.2, 230.4], [16.8, 231.4], [14, 231.8], [13.9, 232.4], [13.9, 247], [13.2, 248], [12.2, 248.4]],
+    label: [10, 140],
+    body: 42.5,
+    neck: 13.8,
+    lip: 248.4,
+    closure: [232.6, 268, 16.6],
+    closureKind: 'tall',
+    fillTop: 194,
+  },
   // Sirop 1 L en verre (type PAC Citron) : long corps droit, épaule ronde, long col, capsule à vis.
   sirop: {
     pts: [[0, 0], [35, 0.4], [40, 2.4], [42, 7], [42.4, 14], [42.4, 168], [41.6, 180], [38.5, 193], [32, 205], [24, 214], [18.4, 221], [16.2, 229], [15.8, 240], [16.3, 262], [15.8, 276], [17.2, 277.5], [17.2, 284], [15.4, 286.2], [13, 286.6]],
