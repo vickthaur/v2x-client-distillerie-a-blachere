@@ -112,14 +112,15 @@ Labo de réglage (développement seulement, non versionné) : `labo.html?scene=d
   verrait pas), `fun-blue.svg` (+ `.json` des mesures).
 - `src/lib/marques.js` parcourt tout le texte des pages, y compris ce qui est généré : dans un titre
   ou une étiquette (h1–h4, noms de produits et de marques, méga-menu, menu, pied de page, carte des
-  prix, panier), le nom devient le **logotype** (nom gardé en texte masqué pour les lecteurs d'écran
-  et le copier-coller) ; dans le texte courant (paragraphes, légendes, fil d'Ariane, rayons, filtres),
-  il prend la **police la plus proche** (Lobster Two 700 italique pour pac, Molle italique pour Fun
-  Blue) **et la couleur de la marque**, contrastée pour le fond : fuchsia foncé #ad1270 (6,2:1 sur le
-  papier) et bleu #1f56a8 (6,5:1) sur fond clair, jaune du logo et bleu clair sur fond sombre ou sur
-  les aplats de marque (AA). « Citron » et « Sirop de menthe » restent dans la police de l'interface.
-  Les titres d'articles de presse cités restent du texte courant. Sur les cartes produit, le logo
-  tient lieu de nom ; la ligne du dessus dit ce qu'est le produit (« Sirop de citron »).
+  prix, panier, recherche), le nom devient le **logotype** (nom gardé en texte masqué pour les
+  lecteurs d'écran et le copier-coller) ; dans le texte courant (paragraphes, légendes, fil d'Ariane,
+  rayons, filtres), il prend la **police la plus proche** (Lobster Two 700 italique pour pac, Molle
+  italique pour Fun Blue) **et la couleur de la marque**, contrastée pour le fond : fuchsia foncé
+  #ad1270 (6,2:1 sur le papier) et bleu #1f56a8 (6,5:1) sur fond clair ; jaune du logo, bleu clair ou
+  blanc sur fond sombre et sur les aplats de marque (AA, 4,6:1 au moins). « Citron » et « Sirop de
+  menthe » restent dans la police de l'interface. Les titres d'articles de presse cités restent du
+  texte courant. Sur les cartes produit, le logo tient lieu de nom ; la ligne du dessus dit ce qu'est
+  le produit (« Sirop de citron »).
 
 ## Boutique, fiches et commande
 
