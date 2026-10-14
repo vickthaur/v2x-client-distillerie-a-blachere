@@ -46,7 +46,9 @@ function render() {
       </article>`;
     })
     .join('');
-  $('#histoire-note').textContent = majeur || !retirees ? '' : 'Les passages qui parlent des liqueurs, des marcs et des pastis de la maison s’affichent après la vérification de l’âge.';
+  // Note neutre : elle ne nomme aucun alcool (une personne mineure la lit aussi)
+  $('#histoire-note').textContent =
+    majeur || !retirees ? '' : site.age === 'mineur' ? 'Certains passages de l’histoire sont réservés aux personnes majeures.' : 'Certains passages de l’histoire sont réservés aux personnes majeures : ils s’affichent après la vérification de l’âge.';
 
   // Savoir-faire : la page Histoire (plantes et secrets de la maison), puis le parcours de la visite
   const all = h.periodes.flatMap((p) => p.paragraphes);

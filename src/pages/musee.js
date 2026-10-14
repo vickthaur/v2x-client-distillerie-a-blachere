@@ -40,11 +40,11 @@ function aileHTML(a) {
     <div class="wrap">
       <div class="mus-aile__head">
         <h2 class="h-section" id="t-${a.id}">${esc(a.nom)}</h2>
-        <p class="mus-aile__text">${esc(a.texte)}${locked ? '' : ` ${plural(list.length, 'pièce')}.`}</p>
+        <p class="mus-aile__text">${locked ? 'Réservée aux personnes majeures.' : `${esc(a.texte)} ${plural(list.length, 'pièce')}.`}</p>
       </div>
       ${
         locked
-          ? lockHTML({ mineur: site.age === 'mineur', titre: 'Aile réservée aux personnes majeures', texte: 'Affiches, étiquettes et documents des liqueurs, des apéritifs et des marcs : indiquez votre date de naissance pour entrer.' })
+          ? lockHTML({ mineur: site.age === 'mineur', titre: 'Aile réservée aux personnes majeures', texte: 'Indiquez votre date de naissance pour entrer dans cette aile.' })
           : `<ul class="mus-wall">${list.map((p) => pieceHTML(p, { link: false, legende: true })).join('')}</ul>
              ${a.id === 'sirops' ? sansVisuelHTML() : ''}
              ${a.majeur ? evinHTML('mus-aile__evin') : ''}`
