@@ -11,11 +11,11 @@
     "catalogue": "node scripts/import-catalogue.mjs",
     "prebuild": "node scripts/photos.mjs",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "qa": "node scripts/qa.mjs",
+    "test:photos": "node scripts/test-packshot.mjs"
   },
   "dependencies": {
-    "gsap": "3.12.7",
-    "lenis": "1.1.22",
     "three": "0.169.0"
   },
   "devDependencies": {

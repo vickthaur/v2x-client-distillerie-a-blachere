@@ -202,13 +202,6 @@ html {
   text-size-adjust: 100%;
   scroll-padding-top: calc(var(--header-h) + 16px);
 }
-html.lenis,
-html.lenis body {
-  height: auto;
-}
-.lenis.lenis-smooth {
-  scroll-behavior: auto !important;
-}
 body {
   margin: 0;
   min-height: 100vh;
@@ -646,7 +639,7 @@ ol {
   border-radius: 999px;
   background: var(--encre);
   color: #fff;
-  box-shadow: 0 14px 34px -18px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 0 0 1px rgba(246, 241, 231, 0.14), 0 14px 34px -18px rgba(0, 0, 0, 0.55);
 }
 .brand {
   display: grid;
@@ -1388,4 +1381,8 @@ dialog {
 body.menu-ouvert .v2x,
 body.age-ouvert .v2x {
   display: none;
+}
+.site-footer__lang {
+  font-size: 13px;
+  opacity: 0.8;
 }

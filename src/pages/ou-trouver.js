@@ -58,7 +58,7 @@ function render() {
       )
       .join('');
   const n = list.length + (home ? 1 : 0);
-  $('#ot-count').textContent = n ? `${plural(n, 'point de vente')}${site.majeur ? '' : ' · les spiritueux s’affichent après la vérification de l’âge'}` : 'Aucun point de vente ne correspond : essayez un autre mot, ou la boutique de la distillerie.';
+  $('#ot-count').textContent = n ? `${plural(n, 'point de vente', 'points de vente')}${site.majeur ? '' : ' · les spiritueux s’affichent après la vérification de l’âge'}` : 'Aucun point de vente ne correspond : essayez un autre mot, ou la boutique de la distillerie.';
   const url = new URL(location.href);
   state.couche === 'tous' ? url.searchParams.delete('type') : url.searchParams.set('type', state.couche);
   state.q ? url.searchParams.set('q', state.q) : url.searchParams.delete('q');

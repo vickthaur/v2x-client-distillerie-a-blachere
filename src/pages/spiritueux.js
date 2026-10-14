@@ -33,6 +33,7 @@ const PLANTES = ['Thym', 'Romarin', 'Marjolaine', 'Mélisse', 'Lavande', 'Vervei
 function render() {
   if (site.age !== 'majeur') {
     document.title = 'Nos spiritueux · réservé aux personnes majeures · Distillerie A. Blachère';
+    $('#spirits-lead').innerHTML = '';
     root.innerHTML = `<section class="section" data-univers="maison"><div class="wrap">${lockHTML({
       mineur: site.age === 'mineur',
       titre: 'Cette page est réservée aux personnes majeures',
@@ -41,6 +42,8 @@ function render() {
     return;
   }
   document.title = 'Nos spiritueux · Distillerie A. Blachère';
+  $('#spirits-lead').innerHTML =
+    '<p class="lead">Pastis et apéritifs, liqueurs, marcs et eaux-de-vie de la maison. Le rayon dit l’usage, l’habillage dit l’univers : Comtat et papes, Camargue, Ventoux et garrigue, le chai et la vigne.</p>';
   const origan = archives.find((a) => a.id === 'affiche-origan');
   root.innerHTML = `
   <section class="univers-band" id="comtat" data-univers="comtat" aria-labelledby="u-comtat">

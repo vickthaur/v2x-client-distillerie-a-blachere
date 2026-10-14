@@ -326,7 +326,7 @@ const P = {
     habillage: 'comtat',
     notes: [
       { t: 'La page Histoire de la maison la cite parmi les créations de la période Louis Guiot (1951-1989).' },
-      { t: 'Son nom renvoie aux légats qui ont gouverné Avignon et le Comtat après les papes.' },
+      { t: 'Son nom évoque les légats qui ont gouverné Avignon et le Comtat après les papes.' },
     ],
   },
 };

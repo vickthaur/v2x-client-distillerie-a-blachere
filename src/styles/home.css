@@ -597,7 +597,11 @@ main > section:not(.hero):not(.story) {
     font-size: 11px;
   }
   .tbox__dots {
+    grid-template-columns: repeat(4, 1fr);
     gap: 6px;
+  }
+  .tbox__dots i:nth-child(n + 9) {
+    display: none;
   }
 }
 
