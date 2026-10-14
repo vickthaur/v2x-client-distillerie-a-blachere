@@ -1,0 +1,74 @@
+<a class="skip" href="#contenu">Aller au contenu</a>
+<header class="site-header" id="site-header">
+  <div class="site-header__bar">
+    <a class="brand" href="/" aria-label="Distillerie A. Blachère, accueil">
+      <span class="brand__name">A.&nbsp;Blachère</span>
+      <span class="brand__sub">Distillerie · depuis 1835</span>
+    </a>
+    <nav class="site-nav" aria-label="Navigation principale">
+      <a href="/pac-citron" data-nav="pac">PAC Citron</a>
+      <a href="/fun-blue" data-nav="funblue">Fun Blue</a>
+      <a href="/couleur-provence" data-nav="provence">Sirops</a>
+      <a href="/spiritueux" data-nav="spiritueux">Spiritueux <small>18+</small></a>
+      <a href="/la-maison" data-nav="maison">La maison</a>
+      <a href="/visiter" data-nav="visiter">Visiter</a>
+    </nav>
+    <div class="site-header__actions">
+      <a class="oval oval--small site-header__cta" href="/boutique" data-nav-cta="boutique">Boutique</a>
+      <button type="button" class="cart-btn" id="cart-open" aria-label="Panier, 0 article" aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8z" /><path d="M9 8V6.5a3 3 0 0 1 6 0V8" /></svg>
+        <span class="cart-btn__label">Panier</span>
+        <span class="cart-btn__count" id="cart-count">0</span>
+      </button>
+      <button type="button" class="menu-btn" id="menu-open" aria-expanded="false" aria-controls="menu">
+        <span class="menu-btn__bars" aria-hidden="true"><i></i><i></i></span>
+        <span class="menu-btn__label">Menu</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<nav class="menu" id="menu" aria-label="Menu" inert>
+  <div class="menu__in">
+    <div class="menu__top">
+      <span class="menu__title">Menu</span>
+      <button type="button" class="icon-btn" id="menu-close" aria-label="Fermer le menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" /></svg>
+      </button>
+    </div>
+    <div class="menu__cols">
+      <div>
+        <p class="menu__h">Nos sirops</p>
+        <ul class="menu__list">
+          <li><a href="/pac-citron" data-nav="pac"><span class="menu__k" style="--k: var(--pac-fuchsia)"></span>PAC Citron</a></li>
+          <li><a href="/fun-blue" data-nav="funblue"><span class="menu__k" style="--k: var(--fb-lagon)"></span>Fun Blue</a></li>
+          <li><a href="/couleur-provence" data-nav="provence"><span class="menu__k" style="--k: var(--pop-orange)"></span>Couleur Provence®</a></li>
+          <li><a href="/recettes" data-nav="recettes"><span class="menu__k" style="--k: var(--pac-citronnade)"></span>Recettes</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="menu__h">La maison</p>
+        <ul class="menu__list">
+          <li><a href="/spiritueux" data-nav="spiritueux"><span class="menu__k" style="--k: var(--comtat-remparts)"></span>Nos spiritueux <small>18+</small></a></li>
+          <li><a href="/la-maison" data-nav="maison"><span class="menu__k" style="--k: var(--maison-bois)"></span>Notre histoire</a></li>
+          <li><a href="/musee" data-nav="musee"><span class="menu__k" style="--k: var(--pac-violet)"></span>Le musée de l’étiquette</a></li>
+          <li><a href="/visiter" data-nav="visiter"><span class="menu__k" style="--k: var(--pop-vert)"></span>Visiter la distillerie</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="menu__h">Acheter</p>
+        <ul class="menu__list">
+          <li><a href="/boutique" data-nav="boutique"><span class="menu__k" style="--k: var(--pac-jaune)"></span>Boutique</a></li>
+          <li><a href="/ou-trouver" data-nav="ou-trouver"><span class="menu__k" style="--k: var(--pop-cyan)"></span>Où trouver nos produits</a></li>
+          <li><a href="/actualites" data-nav="actualites"><span class="menu__k" style="--k: var(--pop-magenta)"></span>Actualités</a></li>
+          <li><a href="/espace-pro" data-nav="pro"><span class="menu__k" style="--k: var(--maison-pierre)"></span>Espace pro</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="menu__foot">
+      <p>1695 route de Sorgues · 84230 Châteauneuf-du-Pape</p>
+      <p><a href="tel:+33490835565">Magasin : 04 90 83 55 65</a></p>
+      <a class="oval" href="/visiter#reserver">Réserver une visite</a>
+    </div>
+  </div>
+</nav>

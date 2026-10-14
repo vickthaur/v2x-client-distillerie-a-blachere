@@ -1,0 +1,11 @@
+<svg class="sceau__svg" viewBox="0 0 200 200" width="132" height="132" role="img" aria-label="Sceau de la maison : A. Blachère, Avignon 1835, Châteauneuf-du-Pape (proposition V2X)" focusable="false">
+  <defs><path id="sceau-cercle" d="M100 100m-79 0a79 79 0 1 1 158 0a79 79 0 1 1-158 0" /></defs>
+  <circle cx="100" cy="100" r="97" fill="none" stroke="currentColor" stroke-width="2" />
+  <circle cx="100" cy="100" r="92" fill="none" stroke="currentColor" stroke-width="0.8" />
+  <circle cx="100" cy="100" r="64" fill="none" stroke="currentColor" stroke-width="0.8" />
+  <text font-family="'Della Respira', Georgia, serif" font-size="13.2" letter-spacing="1.2" fill="currentColor"><textPath href="#sceau-cercle" startOffset="0" textLength="490" lengthAdjust="spacing">A. BLACHÈRE · AVIGNON 1835 → CHÂTEAUNEUF-DU-PAPE ·</textPath></text>
+  <text x="100" y="80" text-anchor="middle" font-family="Archivo, sans-serif" font-size="9" font-weight="700" letter-spacing="2.6" fill="currentColor">DEPUIS</text>
+  <text x="100" y="118" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-size="38" font-weight="600" fill="currentColor">1835</text>
+  <path d="M70 128h60" stroke="currentColor" stroke-width="0.8" />
+  <text x="100" y="142" text-anchor="middle" font-family="Archivo, sans-serif" font-size="8.4" font-weight="700" letter-spacing="2.2" fill="currentColor">DISTILLERIE</text>
+</svg>

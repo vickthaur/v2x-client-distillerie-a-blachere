@@ -1,0 +1,43 @@
+<!-- Vérification de l'âge (spiritueux) : date de naissance. Les sirops restent accessibles sans répondre. -->
+<dialog class="gate" id="gate" aria-labelledby="gate-title" aria-describedby="gate-text">
+  <div class="gate__in">
+    <p class="gate__brand">Distillerie A. Blachère · depuis 1835</p>
+    <div class="gate__ask" id="gate-ask">
+      <h2 class="gate__title" id="gate-title">Bienvenue à la distillerie</h2>
+      <p class="gate__text" id="gate-text">Nos sirops sont pour tout le monde. Pour voir nos <strong>spiritueux</strong>, indiquez votre date de naissance : ils sont réservés aux personnes majeures.</p>
+      <form class="gate__form" id="gate-form" novalidate>
+        <fieldset class="dob">
+          <legend>Date de naissance</legend>
+          <label><span>Jour</span><input name="jour" inputmode="numeric" autocomplete="bday-day" maxlength="2" placeholder="JJ" required /></label>
+          <label><span>Mois</span><input name="mois" inputmode="numeric" autocomplete="bday-month" maxlength="2" placeholder="MM" required /></label>
+          <label class="dob__y"><span>Année</span><input name="annee" inputmode="numeric" autocomplete="bday-year" maxlength="4" placeholder="AAAA" required /></label>
+        </fieldset>
+        <p class="gate__err" id="gate-err" role="alert"></p>
+        <button class="oval gate__go" type="submit">Entrer</button>
+      </form>
+      <button type="button" class="gate__skip" id="gate-skip">Continuer avec les sirops seulement</button>
+    </div>
+    <div class="gate__no" id="gate-no" hidden>
+      <h2 class="gate__title" tabindex="-1">Les spiritueux sont réservés aux personnes majeures</h2>
+      <p class="gate__text">Le site reste ouvert : bonne découverte de nos sirops, de notre histoire et des visites de la distillerie.</p>
+      <button type="button" class="oval" id="gate-ok">Voir les sirops</button>
+    </div>
+    <p class="gate__law">L’abus d’alcool est dangereux pour la santé, à consommer avec modération.<br />La vente d’alcool est interdite aux mineurs de moins de 18 ans.</p>
+  </div>
+</dialog>
+
+<!-- Panier (maquette : rien n'est payé ni envoyé) -->
+<dialog class="drawer" id="cart" aria-labelledby="cart-title">
+  <div class="drawer__in">
+    <div class="drawer__head">
+      <h2 id="cart-title">Votre panier</h2>
+      <button type="button" class="icon-btn" id="cart-close" aria-label="Fermer le panier">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" /></svg>
+      </button>
+    </div>
+    <ul class="drawer__list" id="cart-list"></ul>
+    <div class="drawer__foot" id="cart-foot"></div>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>

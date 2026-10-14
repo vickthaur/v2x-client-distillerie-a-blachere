@@ -1,6 +1,18 @@
-/* Polices hébergées sur le site (sous-ensemble latin, licence SIL OFL : voir src/fonts/OFL-*.txt). */
-@font-face { font-family: 'Archivo Variable'; font-style: normal; font-display: swap; font-weight: 100 900; src: url('./fonts/archivo-latin-wght-normal.woff2') format('woff2-variations'); }
-@font-face { font-family: 'Archivo Variable'; font-style: italic; font-display: swap; font-weight: 100 900; src: url('./fonts/archivo-latin-wght-italic.woff2') format('woff2-variations'); }
-@font-face { font-family: 'Inter Variable'; font-style: normal; font-display: swap; font-weight: 100 900; src: url('./fonts/inter-latin-wght-normal.woff2') format('woff2-variations'); }
-@font-face { font-family: 'Instrument Serif'; font-style: normal; font-display: swap; font-weight: 400; src: url('./fonts/instrument-serif-latin-400-normal.woff2') format('woff2'); }
-@font-face { font-family: 'Instrument Serif'; font-style: italic; font-display: swap; font-weight: 400; src: url('./fonts/instrument-serif-latin-400-italic.woff2') format('woff2'); }
+/* Polices hébergées sur le site (sous-ensemble latin, licence SIL OFL : voir src/fonts/OFL-*.txt).
+   Aucune requête vers Google Fonts. Une police n'est téléchargée que si la page l'utilise.
+   - Archivo (largeur variable) : interface, texte, mentions en capitales étroites.
+   - Fraunces (axe SOFT) : titres du récit de la distillerie.
+   - Lobster Two gras italique : titres « esprit pac » (approximation typographique, le logo réel
+     est à demander à la distillerie en vectoriel).
+   - Spicy Rice : capitales pop (T-shirt « Le seul, l'unique »).
+   - Molle : univers Fun Blue. Federant : affiches et spiritueux.
+   - Della Respira et Cinzel : textes de l'ovale « SIROP CITRON ». */
+@font-face { font-family: 'Archivo'; font-style: normal; font-display: swap; font-weight: 100 900; font-stretch: 62% 125%; src: url('./fonts/archivo-latin-wdth-normal.woff2') format('woff2-variations'); }
+@font-face { font-family: 'Fraunces'; font-style: normal; font-display: swap; font-weight: 100 900; src: url('./fonts/fraunces-latin-soft-normal.woff2') format('woff2-variations'); }
+@font-face { font-family: 'Fraunces'; font-style: italic; font-display: swap; font-weight: 100 900; src: url('./fonts/fraunces-latin-soft-italic.woff2') format('woff2-variations'); }
+@font-face { font-family: 'Lobster Two'; font-style: italic; font-display: swap; font-weight: 700; src: url('./fonts/lobster-two-latin-700-italic.woff2') format('woff2'); }
+@font-face { font-family: 'Spicy Rice'; font-style: normal; font-display: swap; font-weight: 400; src: url('./fonts/spicy-rice-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Molle'; font-style: italic; font-display: swap; font-weight: 400; src: url('./fonts/molle-latin-400-italic.woff2') format('woff2'); }
+@font-face { font-family: 'Federant'; font-style: normal; font-display: swap; font-weight: 400; src: url('./fonts/federant-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Della Respira'; font-style: normal; font-display: swap; font-weight: 400; src: url('./fonts/della-respira-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Cinzel'; font-style: normal; font-display: swap; font-weight: 900; src: url('./fonts/cinzel-latin-900-normal.woff2') format('woff2'); }
