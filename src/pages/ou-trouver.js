@@ -3,9 +3,8 @@
 // sont filtrés tant que l'âge n'est pas confirmé (un point de vente qui ne propose que des
 // spiritueux n'apparaît pas). Les cafés ne seraient cités qu'avec leur accord.
 import '../styles/base.css';
-import '../styles/editorial.css';
-import '../styles/pages.css';
 import '../styles/brand.css';
+import '../styles/pratique.css';
 import { initSite } from '../app/site.js';
 import { bySlug, EVIN } from '../data/products.js';
 import { couches, infos, pointsDeVente } from '../data/site.js';
@@ -23,7 +22,7 @@ function visibleProducts(pdv) {
 
 function render() {
   $('#ot-couches').innerHTML = [{ id: 'tous', nom: 'Tous' }, ...couches]
-    .map((c) => `<button type="button" data-couche="${c.id}" aria-pressed="${c.id === state.couche}">${esc(c.nom)}</button>`)
+    .map((c) => `<button type="button" class="cat${c.id === state.couche ? ' is-on' : ''}" data-couche="${c.id}" aria-pressed="${c.id === state.couche}">${esc(c.nom)}</button>`)
     .join('');
   const q = fold(state.q.trim());
   const list = pointsDeVente

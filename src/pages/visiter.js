@@ -3,9 +3,8 @@
 // Créneaux : date dans la saison 2026, jamais un dimanche ; matin ou après-midi, l'heure exacte
 // étant confirmée par la distillerie (aucun horaire de visite n'est inventé).
 import '../styles/base.css';
-import '../styles/editorial.css';
-import '../styles/pages.css';
 import '../styles/brand.css';
+import '../styles/pratique.css';
 import { initSite, reveal } from '../app/site.js';
 import { fillPlaces } from '../app/lieux.js';
 import { pieceById } from '../app/pieces.js';
@@ -47,7 +46,7 @@ const faq = [
   ['Est-ce ouvert le dimanche ?', 'Les visites sont fermées le dimanche. La saison 2026 court du 12 février au 31 décembre.'],
   ['Quel est le tarif ?', 'La dégustation en boutique est gratuite. Le tarif de la visite guidée est à confirmer : les sources ne donnent pas toutes le même.'],
 ];
-$('#faq').innerHTML = faq.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('');
+$('#faq').innerHTML = faq.map(([q, a]) => `<details><summary>${esc(q)}${icons.chevron}</summary><p>${esc(a)}</p></details>`).join('');
 
 // ---------- Formulaire ----------
 const form = $('#booking');

@@ -1,9 +1,8 @@
 // Espace pro en mode maquette : la connexion et la demande de compte vérifient la saisie,
 // confirment, et n'envoient rien.
 import '../styles/base.css';
-import '../styles/editorial.css';
-import '../styles/pages.css';
 import '../styles/brand.css';
+import '../styles/pratique.css';
 import { initSite } from '../app/site.js';
 import { $, $$, esc } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';

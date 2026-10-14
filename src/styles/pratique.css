@@ -1,0 +1,125 @@
+/* Pages pratiques (Visiter, Où trouver, Espace pro) : formulaires en mode maquette, formules de
+   visite, infos pratiques, questions fréquentes, points de vente. Mêmes codes que la boutique :
+   cartes blanches à filet fin, onglets à filet, aucun aplat de couleur. */
+
+/* ---------- Deux colonnes : texte + formulaire ---------- */
+.split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(20px, 3vw, 40px); align-items: start; }
+.split--form { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(28px, 5vw, 80px); }
+.split .section__head { display: grid; justify-items: start; gap: 16px; margin: 0; }
+.split--form .section__head { position: sticky; top: calc(var(--main-h) + 24px); }
+@media (max-width: 900px) {
+  .split, .split--form { grid-template-columns: minmax(0, 1fr); }
+  .split--form .section__head { position: static; }
+}
+.mock-note { font-size: 0.84rem; line-height: 1.5; color: var(--ink-3); }
+.mock-note strong { color: var(--ink-2); font-weight: 650; }
+
+/* ---------- Cartes de formulaire ---------- */
+.form-card { display: grid; gap: 22px; min-width: 0; padding: clamp(22px, 3vw, 40px); border: 1px solid var(--line); border-radius: var(--r-l); background: #fff; }
+.form-card > h2, .done h2, .done h3 { font: 720 clamp(1.3rem, 1.8vw, 1.6rem)/1.15 var(--font); letter-spacing: -0.02em; }
+.form-card > h3 { margin-top: 10px; padding-top: 22px; border-top: 1px solid var(--line); font: 700 0.74rem/1 var(--font); letter-spacing: 0.14em; text-transform: uppercase; }
+.form-card form { display: grid; gap: 20px; }
+.form-card form > .btn { justify-self: start; }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 16px; }
+.form-grid > .full, .form-grid > .check { grid-column: 1 / -1; }
+.form-grid > fieldset { min-width: 0; }
+.field__label { font: 600 0.86rem/1.3 var(--font); color: var(--ink); }
+legend.field__label { margin-bottom: 7px; padding: 0; }
+.field__hint { font-size: 0.8rem; line-height: 1.4; color: var(--ink-3); }
+.field__hint:empty { display: none; }
+.form-msg:empty { display: none; }
+.form-msg.err { background: #fbecea; color: var(--err); }
+@media (max-width: 560px) { .form-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* Choix en cartes (formule, moment) : la radio reste accessible au clavier, la carte s'encadre */
+.choice { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); gap: 10px; }
+.choice label { position: relative; display: grid; align-content: start; gap: 4px; min-width: 0; padding: 14px 40px 14px 16px; border: 1px solid var(--line-2); border-radius: 10px; background: #fff; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; }
+.choice label:hover { border-color: rgba(21, 19, 15, 0.42); }
+.choice input { position: absolute; top: 15px; right: 14px; width: 18px; height: 18px; margin: 0; accent-color: var(--ink); }
+.choice label:has(input:checked) { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.choice label:has(input:focus-visible) { outline: 2px solid var(--ink); outline-offset: 2px; }
+.choice strong { font: 650 0.95rem/1.3 var(--font); }
+.choice label > span { font-size: 0.8rem; line-height: 1.4; color: var(--ink-3); }
+.choice--inline { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.choice--inline label { min-height: 52px; align-content: center; padding-block: 12px; }
+
+/* Demande prête (maquette) */
+.done { display: grid; justify-items: start; gap: 16px; }
+.done:focus { outline: none; }
+.done__icon { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: #edf6ef; color: var(--ok); }
+.done__icon svg { width: 22px; height: 22px; }
+.recap { display: grid; width: 100%; border-top: 1px solid var(--line); }
+.recap div { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 0.92rem; }
+.recap dt { color: var(--ink-3); }
+.recap dd { margin: 0; }
+
+/* ---------- Visiter : saison, formules, infos pratiques, questions ---------- */
+.saison { display: flex; align-items: flex-start; gap: 10px; font-size: 0.92rem; line-height: 1.45; color: var(--ink-2); }
+.saison svg { flex: none; width: 18px; height: 18px; margin-top: 1px; }
+.saison strong { color: var(--ink); }
+.formules { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.formule { display: flex; flex-direction: column; gap: 12px; min-width: 0; padding: clamp(20px, 2vw, 28px); border: 1px solid var(--line); border-radius: var(--r-l); background: #fff; }
+.formule__n { font: 600 0.78rem/1 var(--font); letter-spacing: 0.14em; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.formule__nom { font: 720 1.3rem/1.15 var(--font); letter-spacing: -0.015em; }
+.formule__sous { font-size: 0.94rem; color: var(--ink-2); }
+.formule__voir { display: grid; gap: 6px; font-size: 0.9rem; line-height: 1.45; color: var(--ink-2); }
+.formule__voir li { position: relative; padding-left: 16px; }
+.formule__voir li::before { content: ''; position: absolute; left: 0; top: 0.7em; width: 7px; height: 1px; background: currentColor; }
+.formule__facts { display: grid; gap: 6px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 0.86rem; }
+.formule__facts div { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 8px; }
+.formule__facts dt { color: var(--ink-3); }
+.formule__facts dd { margin: 0; }
+.formule__prix { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--line); font: 720 1.15rem/1.2 var(--font); }
+.formule__prix.is-tbc { font-size: 0.92rem; font-weight: 650; color: var(--ink-2); }
+.formule__note { font-size: 0.8rem; line-height: 1.45; color: var(--ink-3); }
+.formule__go { width: 100%; }
+@media (max-width: 1180px) { .formules { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .formules { grid-template-columns: minmax(0, 1fr); } }
+
+.infos-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.info-card { display: grid; align-content: start; gap: 8px; min-width: 0; padding: clamp(20px, 2vw, 28px); border: 1px solid var(--line); border-radius: var(--r-l); background: #fff; font-size: 0.94rem; color: var(--ink-2); }
+.info-card h3 { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; font: 700 1rem/1.3 var(--font); color: var(--ink); }
+.info-card h3 svg { flex: none; width: 18px; height: 18px; }
+.info-card a { color: var(--ink); overflow-wrap: anywhere; }
+.info-card strong { color: var(--ink); }
+@media (max-width: 900px) { .infos-grid { grid-template-columns: minmax(0, 1fr); } }
+
+.faq { max-width: 880px; border-top: 1px solid var(--ink); }
+.faq details { border-bottom: 1px solid var(--line); }
+.faq summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 0; cursor: pointer; list-style: none; font: 680 1.04rem/1.35 var(--font); }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary svg { flex: none; width: 18px; height: 18px; transition: transform 0.3s var(--ease); }
+.faq details[open] summary svg { transform: rotate(180deg); }
+.faq details p { max-width: 70ch; padding-bottom: 18px; color: var(--ink-2); }
+
+/* ---------- Où trouver ---------- */
+.ot-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 32px; margin-bottom: 24px; }
+.ot-bar .shop-search { flex: 1 1 300px; max-width: 440px; }
+.ot-bar .cats { flex: 1 1 auto; border-bottom: 0; }
+.map-ph { display: grid; place-content: center; justify-items: center; gap: 6px; min-height: 220px; margin-bottom: 20px; padding: 28px; border: 1px solid var(--line); border-radius: var(--r-l); background-color: var(--paper-2); background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size: 56px 56px; background-position: center; text-align: center; font-size: 0.92rem; color: var(--ink-2); }
+.map-ph strong { font: 700 1.1rem/1.2 var(--font); color: var(--ink); }
+.map-ph > span { max-width: 52ch; }
+.pdv { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 16px; margin-top: 12px; }
+.pdv__item { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 0; padding: 22px; border: 1px solid var(--line); border-radius: var(--r-l); background: #fff; }
+.pdv__couche { font: 600 0.7rem/1.3 var(--font); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); }
+.pdv__nom { font: 720 1.15rem/1.2 var(--font); letter-spacing: -0.01em; color: var(--ink); }
+.pdv__lieu { display: flex; align-items: center; gap: 6px; font-size: 0.88rem; color: var(--ink-2); }
+.pdv__lieu svg { flex: none; width: 16px; height: 16px; }
+.pdv__produits { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 4px; }
+.pdv__produits > span { display: inline-block; padding: 4px 11px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); font-size: 0.82rem; font-weight: 600; line-height: 1.5; color: var(--ink); }
+.pdv__item .note { font-size: 0.8rem; }
+.pdv__item > a:last-child { margin-top: auto; padding-top: 6px; font-size: 0.88rem; font-weight: 600; }
+.tbc { padding: 5px 10px; border: 1px dashed var(--line-2); border-radius: 999px; font: 600 0.72rem/1.2 var(--font); letter-spacing: 0.04em; color: var(--ink-3); }
+.pdv__item--home { border-color: transparent; background: var(--charcoal); color: rgba(244, 239, 230, 0.8); }
+.pdv__item--home .pdv__inner { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; height: 100%; }
+.pdv__item--home .pdv__couche, .pdv__item--home .pdv__lieu { color: rgba(244, 239, 230, 0.66); }
+.pdv__item--home .pdv__nom, .pdv__item--home a { color: #fff; }
+.pdv__item--home .pdv__inner > a:last-child { margin-top: auto; padding-top: 6px; font-size: 0.88rem; font-weight: 600; }
+.ot-legal { margin-top: 20px; }
+
+/* ---------- Espace pro ---------- */
+.pro-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 24px; }
+.pro-list li { display: grid; align-content: start; gap: 4px; font-size: 0.9rem; line-height: 1.45; color: var(--ink-2); }
+.pro-list strong { font-weight: 650; color: var(--ink); }
+@media (max-width: 480px) { .pro-list { grid-template-columns: minmax(0, 1fr); } }
+.faq__head { margin-top: clamp(48px, 6vw, 80px); }

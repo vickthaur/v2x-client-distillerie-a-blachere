@@ -223,8 +223,10 @@
 .rec__cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px 32px; }
 .rec__h { margin-bottom: 8px; font: 700 0.74rem/1 var(--font); letter-spacing: 0.14em; text-transform: uppercase; }
 .rec__body ul { display: grid; gap: 4px; padding-left: 18px; list-style: disc; color: var(--ink-2); }
-.rec-steps { display: grid; gap: 8px; padding-left: 22px; list-style: decimal; color: var(--ink-2); }
-.rec-steps__sub { margin-left: -22px; list-style: none; font-weight: 650; color: var(--ink); }
+/* étapes non numérotées, comme sur le site de la distillerie ; « Dans un verre de 50 cl : » en intertitre */
+.rec-steps { display: grid; gap: 8px; color: var(--ink-2); }
+.rec-steps__sub { font-weight: 650; color: var(--ink); }
+.rec-steps__sub:not(:first-child) { margin-top: 8px; }
 .rec__notes { color: var(--ink-2); font-size: 0.92rem; }
 .rec__evin { font-size: 0.82rem; }
 @media (max-width: 1000px) { .rec-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

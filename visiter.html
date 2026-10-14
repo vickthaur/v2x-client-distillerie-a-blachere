@@ -26,9 +26,11 @@
       <section class="section" data-univers="maison" aria-labelledby="formules-title">
         <div class="wrap">
           <div class="section__head">
-            <p class="kicker">Les formules</p>
-            <h2 class="h-univers" id="formules-title">Ce que vous verrez vraiment</h2>
-            <p class="lead">Les tarifs diffèrent d’une source à l’autre : ils sont affichés « à confirmer » jusqu’à l’arbitrage de la distillerie.</p>
+            <div>
+              <p class="kicker">Les formules</p>
+              <h2 class="h-section" id="formules-title">Ce que vous verrez vraiment</h2>
+              <p class="lead">Les tarifs diffèrent d’une source à l’autre : ils sont affichés « à confirmer » jusqu’à l’arbitrage de la distillerie.</p>
+            </div>
           </div>
           <div id="formules"></div>
         </div>
@@ -38,7 +40,7 @@
         <div class="wrap split split--form">
           <div class="section__head">
             <p class="kicker">Réserver</p>
-            <h2 class="h-univers" id="reserver-title">Votre demande de visite</h2>
+            <h2 class="h-section" id="reserver-title">Votre demande de visite</h2>
             <p class="lead">La distillerie vous confirme le créneau exact. Les mineurs sont les bienvenus : ils dégustent les sirops.</p>
             <p class="mock-note"><strong>Maquette :</strong> le formulaire vérifie la saisie mais n’envoie rien.</p>
           </div>
@@ -80,14 +82,19 @@
       <section class="section" data-univers="maison" aria-labelledby="pratique-title">
         <div class="wrap">
           <div class="section__head">
-            <p class="kicker">Infos pratiques</p>
-            <h2 class="h-univers" id="pratique-title">Venir à la distillerie</h2>
+            <div>
+              <p class="kicker">Infos pratiques</p>
+              <h2 class="h-section" id="pratique-title">Venir à la distillerie</h2>
+            </div>
           </div>
           <div class="infos-grid" id="infos"></div>
-          <div class="section__head" style="margin-top:56px">
-            <p class="kicker">Questions fréquentes</p>
+          <div class="section__head faq__head">
+            <div>
+              <p class="kicker">Questions fréquentes</p>
+              <h2 class="h-3" id="faq-title">Avant de venir</h2>
+            </div>
           </div>
-          <div class="faq" id="faq"></div>
+          <div class="faq" id="faq" role="group" aria-labelledby="faq-title"></div>
         </div>
       </section>
     </main>
