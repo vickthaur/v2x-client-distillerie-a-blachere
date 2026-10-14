@@ -22,6 +22,7 @@ const pages = {
   actualites: 'actualites.html',
   pro: 'espace-pro.html',
   mentions: 'mentions-legales.html',
+  cgv: 'conditions-de-vente.html',
   introuvable: '404.html',
 };
 

@@ -3,6 +3,7 @@
 import '../styles/base.css';
 import '../styles/editorial.css';
 import '../styles/pages.css';
+import '../styles/brand.css';
 import { initSite } from '../app/site.js';
 import { $, $$, esc } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';

@@ -5,6 +5,7 @@
 import '../styles/base.css';
 import '../styles/editorial.css';
 import '../styles/pages.css';
+import '../styles/brand.css';
 import { initSite } from '../app/site.js';
 import { bySlug, EVIN } from '../data/products.js';
 import { couches, infos, pointsDeVente } from '../data/site.js';

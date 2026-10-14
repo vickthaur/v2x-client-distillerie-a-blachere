@@ -229,3 +229,26 @@
 .rec__evin { font-size: 0.82rem; }
 @media (max-width: 1000px) { .rec-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 900px) { .rec__in { grid-template-columns: 1fr; } .rec__img { position: relative; top: 0; } }
+
+/* ---------- Mentions légales, conditions de vente ---------- */
+.legal-head { max-width: 860px; }
+.legal-doc { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: clamp(28px, 5vw, 80px); align-items: start; padding-bottom: clamp(48px, 6vw, 96px); }
+.legal-toc { position: sticky; top: calc(var(--main-h) + 20px); display: grid; gap: 10px; padding-top: 14px; border-top: 1px solid var(--ink); font-size: 0.88rem; }
+.legal-toc__h { font: 700 0.72rem/1 var(--font); letter-spacing: 0.14em; text-transform: uppercase; }
+.legal-toc ol { display: grid; gap: 6px; padding-left: 18px; list-style: decimal; color: var(--ink-3); }
+.legal-toc a { color: var(--ink-2); text-decoration: none; }
+.legal-toc a:hover { color: var(--ink); text-decoration: underline; }
+.legal-body { max-width: 760px; }
+.legal-body h2 { margin: 36px 0 12px; padding-top: 18px; border-top: 1px solid var(--line); font: 720 1.25rem/1.2 var(--font); letter-spacing: -0.01em; scroll-margin-top: calc(var(--main-h) + 20px); }
+.legal-body h2:first-child { margin-top: 0; }
+.legal-body p + p { margin-top: 10px; }
+.legal-dl { display: grid; }
+.legal-dl > div { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 16px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.legal-dl dt { color: var(--ink-3); }
+.legal-dl dd { margin: 0; }
+.legal-dl__p { grid-template-columns: 1fr !important; }
+@media (max-width: 900px) {
+  .legal-doc { grid-template-columns: 1fr; }
+  .legal-toc { position: relative; top: 0; }
+  .legal-dl > div { grid-template-columns: 1fr; gap: 2px; }
+}

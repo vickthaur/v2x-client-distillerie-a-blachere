@@ -123,7 +123,7 @@ function totalsFull(t) {
   const rows = [`<div class="totals__row"><span>Sous-total${t.unpriced ? ' (prix affichés en ligne)' : ''}</span><strong>${euro(t.subtotal)}</strong></div>`];
   if (t.unpriced) rows.push(`<div class="totals__row"><span>${plural(t.unpriced, 'article')} au prix de la boutique</span><span>confirmé par la distillerie</span></div>`);
   if (order.mode === 'retrait') rows.push('<div class="totals__row"><span>Retrait à la distillerie</span><span>sur place</span></div>');
-  if (order.mode === 'livraison') rows.push('<div class="totals__row"><span>Livraison</span><span>frais calculés avec la distillerie</span></div>');
+  if (order.mode === 'livraison') rows.push('<div class="totals__row"><span>Livraison</span><span>frais indiqués avant validation</span></div>');
   rows.push(
     `<div class="totals__row totals__row--total"><span>${order.mode === 'livraison' ? 'À payer (hors livraison)' : 'À payer'}</span><strong data-total>${euro(payable(t))}</strong></div>`,
   );
@@ -154,10 +154,10 @@ const VIEWS = {
   panier() {
     const t = cart.totals();
     if (!t.lines.length)
-      return `<div class="co-empty"><p class="co-empty__title">Votre panier est vide.</p><p>${site.majeur ? 'Les sirops et les spiritueux de la maison vous attendent dans la boutique.' : 'PAC Citron, Fun Blue et une trentaine de sirops vous attendent dans la boutique.'}</p><a class="oval" href="/boutique">Voir la boutique</a></div>`;
+      return `<div class="co-empty"><p class="co-empty__title">Votre panier est vide.</p><p>${site.majeur ? 'Les sirops et les spiritueux de la maison vous attendent dans la boutique.' : 'PAC Citron, Fun Blue et une trentaine de sirops vous attendent dans la boutique.'}</p><a class="btn btn--primary" href="/boutique">Voir la boutique</a></div>`;
     return `<ul class="co-lines">${t.lines.map((l) => lineHTML(l, true)).join('')}</ul>
       <div class="co-sum">${totalsHTML(t)}${t.alcohol ? `<p class="evin">${esc(EVIN)} ${esc(MINEURS)}</p>` : ''}</div>
-      <div class="co-actions"><a class="btn btn--ghost" href="/boutique">Continuer mes achats</a><button type="button" class="oval" data-next>Commander</button></div>`;
+      <div class="co-actions"><a class="btn btn--ghost" href="/boutique">Continuer mes achats</a><button type="button" class="btn btn--primary" data-next>Commander</button></div>`;
   },
   coordonnees() {
     const c = order.coord || {};
@@ -171,7 +171,7 @@ const VIEWS = {
           : ''
       }
       <p class="form-msg" role="alert" id="co-msg"></p>
-      <div class="co-actions"><button type="button" class="btn btn--ghost" data-prev>Retour au panier</button><button type="submit" class="oval">Continuer</button></div>
+      <div class="co-actions"><button type="button" class="btn btn--ghost" data-prev>Retour au panier</button><button type="submit" class="btn btn--primary">Continuer</button></div>
     </form>`;
   },
   livraison() {
@@ -186,7 +186,7 @@ const VIEWS = {
         </label>
         <label class="mode">
           <input type="radio" name="mode" value="livraison"${order.mode === 'livraison' ? ' checked' : ''} />
-          <span class="mode__card">${icons.truck}<span><strong>Livraison</strong><span>En France. Les frais de livraison sont calculés avec la distillerie : ils ne sont pas encore connus.</span></span></span>
+          <span class="mode__card">${icons.truck}<span><strong>Livraison</strong><span>Expédiée sous 3 jours ouvrés au plus après la réception du règlement, livrée dans les 30 jours au plus. Les frais de livraison sont indiqués avant la validation de la commande.</span></span></span>
         </label>
         <small class="field__err" data-err="mode"></small>
       </fieldset>
@@ -199,7 +199,7 @@ const VIEWS = {
         <div class="form-row">${field('cp', 'Code postal', l.cp, 'autocomplete="postal-code" inputmode="numeric" maxlength="5"')}${field('ville', 'Ville', l.ville, 'autocomplete="address-level2"')}</div>
       </div>
       <p class="form-msg" role="alert" id="co-msg"></p>
-      <div class="co-actions"><button type="button" class="btn btn--ghost" data-prev>Retour</button><button type="submit" class="oval">Continuer</button></div>
+      <div class="co-actions"><button type="button" class="btn btn--ghost" data-prev>Retour</button><button type="submit" class="btn btn--primary">Continuer</button></div>
     </form>`;
   },
   recapitulatif() {
@@ -213,9 +213,9 @@ const VIEWS = {
       </div>
       ${totalsFull(t)}
       ${t.unpriced ? `<p class="co-note">${plural(t.unpriced, 'article n’a', 'articles n’ont')} pas de prix affiché en ligne : la distillerie vous confirme le montant avant de préparer la commande.</p>` : ''}
-      ${order.mode === 'livraison' ? '<p class="co-note">Les frais de livraison seront calculés avec la distillerie et vous seront communiqués avant l’envoi.</p>' : ''}
-      <p class="co-note">Les conditions générales de vente seront rédigées avec la distillerie.</p>
-      <div class="co-actions"><button type="button" class="btn btn--ghost" data-prev>Retour</button><button type="button" class="oval" data-next>Passer au paiement</button></div>
+      ${order.mode === 'livraison' ? '<p class="co-note">Les frais de livraison (et, hors de France, les taxes douanières) sont indiqués avant la validation de la commande et facturés en supplément, selon les conditions générales de vente de la distillerie.</p>' : ''}
+      <p class="co-note">Droit de rétractation : quatorze jours francs à compter de la réception, pour des articles intacts et non ouverts. Colis endommagé : le refuser ou l’indiquer sur le récépissé ; la distillerie réexpédie ou rembourse.</p>
+      <div class="co-actions"><button type="button" class="btn btn--ghost" data-prev>Retour</button><button type="button" class="btn btn--primary" data-next>Passer au paiement</button></div>
     </div>`;
   },
   paiement() {
@@ -229,11 +229,14 @@ const VIEWS = {
       </div>
       <fieldset class="modes">
         <legend class="sr-only">Moyen de paiement</legend>
-        <label class="mode"><input type="radio" name="paiement" value="carte"${pay === 'carte' ? ' checked' : ''} /><span class="mode__card">${icons.card}<span><strong>Carte bancaire</strong><span>Paiement sécurisé (simulation)</span></span></span></label>
-        ${order.mode === 'retrait' ? `<label class="mode"><input type="radio" name="paiement" value="retrait"${pay === 'retrait' ? ' checked' : ''} /><span class="mode__card">${icons.store}<span><strong>Au retrait, à la distillerie</strong><span>Vous réglez en venant chercher votre commande.</span></span></span></label>` : ''}
+        <label class="mode"><input type="radio" name="paiement" value="carte"${pay === 'carte' ? ' checked' : ''} /><span class="mode__card">${icons.card}<span><strong>Carte bancaire</strong><span>CB, Visa, Mastercard (simulation)</span></span></span></label>
+        <label class="mode"><input type="radio" name="paiement" value="paypal"${pay === 'paypal' ? ' checked' : ''} /><span class="mode__card">${icons.card}<span><strong>PayPal</strong><span>Simulation</span></span></span></label>
+        <label class="mode"><input type="radio" name="paiement" value="virement"${pay === 'virement' ? ' checked' : ''} /><span class="mode__card">${icons.card}<span><strong>Virement bancaire</strong><span>Simulation : les coordonnées bancaires seraient envoyées par e-mail</span></span></span></label>
       </fieldset>
+      <label class="check co-cgv"><input type="checkbox" name="cgv" required /><span>J’ai lu et j’accepte les <a class="link" href="/conditions-de-vente" target="_blank" rel="noopener">conditions générales de vente</a>.</span></label>
+      ${t.alcohol ? '<label class="check co-cgv"><input type="checkbox" name="majeur" required /><span>Je certifie avoir 18 ans révolus.</span></label>' : ''}
       <p class="form-msg" role="alert" id="co-msg"></p>
-      <div class="co-actions"><button type="button" class="btn btn--ghost" data-prev>Retour</button><button type="submit" class="oval" id="pay">${pay === 'carte' ? `Payer ${euro(payable(t))} (simulation)` : 'Valider la commande'}</button></div>
+      <div class="co-actions"><button type="button" class="btn btn--ghost" data-prev>Retour</button><button type="submit" class="btn btn--primary" id="pay">Payer ${euro(payable(t))} (simulation)</button></div>
     </form>`;
   },
   confirmation() {
@@ -246,11 +249,11 @@ const VIEWS = {
       <p>${
         d.mode === 'retrait'
           ? `Vous la retirerez à la distillerie, ${esc(infos.adresseLigne)}, ${esc(infos.retrait)}, du lundi au samedi${d.date ? ` (jour souhaité : ${esc(frDate(d.date))})` : ''}.`
-          : `Elle sera livrée à l’adresse indiquée ; la distillerie vous communique les frais de livraison avant l’envoi.`
+          : `Elle sera expédiée sous 3 jours ouvrés au plus après la réception du règlement, à l’adresse indiquée.`
       }</p>
       <p>Sur le site en ligne, vous recevriez une confirmation par e-mail à ${esc(d.email)}.</p>
       <p class="co-sim"><span class="co-sim__badge">Maquette</span> Rien n’a été payé ni envoyé.</p>
-      <div class="co-actions"><a class="oval" href="/boutique">Retour à la boutique</a><a class="btn btn--ghost" href="/visiter">Préparer une visite</a></div>
+      <div class="co-actions"><a class="btn btn--primary" href="/boutique">Retour à la boutique</a><a class="btn btn--ghost" href="/visiter">Préparer une visite</a></div>
     </div>`;
   },
 };
@@ -343,7 +346,7 @@ function bindStep() {
       order.mode = fd.get('mode') || null;
       order.retrait = { date: fd.get('date') || '' };
       order.livraison = { adresse: fd.get('adresse') || '', complement: fd.get('complement') || '', cp: fd.get('cp') || '', ville: fd.get('ville') || '' };
-      if (order.mode !== 'retrait' && order.paiement === 'retrait') order.paiement = 'carte';
+      if (!['carte', 'paypal', 'virement'].includes(order.paiement)) order.paiement = 'carte';
       save();
       const bad = checkMode();
       showErrors(form, bad);
@@ -354,12 +357,22 @@ function bindStep() {
     form.addEventListener('change', () => {
       order.paiement = form.elements.paiement.value;
       save();
-      $('#pay').textContent = order.paiement === 'carte' ? `Payer ${euro(payable(cart.totals()))} (simulation)` : 'Valider la commande';
+      $('#pay').textContent = `Payer ${euro(payable(cart.totals()))} (simulation)`;
     });
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       const block = firstIncomplete();
       if (block) return go(block);
+      // Conditions générales de vente acceptées (et majorité certifiée si la commande contient de l'alcool)
+      const bad = [];
+      if (!form.elements.cgv?.checked) bad.push(['cgv', 'Merci de lire et d’accepter les conditions générales de vente.']);
+      if (form.elements.majeur && !form.elements.majeur.checked) bad.push(['majeur', 'La vente d’alcool est interdite aux mineurs : merci de certifier avoir 18 ans révolus.']);
+      if (bad.length) {
+        const msg = $('#co-msg', form);
+        if (msg) msg.textContent = bad.map((b) => b[1]).join(' ');
+        form.elements[bad[0][0]]?.focus();
+        return;
+      }
       const t = cart.totals();
       const now = new Date();
       order.done = {
