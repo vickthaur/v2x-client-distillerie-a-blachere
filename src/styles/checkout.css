@@ -460,3 +460,14 @@ body[data-step='panier'] .co {
   max-width: 520px;
   margin: 20px 0 0 auto;
 }
+.co-done--maison {
+  background: var(--maison-creme);
+  background-image: none;
+  color: var(--maison-encre);
+  box-shadow: inset 0 0 0 10px var(--maison-creme), inset 0 0 0 11.5px var(--maison-sepia);
+}
+.co-done--maison .btn--white {
+  background: var(--maison-encre);
+  border-color: var(--maison-encre);
+  color: #fff;
+}

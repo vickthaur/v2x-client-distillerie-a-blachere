@@ -239,7 +239,8 @@ const VIEWS = {
   confirmation() {
     const d = order.done;
     if (!d) return VIEWS.panier();
-    return `<div class="co-done">
+    // Commande avec alcool : cadre maison (jamais l'univers PAC à côté d'un spiritueux).
+    return `<div class="co-done${d.totals?.alcohol ? ' co-done--maison' : ''}">
       <p class="co-done__seal" aria-hidden="true">${icons.check}</p>
       <p class="co-done__lead">Merci ${esc(d.prenom)} ! Votre commande <strong>${esc(d.numero)}</strong> est enregistrée.</p>
       <p>${
