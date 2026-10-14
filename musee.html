@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <!-- @include head.html -->
+    <title>Le musée de l’étiquette · Distillerie A. Blachère</title>
+    <meta name="description" content="Le musée en ligne des étiquettes de la Distillerie A. Blachère : PAC Citron de l’Art déco à la femme à la paille, menthe bleue « Aurélie » et Fun Blue, objets, collectors des 60 ans. Le mur, la frise, les fiches." />
+    <meta name="theme-color" content="#eadfc2" />
+    <meta property="og:title" content="Le musée de l’étiquette · Distillerie A. Blachère" />
+  </head>
+  <body data-page="musee" class="musee-page">
+    <!-- @include header.html -->
+    <main id="contenu">
+      <section class="page-hero" data-univers="maison" aria-labelledby="musee-title">
+        <div class="wrap">
+          <div class="page-hero__in">
+            <p class="kicker">Le musée de l’étiquette</p>
+            <h1 class="page-hero__title" id="musee-title">Soixante ans<br /><em>en étiquettes</em></h1>
+            <p class="lead">Le mur d’étiquettes du magasin, les objets de la marque et les collectors, redessinés pour la maquette d’après les photos de référence. Chaque pièce a sa fiche : période, technique, auteur, statut, récit et source. Aucune date n’est inventée : ce qui n’est pas daté est écrit « à confirmer ».</p>
+          </div>
+        </div>
+      </section>
+      <section class="section musee" data-univers="maison" aria-label="Collections">
+        <div class="wrap">
+          <div class="musee-bar">
+            <div class="seg" role="group" aria-label="Vue">
+              <button type="button" data-vue="mur" aria-pressed="true">Le mur</button>
+              <button type="button" data-vue="frise" aria-pressed="false">La frise</button>
+              <button type="button" data-vue="fiche" aria-pressed="false">La fiche</button>
+            </div>
+            <div class="seg" role="group" aria-label="Gamme" id="musee-gammes"></div>
+          </div>
+          <div id="musee-view" aria-live="polite"></div>
+        </div>
+      </section>
+    </main>
+    <!-- @include footer.html -->
+    <!-- @include dialogs.html -->
+    <script type="module" src="/src/pages/musee.js"></script>
+    <script src="/v2x/proposition.js" defer></script>
+  </body>
+</html>

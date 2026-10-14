@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <!-- @include head.html -->
+    <title>Recettes · Distillerie A. Blachère</title>
+    <meta name="description" content="Les recettes de la Distillerie A. Blachère : le Blue Mojito au Fun Blue et au PAC, sans alcool, et les idées des fiches des sirops." />
+    <meta name="theme-color" content="#eee8b9" />
+    <meta property="og:title" content="Recettes · Distillerie A. Blachère" />
+  </head>
+  <body data-page="recettes" class="recettes-page">
+    <!-- @include header.html -->
+    <main id="contenu">
+      <section class="page-hero" data-univers="citronnade" aria-labelledby="rec-title">
+        <div class="wrap">
+          <div class="page-hero__in">
+            <p class="kicker">Recettes</p>
+            <h1 class="page-hero__title page-hero__title--recit" id="rec-title">Avec de l’eau fraîche<br /><em>et un peu d’imagination</em></h1>
+            <p class="lead">Les recettes sans alcool s’affichent par défaut. Celles qui contiennent de l’alcool sont réservées aux personnes majeures.</p>
+            <div class="chips" role="group" aria-label="Filtre" id="rec-filtre"></div>
+          </div>
+        </div>
+      </section>
+      <section class="section" data-univers="funblue" aria-labelledby="mojito-title">
+        <div class="wrap">
+          <div class="recette">
+            <div>
+              <p class="badge-sans">Sans alcool</p>
+              <h2 class="recette__title" id="mojito-title">Le Blue Mojito</h2>
+              <p class="recette__prep">La recette de la maison relie ses deux sirops phares, Fun Blue et PAC Citron. Verre de 50 cl.</p>
+              <p style="margin-top:14px"><a class="btn btn--ink" href="/fun-blue">Fun Blue</a> <a class="btn btn--ink" href="/pac-citron">PAC Citron</a></p>
+            </div>
+            <div id="mojito"></div>
+          </div>
+        </div>
+      </section>
+      <section class="section" data-univers="maison" aria-labelledby="index-title">
+        <div class="wrap">
+          <div class="section__head">
+            <p class="kicker">L’index des recettes de la maison</p>
+            <h2 class="h-univers h-maison" id="index-title">Les autres recettes</h2>
+            <p class="note">Titres de l’index du site actuel ; leurs ingrédients seront repris des fiches de la distillerie, sans rien inventer.</p>
+          </div>
+          <ul class="rec-list" id="rec-index"></ul>
+          <div class="section__head" style="margin-top:56px">
+            <p class="kicker">Les idées des fiches</p>
+            <h2 class="h-univers h-maison">Sur les fiches des sirops</h2>
+          </div>
+          <ul class="rec-list" id="rec-idees"></ul>
+          <div id="rec-evin"></div>
+        </div>
+      </section>
+    </main>
+    <!-- @include footer.html -->
+    <!-- @include dialogs.html -->
+    <script type="module" src="/src/pages/recettes.js"></script>
+    <script src="/v2x/proposition.js" defer></script>
+  </body>
+</html>

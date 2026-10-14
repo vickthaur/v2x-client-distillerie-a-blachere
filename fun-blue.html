@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <!-- @include head.html -->
+    <title>Fun Blue · Distillerie A. Blachère</title>
+    <meta name="description" content="Fun Blue, le sirop de menthe bleue de la Distillerie A. Blachère : créé en 1995 après la menthe « Aurélie », goût chlorophylle. La recette du Blue Mojito, les formats, les étiquettes d’hier." />
+    <meta name="theme-color" content="#2f64a8" />
+    <meta property="og:title" content="Fun Blue · Distillerie A. Blachère" />
+  </head>
+  <body data-page="funblue" class="brand-page brand-page--funblue">
+    <!-- @include header.html -->
+    <main id="contenu">
+      <section class="bhero bhero--funblue" id="bhero" data-univers="funblue" aria-labelledby="fb-title">
+        <div class="lagon" id="lagon" aria-hidden="true"></div>
+        <div class="wrap bhero__in">
+          <div class="bhero__text">
+            <p class="kicker">Fun Blue® · créé en 1995</p>
+            <h1 class="bhero__title" id="fb-title">Le lagon en bouteille</h1>
+            <p class="bhero__lead">Un sirop de menthe goût chlorophylle, d’un turquoise que la maison associe aux lagons des Caraïbes. Sa fiche le présente comme « le sirop de menthe bleu le plus populaire en Provence ».</p>
+            <div class="bhero__actions">
+              <a class="oval" href="/ou-trouver">Trouver un Fun Blue</a>
+              <div id="bhero-buy"></div>
+            </div>
+          </div>
+          <div class="bstage bstage--funblue" id="bstage">
+            <div class="bstage__poster"></div>
+            <canvas class="bstage__canvas" tabindex="0" aria-label="Bouteille de Fun Blue en 3D : faites-la tourner en la faisant glisser, ou avec les flèches gauche et droite"></canvas>
+            <p class="bstage__hint">Glissez pour faire tourner</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" data-univers="maison" aria-labelledby="aurelie-title">
+        <div class="wrap split">
+          <div class="section__head" data-reveal>
+            <p class="kicker">Avant Fun Blue</p>
+            <h2 class="h-univers h-fb-title" id="aurelie-title">D’« Aurélie » à Fun Blue</h2>
+            <p class="lead">« Depuis les années 1960, nous fabriquions un sirop de menthe bleue nommé Menthe “Aurélie” », raconte la fiche de la maison. Fun Blue lui succède en 1995 et devient « très vite » le sirop à la mode chez les jeunes.</p>
+            <p class="note">Étiquettes anciennes redessinées pour la maquette : ce ne sont pas les emballages actuels. L’étiquette Fun Blue actuelle n’a pas encore été fournie ; la bouteille 3D en porte une évocation.</p>
+          </div>
+          <div class="wall" id="fb-wall" data-reveal></div>
+        </div>
+      </section>
+
+      <section class="section" data-univers="funblue" aria-labelledby="mojito-title">
+        <div class="wrap">
+          <div class="recette" data-reveal>
+            <div>
+              <p class="badge-sans">Sans alcool</p>
+              <h2 class="recette__title" id="mojito-title">Le Blue Mojito</h2>
+              <p class="recette__prep">La recette de la maison relie ses deux sirops phares. Verre de 50 cl.</p>
+            </div>
+            <div id="mojito"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" data-univers="maison" aria-labelledby="formats-title">
+        <div class="wrap split split--wide">
+          <div class="section__head" data-reveal>
+            <p class="kicker">Formats</p>
+            <h2 class="h-univers" id="formats-title">En boutique et au rayon</h2>
+            <p class="lead">Le litre est vendu sur le site de la distillerie, au même prix que le PAC. En grande surface, Fun Blue existe en 70 cl et en 1 L.</p>
+            <a class="link" href="/boutique?gamme=fun-blue">Voir dans la boutique</a>
+          </div>
+          <ul class="grid grid--one" id="fb-card"></ul>
+        </div>
+      </section>
+
+      <section class="section section--tight" data-univers="funblue" aria-label="Où trouver Fun Blue">
+        <div class="wrap cta-band">
+          <p class="cta-band__title cta-band__title--fb">Un Fun Blue près de chez vous</p>
+          <div class="cta-band__actions"><a class="oval" href="/ou-trouver">Où le trouver</a><a class="btn btn--white" href="/recettes">Les recettes</a></div>
+        </div>
+      </section>
+    </main>
+    <!-- @include footer.html -->
+    <!-- @include dialogs.html -->
+    <script type="module" src="/src/pages/funblue.js"></script>
+    <script src="/v2x/proposition.js" defer></script>
+  </body>
+</html>

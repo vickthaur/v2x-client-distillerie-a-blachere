@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <!-- @include head.html -->
+    <title>Nos spiritueux · Distillerie A. Blachère</title>
+    <meta name="description" content="Pastis, apéritifs, liqueurs, marcs et eaux-de-vie de la Distillerie A. Blachère, à Châteauneuf-du-Pape. Contenu réservé aux personnes majeures. L’abus d’alcool est dangereux pour la santé, à consommer avec modération." />
+    <meta name="theme-color" content="#eadfc2" />
+    <meta property="og:title" content="Nos spiritueux · Distillerie A. Blachère" />
+  </head>
+  <body data-page="spiritueux" class="spirit-page">
+    <!-- @include header.html -->
+    <main id="contenu">
+      <section class="page-hero spirit-hero" data-univers="maison" aria-labelledby="sp-title">
+        <div class="wrap">
+          <div class="page-hero__in">
+            <p class="kicker">Réservé aux personnes majeures</p>
+            <h1 class="page-hero__title" id="sp-title">Nos spiritueux</h1>
+            <p class="lead">Pastis et apéritifs, liqueurs, marcs et eaux-de-vie de la maison. Le rayon dit l’usage ; l’habillage dit l’univers : Comtat et papes, Camargue, Ventoux et garrigue, chai et vigne.</p>
+            <p class="evin">L’abus d’alcool est dangereux pour la santé, à consommer avec modération. La vente d’alcool est interdite aux mineurs de moins de 18 ans.</p>
+          </div>
+        </div>
+      </section>
+      <!-- Contenu affiché seulement après la vérification de l'âge (aucun nom ni visuel d'alcool avant). -->
+      <div id="spirits-root"></div>
+    </main>
+    <!-- @include footer.html -->
+    <!-- @include dialogs.html -->
+    <script type="module" src="/src/pages/spiritueux.js"></script>
+    <script src="/v2x/proposition.js" defer></script>
+  </body>
+</html>

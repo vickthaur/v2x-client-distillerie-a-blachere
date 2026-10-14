@@ -1,21 +1,25 @@
 <!doctype html>
 <html lang="fr">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- @include head.html -->
     <title>Page introuvable · Distillerie A. Blachère</title>
-    <meta name="robots" content="noindex, nofollow" />
-    <meta name="theme-color" content="#0d0a07" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="/src/legal.css" />
+    <meta name="theme-color" content="#f6f1e7" />
   </head>
-  <body>
-    <main class="lost">
-      <p class="lost__n" aria-hidden="true">404</p>
-      <h1>Page évaporée</h1>
-      <p>Cette page n’existe pas, ou plus. Le reste de la distillerie vous attend.</p>
-      <a class="btn" href="/">Retour à l’accueil</a>
-      <p lang="en"><small>Page not found. <a href="/">Back to the home page</a>.</small></p>
+  <body data-page="introuvable" class="lost-page">
+    <!-- @include header.html -->
+    <main id="contenu">
+      <section class="page-hero" data-univers="maison" aria-labelledby="lost-title">
+        <div class="wrap lost">
+          <p class="lost__n" aria-hidden="true">404</p>
+          <h1 class="page-hero__title page-hero__title--recit" id="lost-title">Page évaporée</h1>
+          <p class="lead">Cette page n’existe pas, ou plus. Le reste de la distillerie vous attend.</p>
+          <p class="cta-band__actions"><a class="oval" href="/">Retour à l’accueil</a><a class="btn btn--ink" href="/boutique">La boutique</a></p>
+          <p lang="en" class="note">Page not found. <a class="link" href="/">Back to the home page</a>.</p>
+        </div>
+      </section>
     </main>
+    <!-- @include footer.html -->
+    <!-- @include dialogs.html -->
+    <script type="module" src="/src/pages/simple.js"></script>
   </body>
 </html>

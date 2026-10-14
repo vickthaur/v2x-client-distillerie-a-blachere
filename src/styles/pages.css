@@ -1,0 +1,1275 @@
+/* Pages de marque et pages éditoriales : PAC Citron, Fun Blue, Couleur Provence®, spiritueux,
+   maison, musée, visites, où trouver, actualités, recettes, espace pro, mentions légales, 404. */
+
+/* ---------- Héros de marque ---------- */
+.bhero {
+  position: relative;
+  min-height: min(100svh, 980px);
+  padding: calc(var(--header-h) + 40px) 0 56px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+.bhero--pac {
+  background: var(--pac-rayures);
+}
+.bhero__in {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: clamp(20px, 3vw, 48px);
+  align-items: center;
+}
+.bhero__text {
+  position: relative;
+  display: grid;
+  gap: 20px;
+  justify-items: start;
+}
+.bhero__text .kicker {
+  margin: 0;
+  color: var(--u-ink);
+}
+.bhero__title {
+  font-family: var(--u-title);
+  font-weight: 700;
+  font-size: clamp(48px, 6.6vw, 104px);
+  line-height: 0.95;
+}
+.bhero--pac .bhero__title {
+  font-style: italic;
+  color: #fff;
+}
+.sticker-title {
+  display: block;
+  color: var(--pac-jaune);
+  -webkit-text-stroke: 0.07em #fff;
+  paint-order: stroke fill;
+  filter: drop-shadow(0 0 1px var(--pac-encre)) drop-shadow(0 0 0.6px var(--pac-encre)) drop-shadow(4px 4px 0 var(--pac-encre));
+}
+.bhero__title-2 {
+  display: block;
+  margin-top: 0.08em;
+  font-size: 0.62em;
+}
+.bhero__lead {
+  max-width: 46ch;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: var(--u-bg-2);
+  color: var(--u-ink);
+  font-size: clamp(16px, 1.3vw, 19px);
+  line-height: 1.55;
+}
+.bhero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+.bhero__actions .btn {
+  min-height: 52px;
+}
+.bhero__mention {
+  font: 700 14px/1 var(--font-ui);
+  font-stretch: 75%;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transform: rotate(-10deg);
+  transform-origin: left;
+  margin-top: 10px;
+}
+.bhero__femme {
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  top: 1%;
+  height: 74%;
+  aspect-ratio: 400 / 1000;
+  transform: translateX(-30%);
+  pointer-events: none;
+}
+.bhero__femme .femme {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.bhero__straw {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+.brand-page--pac .bhero__in {
+  padding-left: clamp(0px, 13vw, 210px);
+}
+
+/* Bouteille 3D */
+.bstage {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  width: 100%;
+  max-height: calc(100svh - var(--header-h) - 80px);
+  border-radius: 28px;
+  overflow: hidden;
+  background: var(--u-bg-2);
+  box-shadow: 0 0 0 3px var(--pac-encre), 8px 8px 0 var(--pac-encre);
+  justify-self: end;
+}
+.bstage__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  opacity: 0;
+  transition: opacity 0.6s;
+  cursor: grab;
+  touch-action: pan-y;
+}
+.bstage__canvas.is-dragging {
+  cursor: grabbing;
+}
+.bstage.is-live .bstage__canvas {
+  opacity: 1;
+}
+.bstage__poster {
+  position: absolute;
+  inset: 8% 0 6%;
+  display: grid;
+  place-items: center;
+  transition: opacity 0.4s;
+}
+.bstage__poster .thumb,
+.bstage__poster img {
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+.bstage__poster .thumb svg {
+  height: 100%;
+  width: auto;
+}
+.bstage.is-live .bstage__poster {
+  opacity: 0;
+}
+.bstage__hint {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  padding: 7px 14px;
+  border-radius: 99px;
+  background: rgba(23, 23, 15, 0.72);
+  color: #fff;
+  font: 650 12.5px/1 var(--font-ui);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.bstage.is-static .bstage__hint {
+  display: none;
+}
+
+/* ---------- Mises en page ---------- */
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(28px, 5vw, 80px);
+  align-items: start;
+}
+.split--wide {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  align-items: center;
+}
+.split .section__head {
+  margin-bottom: 0;
+}
+.steps {
+  list-style: none;
+  display: grid;
+  gap: 0;
+  border-top: 2px solid var(--u-ink);
+}
+.steps li {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--u-line);
+  font-size: 16px;
+  line-height: 1.55;
+}
+.steps strong {
+  display: block;
+  margin-bottom: 4px;
+  font: 600 22px/1.1 var(--font-recit);
+  color: var(--u-accent);
+}
+.wall + .note {
+  margin-top: 16px;
+}
+.grid--one {
+  list-style: none;
+  display: grid;
+  max-width: 340px;
+}
+.quote {
+  margin-top: clamp(32px, 4vw, 56px);
+  padding-left: 22px;
+  border-left: 4px solid var(--u-accent);
+  max-width: 760px;
+}
+.quote p {
+  font: italic 500 clamp(20px, 2vw, 28px) / 1.35 var(--font-recit);
+}
+.quote footer {
+  margin-top: 10px;
+  font-size: 14px;
+  color: var(--u-soft);
+}
+.quote footer::after {
+  content: ' · citation à relire';
+  opacity: 0.75;
+}
+.cta-band {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+.cta-band__title {
+  font: italic 700 clamp(34px, 4.4vw, 64px) / 1 var(--font-pac);
+  color: var(--pac-jaune);
+  -webkit-text-stroke: 0.05em var(--pac-encre);
+  paint-order: stroke fill;
+}
+.cta-band__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* ---------- Le rituel ---------- */
+.rituel {
+  background: var(--u-bg);
+}
+.rituel__grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.rituel__card {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  min-height: 220px;
+  padding: 24px;
+  border-radius: 26px;
+  background: var(--pac-citronnade);
+  color: var(--pac-encre);
+  text-align: center;
+  font-weight: 650;
+}
+.rituel__big {
+  font: italic 700 clamp(64px, 7vw, 104px) / 0.9 var(--font-pac);
+  color: var(--pac-fuchsia-fonce);
+}
+.rituel__oval {
+  display: grid;
+  justify-items: center;
+  padding: 16px 30px;
+  border-radius: 50%;
+  background: var(--pac-jaune);
+  border: 2.5px solid var(--pac-encre);
+  transform: rotate(-5deg);
+}
+.rituel__oval small {
+  font: 400 15px/1.1 var(--font-glyphe);
+  text-transform: uppercase;
+}
+.rituel__oval b {
+  font: 900 34px/1 var(--font-capitales);
+  text-transform: uppercase;
+  color: var(--pac-or);
+  -webkit-text-stroke: 1px #6e3f12;
+}
+
+/* ---------- Salle des collectors ---------- */
+.collectors-room .frames {
+  margin-bottom: 28px;
+}
+.collectors-room__dates {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.collectors-room__dates li {
+  padding-top: 12px;
+  border-top: 2px solid var(--u-accent);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--u-soft);
+}
+.collectors-room__dates strong {
+  display: block;
+  font: 600 24px/1.1 var(--font-recit);
+  color: var(--u-ink);
+}
+
+/* ---------- Fun Blue ---------- */
+.bhero--funblue {
+  background: var(--fb-degrade);
+}
+.bhero--funblue .bhero__title {
+  font-style: italic;
+  font-weight: 400;
+  text-shadow: 4px 4px 0 var(--fb-nuit);
+}
+.bhero--funblue .bhero__lead {
+  background: var(--fb-nuit);
+  color: #fff;
+}
+.lagon {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 42%;
+  z-index: 0;
+  pointer-events: none;
+}
+.lagon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.bstage--funblue {
+  box-shadow: 0 0 0 3px var(--fb-nuit), 8px 8px 0 var(--fb-lagon);
+}
+.recette {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(24px, 4vw, 56px);
+  padding: clamp(24px, 3vw, 44px);
+  border-radius: 28px;
+  background: #fff;
+  color: var(--pac-encre);
+}
+.recette__title {
+  font: italic 400 clamp(36px, 4vw, 60px) / 1 var(--font-funblue);
+  color: var(--fb-nuit);
+}
+.recette ul {
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  font-size: 16.5px;
+}
+.recette li::before {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 10px;
+  border-radius: 50%;
+  background: var(--fb-lagon);
+}
+.recette__prep {
+  font-size: 16px;
+  line-height: 1.6;
+}
+.badge-sans {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: var(--pac-citronnade);
+  font: 750 12px/1.3 var(--font-ui);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ---------- Couleur Provence® ---------- */
+.cp-hero {
+  background: var(--maison-chaux);
+}
+.cp-dots {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.cp-dots i {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--c);
+  opacity: 0.92;
+}
+.etagere {
+  padding-top: clamp(28px, 4vw, 48px);
+  border-top: 2px solid var(--u-ink);
+}
+.etagere + .etagere {
+  margin-top: clamp(48px, 6vw, 88px);
+}
+.etagere__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 24px;
+  margin-bottom: 24px;
+}
+.etagere__title {
+  font: 650 clamp(28px, 3vw, 44px) / 1.05 var(--font-recit);
+  font-variation-settings: 'SOFT' 80;
+}
+.etagere__format {
+  font: 700 13px/1 var(--font-ui);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--u-soft);
+}
+
+/* ---------- Spiritueux ---------- */
+.spirit-hero {
+  background: var(--maison-chaux);
+}
+.spirit-hero .page-hero__title {
+  font-family: var(--font-affiche);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.univers-band {
+  position: relative;
+  padding: clamp(64px, 8vw, 120px) 0;
+}
+.univers-band__in {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(28px, 4vw, 64px);
+  align-items: start;
+}
+.univers-band__text {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+.univers-band__text .kicker {
+  margin: 0;
+}
+.univers-band__title {
+  font-family: var(--u-title);
+  font-weight: 650;
+  font-size: clamp(34px, 4.4vw, 66px);
+  line-height: 1;
+}
+[data-univers='comtat'] .univers-band__title,
+[data-univers='marcs'] .univers-band__title {
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+[data-univers='marcs'] .univers-band__title {
+  font-weight: 900;
+}
+.univers-band .grid {
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+}
+.facts-list {
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  font-size: 15.5px;
+  line-height: 1.5;
+}
+.facts-list li {
+  padding-left: 18px;
+  position: relative;
+}
+.facts-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--u-accent);
+}
+.legats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 6px;
+}
+.legats div {
+  padding: 12px;
+  border: 1.5px solid var(--u-line);
+  border-radius: 12px;
+  font-size: 13.5px;
+  line-height: 1.4;
+}
+.legats strong {
+  display: block;
+  font: 400 26px/1 var(--font-affiche);
+}
+.affiche {
+  max-width: 360px;
+  justify-self: center;
+  filter: drop-shadow(0 24px 30px rgba(29, 21, 12, 0.35));
+}
+.affiche svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.affiche figcaption {
+  margin-top: 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--u-soft);
+}
+.herbier {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.herbier li {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 16px 8px 14px;
+  border: 1px solid var(--u-line);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.4);
+  font: 400 13px/1.1 var(--font-glyphe);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.herbier svg {
+  width: 44px;
+  height: 56px;
+  stroke: var(--ventoux-olive);
+  fill: none;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+/* ---------- Musée ---------- */
+.musee-bar {
+  position: sticky;
+  top: calc(var(--header-h) + 4px);
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 20px;
+  margin-bottom: 28px;
+  padding: 10px;
+  border-radius: 99px;
+  background: var(--maison-encre);
+  color: #fff;
+}
+.seg {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.1);
+}
+.seg button {
+  padding: 9px 16px;
+  border-radius: 99px;
+  font: 650 14px/1 var(--font-ui);
+  color: #fff;
+}
+.seg button[aria-pressed='true'] {
+  background: var(--pac-jaune);
+  color: var(--pac-encre);
+}
+.musee-aile + .musee-aile {
+  margin-top: clamp(48px, 6vw, 88px);
+}
+.musee-aile__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 20px;
+  margin-bottom: 20px;
+}
+.musee-aile__title {
+  font: 650 clamp(28px, 3vw, 44px) / 1.05 var(--font-recit);
+}
+.musee-frise {
+  display: grid;
+  gap: 28px;
+}
+.musee-frise__row {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+  padding-top: 16px;
+  border-top: 1px solid var(--u-line);
+}
+.musee-frise__label {
+  font: 600 26px/1.1 var(--font-recit);
+  color: var(--u-accent);
+}
+.musee-frise .wall__grid {
+  padding: 0;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+}
+.fiche {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(24px, 4vw, 56px);
+  align-items: start;
+  padding: clamp(20px, 3vw, 40px);
+  border-radius: 28px;
+  background: #fff;
+}
+.fiche__img {
+  padding: clamp(14px, 2vw, 28px);
+  background: #fff;
+  box-shadow: inset 0 0 0 12px #17170f;
+  border-radius: 4px;
+}
+.fiche__img svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  padding: 12px;
+}
+.fiche__title {
+  font: 650 clamp(28px, 3vw, 44px) / 1.05 var(--font-recit);
+  margin-bottom: 16px;
+}
+.fiche dl {
+  display: grid;
+  gap: 0;
+  border-top: 1px solid var(--ligne);
+}
+.fiche dl div {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--ligne);
+  font-size: 15px;
+  line-height: 1.5;
+}
+.fiche dt {
+  font-weight: 700;
+  color: var(--encre-3);
+}
+.fiche__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* ---------- Formulaires de page ---------- */
+.form-card {
+  padding: clamp(20px, 3vw, 40px);
+  border-radius: 28px;
+  background: #fff;
+  color: var(--maison-encre);
+  border: 1.5px solid var(--ligne);
+}
+.form-card h2,
+.form-card h3 {
+  font: 650 clamp(24px, 2.4vw, 34px) / 1.1 var(--font-recit);
+  margin-bottom: 14px;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 18px;
+}
+.form-grid .full {
+  grid-column: 1 / -1;
+}
+.choice {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
+  gap: 10px;
+}
+.choice label {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1.5px solid var(--ligne-forte);
+  border-radius: 16px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--encre-2);
+}
+.choice input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.choice strong {
+  font-size: 16px;
+  color: var(--maison-encre);
+}
+.choice label:has(input:checked) {
+  border-color: var(--maison-encre);
+  box-shadow: inset 0 0 0 1.5px var(--maison-encre);
+  background: var(--pac-citronnade);
+}
+.choice label:has(input:focus-visible) {
+  outline: 3px solid var(--fb-lagon);
+  outline-offset: 2px;
+}
+.done {
+  display: grid;
+  gap: 14px;
+  justify-items: start;
+}
+.done__icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--pop-vert);
+  color: #fff;
+}
+.done__icon svg {
+  width: 28px;
+  height: 28px;
+}
+.recap {
+  display: grid;
+  gap: 0;
+  width: 100%;
+  border-top: 1px solid var(--ligne);
+}
+.recap div {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr);
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--ligne);
+  font-size: 15px;
+}
+.recap dt {
+  font-weight: 700;
+  color: var(--encre-3);
+}
+.mock-note {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--pac-citronnade);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ---------- Visiter ---------- */
+.infos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.info-card {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  padding: 22px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1.5px solid var(--ligne);
+  font-size: 15px;
+  line-height: 1.55;
+}
+.info-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font: 700 17px/1.2 var(--font-ui);
+}
+.info-card h3 svg {
+  width: 22px;
+  height: 22px;
+}
+.faq {
+  display: grid;
+  gap: 10px;
+}
+.faq details {
+  padding: 16px 20px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1.5px solid var(--ligne);
+}
+.faq summary {
+  cursor: pointer;
+  font: 700 17px/1.3 var(--font-ui);
+}
+.faq details p {
+  margin-top: 10px;
+  font-size: 15.5px;
+  line-height: 1.6;
+  color: var(--encre-2);
+}
+
+/* ---------- Où trouver ---------- */
+.ot-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  margin-bottom: 24px;
+}
+.ot-bar .search {
+  flex: 1 1 260px;
+  max-width: 420px;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chips button {
+  padding: 10px 16px;
+  border-radius: 99px;
+  border: 1.5px solid var(--ligne-forte);
+  font: 650 14px/1 var(--font-ui);
+  background: #fff;
+}
+.chips button[aria-pressed='true'] {
+  background: var(--maison-encre);
+  border-color: var(--maison-encre);
+  color: #fff;
+}
+.pdv {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  gap: 14px;
+}
+.pdv__item {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  padding: 20px;
+  border-radius: 20px;
+  background: #fff;
+  border: 1.5px solid var(--ligne);
+}
+.pdv__couche {
+  font: 700 11.5px/1.2 var(--font-ui);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--maison-bois-fonce);
+}
+.pdv__nom {
+  font: 650 21px/1.15 var(--font-recit);
+}
+.pdv__lieu {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--encre-2);
+}
+.pdv__lieu svg {
+  width: 16px;
+  height: 16px;
+}
+.pdv__produits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.pdv__produits span {
+  padding: 4px 9px;
+  border-radius: 99px;
+  background: var(--maison-creme);
+  font-size: 12.5px;
+  font-weight: 650;
+}
+.pdv__item a {
+  font-size: 14px;
+}
+.pdv__item--home {
+  background: var(--pac-fuchsia);
+  background-image: var(--pac-rayures);
+  color: #fff;
+  border: 0;
+}
+.pdv__item--home .pdv__couche,
+.pdv__item--home .pdv__lieu {
+  color: #fff;
+}
+.pdv__item--home .pdv__inner {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--pac-fuchsia-fonce);
+}
+.map-ph {
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  min-height: 200px;
+  margin-bottom: 24px;
+  padding: 24px;
+  border-radius: 22px;
+  border: 1.5px dashed var(--ligne-forte);
+  background:
+    radial-gradient(circle at 30% 40%, rgba(194, 22, 127, 0.12) 0 8%, transparent 9%),
+    radial-gradient(circle at 62% 58%, rgba(24, 175, 196, 0.14) 0 6%, transparent 7%),
+    repeating-linear-gradient(135deg, transparent 0 18px, rgba(29, 21, 12, 0.03) 18px 36px);
+  text-align: center;
+  font-size: 14.5px;
+  color: var(--encre-2);
+}
+.map-ph strong {
+  font: 650 20px/1.2 var(--font-recit);
+  color: var(--maison-encre);
+}
+
+/* ---------- Recettes ---------- */
+.rec-list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  gap: 14px;
+}
+.rec-item {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  padding: 20px;
+  border-radius: 20px;
+  background: #fff;
+  border: 1.5px solid var(--ligne);
+}
+.rec-item h3 {
+  font: 650 21px/1.15 var(--font-recit);
+}
+.rec-item p {
+  font-size: 14.5px;
+  color: var(--encre-2);
+}
+
+/* ---------- Espace pro ---------- */
+.pro-list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.pro-list li {
+  display: grid;
+  gap: 4px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1.5px dashed var(--ligne-forte);
+  font-size: 14.5px;
+  color: var(--encre-2);
+}
+.pro-list strong {
+  font-size: 16px;
+  color: var(--maison-encre);
+}
+
+/* ---------- Mentions légales et 404 ---------- */
+.legal {
+  max-width: 820px;
+}
+.legal h2 {
+  margin: 40px 0 12px;
+  font: 650 26px/1.15 var(--font-recit);
+}
+.legal p,
+.legal li {
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--encre-2);
+}
+.legal p + p {
+  margin-top: 10px;
+}
+.legal ul {
+  padding-left: 20px;
+}
+.legal dl {
+  display: grid;
+  border-top: 1px solid var(--ligne);
+}
+.legal dl div {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--ligne);
+  font-size: 15.5px;
+}
+.legal dt {
+  font-weight: 700;
+}
+.legal .tbc {
+  margin-left: 6px;
+}
+.lost {
+  display: grid;
+  gap: 18px;
+  justify-items: start;
+}
+.lost__n {
+  font: 400 clamp(110px, 18vw, 240px) / 0.85 var(--font-pop);
+  color: var(--pac-jaune);
+  -webkit-text-stroke: 0.03em var(--pac-encre);
+  paint-order: stroke fill;
+  text-shadow: 0.04em 0.04em 0 var(--pac-encre);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1000px) {
+  .bhero__in,
+  .split,
+  .split--wide,
+  .univers-band__in,
+  .fiche,
+  .recette {
+    grid-template-columns: 1fr;
+  }
+  .brand-page--pac .bhero__in {
+    padding-left: 0;
+  }
+  .bstage {
+    justify-self: stretch;
+    max-height: 70svh;
+    aspect-ratio: 1;
+  }
+  .infos-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 760px) {
+  .bhero {
+    min-height: 0;
+    padding-top: calc(var(--header-h) + 28px);
+  }
+  .bhero__femme {
+    height: 46%;
+    top: 26%;
+    bottom: auto;
+    transform: translateX(-62%);
+    opacity: 0.95;
+  }
+  .bhero__straw {
+    display: none;
+  }
+  .brand-page--pac .bhero__text {
+    padding-left: 18vw;
+  }
+  .rituel__grid,
+  .collectors-room__dates,
+  .legats {
+    grid-template-columns: 1fr;
+  }
+  .herbier {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .pro-list {
+    grid-template-columns: 1fr;
+  }
+  .musee-frise__row,
+  .fiche dl div,
+  .recap div,
+  .legal dl div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+  .musee-bar {
+    border-radius: 22px;
+  }
+}
+
+/* Fun Blue : titres en Molle */
+.h-fb-title {
+  font-family: var(--font-funblue);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--fb-nuit);
+}
+.cta-band__title--fb {
+  font-family: var(--font-funblue);
+  font-weight: 400;
+  color: #fff;
+  -webkit-text-stroke: 0;
+  text-shadow: 4px 4px 0 var(--fb-nuit);
+}
+.bhero--funblue .bhero__text {
+  padding-bottom: 6vh;
+}
+.cta-band__title--cp {
+  font-family: var(--font-recit);
+  font-style: italic;
+  font-weight: 600;
+  color: var(--pac-encre);
+  -webkit-text-stroke: 0;
+}
+.cp-hero .page-hero__title em {
+  font-weight: 450;
+}
+@media (max-width: 760px) {
+  .cp-dots {
+    opacity: 0.35;
+  }
+}
+
+/* ---------- La maison ---------- */
+.maison-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.7fr);
+  gap: clamp(24px, 4vw, 64px);
+  align-items: end;
+}
+.page-hero__title em {
+  font-style: italic;
+  font-weight: 450;
+}
+.trajet svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.h-maison {
+  font-family: var(--font-recit);
+}
+.portraits {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.portraits .ph {
+  aspect-ratio: 4 / 5;
+  min-height: 0;
+}
+.portraits figcaption {
+  margin-top: 10px;
+  font-size: 15px;
+}
+.lieu-ph > .ph:only-child {
+  min-height: 340px;
+}
+.steps--light {
+  border-top-color: var(--u-ink);
+}
+.steps--light strong {
+  color: var(--pac-jaune);
+}
+@media (max-width: 1000px) {
+  .maison-hero {
+    grid-template-columns: 1fr;
+  }
+  .trajet {
+    max-width: 360px;
+  }
+}
+
+/* Musée : boutons des vignettes et barre */
+.musee-bar .seg button {
+  white-space: nowrap;
+}
+.musee-page .wall__item button {
+  border-radius: 2px;
+}
+.musee-page .wall__item button:focus-visible {
+  outline: 3px solid var(--fb-lagon);
+  outline-offset: 4px;
+}
+.musee-aile .lockbox {
+  max-width: 640px;
+}
+.musee-aile .evin {
+  margin-bottom: 14px;
+}
+@media (max-width: 760px) {
+  .musee-bar {
+    position: static;
+  }
+  .musee-bar .seg {
+    flex-wrap: wrap;
+  }
+}
+#fiche {
+  scroll-margin-top: calc(var(--header-h) + 90px);
+}
+
+/* Champs de formulaire : libellés et aides */
+.field__label {
+  display: block;
+  font: 650 14px/1.3 var(--font-ui);
+  color: var(--encre-2);
+  margin-bottom: 6px;
+}
+.field__hint {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--encre-3);
+}
+.choice--inline {
+  grid-template-columns: 1fr 1fr;
+}
+.choice--inline label {
+  padding: 13px 14px;
+}
+.split--form {
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+}
+.page-hero__title--recit {
+  font-family: var(--font-recit);
+  font-style: normal;
+}
+#booking .oval,
+#pro-form .oval,
+#pro-login .oval {
+  margin-top: 8px;
+}
+@media (max-width: 1000px) {
+  .split--form {
+    grid-template-columns: 1fr;
+  }
+}
+.lieu-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.lieu-grid .ph {
+  min-height: 180px;
+}
+.lieu-grid .note {
+  grid-column: 1 / -1;
+}
+.lieu-photo {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  object-fit: cover;
+}

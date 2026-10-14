@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <!-- @include head.html -->
+    <title>Visiter la distillerie · Distillerie A. Blachère</title>
+    <meta name="description" content="Visiter la Distillerie A. Blachère à Châteauneuf-du-Pape : passage libre en boutique, séance en boutique, visite guidée d’une heure (25 personnes au plus, sur réservation, fermé le dimanche), groupes. Saison 2026 du 12 février au 31 décembre." />
+    <meta name="theme-color" content="#eee8b9" />
+    <meta property="og:title" content="Visiter la distillerie · Distillerie A. Blachère" />
+  </head>
+  <body data-page="visiter" class="visiter-page">
+    <!-- @include header.html -->
+    <main id="contenu">
+      <section class="page-hero" data-univers="citronnade" aria-labelledby="visiter-title">
+        <div class="wrap">
+          <div class="page-hero__in">
+            <p class="kicker">Visiter la distillerie</p>
+            <h1 class="page-hero__title page-hero__title--recit" id="visiter-title">Quatre façons<br /><em>de passer la porte</em></h1>
+            <p class="lead">La boutique est ouverte sans rendez-vous ; la visite guidée de la distillerie se réserve. Une heure, dégustation comprise, par groupes de 25 personnes au plus.</p>
+            <div id="saison"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" data-univers="maison" aria-labelledby="formules-title">
+        <div class="wrap">
+          <div class="section__head">
+            <p class="kicker">Les formules</p>
+            <h2 class="h-univers" id="formules-title">Ce que vous verrez vraiment</h2>
+            <p class="lead">Les tarifs diffèrent d’une source à l’autre : ils sont affichés « à confirmer » jusqu’à l’arbitrage de la distillerie.</p>
+          </div>
+          <div id="formules"></div>
+        </div>
+      </section>
+
+      <section class="section" data-univers="citronnade" aria-labelledby="reserver-title" id="reserver">
+        <div class="wrap split split--form">
+          <div class="section__head">
+            <p class="kicker">Réserver</p>
+            <h2 class="h-univers" id="reserver-title">Votre demande de visite</h2>
+            <p class="lead">La distillerie vous confirme le créneau exact. Les mineurs sont les bienvenus : ils dégustent les sirops.</p>
+            <p class="mock-note"><strong>Maquette :</strong> le formulaire vérifie la saisie mais n’envoie rien.</p>
+          </div>
+          <div class="form-card" id="booking-card">
+            <form id="booking" novalidate>
+              <fieldset class="full" style="border:0;padding:0;margin:0 0 18px">
+                <legend class="field__label">Formule</legend>
+                <div class="choice" id="booking-formules"></div>
+              </fieldset>
+              <div class="form-grid">
+                <label class="field"><span class="field__label">Date souhaitée</span><input type="date" name="date" required /><span class="field__hint" id="date-hint"></span></label>
+                <fieldset class="field" style="border:0;padding:0;margin:0">
+                  <legend class="field__label">Moment</legend>
+                  <div class="choice choice--inline">
+                    <label><input type="radio" name="moment" value="Matin" checked /><strong>Matin</strong></label>
+                    <label><input type="radio" name="moment" value="Après-midi" /><strong>Après-midi</strong></label>
+                  </div>
+                </fieldset>
+                <label class="field"><span class="field__label">Nombre de personnes</span><input type="number" name="personnes" min="1" max="25" value="2" inputmode="numeric" required /><span class="field__hint">25 personnes au plus</span></label>
+                <label class="field"><span class="field__label">Dont mineurs</span><input type="number" name="mineurs" min="0" max="25" value="0" inputmode="numeric" /><span class="field__hint">Ils dégusteront des sirops</span></label>
+                <label class="field"><span class="field__label">Langue de la visite</span>
+                  <select name="langue"><option>Français</option><option>Anglais</option><option>Allemand</option></select>
+                  <span class="field__hint">Selon disponibilité, à confirmer</span>
+                </label>
+                <label class="field"><span class="field__label">Nom</span><input type="text" name="nom" autocomplete="name" required /></label>
+                <label class="field"><span class="field__label">E-mail</span><input type="email" name="email" autocomplete="email" required /></label>
+                <label class="field"><span class="field__label">Téléphone</span><input type="tel" name="tel" autocomplete="tel" /><span class="field__hint">Facultatif</span></label>
+                <label class="field full"><span class="field__label">Message</span><textarea name="message" rows="3"></textarea></label>
+                <label class="check full"><input type="checkbox" name="rgpd" required /><span>J’accepte que la distillerie utilise ces informations pour répondre à ma demande.</span></label>
+                <label class="check full"><input type="checkbox" name="news" /><span>Je souhaite recevoir les actualités de la distillerie (facultatif).</span></label>
+              </div>
+              <p class="form-msg" id="booking-err" role="alert"></p>
+              <button type="submit" class="oval">Envoyer ma demande</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" data-univers="maison" aria-labelledby="pratique-title">
+        <div class="wrap">
+          <div class="section__head">
+            <p class="kicker">Infos pratiques</p>
+            <h2 class="h-univers" id="pratique-title">Venir à la distillerie</h2>
+          </div>
+          <div class="infos-grid" id="infos"></div>
+          <div class="section__head" style="margin-top:56px">
+            <p class="kicker">Questions fréquentes</p>
+          </div>
+          <div class="faq" id="faq"></div>
+        </div>
+      </section>
+    </main>
+    <!-- @include footer.html -->
+    <!-- @include dialogs.html -->
+    <script type="module" src="/src/pages/visiter.js"></script>
+    <script src="/v2x/proposition.js" defer></script>
+  </body>
+</html>

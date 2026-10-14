@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <!-- @include head.html -->
+    <title>Actualités · Distillerie A. Blachère</title>
+    <meta name="description" content="Les actualités de la Distillerie A. Blachère : le festival de BD « Châteauneuf-du-Pape en Bulles », la saison des visites, le grand projet à partir de 2026, et la presse qui parle de la maison." />
+    <meta name="theme-color" content="#f6f1e7" />
+    <meta property="og:title" content="Actualités · Distillerie A. Blachère" />
+  </head>
+  <body data-page="actualites" class="actus-page">
+    <!-- @include header.html -->
+    <main id="contenu">
+      <section class="page-hero" data-univers="maison" aria-labelledby="actus-title">
+        <div class="wrap">
+          <div class="page-hero__in">
+            <p class="kicker">Actualités et événements</p>
+            <h1 class="page-hero__title" id="actus-title">La vie<br /><em>de la distillerie</em></h1>
+            <p class="lead">Le festival, les saisons de visite, le chantier, les éditions limitées : un calendrier régulier, chaque nouvelle datée et sourcée.</p>
+          </div>
+        </div>
+      </section>
+      <section class="section" data-univers="maison" aria-label="Toutes les actualités">
+        <div class="wrap" id="actus"></div>
+      </section>
+      <section class="section" data-univers="citronnade" aria-labelledby="presse-title">
+        <div class="wrap">
+          <div class="section__head">
+            <p class="kicker">On parle de nous</p>
+            <h2 class="h-univers h-maison" id="presse-title">La presse</h2>
+            <p class="note">Titres reconstitués d’après les adresses des articles, à relire dans les articles avant publication.</p>
+          </div>
+          <div id="presse"></div>
+        </div>
+      </section>
+    </main>
+    <!-- @include footer.html -->
+    <!-- @include dialogs.html -->
+    <script type="module" src="/src/pages/actualites.js"></script>
+    <script src="/v2x/proposition.js" defer></script>
+  </body>
+</html>

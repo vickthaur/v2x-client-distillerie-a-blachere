@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <!-- @include head.html -->
+    <title>Espace professionnel · Distillerie A. Blachère</title>
+    <meta name="description" content="Espace professionnel de la Distillerie A. Blachère : cafés, hôtels et restaurants, cavistes, épiceries fines et centrales d’achat. Fiches techniques, médiathèque, demande de référencement." />
+    <meta name="theme-color" content="#1d150c" />
+    <meta property="og:title" content="Espace professionnel · Distillerie A. Blachère" />
+  </head>
+  <body data-page="pro" class="pro-page">
+    <!-- @include header.html -->
+    <main id="contenu">
+      <section class="page-hero" data-univers="encre" aria-labelledby="pro-title">
+        <div class="wrap">
+          <div class="page-hero__in">
+            <p class="kicker">Espace professionnel</p>
+            <h1 class="page-hero__title page-hero__title--recit" id="pro-title">Cafés, cavistes<br /><em>et centrales d’achat</em></h1>
+            <p class="lead">Les fiches techniques, la médiathèque et les tarifs professionnels, derrière une connexion. Bureaux : <a href="tel:+33490835381">04 90 83 53 81</a> · <a href="mailto:info@distillerieablachere.com">info@distillerieablachere.com</a></p>
+          </div>
+        </div>
+      </section>
+      <section class="section" data-univers="maison" aria-label="Connexion et demande de compte">
+        <div class="wrap split">
+          <div class="form-card" id="login-card">
+            <h2>Se connecter</h2>
+            <form id="pro-login" novalidate>
+              <div class="form-grid">
+                <label class="field full"><span class="field__label">Identifiant (e-mail)</span><input type="email" name="email" autocomplete="username" required /></label>
+                <label class="field full"><span class="field__label">Mot de passe</span><input type="password" name="mdp" autocomplete="current-password" required /></label>
+              </div>
+              <p class="form-msg" id="login-msg" role="alert"></p>
+              <button type="submit" class="oval">Se connecter</button>
+            </form>
+            <h3 style="margin-top:32px">Ce que vous y trouverez</h3>
+            <ul class="pro-list">
+              <li><strong>Fiches techniques</strong>EAN, formats, colisage, à télécharger en PDF</li>
+              <li><strong>Médiathèque</strong>Logos, photos des bouteilles, éléments de PLV</li>
+              <li><strong>Recettes pour les cafés</strong>Le PAC à l’eau, le Blue Mojito</li>
+              <li><strong>Tarifs professionnels</strong>Et commande rapide</li>
+            </ul>
+            <p class="note" style="margin-top:12px">Contenus à fournir par la distillerie. Le site actuel exporte déjà ses fiches produits en PDF.</p>
+          </div>
+          <div class="form-card" id="pro-card">
+            <h2>Demander un compte ou un référencement</h2>
+            <form id="pro-form" novalidate>
+              <div class="form-grid">
+                <label class="field full"><span class="field__label">Établissement</span><input type="text" name="societe" autocomplete="organization" required /></label>
+                <label class="field"><span class="field__label">Activité</span>
+                  <select name="activite" required>
+                    <option value="">Choisir…</option>
+                    <option>Café, hôtel, restaurant</option>
+                    <option>Caviste, épicerie fine</option>
+                    <option>Grande distribution, centrale d’achat</option>
+                    <option>Autre</option>
+                  </select>
+                </label>
+                <label class="field"><span class="field__label">SIRET</span><input type="text" name="siret" inputmode="numeric" placeholder="14 chiffres" /><span class="field__hint">Facultatif</span></label>
+                <label class="field"><span class="field__label">Nom</span><input type="text" name="nom" autocomplete="name" required /></label>
+                <label class="field"><span class="field__label">Ville</span><input type="text" name="ville" autocomplete="address-level2" required /></label>
+                <label class="field"><span class="field__label">E-mail</span><input type="email" name="email" autocomplete="email" required /></label>
+                <label class="field"><span class="field__label">Téléphone</span><input type="tel" name="tel" autocomplete="tel" /></label>
+                <label class="field full"><span class="field__label">Votre demande</span><textarea name="message" rows="3"></textarea></label>
+                <label class="check full"><input type="checkbox" name="rgpd" required /><span>J’accepte que la distillerie utilise ces informations pour répondre à ma demande.</span></label>
+              </div>
+              <p class="form-msg" id="pro-msg" role="alert"></p>
+              <button type="submit" class="oval">Envoyer la demande</button>
+              <p class="mock-note" style="margin-top:14px"><strong>Maquette :</strong> les formulaires vérifient la saisie mais n’envoient rien.</p>
+            </form>
+          </div>
+        </div>
+      </section>
+    </main>
+    <!-- @include footer.html -->
+    <!-- @include dialogs.html -->
+    <script type="module" src="/src/pages/pro.js"></script>
+    <script src="/v2x/proposition.js" defer></script>
+  </body>
+</html>

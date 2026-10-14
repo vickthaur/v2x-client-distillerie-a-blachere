@@ -6,6 +6,19 @@
   "outputDirectory": "dist",
   "cleanUrls": true,
   "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/boutique/:slug",
+      "destination": "/produit.html"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/la-distillerie",
+      "destination": "/la-maison",
+      "permanent": true
+    }
+  ],
   "headers": [
     {
       "source": "/assets/(.*)",
