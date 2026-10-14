@@ -10,24 +10,27 @@
   <body data-page="actualites" class="actus-page">
     <!-- @include header.html -->
     <main id="contenu">
-      <section class="page-hero" data-univers="maison" aria-labelledby="actus-title">
-        <div class="wrap">
-          <div class="page-hero__in">
-            <p class="kicker">Actualités et événements</p>
-            <h1 class="page-hero__title" id="actus-title">La vie<br /><em>de la distillerie</em></h1>
-            <p class="lead">Le festival, les saisons de visite, le chantier, les éditions limitées : un calendrier régulier, chaque nouvelle datée et sourcée.</p>
+      <section class="mh-hero" aria-labelledby="actus-title">
+        <div class="wrap mh-hero__in">
+          <div class="mh-hero__copy">
+            <p class="kicker">Actualités et presse</p>
+            <h1 class="h-display" id="actus-title">La vie <span class="accent">de la distillerie</span></h1>
+            <p class="lead">Les nouvelles de la maison, datées et sourcées, et la rubrique « On parle de nous » du site de la distillerie : articles et vidéos.</p>
           </div>
         </div>
       </section>
-      <section class="section" data-univers="maison" aria-label="Toutes les actualités">
-        <div class="wrap" id="actus"></div>
-      </section>
-      <section class="section" data-univers="citronnade" aria-labelledby="presse-title">
+      <section class="section section--tight" aria-labelledby="news-title">
         <div class="wrap">
-          <div class="section__head">
+          <div class="section__head"><div><p class="kicker">Les nouvelles</p><h2 class="h-section" id="news-title">À la distillerie</h2></div></div>
+          <ul class="newsgrid newsgrid--all" id="actus"></ul>
+        </div>
+      </section>
+      <section class="section bpress-sec" aria-labelledby="presse-title">
+        <div class="wrap bpress-sec__in">
+          <div>
             <p class="kicker">On parle de nous</p>
-            <h2 class="h-univers h-maison" id="presse-title">La presse</h2>
-            <p class="note">Titres reconstitués d’après les adresses des articles, à relire dans les articles avant publication.</p>
+            <h2 class="h-section" id="presse-title">La presse et les vidéos</h2>
+            <p class="lead">La liste publiée par la distillerie sur son site, du plus récent au plus ancien. Les articles s’ouvrent sur le site de la distillerie.</p>
           </div>
           <div id="presse"></div>
         </div>

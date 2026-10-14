@@ -1,53 +1,64 @@
-// Recettes : le Blue Mojito (seule recette dont l'adresse et les ingrédients sont connus), les
-// autres titres de l'index officiel (sans ingrédients inventés) et les idées des fiches des
-// sirops. Filtre « sans alcool » par défaut ; les recettes avec alcool (ou de type incertain)
-// n'apparaissent qu'aux personnes majeures, même pour un sirop.
+// Recettes : les recettes publiées par la distillerie sur son site (textes exacts, leurs photos).
+// Sans alcool par défaut ; celles qui contiennent de l'alcool ne s'affichent qu'aux personnes
+// majeures (filtre « Toutes · 18+ »).
 import '../styles/base.css';
-import '../styles/editorial.css';
-import '../styles/pages.css';
+import '../styles/home.css';
+import '../styles/brand.css';
 import { initSite } from '../app/site.js';
 import { evinHTML } from '../app/blocks.js';
 import { bySlug, recettes } from '../data/products.js';
-import { $, esc } from '../lib/dom.js';
+import { $, esc, plural } from '../lib/dom.js';
 
 const site = initSite();
 let filtre = 'sans';
-
-// Idées notées sur les fiches des sirops (catalogue de la recherche) : noms seulement.
-const IDEES = [
-  { titre: 'Shirley Temple', produit: 'sirop-couleur-provence-grenadine', alcool: false },
-  { titre: 'Kiwi, banane et une pointe de pomme', produit: 'sirop-couleur-provence-kiwi', alcool: false },
-  { titre: 'Vinaigrette au sirop de châtaigne, vinaigre balsamique et huile d’olive', produit: 'sirop-chataigne', alcool: false },
-  { titre: 'Monaco, Tomate, Tequila Sunrise', produit: 'sirop-couleur-provence-grenadine', alcool: true },
-  { titre: 'Mauresque : pastis et sirop d’orgeat', produit: 'sirop-couleur-provence-orgeat', alcool: true },
-  { titre: 'Mojito, caïpirinha, ti-punch', produit: 'sucre-de-canne', alcool: true },
-];
-
-const mojito = recettes.find((r) => r.titre === 'Le Blue Mojito');
-$('#mojito').innerHTML = `<ul>${mojito.ingredients.map((i) => `<li>${esc(i)}</li>`).join('')}</ul>
-  <p class="recette__prep" style="margin-top:14px">${esc(mojito.preparation)}</p>
-  <p style="margin-top:14px"><a class="link" href="${mojito.url}" target="_blank" rel="noopener">La recette sur le site actuel<span class="sr-only"> (nouvel onglet)</span></a></p>`;
-
-const show = (alcool) => !alcool || (site.majeur && filtre === 'toutes');
+const visibles = () => recettes.filter((r) => !r.alcool || (site.majeur && filtre === 'toutes'));
+const list = (items) => (items?.length ? `<ul>${items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : '');
+// Lignes « Pour 2 personnes : », « Dans un verre de 50 cl : » : intertitres
+const steps = (items) =>
+  items?.length
+    ? `<ol class="rec-steps">${items.map((x) => (/:\s*$/.test(x) && x.length < 60 ? `<li class="rec-steps__sub">${esc(x)}</li>` : `<li>${esc(x)}</li>`)).join('')}</ol>`
+    : '';
 
 function render() {
-  $('#rec-filtre').innerHTML = `<button type="button" data-f="sans" aria-pressed="${filtre === 'sans'}">Sans alcool</button>
-    <button type="button" data-f="toutes" aria-pressed="${filtre === 'toutes'}">Toutes les recettes · 18+</button>`;
-  const index = recettes.filter((r) => r.titre !== 'Le Blue Mojito' && show(r.alcool));
-  $('#rec-index').innerHTML = index
+  const sans = recettes.filter((r) => !r.alcool).length;
+  $('#rec-lead').textContent = `Les ${recettes.length} recettes publiées par la distillerie : cocktails, boissons et desserts. Les ${sans} recettes sans alcool s’affichent d’abord ; celles qui contiennent de l’alcool sont réservées aux personnes majeures.`;
+  $('#rec-filtre').innerHTML = `<button type="button" class="cat${filtre === 'sans' ? ' is-on' : ''}" data-f="sans" aria-pressed="${filtre === 'sans'}">Sans alcool<span class="cat__n">${sans}</span></button>
+    <button type="button" class="cat${filtre === 'toutes' ? ' is-on' : ''}" data-f="toutes" aria-pressed="${filtre === 'toutes'}">Toutes les recettes · 18+<span class="cat__n">${site.majeur ? recettes.length : ''}</span></button>`;
+  const items = visibles();
+  $('#rec-grid').innerHTML = items
     .map(
-      (r) => `<li class="rec-item"><p class="${r.alcool ? 'tbc' : 'badge-sans'}">${r.alcool ? 'Avec alcool · 18+' : 'Sans alcool'}</p><h3>${esc(r.titre)}</h3>
-      ${r.produits?.length ? `<p>Avec ${r.produits.map((s) => `<a class="link" href="/boutique/${s}">${esc(bySlug[s]?.nom || s)}</a>`).join(', ')}</p>` : ''}
-      <p>Recette à reprendre du site de la distillerie.</p></li>`,
+      (r) => `<li class="rcard"><a href="#${r.id}">
+        <span class="rcard__img"><img src="${r.image}" alt="" loading="lazy" decoding="async" /></span>
+        <span class="rcard__title">${esc(r.titre)}</span>
+        ${r.alcool ? '<span class="badge badge--age">18+</span>' : '<span class="rcard__meta">Sans alcool</span>'}
+      </a></li>`,
     )
     .join('');
-  $('#rec-idees').innerHTML = IDEES.filter((i) => show(i.alcool))
+  $('#rec-list').innerHTML = items
     .map(
-      (i) => `<li class="rec-item"><p class="${i.alcool ? 'tbc' : 'badge-sans'}">${i.alcool ? 'Avec alcool · 18+' : 'Sans alcool'}</p><h3>${esc(i.titre)}</h3>
-      <p>Idée de la fiche du <a class="link" href="/boutique/${i.produit}">${esc(bySlug[i.produit]?.nom.toLowerCase())}</a>.</p></li>`,
+      (r) => `<article class="section rec" id="${r.id}" aria-labelledby="t-${r.id}">
+        <div class="wrap rec__in">
+          <figure class="rec__img"><img src="${r.image}" alt="${esc(r.titre)}" loading="lazy" decoding="async" /></figure>
+          <div class="rec__body">
+            <p class="kicker">${r.alcool ? 'Avec alcool · 18+' : 'Sans alcool'}</p>
+            <h2 class="h-section rec__title" id="t-${r.id}">${esc(r.titre)}</h2>
+            ${r.produits?.length ? `<p class="rec__products">Avec ${r.produits.filter((s) => bySlug[s] && (!bySlug[s].alcool || site.majeur)).map((s) => `<a class="link" href="/boutique/${s}">${esc(bySlug[s].nom)}</a>`).join(', ')}</p>` : ''}
+            <div class="rec__cols">
+              ${r.ingredients?.length ? `<div><h3 class="rec__h">Ingrédients</h3>${list(r.ingredients)}</div>` : ''}
+              ${r.decoration?.length ? `<div><h3 class="rec__h">Décoration</h3>${list(r.decoration)}</div>` : ''}
+            </div>
+            ${r.preparation?.length ? `<div><h3 class="rec__h">Préparation</h3>${steps(r.preparation)}</div>` : ''}
+            ${r.notes?.length ? `<div class="rec__notes">${r.notes.map((n) => `<p>${esc(n)}</p>`).join('')}</div>` : ''}
+            <p class="bsource">Recette du site de la distillerie · <a class="link" href="${r.url}" target="_blank" rel="noopener">voir la page<span class="sr-only"> (nouvel onglet)</span></a></p>
+            ${r.alcool ? evinHTML('rec__evin') : ''}
+          </div>
+        </div>
+      </article>`,
     )
     .join('');
-  $('#rec-evin').innerHTML = site.majeur && filtre === 'toutes' ? `<div style="margin-top:24px">${evinHTML()}</div>` : '';
+  $('#rec-evin').innerHTML = '';
+  const id = location.hash.slice(1);
+  if (id) document.getElementById(id)?.scrollIntoView({ block: 'start' });
 }
 
 $('#rec-filtre').addEventListener('click', async (e) => {
@@ -60,6 +71,8 @@ $('#rec-filtre').addEventListener('click', async (e) => {
   filtre = b.dataset.f;
   render();
 });
+// Lien direct vers une recette avec alcool : on la montre aux majeurs
+if (recettes.find((r) => r.id === location.hash.slice(1))?.alcool && site.majeur) filtre = 'toutes';
 site.onAge(() => {
   if (!site.majeur) filtre = 'sans';
   render();

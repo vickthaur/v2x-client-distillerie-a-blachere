@@ -10,14 +10,16 @@
   <body data-page="visiter" class="visiter-page">
     <!-- @include header.html -->
     <main id="contenu">
-      <section class="page-hero" data-univers="citronnade" aria-labelledby="visiter-title">
-        <div class="wrap">
-          <div class="page-hero__in">
+      <section class="vis-hero" aria-labelledby="visiter-title">
+        <div class="wrap vis-hero__in">
+          <div class="vis-hero__copy">
             <p class="kicker">Visiter la distillerie</p>
-            <h1 class="page-hero__title page-hero__title--recit" id="visiter-title">Quatre façons<br /><em>de passer la porte</em></h1>
-            <p class="lead">La boutique est ouverte sans rendez-vous ; la visite guidée de la distillerie se réserve. Une heure, dégustation comprise, par groupes de 25 personnes au plus.</p>
+            <h1 class="h-display" id="visiter-title">Quatre façons <span class="accent">de passer la porte</span></h1>
+            <p class="lead">La boutique est ouverte sans rendez-vous, du lundi au samedi ; la visite guidée de la distillerie se réserve. Une heure, dégustation comprise, par groupes de 25 personnes au plus.</p>
             <div id="saison"></div>
+            <div class="bhero__ctas"><a class="btn btn--primary" href="#reserver">Réserver une visite</a><a class="btn btn--ghost" href="#pratique-title">Horaires et accès</a></div>
           </div>
+          <figure class="vis-hero__ph" id="visit-photo"></figure>
         </div>
       </section>
 
@@ -69,7 +71,7 @@
                 <label class="check full"><input type="checkbox" name="news" /><span>Je souhaite recevoir les actualités de la distillerie (facultatif).</span></label>
               </div>
               <p class="form-msg" id="booking-err" role="alert"></p>
-              <button type="submit" class="oval">Envoyer ma demande</button>
+              <button type="submit" class="btn btn--primary">Envoyer ma demande</button>
             </form>
           </div>
         </div>

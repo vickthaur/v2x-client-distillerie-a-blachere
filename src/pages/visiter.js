@@ -5,14 +5,29 @@
 import '../styles/base.css';
 import '../styles/editorial.css';
 import '../styles/pages.css';
+import '../styles/brand.css';
 import { initSite, reveal } from '../app/site.js';
+import { fillPlaces } from '../app/lieux.js';
+import { pieceById } from '../app/pieces.js';
 import { formulesHTML, saisonHTML } from '../app/blocks.js';
 import { formules, infos, saison } from '../data/site.js';
 import { $, $$, esc, calm } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
 
-initSite();
+const site = initSite();
 const reservables = formules.filter((f) => f.reservable);
+
+// Photo : la boutique (des bouteilles d'alcool y sont visibles : majeurs seulement), sinon la
+// carte postale du stand de la maison.
+function photo() {
+  const stand = pieceById['stand-palais-des-papes'];
+  $('#visit-photo').innerHTML = site.majeur
+    ? '<span class="ph__slot" data-lieu="boutique-rayons"></span><figcaption>La boutique de la distillerie, à Châteauneuf-du-Pape</figcaption>'
+    : `<img src="${stand.image}" alt="" width="${stand.largeur}" height="${stand.hauteur}" /><figcaption>Le stand de la maison à l’Exposition industrielle du Palais des Papes (carte postale ancienne)</figcaption>`;
+  fillPlaces($('#visit-photo'));
+}
+photo();
+site.onAge(photo);
 
 $('#saison').innerHTML = saisonHTML();
 $('#formules').innerHTML = formulesHTML({ choose: true });
@@ -22,7 +37,7 @@ $('#booking-formules').innerHTML = reservables
 
 $('#infos').innerHTML = `
   <div class="info-card"><h3>${icons.pin}Adresse</h3><p>${infos.adresse.map(esc).join('<br />')}</p><p><a class="link" href="${infos.itineraire}" target="_blank" rel="noopener">Itinéraire<span class="sr-only"> (nouvel onglet)</span></a></p><p>La distillerie a sa fiche sur le site La Provence à Vélo.</p></div>
-  <div class="info-card"><h3>${icons.clock}Magasin</h3><p>${esc(infos.jours)}</p>${infos.horaires.map((h) => `<p><strong>${esc(h.periode)}</strong> : ${esc(h.heures)}</p>`).join('')}<p class="note">${esc(infos.horairesNote)} Visites fermées le dimanche.</p></div>
+  <div class="info-card"><h3>${icons.clock}Magasin</h3><p>${esc(infos.jours)}</p>${infos.horaires.map((h) => `<p><strong>${esc(h.periode)}</strong> : ${esc(h.heures)}</p>`).join('')}<p>Bureaux et entrepôts : ${esc(infos.bureauxHoraires.jours.toLowerCase())}, ${esc(infos.bureauxHoraires.heures)}.</p><p class="note">${esc(infos.horairesNote)} Visites fermées le dimanche.</p></div>
   <div class="info-card"><h3>${icons.phone}Contact</h3><p>Magasin : <a href="${infos.magasin.telLien}">${infos.magasin.tel}</a><br /><a href="mailto:${infos.magasin.email}">${infos.magasin.email}</a></p><p>Bureaux : <a href="${infos.bureaux.telLien}">${infos.bureaux.tel}</a><br /><a href="mailto:${infos.bureaux.email}">${infos.bureaux.email}</a></p></div>`;
 
 const faq = [
