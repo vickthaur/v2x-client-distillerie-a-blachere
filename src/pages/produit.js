@@ -7,7 +7,7 @@ import '../styles/shop.css';
 import '../styles/product.css';
 import { initSite, addToCart } from '../app/site.js';
 import { cardHTML } from '../app/cards.js';
-import { bySlug, products, visibleProducts, recettes, FAMILLES, UNIVERS, EVIN, MINEURS, euro, DISPO_BOUTIQUE } from '../data/products.js';
+import { bySlug, products, visibleProducts, recettes, FAMILLES, UNIVERS, EVIN, MINEURS, euro, DISPO_BOUTIQUE, formatsAilleursTexte } from '../data/products.js';
 import { infos } from '../data/site.js';
 import { $, $$, esc, calm, hasWebGL } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
@@ -85,7 +85,9 @@ function render() {
     p.alcool ? ['Degré d’alcool', p.degre ? `${p.degre} % vol.` : 'À confirmer avec la distillerie'] : ['Alcool', 'Sans alcool'],
     p.ingredients ? ['Ingrédients', p.ingredients.replace(/^\(extrait\)\s*/, 'Extrait de la fiche : ')] : null,
     p.conseil ? ['Conseil de la maison', p.conseil] : null,
+    p.citationCaviste ? ['D’après un caviste', `${p.citationCaviste} (à confirmer)`] : null,
   ].filter((f) => f && f[1]);
+  const ailleurs = formatsAilleursTexte(p);
   const volumes = p.contenances.length
     ? `<fieldset class="pp__volumes"><legend>Contenance</legend>${p.contenances
         .map(
@@ -128,6 +130,7 @@ function render() {
           <button type="submit" class="oval pp__add">${icons.bag}Ajouter au panier</button>
         </div>
       </form>
+      ${ailleurs ? `<p class="pp__ailleurs">${esc(ailleurs)} — voir <a href="/ou-trouver">Où trouver nos produits</a></p>` : ''}
       <ul class="pp__reassure">
         <li>${icons.store}<span><strong>Retrait à la distillerie</strong>, ${esc(infos.retrait)}, du lundi au samedi</span></li>
         <li>${icons.truck}<span><strong>Livraison</strong> : frais calculés avec la distillerie</span></li>

@@ -20,10 +20,12 @@ export const GAMMES = [
   { id: 'pac', nom: 'PAC Citron', univers: 'sirops', theme: 'pac' },
   { id: 'fun-blue', nom: 'Fun Blue', univers: 'sirops', theme: 'funblue' },
   { id: 'couleur-provence', nom: 'Sirops Couleur Provence®', court: 'Couleur Provence®', univers: 'sirops', theme: 'provence' },
-  { id: 'pastis-aperitifs', nom: 'Pastis & apéritifs', univers: 'spiritueux', theme: 'maison' },
+  { id: 'pastis-aperitifs', nom: 'Les Apéritifs et Pastis', univers: 'spiritueux', theme: 'maison' },
   { id: 'liqueurs-regionales', nom: 'Liqueurs régionales', univers: 'spiritueux', theme: 'maison' },
-  { id: 'eaux-de-vie', nom: 'Eaux-de-vie de fruits', univers: 'spiritueux', theme: 'marcs' },
-  { id: 'marcs', nom: 'Eaux-de-vie de marc', univers: 'spiritueux', theme: 'marcs' },
+  // Rubrique officielle « Les Crèmes et Eaux de Vie » (complément du catalogue) : crème de
+  // châtaigne, eau-de-vie de poire Flirt®, La Magistrale (eau-de-vie de plantes).
+  { id: 'cremes-eaux-de-vie', nom: 'Les Crèmes et Eaux de Vie', univers: 'spiritueux', theme: 'marcs' },
+  { id: 'marcs', nom: 'Vieux marcs', univers: 'spiritueux', theme: 'marcs' },
 ];
 
 // Les neuf univers de la maison (étude d'identité). Couleurs : PAC, Fun Blue et collectors sont
@@ -84,7 +86,8 @@ const GAMME_DU_CATALOGUE = {
   Pastis: 'pastis-aperitifs',
   Apéritifs: 'pastis-aperitifs',
   'Les Régionales': 'liqueurs-regionales',
-  'Eaux-de-vie de fruits': 'eaux-de-vie',
+  'Les Crèmes et Eaux de Vie': 'cremes-eaux-de-vie',
+  'Eaux-de-vie de fruits': 'cremes-eaux-de-vie',
   'Vieux Marc de Châteauneuf-du-Pape': 'marcs',
   'Vieux Marc de Provence': 'marcs',
 };
@@ -115,7 +118,6 @@ const P = {
       { t: 'Son nom reprend les initiales des enfants de Louis Guiot.' },
       { t: '« Toujours fabriqué dans le Vaucluse par la Distillerie A. Blachère », dit sa fiche.' },
       { t: 'Pour ses 60 ans, en 2023 : quatre étiquettes collector, trois de C215 et une de Claude Viallat.' },
-      { t: 'En grande surface, il existe aussi en 70 cl.' },
     ],
     conseil: '1 volume de sirop pour 8 à 10 volumes d’eau plate ou gazeuse.',
   },
@@ -132,7 +134,6 @@ const P = {
     notes: [
       { t: 'Créé en 1995, il succède à la menthe bleue « Aurélie », fabriquée depuis les années 1960.' },
       { t: 'Sa fiche le présente comme « le sirop de menthe bleu le plus populaire en Provence ».' },
-      { t: 'En grande surface, il existe en 70 cl et en 1 L.' },
     ],
     conseil: '1 volume de sirop pour 8 à 10 volumes d’eau.',
   },
@@ -296,13 +297,17 @@ const P = {
   'verveine-auguste-vieilli': {
     nom: 'Verveine Auguste vieilli',
     lignes: ['Verveine', 'Auguste'],
-    type: 'Liqueur de verveine',
+    type: 'Liqueur de verveine vieillie en fût de chêne',
     habillage: 'ventoux',
     famille: 'fleurs-plantes',
-    liquide: '#8aa63a',
+    liquide: '#5f7a26',
     bouteille: 'liqueur',
     bouchon: '#3f5a1a',
-    notes: [{ t: 'La maison dit avoir fabriqué de la verveine dès le début des années 1880.' }],
+    notes: [
+      { t: 'D’après sa fiche : une eau-de-vie de verveine et une macération des feuilles de plus de neuf mois, puis un vieillissement en fût de chêne.' },
+      { t: 'Bouteilles numérotées à la main, en hommage à Auguste Blachère.' },
+      { t: 'La maison dit avoir fabriqué de la verveine dès le début des années 1880.' },
+    ],
   },
   'eau-de-vie-poire-williams-flirt': {
     nom: 'Eau-de-vie Poires Williams « Flirt® »',
@@ -359,7 +364,7 @@ const P = {
   'la-magistrale': {
     nom: 'La Magistrale',
     lignes: ['La', 'Magistrale'],
-    type: 'Eau d’arquebuse',
+    type: 'Eau-de-vie de plantes (eau d’arquebuse)',
     famille: 'fleurs-plantes',
     liquide: '#a3ad5c',
     bouteille: 'apothicaire',
@@ -381,7 +386,7 @@ const P = {
     habillage: 'ventoux',
     notes: [
       { t: 'Marque déposée à l’INPI par la maison le 29 mai 2000.' },
-      { t: 'Vendue par un caviste ; absente du site actuel.' },
+      { t: 'Absente du site actuel.' },
       { t: 'À ne pas confondre avec les millésimes de vieux marc « Elixir® ».' },
     ],
   },
@@ -394,7 +399,7 @@ const P = {
     bouteille: 'liqueur',
     bouchon: '#6e5c9e',
     habillage: 'ventoux',
-    notes: [{ t: 'Vue seulement chez des revendeurs ; absente du site actuel.' }],
+    notes: [{ t: 'L’office de tourisme du Vaucluse (Provence Guide) la cite parmi les nouvelles créations de la distillerie ; absente du site actuel.' }],
   },
   'creme-de-chataigne': {
     nom: 'Crème de châtaigne',
@@ -465,8 +470,7 @@ export const euro = (n) => `${n.toFixed(2).replace('.', ',')} €`;
 
 export const products = catalogue.produits.map((c, index) => {
   const e = P[c.slug] || {};
-  // Crème de châtaigne : pas de gamme dans le catalogue officiel, rangée avec les liqueurs régionales.
-  const gamme = GAMME_DU_CATALOGUE[c.gamme] || (c.categorie === 'Crèmes' ? 'liqueurs-regionales' : undefined);
+  const gamme = GAMME_DU_CATALOGUE[c.gamme] || (c.categorie === 'Crèmes' ? 'cremes-eaux-de-vie' : undefined);
   const g = GAMMES.find((x) => x.id === gamme);
   const alcool = c.categorie !== 'Sirops';
   const contenances = c.contenances.map((k) => ({ ...k, prixTexte: k.prix !== null ? euro(k.prix) : null }));
@@ -501,6 +505,9 @@ export const products = catalogue.produits.map((c, index) => {
     // « boutique » : disponible à la boutique de la distillerie, présence à confirmer, hors panier.
     disponibilite: c.disponibilite || 'en-ligne',
     enLigne: (c.disponibilite || 'en-ligne') === 'en-ligne',
+    // formats vus seulement en grande surface ou chez des revendeurs : jamais vendus en ligne
+    formatsAilleurs: c.formatsAilleurs || [],
+    citationCaviste: c.citationCaviste || null,
     notes: e.notes || [],
     conseil: e.conseil || null,
     ...palette(e.liquide || '#c9a24a'),
@@ -520,6 +527,16 @@ export const products = catalogue.produits.map((c, index) => {
 export const bySlug = Object.fromEntries(products.map((p) => [p.slug, p]));
 
 export const DISPO_BOUTIQUE = 'Disponible à la boutique de la distillerie';
+
+// « Aussi en 70 cl en grande surface » : formats vus hors du site officiel, jamais vendus en ligne.
+export function formatsAilleursTexte(p) {
+  if (!p.formatsAilleurs?.length) return null;
+  const groups = {};
+  p.formatsAilleurs.forEach((f) => (groups[f.ou] ||= []).push(f.volume));
+  return Object.entries(groups)
+    .map(([ou, v]) => `${p.enLigne ? 'Aussi' : 'Vu'} en ${v.join(' et en ')} ${ou}`)
+    .join(' ; ');
+}
 
 // Plus petit prix officiel connu (« à partir de »), ou null.
 export const minPrice = (p) => {

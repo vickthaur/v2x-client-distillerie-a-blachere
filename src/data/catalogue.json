@@ -1,5 +1,5 @@
 {
-  "_source": "Recherche V2X Studio, blachere_catalogue.json (collecte du 2026-10-14). Généré par scripts/import-catalogue.mjs : ne pas modifier à la main.",
+  "_source": "Recherche V2X Studio, blachere_catalogue.json et blachere_catalogue_complement.json (collecte du 2026-10-14). Généré par scripts/import-catalogue.mjs : ne pas modifier à la main.",
   "produits": [
     {
       "slug": "pac-citron",
@@ -20,6 +20,13 @@
       "ingredients": null,
       "bestSeller": true,
       "url": "https://www.distillerieablachere.com/fr/boutique/sirop/pac-citron_158",
+      "formatsAilleurs": [
+        {
+          "volume": "70 cl",
+          "ou": "en grande surface"
+        }
+      ],
+      "citationCaviste": null,
       "presence": "fiche",
       "certitude": "élevée",
       "disponibilite": "en-ligne"
@@ -43,6 +50,13 @@
       "ingredients": "Sirop de sucre, essence de menthe, colorant E131",
       "bestSeller": true,
       "url": "https://www.distillerieablachere.com/fr/boutique/sirop/fun-blue_159",
+      "formatsAilleurs": [
+        {
+          "volume": "70 cl",
+          "ou": "en grande surface"
+        }
+      ],
+      "citationCaviste": null,
       "presence": "fiche",
       "certitude": "élevée",
       "disponibilite": "en-ligne"
@@ -66,6 +80,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique//sirop-couleur-provence-cola_52?f%5B%5D=23",
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "fiche",
       "certitude": "élevée",
       "disponibilite": "en-ligne"
@@ -89,6 +105,13 @@
       "ingredients": null,
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique//sirop-couleur-provence-orgeat_12?f%5B%5D=23",
+      "formatsAilleurs": [
+        {
+          "volume": "70 cl",
+          "ou": "en grande surface"
+        }
+      ],
+      "citationCaviste": null,
       "presence": "fiche",
       "certitude": "élevée",
       "disponibilite": "en-ligne"
@@ -112,6 +135,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique//sirop-grenadine-couleur-provence_49?f%5B%5D=23",
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "fiche",
       "certitude": "élevée",
       "disponibilite": "en-ligne"
@@ -136,6 +161,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique//sirop-couleur-provence-figue_62?f%5B%5D=21",
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "fiche",
       "certitude": "moyenne",
       "disponibilite": "en-ligne"
@@ -160,6 +187,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique//sirop-couleur-provence-violette_57?f%5B%5D=21",
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "fiche",
       "certitude": "moyenne",
       "disponibilite": "en-ligne"
@@ -183,6 +212,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique//sirop-couleur-provence-reglisse_61?f%5B%5D=21",
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "fiche",
       "certitude": "élevée",
       "disponibilite": "en-ligne"
@@ -207,6 +238,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique//sirop-couleur-provence-kiwi_60?f%5B%5D=21",
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "fiche",
       "certitude": "moyenne",
       "disponibilite": "en-ligne"
@@ -230,6 +263,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique//sirop-d-orgeat_45?f%5B%5D=21",
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "fiche",
       "certitude": "élevée",
       "disponibilite": "en-ligne"
@@ -253,6 +288,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique//sirop-d-orgeat_46?f%5B%5D=21",
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "fiche",
       "certitude": "élevée",
       "disponibilite": "en-ligne"
@@ -263,13 +300,22 @@
       "categorie": "Sirops",
       "gamme": "Couleur Provence®",
       "arome": "fraise, barbe à papa",
-      "contenances": [],
+      "contenances": [
+        {
+          "volume": "70 cl",
+          "ml": 700,
+          "prix": 5.6,
+          "aVerifier": true
+        }
+      ],
       "degre": null,
       "citation": null,
       "citationLangue": null,
       "ingredients": "(extrait) colorants : E163 et E161b",
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique//sirop-fraise-barbe-a-papa_58?f%5B%5D=21",
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "fiche",
       "certitude": "moyenne",
       "disponibilite": "en-ligne"
@@ -287,6 +333,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique//sucre-de-canne_63?f%5B%5D=23",
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "fiche",
       "certitude": "moyenne",
       "disponibilite": "en-ligne"
@@ -310,6 +358,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": null,
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "liste",
       "certitude": "élevée",
       "disponibilite": "en-ligne"
@@ -333,6 +383,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": null,
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "liste",
       "certitude": "élevée",
       "disponibilite": "en-ligne"
@@ -357,6 +409,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": null,
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "liste",
       "certitude": "moyenne",
       "disponibilite": "en-ligne"
@@ -380,6 +434,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": null,
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "liste",
       "certitude": "élevée",
       "disponibilite": "en-ligne"
@@ -403,6 +459,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": null,
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "liste",
       "certitude": "élevée",
       "disponibilite": "en-ligne"
@@ -426,6 +484,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": null,
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "liste",
       "certitude": "élevée",
       "disponibilite": "en-ligne"
@@ -449,6 +509,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": null,
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "liste",
       "certitude": "élevée",
       "disponibilite": "en-ligne"
@@ -472,6 +534,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": null,
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "liste",
       "certitude": "élevée",
       "disponibilite": "en-ligne"
@@ -495,6 +559,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": null,
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "liste",
       "certitude": "élevée",
       "disponibilite": "en-ligne"
@@ -518,6 +584,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": null,
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "liste",
       "certitude": "élevée",
       "disponibilite": "en-ligne"
@@ -541,6 +609,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": null,
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "liste",
       "certitude": "élevée",
       "disponibilite": "en-ligne"
@@ -564,6 +634,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": null,
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "liste",
       "certitude": "élevée",
       "disponibilite": "en-ligne"
@@ -587,6 +659,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": null,
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "liste",
       "certitude": "élevée",
       "disponibilite": "en-ligne"
@@ -610,6 +684,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": null,
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "liste",
       "certitude": "élevée",
       "disponibilite": "en-ligne"
@@ -633,6 +709,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": null,
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "liste",
       "certitude": "élevée",
       "disponibilite": "en-ligne"
@@ -657,6 +735,8 @@
       "ingredients": "Eau, Alcool, Sucre, Essence de Badiane 2°/00, Macération de Réglisse de Bois, Alcoolat de plantes et épices, colorant : Caramel E150b",
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique/pastis/pastis-marra_16",
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "fiche",
       "certitude": "moyenne",
       "disponibilite": "en-ligne"
@@ -681,6 +761,13 @@
       "ingredients": null,
       "bestSeller": false,
       "url": null,
+      "formatsAilleurs": [
+        {
+          "volume": "1 L",
+          "ou": "chez un revendeur"
+        }
+      ],
+      "citationCaviste": null,
       "presence": "mention",
       "certitude": "moyenne",
       "disponibilite": "en-ligne"
@@ -698,6 +785,13 @@
       "ingredients": null,
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique/les-aperitifs/aperitif-vin-et-peche-lou-gardian-_134",
+      "formatsAilleurs": [
+        {
+          "volume": "75 cl",
+          "ou": "chez des cavistes"
+        }
+      ],
+      "citationCaviste": null,
       "presence": "fiche",
       "certitude": "moyenne",
       "disponibilite": "en-ligne"
@@ -722,6 +816,13 @@
       "ingredients": "Eau, Alcool, Sucre, Alcoolat de plantes et épices dont : Thym, Anis, Serpolet, Origan… Caramel : E150a",
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique/les-regionales/la-camarguaise-_131",
+      "formatsAilleurs": [
+        {
+          "volume": "50 cl",
+          "ou": "chez des cavistes"
+        }
+      ],
+      "citationCaviste": null,
       "presence": "fiche",
       "certitude": "moyenne",
       "disponibilite": "en-ligne"
@@ -729,8 +830,8 @@
     {
       "slug": "la-magistrale",
       "nomOfficiel": "La Magistrale",
-      "categorie": "Liqueurs régionales",
-      "gamme": "Les Régionales",
+      "categorie": "Eaux-de-vie de plantes",
+      "gamme": "Les Crèmes et Eaux de Vie",
       "arome": "eau d'arquebuse (plantes)",
       "contenances": [],
       "degre": null,
@@ -739,6 +840,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": null,
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "mention",
       "certitude": "faible",
       "disponibilite": "boutique"
@@ -756,6 +859,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": null,
+      "formatsAilleurs": [],
+      "citationCaviste": "liqueur créée en 1850, obtenue par distillation, macération et infusion de plus de 40 plantes et épices",
       "presence": "absent",
       "certitude": "faible",
       "disponibilite": "boutique"
@@ -773,6 +878,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": null,
+      "formatsAilleurs": [],
+      "citationCaviste": "« la liqueur historique du Vaucluse »",
       "presence": "mention",
       "certitude": "faible",
       "disponibilite": "boutique"
@@ -790,6 +897,17 @@
       "ingredients": null,
       "bestSeller": false,
       "url": null,
+      "formatsAilleurs": [
+        {
+          "volume": "70 cl",
+          "ou": "chez des cavistes"
+        },
+        {
+          "volume": "50 cl",
+          "ou": "chez des cavistes"
+        }
+      ],
+      "citationCaviste": null,
       "presence": "absent",
       "certitude": "faible",
       "disponibilite": "boutique"
@@ -800,13 +918,22 @@
       "categorie": "Liqueurs régionales",
       "gamme": "Les Régionales",
       "arome": "verveine",
-      "contenances": [],
-      "degre": null,
-      "citation": null,
-      "citationLangue": null,
+      "contenances": [
+        {
+          "volume": "50 cl",
+          "ml": 500,
+          "prix": null,
+          "volumeRevendeur": true
+        }
+      ],
+      "degre": 43,
+      "citation": "Cuvée prestige produite à 2000 exemplaires par an, en hommage à Auguste Blachère notre ancêtre.",
+      "citationLangue": "fr",
       "ingredients": null,
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique/132/verveine-auguste-vieilli-",
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "fiche",
       "certitude": "moyenne",
       "disponibilite": "en-ligne"
@@ -824,6 +951,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": null,
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "absent",
       "certitude": "faible",
       "disponibilite": "boutique"
@@ -832,7 +961,7 @@
       "slug": "creme-de-chataigne",
       "nomOfficiel": "Crème de châtaigne",
       "categorie": "Crèmes",
-      "gamme": null,
+      "gamme": "Les Crèmes et Eaux de Vie",
       "arome": "châtaigne",
       "contenances": [],
       "degre": null,
@@ -841,6 +970,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": null,
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "mention",
       "certitude": "faible",
       "disponibilite": "boutique"
@@ -849,7 +980,7 @@
       "slug": "eau-de-vie-poire-williams-flirt",
       "nomOfficiel": "Eau de vie Poires Williams « FLIRT® »",
       "categorie": "Eaux-de-vie de fruits",
-      "gamme": "Eaux-de-vie de fruits",
+      "gamme": "Les Crèmes et Eaux de Vie",
       "arome": "poire Williams",
       "contenances": [
         {
@@ -864,6 +995,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": "https://www.distillerieablachere.com/fr/boutique/127/poires-williams-blachere-43vol",
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "fiche",
       "certitude": "élevée",
       "disponibilite": "en-ligne"
@@ -888,6 +1021,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": null,
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "liste",
       "certitude": "moyenne",
       "disponibilite": "en-ligne"
@@ -905,6 +1040,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": null,
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "liste",
       "certitude": "faible",
       "disponibilite": "boutique"
@@ -922,6 +1059,8 @@
       "ingredients": null,
       "bestSeller": false,
       "url": null,
+      "formatsAilleurs": [],
+      "citationCaviste": null,
       "presence": "mention",
       "certitude": "faible",
       "disponibilite": "boutique"
