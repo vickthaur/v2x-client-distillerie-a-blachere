@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Distillerie A. Blachère · Sirops et spiritueux depuis 1835, Châteauneuf-du-Pape</title>
+    <meta name="description" content="La plus ancienne distillerie de Provence, à Châteauneuf-du-Pape depuis 1993 : PAC Citron, Fun Blue et une trentaine de sirops, pastis, liqueurs et marcs. Visites sur réservation." />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#2b1f00" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Distillerie A. Blachère" />
+    <meta property="og:title" content="Distillerie A. Blachère · maquette de refonte" />
+    <meta property="og:description" content="Depuis 1835. Les sirops pour tout le monde, les spiritueux pour les majeurs, les visites sur réservation." />
+    <meta property="og:image" content="https://v2x-client-distillerie-a-blachere.vercel.app/og.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Bouteilles de PAC Citron et Fun Blue en 3D, Distillerie A. Blachère" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        "name": "Distillerie A. Blachère",
+        "foundingDate": "1835",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "1695 route de Sorgues",
+          "postalCode": "84230",
+          "addressLocality": "Châteauneuf-du-Pape",
+          "addressCountry": "FR"
+        }
+      }
+    </script>
+    <link rel="stylesheet" href="/src/styles.css" />
+    <link rel="stylesheet" href="/v2x/proposition.css" />
+  </head>
+  <body class="is-loading">
+    <a class="skip" href="#contenu">Aller au contenu</a>
+    <noscript>
+      <div class="noscript">
+        <h1>Distillerie A. Blachère, depuis 1835</h1>
+        <p>La plus ancienne distillerie de Provence, à Châteauneuf-du-Pape : PAC Citron, Fun Blue et une trentaine de sirops.</p>
+        <p>1695 route de Sorgues, 84230 Châteauneuf-du-Pape. Visite gratuite sur réservation.</p>
+        <p>Activez JavaScript pour découvrir les bouteilles en 3D.</p>
+      </div>
+    </noscript>
+
+    <div class="loader" id="loader" aria-hidden="true">
+      <div class="loader__logo"><span>A. Blachère</span></div>
+      <div class="loader__sub">Distillerie · depuis 1835</div>
+      <div class="loader__count"><span id="loader-count">0</span>%</div>
+      <div class="loader__bar"><span id="loader-bar"></span></div>
+    </div>
+
+    <!-- Fond CSS : visible avant la 3D et quand WebGL n'est pas disponible -->
+    <div class="backdrop" aria-hidden="true"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div>
+    <div class="marquee" aria-hidden="true"><div class="marquee__track" id="marquee"></div></div>
+    <canvas id="webgl" aria-hidden="true"></canvas>
+    <div class="fallback-bottle" id="fallback-bottle" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+
+    <div class="frame" aria-hidden="true">
+      <span class="frame__progress"><span id="scroll-progress"></span></span>
+      <i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>
+    </div>
+
+    <header class="hud">
+      <div class="hud__left">
+        <div class="switch" role="group" aria-label="Choisir un univers">
+          <button type="button" class="switch__btn" data-univers="sirops" aria-pressed="true">Sirops</button>
+          <button type="button" class="switch__btn" data-univers="spiritueux" aria-pressed="false">Spiritueux <span class="switch__badge">18+</span></button>
+        </div>
+      </div>
+      <a href="#top" class="hud__logo" aria-label="Distillerie A. Blachère, retour en haut">
+        <span class="hud__logo-a">A.&nbsp;Blachère</span>
+        <span class="hud__logo-b">Distillerie · 1835</span>
+      </a>
+      <div class="hud__right">
+        <button type="button" class="hud__cart" id="cart-open" aria-label="Panier, 0 article">
+          <span class="hud__cart-icon" data-icon="bag"></span><span class="hud__cart-count" id="cart-count">0</span>
+        </button>
+        <button type="button" class="hud__menu" id="menu-open" aria-expanded="false" aria-controls="menu">
+          <span class="dots" aria-hidden="true"><i></i><i></i><i></i><i></i></span> Menu
+        </button>
+        <a class="btn btn--light hud__cta" href="#visites">Réserver une visite</a>
+      </div>
+    </header>
+
+    <nav class="menu" id="menu" aria-label="Menu principal" inert>
+      <button type="button" class="menu__close" id="menu-close" aria-label="Fermer le menu"></button>
+      <ul>
+        <li><a href="#top" data-menu-link><span>La gamme</span></a></li>
+        <li><a href="#histoire" data-menu-link><span>1835 → 2035</span></a></li>
+        <li><a href="#univers" data-menu-link><span>Deux univers</span></a></li>
+        <li><a href="#boutique" data-menu-link><span>Boutique</span></a></li>
+        <li><a href="#visites" data-menu-link><span>Visites</span></a></li>
+        <li><a href="#pro" data-menu-link><span>Espace pro</span></a></li>
+      </ul>
+      <div class="menu__foot">
+        <span>1695 route de Sorgues · 84230 Châteauneuf-du-Pape</span>
+        <a href="#visites" data-menu-link>Réserver une visite →</a>
+      </div>
+    </nav>
+
+    <main id="top">
+      <!-- HÉROS : carrousel des bouteilles -->
+      <section class="hero" id="gamme" aria-labelledby="hero-title">
+        <h1 class="sr-only" id="hero-title">Distillerie A. Blachère, sirops et spiritueux depuis 1835 à Châteauneuf-du-Pape</h1>
+        <button type="button" class="hero__arrow hero__arrow--l" id="prev" aria-label="Produit précédent"></button>
+        <button type="button" class="hero__arrow hero__arrow--r" id="next" aria-label="Produit suivant"></button>
+
+        <div class="hero__bottom">
+          <p class="hero__kicker" id="hero-kicker"></p>
+          <p class="hero__name" id="hero-name" aria-live="polite"></p>
+          <p class="hero__tagline" id="hero-tagline"></p>
+          <div class="selector" id="selector">
+            <div class="selector__track" id="selector-track"></div>
+            <div class="selector__groups" id="selector-groups" aria-hidden="true"></div>
+            <div class="selector__knob" id="selector-knob"></div>
+          </div>
+          <div class="chips" id="chips" role="group" aria-label="Choisir un produit"></div>
+          <p class="hero__hint">Scroller pour découvrir</p>
+        </div>
+        <p class="hero__evin evin" id="hero-evin" hidden></p>
+      </section>
+
+      <!-- GROS PLAN : la bouteille et son histoire -->
+      <section class="story" id="decouvrir" aria-label="La bouteille en détail">
+        <div class="story__sticky">
+          <div class="story__intro" id="story-intro">
+            <p class="eyebrow" id="story-kind"></p>
+            <h2 class="display" id="story-name"></h2>
+            <p class="story__desc corners" id="story-desc"></p>
+            <ul class="story__notes" id="story-notes"></ul>
+            <p class="story__evin evin" id="story-evin" hidden></p>
+          </div>
+          <div class="story__chapters" id="story-chapters"></div>
+          <nav class="story__nav" id="story-nav" aria-label="Chapitres"></nav>
+        </div>
+      </section>
+
+      <div class="band" aria-hidden="true"><div class="band__track" id="band"></div></div>
+
+      <div id="contenu"></div>
+
+      <!-- HISTOIRE : de 1835 à 2035 -->
+      <section class="history section" id="histoire" aria-labelledby="histoire-titre">
+        <div class="history__head">
+          <div>
+            <p class="eyebrow">Notre histoire</p>
+            <h2 class="display" id="histoire-titre">De 1835<br /><span class="serif">à</span> <span class="grad">2035</span></h2>
+          </div>
+          <p class="lead">
+            Fondée à Avignon en 1835, installée à Châteauneuf-du-Pape depuis 1993, la Distillerie A. Blachère se présente comme
+            <strong>la plus ancienne distillerie de Provence</strong>. Huit générations plus tard, elle approche de son bicentenaire.
+          </p>
+        </div>
+        <div class="history__pin" id="history-pin">
+          <p class="history__caption" aria-hidden="true"><span>Rue Molière, Avignon</span><span>Châteauneuf-du-Pape</span></p>
+          <div class="history__rail" aria-hidden="true"><span id="history-progress"></span></div>
+          <ol class="history__track" id="timeline"></ol>
+        </div>
+        <p class="history__evin evin" id="history-evin" hidden></p>
+      </section>
+
+      <!-- DEUX UNIVERS -->
+      <section class="universes section section--light" id="univers" aria-labelledby="univers-titre">
+        <div class="section__head section__head--row" data-reveal>
+          <div>
+            <p class="eyebrow">Deux univers</p>
+            <h2 class="display" id="univers-titre">Une maison,<br /><span class="serif grad">deux univers.</span></h2>
+          </div>
+          <p class="lead">Les sirops sont pour tout le monde, petits et grands. Les spiritueux sont réservés aux personnes majeures.</p>
+        </div>
+        <div class="universes__grid">
+          <article class="uni uni--sirops" data-reveal>
+            <p class="uni__tag">Tout public · sans alcool</p>
+            <h3 class="uni__title">Les sirops</h3>
+            <p class="uni__text">PAC Citron, Fun Blue et la gamme Couleur Provence : une trentaine de sirops au total, à allonger d’eau fraîche.</p>
+            <ul class="uni__list">
+              <li><strong>PAC Citron</strong> 100 % naturel au jus de citron, sans colorant ni conservateur</li>
+              <li><strong>Fun Blue</strong> sirop menthe bleue</li>
+              <li><strong>Couleur Provence</strong> la gamme de sirops de la maison</li>
+            </ul>
+            <button type="button" class="btn btn--dark" data-goto-univers="sirops">Voir les sirops</button>
+          </article>
+          <article class="uni uni--spiritueux" id="uni-spiritueux" data-reveal aria-live="polite"></article>
+        </div>
+      </section>
+
+      <!-- BOUTIQUE (aperçu) -->
+      <section class="shop section" id="boutique" aria-labelledby="boutique-titre">
+        <div class="section__head section__head--row" data-reveal>
+          <div>
+            <p class="eyebrow">Boutique</p>
+            <h2 class="display" id="boutique-titre">À emporter<br /><span class="serif grad">chez vous.</span></h2>
+          </div>
+          <p class="lead">Les incontournables de la maison, à commander en ligne. Votre panier vous attend en haut à droite.</p>
+        </div>
+        <div class="shop__grid" id="shop-grid"></div>
+        <p class="shop__note" id="shop-note"></p>
+      </section>
+
+      <!-- VISITES & DÉGUSTATIONS -->
+      <section class="visits section section--light" id="visites" aria-labelledby="visites-titre">
+        <div class="visits__grid">
+          <div class="visits__intro" data-reveal>
+            <p class="eyebrow">Visites &amp; dégustations</p>
+            <h2 class="display" id="visites-titre">Venez à la<br /><span class="serif grad">distillerie.</span></h2>
+            <ul class="facts">
+              <li><span class="facts__icon" data-icon="people"></span><span><strong>Visite gratuite</strong>, sur réservation</span></li>
+              <li><span class="facts__icon" data-icon="glass"></span><span><strong>Groupes : 5 € par personne</strong>, avec dégustation</span></li>
+              <li><span class="facts__icon" data-icon="store"></span><span><strong>Boutique</strong> d’octobre à mars, du lundi au samedi, de 10&nbsp;h à 18&nbsp;h</span></li>
+              <li><span class="facts__icon" data-icon="pin"></span><span>1695 route de Sorgues, 84230 Châteauneuf-du-Pape</span></li>
+            </ul>
+            <p class="visits__more">Réservez en ligne en quelques secondes : la distillerie confirme ensuite le créneau.</p>
+          </div>
+
+          <form class="form card-form" id="visit-form" novalidate aria-labelledby="visit-form-title" data-reveal>
+            <h3 class="card-form__title" id="visit-form-title">Réserver une visite</h3>
+            <fieldset class="seg">
+              <legend>Type de visite</legend>
+              <label class="seg__opt"><input type="radio" name="type" value="individuel" checked /><span><strong>Individuel</strong><small>Gratuit</small></span></label>
+              <label class="seg__opt"><input type="radio" name="type" value="groupe" /><span><strong>Groupe</strong><small>5 € / pers., dégustation</small></span></label>
+            </fieldset>
+            <div class="form__row">
+              <label class="field"><span>Date</span><input type="date" name="date" id="visit-date" required /></label>
+              <label class="field">
+                <span>Créneau</span>
+                <select name="creneau" required>
+                  <option value="">Choisir…</option>
+                  <option>Matin</option>
+                  <option>Début d’après-midi</option>
+                  <option>Fin d’après-midi</option>
+                </select>
+              </label>
+            </div>
+            <label class="field field--qty">
+              <span>Nombre de personnes</span>
+              <span class="qty">
+                <button type="button" class="qty__btn" data-qty="-1" aria-label="Une personne de moins"></button>
+                <input type="number" name="personnes" id="visit-qty" value="2" min="1" max="99" inputmode="numeric" required />
+                <button type="button" class="qty__btn" data-qty="1" aria-label="Une personne de plus"></button>
+              </span>
+            </label>
+            <p class="visit-total" id="visit-total" aria-live="polite"></p>
+            <div class="form__row">
+              <label class="field"><span>Nom</span><input name="nom" autocomplete="name" required /></label>
+              <label class="field"><span>E-mail ou téléphone</span><input name="contact" autocomplete="email" required /></label>
+            </div>
+            <label class="field"><span>Message (facultatif)</span><textarea name="message" rows="2"></textarea></label>
+            <button class="btn btn--accent" type="submit">Demander ce créneau</button>
+            <p class="form__msg" role="status"></p>
+            <p class="form__fine">Maquette : rien n’est envoyé. Sur le site en ligne, la demande arrivera directement à la distillerie.</p>
+          </form>
+        </div>
+      </section>
+
+      <!-- ESPACE PRO -->
+      <section class="pro section" id="pro" aria-labelledby="pro-titre">
+        <div class="pro__card">
+          <div class="pro__pitch" data-reveal>
+            <p class="eyebrow">Espace pro</p>
+            <h2 class="display" id="pro-titre">Cafés, caves,<br /><span class="serif grad">épiceries fines.</span></h2>
+            <p class="pro__lead">Vous tenez un café-restaurant, une cave ou une épicerie fine ? Demandez les conditions professionnelles et les fiches produits : la distillerie revient vers vous.</p>
+            <ul class="pro__list">
+              <li>Cafés, hôtels, restaurants</li>
+              <li>Cavistes</li>
+              <li>Épiceries fines</li>
+            </ul>
+          </div>
+          <form class="form" id="pro-form" novalidate aria-labelledby="pro-form-title">
+            <h3 class="sr-only" id="pro-form-title">Demande professionnelle</h3>
+            <div class="form__row">
+              <label class="field"><span>Établissement</span><input name="etablissement" autocomplete="organization" required /></label>
+              <label class="field">
+                <span>Activité</span>
+                <select name="activite" required>
+                  <option value="">Choisir…</option>
+                  <option>Café, hôtel, restaurant</option>
+                  <option>Caviste</option>
+                  <option>Épicerie fine</option>
+                  <option>Autre commerce</option>
+                </select>
+              </label>
+            </div>
+            <div class="form__row">
+              <label class="field"><span>Ville</span><input name="ville" autocomplete="address-level2" required /></label>
+              <label class="field"><span>Nom</span><input name="nom" autocomplete="name" required /></label>
+            </div>
+            <div class="form__row">
+              <label class="field"><span>E-mail</span><input name="email" type="email" autocomplete="email" required /></label>
+              <label class="field"><span>Téléphone (facultatif)</span><input name="tel" type="tel" autocomplete="tel" inputmode="tel" /></label>
+            </div>
+            <fieldset class="checks" id="pro-gammes">
+              <legend>Ce qui vous intéresse</legend>
+            </fieldset>
+            <label class="field"><span>Message (facultatif)</span><textarea name="message" rows="3"></textarea></label>
+            <button class="btn btn--accent" type="submit">Envoyer ma demande</button>
+            <p class="form__msg" role="status"></p>
+            <p class="form__fine">Maquette : rien n’est envoyé.</p>
+          </form>
+        </div>
+      </section>
+
+      <!-- NOUS TROUVER -->
+      <section class="where section section--light" id="infos" aria-labelledby="infos-titre">
+        <div class="where__grid">
+          <div data-reveal>
+            <p class="eyebrow">Nous trouver</p>
+            <h2 class="where__address" id="infos-titre">1695 route de Sorgues<br /><span class="serif grad">84230 Châteauneuf-du-Pape</span></h2>
+            <div class="where__actions">
+              <a class="btn btn--dark" id="route-link" href="#" target="_blank" rel="noopener">Itinéraire <span class="sr-only">(OpenStreetMap, nouvel onglet)</span></a>
+              <a class="btn btn--ghost-dark" href="#visites">Réserver une visite</a>
+            </div>
+          </div>
+          <dl class="where__hours" data-reveal>
+            <div><dt>Boutique</dt><dd>D’octobre à mars<br />du lundi au samedi<br /><strong>10 h – 18 h</strong></dd></div>
+            <div><dt>Visites</dt><dd>Gratuites, sur réservation<br />Groupes : 5 € / pers. avec dégustation</dd></div>
+          </dl>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <div class="footer__cols">
+          <div class="footer__brand">
+            <p class="footer__title">Distillerie A. Blachère</p>
+            <p>Depuis 1835. À Châteauneuf-du-Pape, au milieu des vignes, depuis 1993.</p>
+            <p class="footer__evin evin" id="footer-evin" hidden></p>
+          </div>
+          <div>
+            <p class="footer__h">Découvrir</p>
+            <a href="#top">La gamme</a><a href="#histoire">1835 → 2035</a><a href="#boutique">Boutique</a><a href="#visites">Visites</a><a href="#pro">Espace pro</a>
+          </div>
+          <div>
+            <p class="footer__h">La distillerie</p>
+            <p>1695 route de Sorgues<br />84230 Châteauneuf-du-Pape</p>
+            <p>Boutique : d’octobre à mars, du lundi au samedi, 10&nbsp;h&nbsp;–&nbsp;18&nbsp;h</p>
+          </div>
+        </div>
+        <div class="footer__logo" aria-hidden="true">BLACHÈRE</div>
+        <p class="footer__legal">
+          <span>© <span id="year"></span> Distillerie A. Blachère · Maquette non officielle réalisée par V2X Studio</span>
+          <span class="footer__links"><a href="/mentions-legales">Mentions légales</a><button type="button" id="age-reset">Revoir la vérification de l’âge</button></span>
+        </p>
+      </footer>
+    </main>
+
+    <!-- Vérification de l'âge (spiritueux) -->
+    <dialog class="gate" id="gate" aria-labelledby="gate-title" aria-describedby="gate-text">
+      <div class="gate__in">
+        <p class="gate__brand">Distillerie A. Blachère · depuis 1835</p>
+        <div class="gate__ask" id="gate-ask">
+          <h2 class="gate__title" id="gate-title">Bienvenue à la distillerie</h2>
+          <p class="gate__text" id="gate-text">Nos sirops sont pour tout le monde. Pour voir nos <strong>spiritueux</strong>, indiquez votre date de naissance : ils sont réservés aux personnes majeures.</p>
+          <form class="gate__form" id="gate-form" novalidate>
+            <fieldset class="dob">
+              <legend>Date de naissance</legend>
+              <label><span>Jour</span><input name="jour" inputmode="numeric" autocomplete="bday-day" maxlength="2" placeholder="JJ" required /></label>
+              <label><span>Mois</span><input name="mois" inputmode="numeric" autocomplete="bday-month" maxlength="2" placeholder="MM" required /></label>
+              <label class="dob__y"><span>Année</span><input name="annee" inputmode="numeric" autocomplete="bday-year" maxlength="4" placeholder="AAAA" required /></label>
+            </fieldset>
+            <p class="gate__err" id="gate-err" role="alert"></p>
+            <button class="btn btn--accent gate__go" type="submit">Entrer</button>
+          </form>
+          <button type="button" class="gate__skip" id="gate-skip">Continuer avec les sirops seulement</button>
+        </div>
+        <div class="gate__no" id="gate-no" hidden>
+          <h2 class="gate__title" tabindex="-1">Les spiritueux sont réservés aux personnes majeures</h2>
+          <p class="gate__text">Le site reste ouvert : bonne découverte de nos sirops, de notre histoire et des visites de la distillerie.</p>
+          <button type="button" class="btn btn--accent" id="gate-ok">Voir les sirops</button>
+        </div>
+        <p class="gate__law">L’abus d’alcool est dangereux pour la santé, à consommer avec modération.<br />La vente d’alcool est interdite aux mineurs de moins de 18 ans.</p>
+      </div>
+    </dialog>
+
+    <!-- Panier (maquette) -->
+    <dialog class="drawer" id="cart" aria-labelledby="cart-title">
+      <div class="drawer__in">
+        <div class="drawer__head">
+          <h2 id="cart-title">Votre panier</h2>
+          <button type="button" class="modal__close" id="cart-close" aria-label="Fermer le panier"></button>
+        </div>
+        <ul class="drawer__list" id="cart-list"></ul>
+        <div class="drawer__foot" id="cart-foot"></div>
+      </div>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <a class="mobile-cta" id="mobile-cta" href="#visites">Réserver</a>
+
+    <script type="module" src="/src/main.js"></script>
+    <script src="/v2x/proposition.js" defer></script>
+  </body>
+</html>

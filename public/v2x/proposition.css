@@ -1,0 +1,29 @@
+/* Calque « proposition V2X » (maquette uniquement), repris de la maquette du Domaine de Saje.
+   Les couleurs de Saje sont redéclarées ici pour que le calque reste autonome. */
+.v2x {
+  --ivoire: #f2ece2;
+  --nuit: #110f0e;
+  --encre: #1c1815;
+  --encre-2: #4a423b;
+  --sans: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  position: fixed; left: 14px; bottom: calc(14px + env(safe-area-inset-bottom)); z-index: 200; font: 400 15px/1.5 var(--sans);
+}
+.v2x p { margin: 0; }
+.v2x-pastille { display: inline-flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 16px 0 6px; border: 1px solid rgb(242 236 226 / .16); border-radius: 99px; background: rgb(17 15 14 / .86); color: var(--ivoire); font-size: 13px; font-weight: 500; cursor: pointer; box-shadow: 0 10px 30px -12px rgb(0 0 0 / .6); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.v2x-marque { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--ivoire); color: var(--nuit); font-size: 9.5px; font-weight: 700; }
+.v2x-panneau { position: absolute; left: 0; bottom: 52px; width: min(380px, calc(100vw - 28px)); max-height: calc(100svh - 90px); overflow-y: auto; background: #fff; color: var(--encre); padding: 22px; border-radius: 18px; box-shadow: 0 30px 70px -20px rgb(0 0 0 / .55); color-scheme: light; }
+.v2x-k { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: #7a7068; margin-bottom: 8px; }
+.v2x-t { font-size: 14.5px; line-height: 1.55; color: var(--encre-2); }
+.v2x-boutons { display: grid; gap: 8px; margin: 14px 0 18px; }
+.v2x-boutons a, .v2x-form button { display: flex; justify-content: center; align-items: center; min-height: 46px; border-radius: 99px; font-size: 14px; font-weight: 500; box-shadow: inset 0 0 0 1px rgb(28 24 21 / .16); background: #fff; color: var(--encre); border: 0; cursor: pointer; text-decoration: none; }
+.v2x-boutons a.v2x-plein, .v2x-form button { background: var(--encre); color: #fff; box-shadow: none; }
+.v2x-form { display: grid; gap: 8px; padding-top: 16px; border-top: 1px solid rgb(28 24 21 / .12); }
+.v2x-ligne { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.v2x-form input, .v2x-form select { width: 100%; min-width: 0; min-height: 44px; padding: 8px 12px; border: 0; border-radius: 10px; background: #f1ece4; font-size: 16px; color: var(--encre); font-family: inherit; }
+.v2x-consent { display: flex; gap: 8px; font-size: 13px; color: var(--encre-2); align-items: flex-start; }
+.v2x-etat { font-size: 13px; color: #c0392b; margin: 0; }
+.v2x-pied { font-size: 12px; color: #7a7068; margin: 14px 0 0; }
+.v2x-pied a { color: inherit; }
+.v2x-fermer { position: absolute; top: 8px; right: 10px; width: 36px; height: 36px; border: 0; background: none; font-size: 22px; cursor: pointer; color: var(--encre); }
+.v2x :focus-visible { outline: 2px solid #c98a1c; outline-offset: 2px; }
+body.menu-ouvert .v2x, body.age-ouvert .v2x, body.is-loading .v2x { display: none; }
