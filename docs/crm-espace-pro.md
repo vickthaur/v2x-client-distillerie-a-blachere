@@ -78,10 +78,14 @@ test/                   tests node:test (règles, sécurité, parcours complets)
 - Cookie `bl_demo` : identifiant de la démo, signé (HMAC-SHA256), `HttpOnly; Secure; SameSite=Lax;
   Path=/; Max-Age=30 jours`. Cookie lisible `bl_demo_actif=1` (non `HttpOnly`) pour que les pages
   publiques sachent qu'une démo existe (barre de démo, prix et stocks de la démo).
-- Cookie `bl_session` : `{ sb, uid, v, exp }` en base64url + signature HMAC. `HttpOnly; Secure;
-  SameSite=Lax; Path=/`. Durée : 12 h (personnel), 30 jours si « Rester connecté » (pro). `v` =
-  `sessionVersion` de l'utilisateur : la déconnexion de tous les appareils ou un changement de mot de
-  passe l'incrémente. Une session n'est valable que dans sa démo (`sb` = démo du cookie `bl_demo`).
+- **Deux sessions indépendantes**, pour ouvrir le CRM et l'espace pro côte à côte dans le même
+  navigateur : cookie `bl_crm` (personnel, lu seulement par `api/crm`) et cookie `bl_pro` (client
+  pro, lu seulement par `api/pro`). Contenu : `{ sb, uid, v, exp }` en base64url + signature HMAC
+  (clé dérivée par usage : la signature d'un `bl_crm` n'est pas valable comme `bl_pro`).
+  `HttpOnly; Secure; SameSite=Lax; Path=/`. Durée : 12 h (personnel), 30 jours si « Rester
+  connecté » (pro), sinon cookie de session. `v` = `sessionVersion` de l'utilisateur : la
+  déconnexion de tous les appareils ou un changement de mot de passe l'incrémente. Une session n'est
+  valable que dans sa démo (`sb` = démo du cookie `bl_demo`).
 - Mots de passe : scrypt (N = 16384, r = 8, p = 1, sel de 16 octets), comparaison à temps constant,
   10 caractères au moins. 5 échecs → compte verrouillé 15 minutes (compteur dans le document) ;
   limiteur en mémoire par adresse IP en plus.
@@ -262,19 +266,19 @@ paginées : `?page=1&par=25` → `{ elements, total, page, pages }`. Tris : `?tr
 
 | Méthode | `r` | Corps / paramètres | Réponse |
 |---|---|---|---|
-| GET | `moi` | — | `{ utilisateur: Utilisateur public \| null, compte?: { id, raisonSociale, enseigne }, demo: { active, creeLe?, expireLe? } }` |
-| POST | `connexion` | `{ email, motDePasse, espace: 'crm'\|'pro', resterConnecte? }` | `{ utilisateur, redirection }` |
-| POST | `deconnexion` | — | `{ ok }` |
-| POST | `demo` | `{ profil: 'direction'\|'commercial'\|'logistique'\|'boutique'\|'pro' }` | crée la démo si besoin, connecte → `{ utilisateur, redirection }` |
+| GET | `moi` | `espace=crm\|pro` | `{ utilisateur: Utilisateur public \| null, compte?: { id, raisonSociale, enseigne }, demo: { active, creeLe?, expireLe? } }` |
+| POST | `connexion` | `{ email, motDePasse, espace: 'crm'\|'pro', resterConnecte? }` | pose `bl_crm` ou `bl_pro` → `{ utilisateur, redirection }` (un compte pro sur l'écran du CRM, ou l'inverse, est refusé avec un message qui oriente) |
+| POST | `deconnexion` | `{ espace: 'crm'\|'pro' }` | `{ ok }` |
+| POST | `demo` | `{ profil: 'direction'\|'commercial'\|'logistique'\|'boutique'\|'pro' }` | crée la démo si besoin, connecte dans l'espace correspondant (sans toucher à l'autre session) → `{ utilisateur, redirection }` |
 | POST | `partager` | — (connecté) | `{ lien, expireLe }` |
-| GET | `rejoindre` | `jeton` | 302 vers `/crm` (ou `/espace-pro/accueil`) |
+| GET | `rejoindre` | `jeton`, `vers=crm\|pro` | pose `bl_demo` puis 302 vers `/crm` ou `/espace-pro` (écran de connexion avec les profils de démo) |
 | POST | `reinitialiser` | — (connecté, démo) | remet le jeu de démonstration, garde la session → `{ ok }` |
-| POST | `quitter` | — | efface les cookies de démo et de session → `{ ok }` |
+| POST | `quitter` | — | efface les cookies de démo et des deux sessions → `{ ok }` |
 | POST | `oubli` | `{ email, espace }` | `{ ok, lienDemo? }` (toujours `ok` ; le lien n'est rendu qu'en démo, pour tester) |
 | POST | `reinitialiser-mot-de-passe` | `{ jeton, motDePasse }` | connecte → `{ utilisateur, redirection }` |
 | GET | `invitation` | `jeton` | `{ email, prenom, compte? }` ou 404 |
 | POST | `activer` | `{ jeton, motDePasse }` | connecte → `{ utilisateur, redirection }` |
-| POST | `mot-de-passe` | `{ actuel, nouveau }` | `{ ok }` (incrémente `sessionVersion`, renvoie un nouveau cookie) |
+| POST | `mot-de-passe` | `{ espace, actuel, nouveau }` | `{ ok }` (incrémente `sessionVersion`, renvoie un nouveau cookie) |
 
 `Utilisateur public` = `{ id, prenom, nom, email, role, compteId?, telephone?, derniereConnexion? }`
 + pour le personnel `droits: string[]` (rubriques accessibles, en écriture ou lecture).
