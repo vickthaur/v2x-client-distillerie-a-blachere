@@ -211,7 +211,8 @@ export function creerCommandeParticulier(doc, m, donnees, { canal, par, auteurId
       livraison.relais = { nom: 'Point relais de démonstration', adresse: { ligne1: 'Commerce partenaire le plus proche', cp: donnees.livraison.adresse.cp, ville: donnees.livraison.adresse.ville, pays: 'France' } };
     }
   }
-  const paye = donnees.paiement.statut ? donnees.paiement.statut === 'paye' : donnees.paiement.mode !== 'virement';
+  // payé d'office : carte et PayPal ; virement, à réception, comptant : en attente (sauf mention contraire)
+  const paye = donnees.paiement.statut ? donnees.paiement.statut === 'paye' : ['carte', 'paypal'].includes(donnees.paiement.mode);
   const paiement = { mode: donnees.paiement.mode, statut: paye ? 'paye' : 'en-attente' };
   if (paye) paiement.date = iso(date);
   if (donnees.paiement.mode === 'virement') paiement.reference = `VIR-${idAleatoire('', 6).toUpperCase()}`;
@@ -310,7 +311,7 @@ export function creerCommandePro(doc, m, compte, donnees, { par, auteurId, depui
     canal: 'pro',
     compteId: compte.id,
     auteurId,
-    contact: { nom: par.nom, email: compte.email },
+    contact: { nom: depuisCrm ? compte.enseigne : par.nom, email: compte.email },
     lignes,
     livraison: { mode: 'transporteur', libelle: `Transporteur (${doc.parametres.pro.delai})`, prixHT: port, adresseId: adresse.id, adresse: { ...adresse } },
     paiement: { mode: compte.conditions, statut: 'en-attente' },
@@ -386,11 +387,11 @@ export function seanceVirtuelle(doc, date, moment) {
   return { id: null, date, heure: doc.parametres.visites.horaires[moment], moment, capacite: doc.parametres.visites.capacite, langue: 'fr', statut: 'ouverte' };
 }
 
-// Places restantes d'un jour et d'un moment, à cet instant (0 si fermé, passé ou commencé).
+// Places restantes d'un jour et d'un moment, à cet instant (0 si fermé, passé ou commencé). Une
+// séance ajoutée par l'équipe vaut même un jour habituellement fermé.
 export function restantes(doc, date, moment, instant) {
-  const p = doc.parametres.visites;
-  if (!jourDeVisite(date, p)) return 0;
   const s = seanceDe(doc, date, moment);
+  if (!s && !jourDeVisite(date, doc.parametres.visites)) return 0;
   const sc = s ? seanceComplete(s, doc.parametres) : seanceVirtuelle(doc, date, moment);
   if (instantParis(date, sc.heure).getTime() <= instant.getTime()) return 0;
   return s ? placesRestantes(sc, doc.reservations) : sc.statut === 'fermee' ? 0 : sc.capacite;
@@ -400,7 +401,8 @@ export function creneauxDuJour(doc, date, instant) {
   const h = doc.parametres.visites.horaires;
   const matin = restantes(doc, date, 'matin', instant);
   const apresMidi = restantes(doc, date, 'apres-midi', instant);
-  const ouvert = jourDeVisite(date, doc.parametres.visites) && date >= jourParis(instant);
+  const speciale = MOMENTS.some((mo) => (seanceDe(doc, date, mo)?.statut || 'ouverte') === 'ouverte' && seanceDe(doc, date, mo));
+  const ouvert = (jourDeVisite(date, doc.parametres.visites) || speciale) && date >= jourParis(instant);
   return { date, ouvert, matin: { heure: h.matin, restantes: matin }, apresMidi: { heure: h['apres-midi'], restantes: apresMidi } };
 }
 
@@ -422,11 +424,11 @@ export function reserver(doc, m, donnees, { source, par }) {
   const date = m.maintenant;
   const { date: jour, moment, personnes } = donnees;
   const p = doc.parametres.visites;
-  if (!jourDeVisite(jour, p)) {
+  const existante = seanceDe(doc, jour, moment);
+  if (!existante && !jourDeVisite(jour, p)) {
     throw erreur(400, 'La distillerie ne propose pas de visite ce jour-là (saison du 12 février au 31 décembre, fermé le dimanche).', { champ: 'date', code: 'ferme' });
   }
   const r0 = restantes(doc, jour, moment, date);
-  const existante = seanceDe(doc, jour, moment);
   const commencee = instantParis(jour, existante?.heure || p.horaires[moment]).getTime() <= date.getTime();
   if (commencee) throw erreur(400, 'Cette séance a déjà commencé : choisissez une autre date ou un autre moment.', { champ: 'moment', code: 'passe' });
   if (r0 < personnes) {

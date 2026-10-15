@@ -62,7 +62,8 @@ export class Navigateur {
       if (/Max-Age=0/.test(sc)) this.cookies.delete(k);
       else this.cookies.set(k, v);
     }
-    const texte = res.status === 204 ? '' : await res.text();
+    // décodage sans retirer le BOM (exports CSV)
+    const texte = res.status === 204 ? '' : new TextDecoder('utf-8', { ignoreBOM: true }).decode(await res.arrayBuffer());
     let json = null;
     try {
       json = texte ? JSON.parse(texte) : null;

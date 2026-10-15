@@ -358,46 +358,52 @@ vers l'élément créé, pour le bouton « Voir dans le CRM (démo) ». Adresses
 
 ### `api/crm` (personnel)
 
+Toutes les ressources exigent une session `bl_crm` (sinon 401) et le droit du rôle sur la rubrique
+(sinon 403, avant toute lecture de la saisie). Montants du tableau de bord : **HT**. Un identifiant
+inconnu ou mal formé → 404.
+
 | Méthode | `r` | Détail |
 |---|---|---|
-| GET | `tableau` | `{ ca: { jour, semaine, mois, moisPrecedent, enLigne30, pro30 }, commandes30, panierMoyen30, aTraiter: { commandes, demandes, messages, reservationsJour, facturesEnRetard }, ventes30: [{ date, enLigne, pro }], top: [{ slug, nom, qte, totalHT }], stocksBas: [...], prochainesVisites: [...], activite: Entree[], operation }` — `operation` = `{ id, nom, beneficiaire, debut, fin, enCours: boolean, bouteilles, montant, commandes }` (Octobre Rose : commandes en ligne non annulées ni remboursées dont le jour de Paris est dans la période), présent pendant l'opération et 30 jours après sa fin (virement du don), sinon `null` |
-| GET | `notifications` | `{ commandes, demandes, messages, stocksBas, version }` (version = `updatedAt`) — appelé toutes les 30 s quand l'onglet est visible et actif |
-| POST | `notifications-vues` | marque vu |
-| GET | `recherche` | `q` → `{ resultats: [{ type, id, titre, sousTitre, url }] }` (commandes, clients, comptes, messages, réservations, produits) |
-| GET | `commandes` | `statut, canal, du, au, q, page, par, tri` → liste `{ id, numero, date, canal, client: { nom, type }, articles, totalTTC, paiement, statut, alerte? }` + `compteurs` par statut |
-| GET | `commande` | `id` → Commande complète + `client`/`compte` résumé + `transitions` possibles |
-| POST | `commande` | création manuelle (téléphone / pro) `{ compteId \| client, lignes, livraison, paiement, note }` |
-| PATCH | `commande` | `id`, `{ statut?, suivi?, note?, paiementStatut?, factureStatut? }` |
-| POST | `commandes-statut` | `{ ids, statut }` (actions groupées) |
-| GET | `clients` / `client` | liste (`q, segment: 'tous'\|'newsletter'\|'fideles'\|'inactifs'`), fiche avec commandes et totaux |
-| POST / PATCH / DELETE | `client` | créer ; modifier (tags, notes, coordonnées, newsletter) ; supprimer (RGPD, anonymise les commandes) |
-| GET | `client-export` | `id` → JSON des données personnelles (RGPD) |
-| GET | `comptes` / `compte` | liste (`q, type, statut, commercial`) avec CA 12 mois et encours ; fiche (utilisateurs, adresses, commandes, factures, encours, notes) |
-| POST / PATCH | `compte` | créer (+ invitation du premier utilisateur) ; modifier conditions, statut, commercial, notes, tags |
-| POST | `compte-utilisateur` | `{ compteId, prenom, nom, email }` → invitation |
-| GET / PATCH | `demandes` / `demande` | liste par statut ; changer statut, note |
-| POST | `demande-accepter` | `id`, `{ grille, remise, conditions, commercialId, encoursMax }` → crée compte + utilisateur + invitation (courriel) |
-| POST | `demande-refuser` | `id`, `{ motif }` → courriel de réponse |
-| GET | `produits` | `q, gamme, stock` → produits + variantes (prix, stock, seuil, colisage, vendus 30 j) |
-| PATCH | `produit` | `slug`, `{ actif?, variantes?: { [id]: { prixTTC?, prixProHT?, seuil?, colisage? } } }` |
-| POST | `stock` | `{ slug, varianteId, delta, motif, note? }` → mouvement |
-| GET | `mouvements` | `slug?` → mouvements récents |
-| GET | `visites` | `du, au` → `{ seances (avec inscrits, restantes), reservations }` |
-| POST / PATCH | `seance` | ajouter ; modifier capacité, statut, guide, notes |
-| POST / PATCH | `reservation` | saisie manuelle ; changer statut, personnes, séance, notes |
-| GET | `messages` / `message` | liste par statut ; fiche (la lecture le marque lu) |
-| PATCH | `message` | statut, assigneA |
-| POST | `message-reponse` | `id`, `{ texte }` → fil + courriel |
-| GET | `newsletter` | `{ abonnes: { total, inscrits, parSource, evolution }, liste (paginée), campagnes }` |
-| POST / PATCH / DELETE | `campagne` | brouillon ; modifier ; supprimer un brouillon |
-| POST | `campagne-envoyer` | `id` → « envoyée » à N destinataires (simulation, 1 courriel d'exemple dans la boîte d'envoi) |
-| PATCH / DELETE | `abonne` | désinscrire ; supprimer (RGPD) |
-| GET / POST / PATCH | `promos` / `promo` | codes promo |
-| GET | `courriels` / `courriel` | boîte d'envoi |
-| GET | `journal` | `page, action, par` |
-| GET / POST / PATCH | `equipe` / `membre` | personnel : inviter, changer de rôle, désactiver (direction) |
-| GET / PATCH | `parametres` | réglages (direction) |
-| GET | `export` | `type=commandes\|clients\|comptes\|abonnes\|reservations\|produits` → CSV UTF-8 avec BOM, séparateur `;`, décimales à virgule (commandes : colonne « Don Octobre Rose (€) ») |
+| GET | `tableau` | `{ ca: { jour, semaine (depuis lundi), mois, moisPrecedent, enLigne30 (particuliers : en ligne et téléphone), pro30 }, commandes30, panierMoyen30, aTraiter: { commandes (nouvelles et en préparation), demandes (nouvelles), messages (nouveaux), reservationsJour, facturesEnRetard }, ventes30: [{ date, enLigne, pro }], top: [{ slug, nom, qte, totalHT }] (5, sur 30 jours), stocksBas: [{ slug, varianteId, nom, volume, stock, seuil, etat, actif }], prochainesVisites: [Séance vue¹] (5), activite: Entree[] (10 dernières), operation, montants: 'HT' }` — commandes annulées et remboursées exclues ; `operation` = `{ id, nom, beneficiaire, debut, fin, enCours: boolean, bouteilles, montant, commandes }` (Octobre Rose : commandes en ligne non annulées ni remboursées dont le jour de Paris est dans la période), présent pendant l'opération et 30 jours après sa fin (virement du don), sinon `null` |
+| GET | `notifications` | `{ commandes, demandes (créées depuis la dernière consultation), messages (non lus), stocksBas, version, vuLe }` (version = `updatedAt`) — appelé toutes les 30 s quand l'onglet est visible et actif ; 0 pour une rubrique sans droit |
+| POST | `notifications-vues` | marque vu → `{ ok, vuLe }` |
+| GET | `recherche` | `q` (2 caractères au moins, sans accents) → `{ resultats: [{ type: 'commande'\|'client'\|'compte'\|'demande'\|'message'\|'reservation'\|'produit', id, titre, sousTitre, url }] }` (30 au plus, selon les droits) |
+| GET | `commandes` | `statut, canal, du, au, q, compteId, clientId, page, par, tri=date\|total\|numero\|statut (‑ pour décroissant)` → `{ elements: [{ id, numero, date, canal, client: { id, nom, type: 'particulier'\|'pro' }, articles, totalHT, totalTTC, paiement: { mode, statut }, statut, alerte?, operation? }], total, page, pages, compteurs: { [statut]: n } }` |
+| GET | `commande` | `id` → Commande complète (§ 4 ; sans `facture` pour un rôle sans droit sur les factures) + `client?: { id, nom, email, telephone, commandes }`, `compte?: { id, raisonSociale, enseigne, type, conditions, licence, telephone, email, encours?, encoursMax? }`, `auteur?: { id, nom }`, `transitions: [{ statut, libelle, exigeSuivi }]` (vide sans droit d'écriture), `alerte?` |
+| POST | `commande` | saisie (téléphone ou pro) : `{ compteId, lignes, livraison?: { adresseId? }, dateSouhaitee?, referenceClient?, commentaire?, note? }` (droit `commandes-pro` ; colisage non imposé) ou `{ client: { prenom, nom, email, telephone? }, lignes, livraison: { mode, adresse?, jourRetrait? }, paiement: { mode: 'carte'\|'virement'\|'a-reception'\|'comptant', statut?: 'paye'\|'en-attente' }, code?, ageConfirme?, newsletter?, note? }` (droit `commandes`, canal `telephone`) → `201` commande complète |
+| PATCH | `commande` | `id`, `{ statut?, suivi?: { transporteur?, numero?, url? (https) }, note?, paiementStatut?: 'paye', factureStatut?: 'payee'\|'a-regler' (droit factures) }` → commande complète |
+| POST | `commandes-statut` | `{ ids (100 au plus), statut }` → `{ ok: [id], erreurs: [{ id, numero?, erreur }] }` (une commande refusée n'empêche pas les autres) |
+| GET | `clients` / `client` | liste (`q, segment: 'tous'\|'newsletter'\|'fideles' (3 commandes ou plus)\|'inactifs' (aucune commande depuis 90 jours), page, par, tri=nom\|date\|total\|commandes\|derniere`) → `{ elements: [{ id, prenom, nom, email, telephone, ville, newsletter, tags, origine, commandes, totalTTC, derniereCommande, createdAt }], …, compteurs }` ; fiche → Client + `commandes` (résumés), `totaux: { commandes, totalTTC, panierMoyen, premiereCommande, derniereCommande }`, `reservations`, `messages`, `abonnement` |
+| POST / PATCH / DELETE | `client` | créer `{ prenom, nom, email, telephone?, adresse?, newsletter?, tags?, notes?, origine? }` (e-mail déjà connu → 409) ; modifier (mêmes champs ; `newsletter` inscrit ou désinscrit l'abonné) ; supprimer (RGPD : client et abonnement effacés, commandes anonymisées, réservations, messages et courriels aussi) → `{ ok, commandesAnonymisees }` |
+| GET | `client-export` | `id` → JSON des données personnelles (RGPD, en pièce jointe ; droit d'écriture sur les clients) |
+| GET | `comptes` / `compte` | liste (`q, type, statut, commercial, page, par, tri=nom\|ca\|date\|encours`) → `{ id, enseigne, raisonSociale, type, ville, statut, grille, remise, conditions, licence, commercial: { id, nom }, ca12 (HT), encours?, encoursMax?, derniereCommande, utilisateurs, tags }` ; fiche → Compte + `commercial: { id, nom, email, telephone }`, `utilisateurs: [{ id, prenom, nom, email, telephone, statut: 'actif'\|'invitation'\|'desactive', derniereConnexion, invitationExpireLe? }]`, `commandes`, `ca12`, `messages`, et pour qui voit les factures `encours`, `factures: [{ numero, date, echeance, statut, payeeLe?, enRetard, totalTTC, commandeId, commandeNumero }]` |
+| POST / PATCH | `compte` | créer `{ raisonSociale, enseigne, type, siret?, tvaIntra?, licence, telephone?, email, adresseFacturation, adressesLivraison?, grille, remise?, conditions, francoHT?, encoursMax?, commercialId?, tags?, notes?, utilisateur?: { prenom, nom, email } }` → `201 { compte, utilisateur?, lienDemo? }` (invitation du premier utilisateur) ; modifier les mêmes champs + `statut: 'actif'\|'suspendu'` (suspendu : sessions pro fermées) |
+| POST | `compte-utilisateur` | `{ compteId, prenom, nom, email }` → invitation (courriel) → `201 { utilisateur, lienDemo }` (e-mail déjà utilisé → 409) |
+| GET / PATCH | `demandes` / `demande` | liste (`statut`, paginée, + `compteurs`) ; fiche `id` ; modifier `{ statut?: 'nouvelle'\|'en-cours', note? }` |
+| POST | `demande-accepter` | `id`, `{ grille, remise?, conditions, commercialId?, encoursMax, licence? (défaut 'aucune' : pas d'alcool tant qu'elle n'est pas renseignée), type? (défaut : l'activité), adresse?, francoHT? }` → crée compte + utilisateur + invitation (courriel) → `201 { compte, utilisateur, lienDemo, demande }` (demande déjà traitée → 409) |
+| POST | `demande-refuser` | `id`, `{ motif }` → courriel de réponse → demande |
+| GET | `produits` | `q, gamme, stock=tous\|bas\|rupture` → `{ elements: [{ slug, nom, type, gamme, gammeNom, univers, alcool, degre, photo, reference, actif, enLigne, variantes: [{ id, volume, coffret, prixTTC, prixOfficielTTC, prixProHT, proManuel, tva, stock, seuil, colisage, etat, vendus30 }] }], total, page, pages, compteurs, gammes }` |
+| PATCH | `produit` | `slug`, `{ actif?, variantes?: { [id]: { prixTTC?, prixProHT?, seuil?, colisage? } } }` → produit (un `prixProHT` fixé → `proManuel: true` ; sinon il suit le prix TTC) |
+| POST | `stock` | `{ slug, varianteId, delta, motif: 'production' (positif)\|'inventaire'\|'casse' (négatif)\|'ajustement', note? }` → `201 { mouvement, stock, etat }` (stock négatif → 409) |
+| GET | `mouvements` | `slug?` → mouvements récents (200 au plus, paginés), avec `nom`, `volume` |
+| GET | `visites` | `du, au` (défaut : aujourd'hui + 13 jours ; 120 jours au plus) → `{ du, au, seances: [Séance vue¹], reservations: [Réservation + heure] }` |
+| POST / PATCH | `seance` | ajouter `{ date, moment, heure?, capacite?, langue?, guideId?, notes? }` (même un jour habituellement fermé ; doublon → 409) ; modifier `{ capacite? (≥ inscrits), statut?: 'ouverte'\|'fermee', langue?, guideId?, notes? }` |
+| POST / PATCH | `reservation` | saisie `{ seanceId \| date + moment, personnes, mineurs?, langue?, nom, email, telephone?, message?, notes?, newsletter?, source?: 'telephone'\|'crm' }` (complet → 409 avec disponibilités) ; modifier `{ statut?: 'confirmee'\|'annulee'\|'venue'\|'absente', personnes?, mineurs?, seanceId?, notes? }` |
+| GET | `messages` / `message` | liste (`statut, q`, paginée, + `compteurs` dont `nonLus`) → `{ id, reference, nom, email, telephone?, sujet, statut, lu, assigneA: { id, nom } \| null, extrait, dernierMessage, nbMessages, compte?, client?, createdAt }` ; fiche (+ `fil`) : la lecture le marque lu |
+| PATCH | `message` | `{ statut?, assigneA? (id du personnel ; null pour retirer), lu? }` |
+| POST | `message-reponse` | `id`, `{ texte }` → fil + courriel → `201` message |
+| GET | `newsletter` | `{ abonnes: { total, inscrits, desinscrits, parSource, evolution: [{ mois, inscrits, nouveaux }] (12 mois) }, liste: { elements, total, page, pages } (`q, statut, source`), campagnes }` |
+| POST / PATCH / DELETE | `campagne` | brouillon `{ objet, introduction, corps, segment: 'tous'\|'clients'\|'pros'\|'visiteurs', bouton?: { libelle, url (/… ou https://…) } }` ; modifier ; supprimer un brouillon (envoyée → 409) |
+| POST | `campagne-envoyer` | `id` → « envoyée » à N destinataires (simulation, 1 courriel d'exemple dans la boîte d'envoi) → `{ ok, destinataires, campagne }` |
+| PATCH / DELETE | `abonne` | `{ statut: 'inscrit'\|'desinscrit' }` ; supprimer (RGPD) |
+| GET / POST / PATCH | `promos` / `promo` | liste (+ `etat: 'actif'\|'inactif'\|'a-venir'\|'expire'\|'epuise'`) ; créer `{ code, libelle, type, valeur, minimumTTC?, debut?, fin?, limite?, actif? }` (code existant → 409) ; modifier (null efface `debut`, `fin`, `limite`) |
+| GET | `courriels` / `courriel` | boîte d'envoi (`type, q`, paginée, du plus récent) ; détail `id` avec `contenu` |
+| GET | `journal` | `page, par (taille de page), action (préfixe : « commande » ou « commande.statut »), auteur (id)` → paginé + `actions` (liste des codes) |
+| GET / POST / PATCH | `equipe` / `membre` | personnel : direction → `{ membres: [{ id, prenom, nom, email, role, roleNom, poste, telephone, actif, statut, derniereConnexion, demo, invitationExpireLe? }] }`, autres rôles → noms seulement (attribution) ; inviter `{ prenom, nom, email, role, poste?, telephone? }` → `201 { membre, lienDemo }` ; modifier `{ role?, actif?, poste?, telephone? }` (rôle ou accès changé : ses sessions sont fermées ; pas sur soi-même → 409) |
+| GET / PATCH | `parametres` | réglages (direction) ; modifier par rubrique `{ livraison?: { colissimo?, relais?, francoTTC? }, pro?: { minimumHT?, francoHT?, fraisPortHT?, delai? }, visites?: { capacite?, horaires?, saison?, fermeLe? }, entreprise?: {…} }` |
+| GET | `export` | `type=commandes\|clients\|comptes\|abonnes\|reservations\|produits` (droit exports + lecture de la rubrique) → CSV UTF-8 avec BOM, séparateur `;`, décimales à virgule, dates JJ/MM/AAAA, pièce jointe `<type>-AAAA-MM-JJ.csv`, cellules commençant par = + - @ neutralisées (commandes : colonne « Don Octobre Rose (€) ») |
+
+¹ Séance vue = Séance (§ 4) + `inscrits`, `restantes`, `reservations` (nombre), `guide?: { id, nom }`.
 
 ### `api/pro` (client pro connecté, limité à son compte)
 
