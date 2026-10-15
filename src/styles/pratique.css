@@ -167,3 +167,50 @@ legend.field__label { margin-bottom: 7px; padding: 0; }
   .done__actions { width: 100%; }
   .done__actions > * { flex: 1 1 100%; white-space: normal; text-align: center; line-height: 1.25; padding-block: 12px; }
 }
+
+/* ---------- Visiter : calendrier des disponibilités (api/site, creneaux) ---------- */
+.vis-when { display: grid; gap: 14px; }
+.vis-date { display: grid; gap: 7px; max-width: 340px; }
+.vis-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.84rem; color: var(--ink-2); }
+.vis-legend li { display: inline-flex; align-items: center; gap: 8px; }
+.cal { padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+.cal__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.cal__title { font: 700 1rem/1.2 var(--font); text-align: center; }
+.cal__title::first-letter { text-transform: uppercase; }
+.cal__wait { font-size: 0.84rem; font-weight: 500; color: var(--ink-3); }
+.cal__nav { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 1px solid var(--line-2); border-radius: 50%; background: #fff; color: var(--ink); cursor: pointer; }
+.cal__nav:hover:not([disabled]) { border-color: var(--ink); }
+.cal__nav[disabled] { opacity: 0.3; cursor: default; }
+.cal__nav svg { width: 16px; height: 16px; }
+.cal__week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); padding: 4px 0 6px; font: 650 0.7rem/1 var(--font); letter-spacing: 0.08em; color: var(--ink-3); text-align: center; }
+.cal__grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.cal__d { display: grid; place-content: center; justify-items: center; gap: 4px; min-width: 0; min-height: 48px; padding: 4px 0; border: 1px solid transparent; border-radius: 10px; background: var(--paper); color: var(--ink); font: 650 0.92rem/1 var(--font); font-variant-numeric: tabular-nums; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
+.cal__d:hover { border-color: var(--ink); }
+.cal__d:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+.cal__d.is-sel { border-color: var(--ink); background: var(--ink); color: #fff; }
+.cal__d.is-passe, .cal__d.is-ferme { background: transparent; color: rgba(21, 19, 15, 0.32); cursor: default; }
+.cal__d.is-complet { background: transparent; color: var(--ink-3); cursor: default; }
+.cal__d.is-complet .cal__n { text-decoration: line-through; text-decoration-thickness: 1px; }
+.cal__d[aria-disabled='true']:hover { border-color: transparent; }
+.cal__d.is-inconnu { background: #fff; }
+.cal__dots { display: flex; gap: 3px; height: 6px; }
+.cal__pad { min-height: 48px; }
+.cal-dot { display: inline-block; flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
+.cal-dot--few { background: #c98a1c; }
+.cal-dot--full { background: transparent; box-shadow: inset 0 0 0 1.5px rgba(21, 19, 15, 0.45); }
+.cal__d.is-sel .cal-dot { background: #fff; }
+.cal__d.is-sel .cal-dot--few { background: #f2c56b; }
+.cal__d.is-sel .cal-dot--full { background: transparent; box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.8); }
+.choice label.is-full { opacity: 0.5; cursor: not-allowed; }
+.vis-alt { display: grid; gap: 10px; padding: 14px 16px; border-radius: 12px; background: var(--paper-2); }
+.vis-alt__t { font-weight: 650; }
+.vis-alt__list { display: flex; flex-wrap: wrap; gap: 8px; }
+.vis-alt__btn { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border: 1px solid var(--line-2); border-radius: 999px; background: #fff; color: var(--ink); font: 600 0.86rem var(--font); cursor: pointer; }
+.vis-alt__btn:hover { border-color: var(--ink); }
+.vis-alt__none { font-size: 0.9rem; color: var(--ink-2); }
+.vis-done__when { font-size: 1.05rem; line-height: 1.5; }
+@media (max-width: 420px) {
+  .cal { padding: 10px 8px; }
+  .cal__grid { gap: 3px; }
+  .cal__d { min-height: 44px; font-size: 0.86rem; }
+}

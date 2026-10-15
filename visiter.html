@@ -40,9 +40,14 @@
         <div class="wrap split split--form">
           <div class="section__head">
             <p class="kicker">Réserver</p>
-            <h2 class="h-section" id="reserver-title">Votre demande de visite</h2>
-            <p class="lead">La distillerie vous confirme le créneau exact. Les mineurs sont les bienvenus : ils dégustent les sirops.</p>
-            <p class="mock-note"><strong>Maquette :</strong> le formulaire vérifie la saisie mais n’envoie rien.</p>
+            <h2 class="h-section" id="reserver-title">Réserver votre visite</h2>
+            <p class="lead">Choisissez un jour et un moment&nbsp;: la réservation est confirmée tout de suite, avec l’heure exacte de la séance. Les mineurs sont les bienvenus&nbsp;: ils dégustent les sirops.</p>
+            <ul class="vis-legend" aria-label="Légende du calendrier">
+              <li><span class="cal-dot"></span>Places disponibles</li>
+              <li><span class="cal-dot cal-dot--few"></span>Dernières places</li>
+              <li><span class="cal-dot cal-dot--full"></span>Complet</li>
+            </ul>
+            <p class="mock-note"><strong>Démonstration&nbsp;:</strong> votre réservation est enregistrée dans un espace de démonstration privé, visible seulement depuis ce navigateur&#8239;; rien n’est transmis à la distillerie.</p>
           </div>
           <div class="form-card" id="booking-card">
             <form id="booking" novalidate>
@@ -51,18 +56,21 @@
                 <div class="choice" id="booking-formules"></div>
               </fieldset>
               <div class="form-grid">
-                <label class="field"><span class="field__label">Date souhaitée</span><input type="date" name="date" required /><span class="field__hint" id="date-hint"></span></label>
-                <fieldset class="field" style="border:0;padding:0;margin:0">
+                <div class="field full vis-when">
+                  <label class="vis-date"><span class="field__label">Date de la visite</span><input type="date" name="date" required aria-describedby="date-hint" /><span class="field__hint" id="date-hint"></span></label>
+                  <div class="cal" id="cal" aria-live="off"></div>
+                </div>
+                <fieldset class="field full vis-moments" style="border:0;padding:0;margin:0">
                   <legend class="field__label">Moment</legend>
-                  <div class="choice choice--inline">
-                    <label><input type="radio" name="moment" value="Matin" checked /><strong>Matin</strong></label>
-                    <label><input type="radio" name="moment" value="Après-midi" /><strong>Après-midi</strong></label>
+                  <div class="choice choice--inline" id="moments">
+                    <label><input type="radio" name="moment" value="matin" checked /><strong>Matin</strong><span data-moment="matin">10 h 30</span></label>
+                    <label><input type="radio" name="moment" value="apres-midi" /><strong>Après-midi</strong><span data-moment="apres-midi">15 h</span></label>
                   </div>
                 </fieldset>
                 <label class="field"><span class="field__label">Nombre de personnes</span><input type="number" name="personnes" min="1" max="25" value="2" inputmode="numeric" required /><span class="field__hint">25 personnes au plus</span></label>
                 <label class="field"><span class="field__label">Dont mineurs</span><input type="number" name="mineurs" min="0" max="25" value="0" inputmode="numeric" /><span class="field__hint">Ils dégusteront des sirops</span></label>
                 <label class="field"><span class="field__label">Langue de la visite</span>
-                  <select name="langue"><option>Français</option><option>Anglais</option><option>Allemand</option></select>
+                  <select name="langue"><option value="fr">Français</option><option value="en">Anglais</option><option value="de">Allemand</option></select>
                   <span class="field__hint">Selon disponibilité, à confirmer</span>
                 </label>
                 <label class="field"><span class="field__label">Nom</span><input type="text" name="nom" autocomplete="name" required /></label>
@@ -73,7 +81,8 @@
                 <label class="check full"><input type="checkbox" name="news" /><span>Je souhaite recevoir les actualités de la distillerie (facultatif).</span></label>
               </div>
               <p class="form-msg" id="booking-err" role="alert"></p>
-              <button type="submit" class="btn btn--primary">Envoyer ma demande</button>
+              <div class="vis-alt" id="booking-alt" hidden></div>
+              <button type="submit" class="btn btn--primary">Réserver la visite</button>
             </form>
           </div>
         </div>

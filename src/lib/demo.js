@@ -6,6 +6,7 @@
 // - Catalogue de la démo : prix et stocks modifiés dans le CRM, chargés une fois par page et
 //   seulement s'il existe une démo. Sans démo, aucun appel à l'API.
 import '../styles/demo.css';
+import { bySlug } from '../data/products.js';
 import { api, demoActive } from './api.js';
 import { cart } from './cart.js';
 import { readJSON, writeJSON, remove } from './store.js';
@@ -15,8 +16,9 @@ let catalogue = null;
 
 // { [slug]: { actif, variantes: { [id]: { prixTTC, etat } } } }, ou null sans démo (ou en cas d'échec :
 // le site garde alors les prix officiels).
-export function demoCatalogue() {
+export function demoCatalogue({ force = false } = {}) {
   if (!demoActive()) return Promise.resolve(null);
+  if (force) catalogue = null;
   catalogue ||= api('site', 'catalogue')
     .then((d) => d?.produits || null)
     .catch(() => null);
@@ -24,8 +26,8 @@ export function demoCatalogue() {
 }
 
 // Prix et états de la démo appliqués au panier (totaux du panier latéral et de la commande).
-export async function loadDemoPrices() {
-  const produits = await demoCatalogue();
+export async function loadDemoPrices(opts) {
+  const produits = await demoCatalogue(opts);
   if (produits) cart.setDemo(produits);
   return produits;
 }
@@ -44,6 +46,29 @@ export const ETATS = {
   rupture: 'Rupture',
   inactif: 'Indisponible',
 };
+
+// Prix de la démo appliqués au catalogue affiché par la page (cartes, filtres de prix, tri, fiche,
+// panier) : une seule source de prix sur toute la page, comme côté serveur.
+export function appliquerDemo(produits) {
+  if (!produits) return false;
+  for (const [slug, d] of Object.entries(produits)) {
+    const p = bySlug[slug];
+    if (!p) continue;
+    for (const c of p.contenances) {
+      const v = d.variantes?.[c.id];
+      if (v && typeof v.prixTTC === 'number') {
+        c.prix = v.prixTTC;
+        c.prixTexte = `${v.prixTTC.toFixed(2).replace('.', ',')}\u00a0€`;
+      }
+    }
+  }
+  cart.setDemo(produits);
+  return true;
+}
+
+// État d'une variante dans la démo : 'disponible' | 'stock-bas' | 'rupture' | 'inactif' | null.
+export const etatDemo = (produits, slug, id) => demoVariante(produits, slug, id)?.etat || null;
+export const indisponible = (etat) => etat === 'rupture' || etat === 'inactif';
 
 // ---------- Barre de démo ----------
 const KEY = 'blachere-demo-barre';

@@ -14,6 +14,8 @@ import { thumbHTML, renderHTML, upgradeThumbs } from '../lib/thumbs.js';
 import { watchBrands } from '../lib/marques.js';
 import { api } from '../lib/api.js';
 import { mountDemoBar, loadDemoPrices } from '../lib/demo.js';
+import { operationAffichee, lignePanierHTML } from '../lib/operation.js';
+import '../styles/operation.css';
 
 let age = readAge(); // 'majeur' | 'mineur' | 'sirops' | null
 const TEST = typeof location !== 'undefined' && new URLSearchParams(location.search).has('test');
@@ -436,8 +438,11 @@ function renderDrawer() {
   list.innerHTML = t.lines.length
     ? t.lines.map((l) => lineHTML(l)).join('')
     : `<li class="drawer__empty"><p>Votre panier est vide.</p><a class="oval" href="/boutique">Voir la boutique</a></li>`;
+  // Opération du moment (Octobre Rose) : don correspondant aux bouteilles concernées du panier.
+  const op = operationAffichee();
   foot.innerHTML = t.lines.length
     ? `${totalsHTML(t)}
+       ${op ? lignePanierHTML(op, t.lines) : ''}
        <a class="oval oval--block" href="/panier">Voir le panier et commander</a>
        ${t.alcohol ? `<p class="evin">${esc(EVIN)} ${esc(MINEURS)}</p>` : ''}`
     : '';

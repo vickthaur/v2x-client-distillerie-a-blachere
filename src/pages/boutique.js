@@ -1,20 +1,24 @@
 // Boutique : filtres (univers, gamme, arôme, contenance, prix, degré, meilleures ventes),
 // recherche sans accents, tri, filtres actifs, adresse synchronisée, panneau de filtres sur téléphone.
 // Les spiritueux n'apparaissent qu'après la vérification de l'âge.
+// Démo active dans ce navigateur : prix et stocks de la démo (« Stock bas », « Rupture » : ajout au
+// panier désactivé), chargés une fois ; sans démo, aucun appel à l'API.
 import '../styles/base.css';
 import '../styles/shop.css';
 import { initSite, addToCart } from '../app/site.js';
-import { EVIN, MINEURS, GAMMES, products, visibleProducts, euro } from '../data/products.js';
+import { EVIN, MINEURS, GAMMES, products, visibleProducts, euro, bySlug } from '../data/products.js';
 import { cardHTML, lockedCardHTML } from '../app/cards.js';
 import { $, $$, esc, debounce, plural } from '../lib/dom.js';
 import { applyFilters, facets, matches, parseState, serializeState, activeCount, emptyState, volumeLabel } from '../lib/filters.js';
 import { icons } from '../lib/icons.js';
 import { upgradeThumbs } from '../lib/thumbs.js';
+import { demoCatalogue, appliquerDemo, etatDemo, indisponible, ETATS } from '../lib/demo.js';
 
 const site = initSite();
 let state = parseState(location.search);
 let base = [];
 let facetData = null;
+let demo = null; // catalogue de la démo (prix, stocks) ou null
 
 const spiritsCount = products.filter((p) => p.alcool).length;
 
@@ -168,10 +172,41 @@ function render({ scroll = false } = {}) {
     t.classList.toggle('is-on', (t.dataset.tile === 'tout' && tout) || (t.dataset.tile === 'spiritueux' && state.univers === 'spiritueux' && !state.gammes.size) || (state.gammes.size === 1 && state.gammes.has(t.dataset.tile))),
   );
   const spiritsShown = results.some((p) => p.alcool);
-  $('#shop-note').innerHTML = `<span>Prix TTC du site actuel de la distillerie. Les produits sans prix en ligne sont vendus au prix de la boutique. Maquette : le paiement n’est pas branché.</span>${spiritsShown ? `<span class="evin">${esc(EVIN)} ${esc(MINEURS)}</span>` : ''}`;
+  $('#shop-note').innerHTML = `<span>${
+    demo
+      ? 'Prix TTC et stocks de la démonstration, modifiables dans le CRM de démonstration. Les produits sans prix en ligne sont vendus au prix de la boutique.'
+      : 'Prix TTC du site actuel de la distillerie. Les produits sans prix en ligne sont vendus au prix de la boutique.'
+  } Démonstration\u00a0: le paiement est simulé.</span>${spiritsShown ? `<span class="evin">${esc(EVIN)} ${esc(MINEURS)}</span>` : ''}`;
   history.replaceState(null, '', `${location.pathname}${serializeState(state)}`);
+  stocks(grid);
   upgradeThumbs(grid);
   if (scroll) $('.shop__status').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// États de stock de la démo sur les cartes : pastille « Stock bas » ou « Rupture », bouton désactivé.
+function stocks(grid) {
+  if (!demo) return;
+  $$('.card[data-slug]', grid).forEach((card) => {
+    const p = bySlug[card.dataset.slug];
+    const btn = $('.card__add', card);
+    if (!p || !btn) return;
+    const etat = etatDemo(demo, p.slug, btn.dataset.v);
+    if (!etat || etat === 'disponible') return;
+    let badges = $('.card__badges', card);
+    if (!badges) {
+      badges = document.createElement('div');
+      badges.className = 'card__badges';
+      $('.card__media', card).after(badges);
+    }
+    badges.insertAdjacentHTML('beforeend', `<span class="badge badge--stock badge--${etat}">${esc(ETATS[etat])}</span>`);
+    if (indisponible(etat)) {
+      btn.disabled = true;
+      btn.classList.add('is-off');
+      btn.innerHTML = `<span>${esc(ETATS[etat])}</span>`;
+      btn.setAttribute('aria-label', `${p.nom} : ${ETATS[etat].toLowerCase()}`);
+      card.classList.add('is-rupture');
+    }
+  });
 }
 
 function renderChips() {
@@ -296,5 +331,12 @@ site.onAge(setBase);
 $('#shop-q').value = state.q;
 $('#shop-sort').value = state.tri;
 setBase();
+// Démo : prix et stocks appliqués dès qu'ils arrivent (une seule lecture).
+demoCatalogue().then((d) => {
+  if (!d) return;
+  demo = d;
+  appliquerDemo(d);
+  setBase();
+});
 
 if (import.meta.env.DEV) window.__shop = { get state() { return state; }, products };

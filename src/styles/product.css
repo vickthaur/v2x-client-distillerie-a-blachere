@@ -121,3 +121,9 @@
   .pp__facts > div { grid-template-columns: 1fr; gap: 2px; }
   .pp-recipes__list { grid-template-columns: 1fr; }
 }
+
+/* Démo : stock de la contenance choisie (prix et stocks modifiés dans le CRM de démonstration) */
+.pp__stock { flex-basis: 100%; font-size: 0.86rem; font-weight: 650; }
+.pp__stock--stock-bas { color: #7d5100; }
+.pp__stock--rupture, .pp__stock--inactif { color: var(--err); }
+.vol.is-off .vol__in { opacity: 0.6; }
