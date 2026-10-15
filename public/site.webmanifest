@@ -1,0 +1,15 @@
+{
+  "name": "Distillerie A. Blachère",
+  "short_name": "A. Blachère",
+  "description": "PAC Citron, Fun Blue, sirops et spiritueux de la Distillerie A. Blachère, à Châteauneuf-du-Pape depuis 1993, à Avignon depuis 1835.",
+  "lang": "fr",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#f7f5f0",
+  "theme_color": "#c2177f",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
