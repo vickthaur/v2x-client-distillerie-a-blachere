@@ -40,14 +40,23 @@ api/                    Fonctions Vercel (Node 22, gestionnaires Web Request →
   menage.js             tâche planifiée : efface les démos inactives (Vercel Cron, CRON_SECRET)
 server/                 Code partagé (jamais exposé tel quel)
   http.js               lecture/validation des requêtes, réponses JSON, cookies, contrôle d'origine
+  valider.js            validation stricte des saisies (types, longueurs, listes fermées, formats)
   store.js              pilotes de stockage : blob (production), fs (développement), memoire (tests)
   demo.js               bacs à sable : création, lecture, mutation atomique (ETag + reprise)
-  auth.js               scrypt, cookies signés (HMAC), sessions, rôles, verrouillage
+  auth.js               scrypt, cookies signés (HMAC), rôles et droits, verrouillage
+  acces.js              cookie de démo, sessions bl_crm / bl_pro d'un appel
+  limiteur.js           limiteurs en mémoire par adresse IP
   seed.js               jeu de démonstration déterministe (dates relatives au jour de création)
+  modele.js             forme stockée (compacte) → forme rendue (complète) des éléments
   regles.js             prix, TVA, franco, livraison, stocks, statuts, numérotation, factures
+  metier.js             opérations partagées : commandes, transitions, stocks, visites, abonnés
+  operation.js          opérations du moment (Octobre Rose), d'après src/data/operation.js
   courriels.js          gabarits des e-mails (contenu structuré)
+  evenements.js         journal et boîte d'envoi ; temps.js, typo.js, aleatoire.js, catalogue.js : outils
   routes/{session,site,crm,pro}.js
-  generated/catalogue.js  catalogue pour le serveur, généré depuis src/data/products.js (esbuild)
+  generated/catalogue.js  catalogue pour le serveur, généré depuis src/data/products.js (esbuild,
+                        scripts/server-catalogue.mjs, lancé avant dev et build ; un test vérifie qu'il
+                        est à jour)
 src/lib/api.js          client du navigateur (fetch, en-tête CSRF, erreurs)
 crm.html + src/crm/     CRM (Preact + JSX), adresse /crm et /crm/…
 pro.html + src/pro/     espace pro connecté (Preact + JSX), adresses /espace-pro/…
@@ -111,6 +120,14 @@ test/                   tests node:test (règles, sécurité, parcours complets)
 | Courriels envoyés, journal | ✔ | ✔ | ✔ | ✔ |
 | Équipe, paramètres, exports | ✔ | exports | exports | exports |
 
+- `droits` (sur l'utilisateur public du personnel) : la liste des rubriques accessibles, chacune
+  écrite `rubrique` (lecture et écriture) ou `rubrique:lecture`. Rubriques : `tableau`,
+  `commandes` (commandes en ligne et par téléphone des particuliers), `commandes-pro`, `factures`,
+  `clients`, `comptes` (comptes et demandes pro), `produits`, `stocks`, `visites`, `messages`,
+  `newsletter` (newsletter et codes promo), `courriels`, `journal`, `equipe`, `parametres`,
+  `exports`. Exemple, logistique : `['tableau', 'commandes', 'commandes-pro', 'clients:lecture',
+  'comptes:lecture', 'produits:lecture', 'stocks', 'courriels', 'journal', 'exports']` (pas de
+  `factures` : les commandes pro lui sont rendues sans leur facture).
 - Rôle `pro` : n'accède qu'à `api/pro` et seulement aux données de **son** compte (`compteId`).
 - **Comptes de démonstration** (mot de passe commun affiché sur les écrans de connexion en démo :
   `Distillerie1835`) : `direction@blachere.example` (Hélène Garnier, direction),
@@ -139,8 +156,8 @@ Demo = {
   vu: Record<usrId, { notifications: iso }>,
 }
 Utilisateur = { id, prenom, nom, email, role: 'direction'|'commercial'|'logistique'|'boutique'|'pro',
-  compteId?, telephone?, actif, hash?, sessionVersion, echecs: { n, jusqua? }, invitation?: { haché, exp },
-  reinit?: { haché, exp }, derniereConnexion?, createdAt, demo?: true }
+  compteId?, telephone?, poste?, actif, hash?, sessionVersion, echecs: { n, jusqua? }, invitation?: { hache, exp },
+  reinit?: { hache, exp }, derniereConnexion?, createdAt, demo?: true }
 Adresse = { id?, nom?, ligne1, ligne2?, cp, ville, pays: 'France', instructions? }
 Compte = { id, raisonSociale, enseigne, type: 'chr'|'hotel'|'camping'|'caviste'|'epicerie'|'distributeur'|'autre',
   siret?, tvaIntra?, licence?: 'licence-iv'|'licence-restaurant'|'petite-licence-restaurant'|'vente-a-emporter'|'aucune',
@@ -155,19 +172,21 @@ Commande = { id, numero /* WEB-26-01042, PRO-26-00318 */, canal: 'en-ligne'|'pro
   lignes: Ligne[], totaux: Totaux, livraison: Livraison, paiement: Paiement,
   statut: 'nouvelle'|'en-preparation'|'prete'|'expediee'|'livree'|'retiree'|'annulee'|'remboursee',
   suivi?: { transporteur, numero, url? }, referenceClient?, dateSouhaitee?, commentaire?,
-  promo?: { code, remiseTTC }, facture?: Facture, ageConfirme?: boolean,
+  promo?: { code, remiseTTC, livraisonOfferte? }, facture?: Facture, ageConfirme?: boolean,
+  operation?: { id, nom, beneficiaire, bouteilles, montant } /* Octobre Rose, commandes en ligne */,
   historique: { date, statut?, action, par: { id?, nom }, note? }[], notes: { date, par, texte }[],
   createdAt, updatedAt }
 Ligne = { slug, varianteId, nom, volume, alcool: boolean, tva: 5.5|20, qte, colisage?,
   prixUnitaireHT, prixUnitaireTTC, totalHT, totalTTC }
-Totaux = { articlesTTC, articlesHT, remiseTTC, livraisonTTC, tva: { taux, baseHT, montant }[],
+Totaux = { articlesTTC, articlesHT, remiseTTC, livraisonTTC, livraisonHT, tva: { taux, baseHT, montant }[],
   totalHT, totalTVA, totalTTC }
 Livraison = { mode: 'retrait'|'colissimo'|'relais'|'transporteur', libelle, prixTTC, adresse?: Adresse,
-  jourRetrait?, relais?: { nom, adresse } }
+  jourRetrait?, relais?: { nom, adresse }, prixHT? /* pro */, adresseId? /* pro */ }
 Paiement = { mode: 'carte'|'paypal'|'virement'|'a-reception'|'30j-fdm'|'45j'|'prelevement'|'comptant',
   statut: 'paye'|'en-attente'|'rembourse', reference?, date? }
 Facture = { numero /* FA-26-00512 */, date, echeance, statut: 'a-regler'|'payee', payeeLe? }
-ProduitDemo = { actif: boolean, variantes: Record<varianteId, { prixTTC, prixProHT, stock, seuil, colisage }> }
+ProduitDemo = { actif: boolean, variantes: Record<varianteId, { prixTTC, prixProHT, proManuel?, stock, seuil, colisage }> }
+  /* prixProHT : tarif pro de référence (grille CHR) ; proManuel : fixé à la main dans le CRM (§ 5) */
 MouvementStock = { id, date, slug, varianteId, delta, motif: 'production'|'vente'|'annulation'|'inventaire'|'casse'|'ajustement', par, commandeId? }
 DemandePro = { id, reference /* DEM-26-0042 */, societe, activite, siret?, nom, email, telephone?, ville,
   message?, statut: 'nouvelle'|'en-cours'|'acceptee'|'refusee', note?, traiteePar?, traiteeLe?, compteId?, createdAt }
@@ -195,19 +214,33 @@ Parametres = {
   entreprise: { nom, adresse, telephone, email, siret?, tvaIntra?, rcs? } }
 ```
 
+**Stockage compact.** Pour tenir sous 400 Ko, le document ne répète pas ce qui se recalcule
+(`server/modele.js`) : une ligne de commande stockée ne garde que `{ slug, varianteId, qte,
+prixUnitaireTTC }` (particulier) ou `{ slug, varianteId, qte, prixUnitaireHT, colisage }` (pro) ;
+les totaux sont recalculés par les règles du § 5 depuis les lignes, la remise et le port
+(`livraison.prixTTC`, ou `livraison.prixHT` pour un pro) ; un contact ou une adresse de livraison
+absents sont ceux du client (ou du compte et de son adresse `adresseId`) ; les valeurs par défaut
+(prix officiel, colisage par défaut, action de l'historique, capacité d'une séance, abonné
+« inscrit »…) sont omises. **L'API rend toujours les éléments complets du modèle ci-dessus** : rien
+ne change pour le CRM ni l'espace pro.
+
 ## 5. Règles métier (`server/regles.js`, testées)
 
 - **TVA** : sirops et produits sans alcool 5,5 % ; boissons alcoolisées 20 %. Les prix du catalogue
   sont TTC. Les frais de port suivent le principal : TVA ventilée au prorata des bases HT par taux.
   Tous les totaux sont recalculés côté serveur ; le navigateur n'envoie que des quantités.
 - **Tarifs pro (fictifs)** : prix HT de grille = prix TTC ÷ (1 + TVA) × coefficient (CHR 0,72 ;
-  caviste 0,68 ; distributeur 0,60), arrondi au centime, puis remise du compte. Colisage : 6 pour les
-  1 L et 70 cl, 12 pour 50 cl et moins, 1 pour les coffrets (fictif, « à confirmer »). L'espace pro
-  commande par cartons ou à l'unité selon le produit.
+  caviste 0,68 ; distributeur 0,60), arrondi au centime, puis remise du compte (arrondie au
+  centime). `prixProHT` d'une variante = son tarif CHR de référence ; s'il est fixé à la main dans le
+  CRM (`proManuel`), les autres grilles en découlent au prorata des coefficients. Colisage : 6 pour
+  les 70 cl, 1 L et plus, 12 pour 50 cl et moins, 1 pour les coffrets et les flacons en étui
+  (millésimes Elixir, Camarguaise Luxe) (fictif, « à confirmer »). L'espace pro commande par
+  cartons (`qte` = nombre de bouteilles, multiple du colisage) ou à l'unité (colisage 1).
 - **Livraison particuliers (barème de démonstration)** : retrait à la distillerie gratuit (jour
-  souhaité, du lundi au samedi) ; Colissimo domicile 1 à 2 bouteilles 9,90 €, 3 à 6 : 14,90 €, 7 à 12 :
-  19,90 €, au-delà 24,90 € ; point relais 2 € de moins ; franco dès 120 € TTC d'articles. Pas d'envoi
-  hors de France métropolitaine dans la démo.
+  souhaité, du lundi au samedi, de demain à J + 30) ; Colissimo domicile 1 à 2 bouteilles 9,90 €, 3 à
+  6 : 14,90 €, 7 à 12 : 19,90 €, au-delà 24,90 € ; point relais 2 € de moins ; franco dès 120 € TTC
+  d'articles (avant remise). Pas d'envoi hors de France métropolitaine dans la démo (Corse comprise ;
+  codes postaux 97…, 98… refusés).
 - **Pro** : minimum de commande 150 € HT ; franco 300 € HT sinon 18 € HT de port ; délai 48 à 72 h
   ouvrées ; paiement selon les conditions du compte ; encours (factures non réglées) + commande ≤
   `encoursMax`, sinon refus clair.
@@ -220,17 +253,30 @@ Parametres = {
 - **Statuts** (machine à états, toute autre transition refusée) :
   `nouvelle → en-preparation → expediee → livree` ; `en-preparation → prete → retiree` (retrait) ;
   `nouvelle|en-preparation|prete → annulee` (restock + remboursement si payé) ;
-  `expediee|livree|retiree → remboursee`. `expediee` exige un numéro de suivi (sauf transporteur pro).
+  `expediee|livree|retiree → remboursee`. « Prête » et « retirée » ne valent que pour un retrait,
+  « expédiée » et « livrée » que pour une livraison. `expediee` exige un numéro de suivi (sauf
+  transporteur pro).
   Chaque transition : historique, journal, e-mail au client quand c'est utile (préparation,
   expédition avec suivi, prête au retrait, annulation, remboursement).
-- **Factures** : commande pro → facture à l'expédition ; commande en ligne → facture à la création
-  (payée). Numérotation continue sans trou `FA-AA-NNNNN`. Échéance selon les conditions
+- **Factures** : commande pro → facture à l'expédition (ou au retrait) ; commande en ligne → facture
+  à la création (payée ; par virement : à régler sous 7 jours, payée à réception). Numérotation continue sans trou `FA-AA-NNNNN`. Échéance selon les conditions
   (comptant : à réception ; 30 j fin de mois ; 45 j ; prélèvement : 10 jours). En retard si
   échéance dépassée et non payée (calculé, pas stocké).
 - **Visites** : saison du 12 février au 31 décembre, fermé le dimanche, deux séances par jour
   (10 h 30, 15 h), 25 personnes au plus par séance. Le formulaire du site demande un jour et un moment
   (matin / après-midi) : la réservation est confirmée sur la séance correspondante s'il reste de la
-  place, sinon refusée avec les autres disponibilités du jour. Mineurs comptés dans les personnes.
+  place, sinon refusée avec les autres disponibilités du jour (puis des jours suivants, 4 au plus).
+  Mineurs comptés dans les personnes (au moins un adulte). Au-delà des séances enregistrées, chaque
+  jour ouvert a ses deux séances aux réglages par défaut (créées à la première réservation). Une
+  séance commencée n'est plus réservable.
+- **Opérations du moment** (`src/data/operation.js`, partagé avec le site) : **Octobre Rose**, du
+  1er au 31 octobre 2026 (jours de Paris), 1 € reversé à l'Institut du Cancer Avignon-Provence
+  (Sainte-Catherine) par bouteille de PAC Citron vendue, « offre valable uniquement sur le site web et
+  en boutique d'usine ». Une commande **en ligne** (`canal: 'en-ligne'`) passée pendant l'opération
+  garde `operation: { id, nom, beneficiaire, bouteilles, montant }` (si au moins une bouteille est
+  concernée) et son courriel de confirmation le dit (« Grâce à votre commande, 3 € seront reversés à
+  l'Institut du Cancer Avignon-Provence (Sainte-Catherine) dans le cadre d'Octobre Rose. ») ; les
+  commandes pro et par téléphone ne sont pas concernées. Le tableau de bord en fait le bilan (§ 7).
 - **Codes promo** : vérifiés côté serveur (actif, dates, minimum, limite d'utilisations). Démo :
   `BIENVENUE10` (−10 %), `PACETE` (−5 € dès 40 €), `PORTOFFERT` (livraison offerte dès 60 €).
 - **Numérotation** : `WEB-26-01043` (en ligne), `PRO-26-00319` (pro), `VIS-26-0143`, `DEM-26-0043`,
@@ -238,9 +284,9 @@ Parametres = {
 
 ## 6. Sécurité
 
-- Toute écriture (`POST`, `PATCH`, `DELETE`) exige `Content-Type: application/json`, l'en-tête
-  `X-Blachere: 1` et, si l'en-tête `Origin` est présent, qu'il corresponde à l'hôte. Corps ≤ 64 Ko.
-  Pas de CORS.
+- Toute écriture (`POST`, `PATCH`, `DELETE`) exige `Content-Type: application/json` (sinon 415),
+  l'en-tête `X-Blachere: 1` et, si l'en-tête `Origin` est présent, qu'il corresponde à l'hôte (sinon
+  403). Corps ≤ 64 Ko (sinon 413). Pas de CORS. Garde-fou : 240 écritures par minute et par adresse IP.
 - Validation stricte de chaque champ (types, longueurs, listes fermées, e-mail, code postal,
   téléphone, SIRET 14 chiffres, quantités 1 à 999) ; champs inconnus ignorés ; textes nettoyés
   (espaces, caractères de contrôle) ; le front n'injecte jamais de HTML non échappé (Preact échappe).
@@ -259,7 +305,9 @@ Parametres = {
 
 Réponse : JSON. Succès `200` (`201` à la création) ; erreurs `{ erreur: 'Message en français',
 champ?: 'email', code?: 'conflit'|'verrouille'|'stock'|… }` avec `400` (saisie), `401` (non
-connecté), `403` (droit), `404`, `409` (conflit, stock), `423` (verrouillé), `429`, `500`. Listes
+connecté), `403` (droit), `404`, `405` (méthode), `409` (conflit, stock), `413` (trop gros), `415`
+(pas du JSON), `423` (verrouillé), `429`, `500` (`{ erreur, reference }`). Les messages suivent la
+typographie française (espaces insécables avant « : », « ; », « ? », dans « »). Listes
 paginées : `?page=1&par=25` → `{ elements, total, page, pages }`. Tris : `?tri=date|-date|total…`.
 
 ### `api/session`
@@ -268,43 +316,51 @@ paginées : `?page=1&par=25` → `{ elements, total, page, pages }`. Tris : `?tr
 |---|---|---|---|
 | GET | `moi` | `espace=crm\|pro` | `{ utilisateur: Utilisateur public \| null, compte?: { id, raisonSociale, enseigne }, demo: { active, creeLe?, expireLe? } }` |
 | POST | `connexion` | `{ email, motDePasse, espace: 'crm'\|'pro', resterConnecte? }` | pose `bl_crm` ou `bl_pro` → `{ utilisateur, redirection }` (un compte pro sur l'écran du CRM, ou l'inverse, est refusé avec un message qui oriente) |
-| POST | `deconnexion` | `{ espace: 'crm'\|'pro' }` | `{ ok }` |
+| POST | `deconnexion` | `{ espace: 'crm'\|'pro', partout? }` | `{ ok }` (`partout: true` : tous les appareils, `sessionVersion` + 1) |
 | POST | `demo` | `{ profil: 'direction'\|'commercial'\|'logistique'\|'boutique'\|'pro' }` | crée la démo si besoin, connecte dans l'espace correspondant (sans toucher à l'autre session) → `{ utilisateur, redirection }` |
-| POST | `partager` | — (connecté) | `{ lien, expireLe }` |
-| GET | `rejoindre` | `jeton`, `vers=crm\|pro` | pose `bl_demo` puis 302 vers `/crm` ou `/espace-pro` (écran de connexion avec les profils de démo) |
+| POST | `partager` | `{ vers? }` (connecté) | `{ lien (adresse absolue), expireLe }` |
+| GET | `rejoindre` | `jeton`, `vers=crm\|pro` | pose `bl_demo` puis 302 vers `/crm` ou `/espace-pro` (écran de connexion avec les profils de démo) ; lien invalide ou expiré : 302 vers `/crm?demo=lien-invalide` (ou `/espace-pro?…`) |
 | POST | `reinitialiser` | — (connecté, démo) | remet le jeu de démonstration, garde la session → `{ ok }` |
 | POST | `quitter` | — | efface les cookies de démo et des deux sessions → `{ ok }` |
 | POST | `oubli` | `{ email, espace }` | `{ ok, lienDemo? }` (toujours `ok` ; le lien n'est rendu qu'en démo, pour tester) |
 | POST | `reinitialiser-mot-de-passe` | `{ jeton, motDePasse }` | connecte → `{ utilisateur, redirection }` |
-| GET | `invitation` | `jeton` | `{ email, prenom, compte? }` ou 404 |
+| GET | `invitation` | `jeton` | `{ email, prenom, espace: 'crm'\|'pro', compte? }` ou 404 |
 | POST | `activer` | `{ jeton, motDePasse }` | connecte → `{ utilisateur, redirection }` |
 | POST | `mot-de-passe` | `{ espace, actuel, nouveau }` | `{ ok }` (incrémente `sessionVersion`, renvoie un nouveau cookie) |
 
 `Utilisateur public` = `{ id, prenom, nom, email, role, compteId?, telephone?, derniereConnexion? }`
-+ pour le personnel `droits: string[]` (rubriques accessibles, en écriture ou lecture).
++ `poste?` + pour le personnel `droits: string[]` (rubriques accessibles, en écriture ou lecture :
+voir § 3). Connexion sans démo : seuls les comptes de démonstration ouvrent une démo (créée à ce
+moment). Lien de réinitialisation : `/crm/mot-de-passe?jeton=…` ou `/espace-pro/mot-de-passe?jeton=…` ;
+invitation : `/crm/activer?jeton=…` ou `/espace-pro/activer?jeton=…` (jeton résolu dans la démo du
+navigateur).
 
 ### `api/site` (public)
 
 | Méthode | `r` | Corps / paramètres | Réponse |
 |---|---|---|---|
 | GET | `catalogue` | — | sans démo : `204`. Avec démo : `{ produits: { [slug]: { actif, variantes: { [id]: { prixTTC, etat: 'disponible'\|'stock-bas'\|'rupture' } } } } }` |
-| GET | `creneaux` | `mois=AAAA-MM` | `{ jours: [{ date, ouvert, matin: { heure, restantes }, apresMidi: { heure, restantes } }] }` (sans démo : calculé depuis le jeu de démonstration, rien n'est créé) |
-| POST | `livraison` | `{ lignes: [{ slug, varianteId, qte }], mode, cp? }` | `{ options: [{ mode, libelle, prixTTC, delai }], francoRestantTTC }` |
-| POST | `code-promo` | `{ code, lignes }` | `{ valide, libelle, remiseTTC }` ou 400 |
-| POST | `commande` | `{ client: { prenom, nom, email, telephone }, livraison: { mode, adresse?, jourRetrait? }, paiement: { mode: 'carte'\|'paypal'\|'virement' }, lignes: [{ slug, varianteId, qte }], code?, ageConfirme, newsletter, cgv: true }` | `201 { numero, totalTTC, statut, paiement, liens: { crm } }` |
-| POST | `reservation` | `{ date, moment, personnes, mineurs, langue, nom, email, telephone?, message?, rgpd: true, newsletter }` | `201 { reference, date, heure, liens }` ou `409 { erreur, disponibilites }` |
-| POST | `contact` | `{ nom, email, telephone?, sujet, message, rgpd: true }` | `201 { reference, liens }` |
-| POST | `newsletter` | `{ email, prenom?, source }` | `201 { ok }` (déjà inscrit → `200 { ok, deja: true }`) |
-| POST | `demande-pro` | `{ societe, activite, siret?, nom, ville, email, telephone?, message?, rgpd: true }` | `201 { reference, liens }` |
+| GET | `creneaux` | `mois=AAAA-MM` (du mois dernier à 13 mois) | `{ jours: [{ date, ouvert, matin: { heure, restantes }, apresMidi: { heure, restantes } }] }` (sans démo : calculé depuis le jeu de démonstration du jour, rien n'est créé ; jour passé, fermé ou hors saison : `ouvert: false` ; séance commencée ou fermée : `restantes: 0`) |
+| POST | `livraison` | `{ lignes: [{ slug, varianteId, qte }], mode?, cp? }` | `{ options: [{ mode, libelle, prixTTC, delai, disponible, raison? }], francoRestantTTC, articlesTTC, bouteilles }` (sans démo : prix du catalogue, rien n'est créé) |
+| POST | `code-promo` | `{ code, lignes }` | `{ valide, code, libelle, remiseTTC, livraisonOfferte }` ou 400 `champ: 'code'` (rien n'est créé) |
+| POST | `commande` | `{ client: { prenom, nom, email, telephone }, livraison: { mode: 'retrait'\|'colissimo'\|'relais', adresse?: { ligne1, ligne2?, cp, ville, instructions? }, jourRetrait? }, paiement: { mode: 'carte'\|'paypal'\|'virement' }, lignes: [{ slug, varianteId, qte }], code?, ageConfirme, newsletter, cgv: true }` | `201 { id, numero, totalTTC, statut, paiement: { mode, statut }, liens: { crm }, operation? }` ; stock insuffisant : `409 { code: 'stock', details: [{ slug, varianteId, nom, demande, disponible }] }` |
+| POST | `reservation` | `{ date, moment: 'matin'\|'apres-midi', personnes (1 à 25), mineurs, langue: 'fr'\|'en'\|'de', nom, email, telephone?, message?, rgpd: true, newsletter }` | `201 { reference, date, moment, heure, liens }` ou `409 { erreur, code: 'complet', restantes, disponibilites: [{ date, moment, heure, restantes }] }` |
+| POST | `contact` | `{ nom, email, telephone?, sujet: 'commande'\|'visite'\|'pro'\|'presse'\|'autre', message, rgpd: true }` | `201 { reference, liens }` |
+| POST | `newsletter` | `{ email, prenom?, source: 'pied-de-page'\|'commande'\|'visite'\|'contact'\|'salon' }` | `201 { ok, liens }` (déjà inscrit → `200 { ok, deja: true, liens }`) |
+| POST | `demande-pro` | `{ societe, activite: 'chr'\|'hotel'\|'camping'\|'caviste'\|'epicerie'\|'distributeur'\|'autre', siret?, nom, ville, email, telephone?, message?, rgpd: true }` | `201 { reference, liens }` |
 
-Tout `POST` réussi crée la démo si elle n'existe pas et renvoie `liens: { crm: '/crm/…' }` vers
-l'élément créé, pour le bouton « Voir dans le CRM (démo) ».
+Tout `POST` qui enregistre (commande, réservation, contact, newsletter, demande pro) crée la démo si
+elle n'existe pas (rien n'est créé si la saisie est refusée) et renvoie `liens: { crm: '/crm/…' }`
+vers l'élément créé, pour le bouton « Voir dans le CRM (démo) ». Adresses du CRM :
+`/crm/commandes/<id>`, `/crm/clients/<id>`, `/crm/comptes/<id>`, `/crm/demandes/<id>`,
+`/crm/visites/<id de réservation>`, `/crm/messages/<id>`, `/crm/newsletter/<id d'abonné>`,
+`/crm/newsletter/campagnes/<id>`, `/crm/produits/<slug>`.
 
 ### `api/crm` (personnel)
 
 | Méthode | `r` | Détail |
 |---|---|---|
-| GET | `tableau` | `{ ca: { jour, semaine, mois, moisPrecedent, enLigne30, pro30 }, commandes30, panierMoyen30, aTraiter: { commandes, demandes, messages, reservationsJour, facturesEnRetard }, ventes30: [{ date, enLigne, pro }], top: [{ slug, nom, qte, totalHT }], stocksBas: [...], prochainesVisites: [...], activite: Entree[] }` |
+| GET | `tableau` | `{ ca: { jour, semaine, mois, moisPrecedent, enLigne30, pro30 }, commandes30, panierMoyen30, aTraiter: { commandes, demandes, messages, reservationsJour, facturesEnRetard }, ventes30: [{ date, enLigne, pro }], top: [{ slug, nom, qte, totalHT }], stocksBas: [...], prochainesVisites: [...], activite: Entree[], operation }` — `operation` = `{ id, nom, beneficiaire, debut, fin, enCours: boolean, bouteilles, montant, commandes }` (Octobre Rose : commandes en ligne non annulées ni remboursées dont le jour de Paris est dans la période), présent pendant l'opération et 30 jours après sa fin (virement du don), sinon `null` |
 | GET | `notifications` | `{ commandes, demandes, messages, stocksBas, version }` (version = `updatedAt`) — appelé toutes les 30 s quand l'onglet est visible et actif |
 | POST | `notifications-vues` | marque vu |
 | GET | `recherche` | `q` → `{ resultats: [{ type, id, titre, sousTitre, url }] }` (commandes, clients, comptes, messages, réservations, produits) |
@@ -341,7 +397,7 @@ l'élément créé, pour le bouton « Voir dans le CRM (démo) ».
 | GET | `journal` | `page, action, par` |
 | GET / POST / PATCH | `equipe` / `membre` | personnel : inviter, changer de rôle, désactiver (direction) |
 | GET / PATCH | `parametres` | réglages (direction) |
-| GET | `export` | `type=commandes\|clients\|comptes\|abonnes\|reservations\|produits` → CSV UTF-8 avec BOM, séparateur `;`, décimales à virgule |
+| GET | `export` | `type=commandes\|clients\|comptes\|abonnes\|reservations\|produits` → CSV UTF-8 avec BOM, séparateur `;`, décimales à virgule (commandes : colonne « Don Octobre Rose (€) ») |
 
 ### `api/pro` (client pro connecté, limité à son compte)
 
