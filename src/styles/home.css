@@ -100,15 +100,19 @@
 .chiffre { display: grid; align-content: start; gap: 12px; padding: 28px clamp(14px, 2vw, 28px) 8px 0; border-right: 1px solid var(--u-line); }
 .chiffre:last-child { border-right: 0; }
 .chiffre + .chiffre { padding-left: clamp(14px, 2vw, 28px); }
-.chiffre dt { font: 800 clamp(2.6rem, 4.6vw, 4.4rem)/0.95 var(--font); letter-spacing: -0.045em; font-variant-numeric: tabular-nums; color: #fff; }
+/* Une seule taille pour toute la bande, réglée sur la largeur de la liste (et non de l'écran) :
+   le plus long (« 800 000 ») tient dans sa colonne et tous les chiffres restent alignés. */
+.chiffres__list { container-type: inline-size; }
+.chiffre dt { font: 800 3rem/0.95 var(--font); font-size: min(3.4rem, 3.9cqi); letter-spacing: -0.045em; font-variant-numeric: tabular-nums; white-space: nowrap; color: #fff; }
 .chiffre dt small { font-size: 0.45em; letter-spacing: -0.01em; font-weight: 700; opacity: 0.8; }
 .chiffre dd { margin: 0; font-size: 0.95rem; line-height: 1.5; color: var(--u-soft); }
 .chiffre__flag { justify-self: start; padding: 4px 8px; border: 1px solid var(--u-line); border-radius: 4px; font: 650 0.68rem/1.2 var(--font) !important; letter-spacing: 0.1em; text-transform: uppercase; }
 @media (max-width: 1100px) {
   .chiffres__list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .chiffre dt { font-size: min(3.6rem, 8.6cqi); }
   .chiffre, .chiffre + .chiffre { padding: 24px 16px 20px 0; border-right: 0; border-bottom: 1px solid var(--u-line); }
 }
-@media (max-width: 520px) { .chiffres__list { grid-template-columns: 1fr; } }
+@media (max-width: 520px) { .chiffres__list { grid-template-columns: 1fr; } .chiffre dt { font-size: min(3.6rem, 16cqi); } }
 
 /* ---------- 5. Savoir-faire ---------- */
 .savoir__in { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: clamp(32px, 5vw, 88px); align-items: center; }

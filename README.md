@@ -160,7 +160,10 @@ Labo de réglage (développement seulement, non versionné) : `labo.html?scene=d
 - `npm run import-site` (`scripts/import-site.mjs --source <photos/site>`) régénère, depuis le
   worktree de la branche `photos-site` : `src/data/catalogue.json`, `src/data/site/*.json`
   (archives, recettes, textes), `photos/produits`, `photos/etiquettes`, `photos/lieux` (les deux
-  photos de la boutique sont redressées depuis le montage incliné du site), `public/archives`,
+  photos de la boutique sont redressées depuis le montage incliné du site ; le site ne les a qu'en
+  665 et 542 px de large, elles ont donc ensuite été agrandies ×4 par Real-ESRGAN (x4plus) pour rester
+  nettes sur écran Retina : relancer l'import remet les petits originaux ; à remplacer par de vraies
+  photos HD de la distillerie), `public/archives`,
   `public/recettes`, `public/logos`, `public/favicon.svg`. Les images sont réduites (build léger).
 - `scripts/archives-site.json` : les 46 pièces choisies, avec leur cartel. **Dates des cartels** :
   seulement ce qui est imprimé sur la pièce (« Tampon « 16 mai 1962 » », « Nice, Exposition
