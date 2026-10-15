@@ -340,10 +340,10 @@ function DialogExpedition({ c, pro, exigeSuivi, onClose, onValider }) {
     >
       <div class="form">
         <div class="form-grid">
-          <Select label="Transporteur" value={f.transporteur} onChange={(e) => setF({ ...f, transporteur: e.currentTarget.value })} options={TRANSPORTEURS} />
-          <Input label="Numéro de suivi" opt={!requis} value={f.numero} onInput={(e) => setF({ ...f, numero: e.currentTarget.value })} error={erreurDe(err, 'numero', 'suivi')} autoComplete="off" spellcheck={false} placeholder="6A12345678901" />
+          <Select label="Transporteur" value={f.transporteur} onChange={(e) => { const cible = e.currentTarget; setF((prec) => ({ ...prec, transporteur: cible.value })); }} options={TRANSPORTEURS} />
+          <Input label="Numéro de suivi" opt={!requis} value={f.numero} onInput={(e) => { const cible = e.currentTarget; setF((prec) => ({ ...prec, numero: cible.value })); }} error={erreurDe(err, 'numero', 'suivi')} autoComplete="off" spellcheck={false} placeholder="6A12345678901" />
         </div>
-        <Input label="Lien de suivi" opt type="url" value={f.url} onInput={(e) => setF({ ...f, url: e.currentTarget.value })} placeholder="https://…" error={erreurDe(err, 'url')} />
+        <Input label="Lien de suivi" opt type="url" value={f.url} onInput={(e) => { const cible = e.currentTarget; setF((prec) => ({ ...prec, url: cible.value })); }} placeholder="https://…" error={erreurDe(err, 'url')} />
         {c.livraison?.adresse && (
           <div class="card card--inset">
             <div class="card__body--tight small">

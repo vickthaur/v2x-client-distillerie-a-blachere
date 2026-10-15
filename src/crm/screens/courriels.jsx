@@ -14,7 +14,7 @@ import { relatif } from '../lib/format.js';
 
 const PAR = 30;
 const LIES = { commande: 'Voir la commande', facture: 'Voir la commande facturée', compte: 'Voir le compte pro', reservation: 'Voir la réservation', message: 'Voir le message', demande: 'Voir la demande pro', abonne: 'Voir l’abonné', campagne: 'Voir la campagne', client: 'Voir la fiche client' };
-const ICONES = { commande: 'commandes', expedition: 'camion', retrait: 'store', facture: 'facture', invitation: 'user-plus', reinitialisation: 'cle', reservation: 'calendrier', reponse: 'repondre', 'demande-pro': 'briefcase', campagne: 'send', bienvenue: 'etincelle' };
+export const ICONES = { commande: 'commandes', expedition: 'camion', retrait: 'store', facture: 'facture', invitation: 'user-plus', reinitialisation: 'cle', reservation: 'calendrier', reponse: 'repondre', 'demande-pro': 'briefcase', campagne: 'send', bienvenue: 'etincelle' };
 
 export function Courriels({ id }) {
   useTitre('Courriels envoyés');

@@ -61,7 +61,7 @@ export function Comptes() {
         actions={
           <>
             {s.peut('exports') && (
-              <Button href={crmUrl('export', { type: 'comptes' })} target="_blank" download="" icon="telecharger" title="Tous les comptes pro, au format CSV (tableur)">
+              <Button href={crmUrl('export', { type: 'comptes', typeCompte: type, statut, commercial, q: recherche, tri })} target="_blank" download="" icon="telecharger" title="Exporte la liste filtrée au format CSV (tableur)">
                 <span class="hide-s">Exporter</span>
               </Button>
             )}
@@ -229,7 +229,7 @@ function DialogNouveauCompte({ onClose }) {
   const [f, setF] = useState({ raisonSociale: '', enseigne: '', type: 'chr', siret: '', licence: 'licence-iv', email: '', telephone: '', ligne1: '', cp: '', ville: '', grille: 'chr', remise: '0', conditions: '30j-fdm', francoHT: '300', encoursMax: '1500', commercialId: s.moi.role === 'commercial' ? s.moi.id : '', prenom: '', nom: '', emailUtilisateur: '' });
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
-  const maj = (k) => (e) => setF({ ...f, [k]: e.currentTarget.value });
+  const maj = (k) => (e) => { const cible = e.currentTarget; setF((prec) => ({ ...prec, [k]: cible.value })); };
   const envoyer = async () => {
     setBusy(true);
     setErr(null);
@@ -346,6 +346,7 @@ export function Compte({ id }) {
   useTitre(c ? nomCompte(c) : 'Compte pro');
   useFil(c ? nomCompte(c) : null);
   const [conditions, setConditions] = useState(false);
+  const [etablissement, setEtablissement] = useState(false);
   const [inviter, setInviter] = useState(false);
   const peutModifier = s.peut('comptes', 'ecriture');
   if (r.error && !c) {
@@ -478,7 +479,7 @@ export function Compte({ id }) {
       <TabPanel id={onglet}>
         {onglet === 'infos' && (
           <div class="cols cols--2">
-            <Card titre="Établissement" icone="store">
+            <Card titre="Établissement" icone="store" actions={peutModifier && <button type="button" class="more" onClick={() => setEtablissement(true)}><Icon name="crayon" />Modifier</button>}>
               <dl class="dl">
                 <dt>Raison sociale</dt>
                 <dd>{c.raisonSociale || '—'}</dd>
@@ -534,7 +535,25 @@ export function Compte({ id }) {
           </div>
         )}
         {onglet === 'commandes' && (
-          <Card titre="Commandes" corps={false} actions={s.peut('commandes-pro', 'ecriture') && c.statut !== 'suspendu' && <Button size="sm" icon="plus" href={`/crm/commandes/nouvelle?compte=${c.id}`}>Nouvelle commande</Button>}>
+          <Card
+            titre="Commandes"
+            corps={false}
+            actions={
+              <div class="btn-row">
+                {commandes.length > 0 && (
+                  <Link class="more" href={`/crm/commandes?compteId=${c.id}`}>
+                    Voir dans la liste
+                    <Icon name="droite" />
+                  </Link>
+                )}
+                {s.peut('commandes-pro', 'ecriture') && c.statut !== 'suspendu' && (
+                  <Button size="sm" icon="plus" href={`/crm/commandes/nouvelle?compte=${c.id}`}>
+                    Nouvelle commande
+                  </Button>
+                )}
+              </div>
+            }
+          >
             {commandes.length === 0 ? (
               <Empty petit icone="commandes" titre="Aucune commande" />
             ) : (
@@ -686,8 +705,102 @@ export function Compte({ id }) {
       </TabPanel>
 
       {conditions && <DialogConditions c={c} commercial={commercial} onClose={() => setConditions(false)} patch={patch} />}
+      {etablissement && <DialogEtablissement c={c} onClose={() => setEtablissement(false)} patch={patch} />}
       {inviter && <DialogInviter compte={c} onClose={() => setInviter(false)} onFait={() => r.reload({ silencieux: true })} />}
     </div>
+  );
+}
+
+// Coordonnées de l'établissement : licence (aucune tant qu'elle n'est pas renseignée : pas
+// d'alcool), SIRET, TVA, téléphone (vidés → effacés), e-mail et adresse de facturation.
+function DialogEtablissement({ c, onClose, patch }) {
+  const a = c.adresseFacturation || {};
+  const [f, setF] = useState({
+    raisonSociale: c.raisonSociale || '',
+    enseigne: c.enseigne || '',
+    type: c.type || 'chr',
+    licence: c.licence || 'aucune',
+    siret: c.siret ? siret(c.siret) : '',
+    tvaIntra: c.tvaIntra || '',
+    email: c.email || '',
+    telephone: c.telephone || '',
+    ligne1: a.ligne1 || '',
+    ligne2: a.ligne2 || '',
+    cp: a.cp || '',
+    ville: a.ville || '',
+  });
+  const [err, setErr] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const maj = (k) => (e) => { const cible = e.currentTarget; setF((prec) => ({ ...prec, [k]: cible.value })); };
+  const envoyer = async () => {
+    if (!f.raisonSociale.trim() || !f.enseigne.trim()) return setErr({ champ: 'enseigne', message: 'Raison sociale et enseigne sont obligatoires.' });
+    if (!f.ligne1.trim() || !/^\d{5}$/.test(f.cp.trim()) || !f.ville.trim()) return setErr({ champ: 'cp', message: 'Adresse de facturation : rue, code postal (5 chiffres) et ville.' });
+    setBusy(true);
+    setErr(null);
+    try {
+      await patch(
+        {
+          raisonSociale: f.raisonSociale.trim(),
+          enseigne: f.enseigne.trim(),
+          type: f.type,
+          licence: f.licence,
+          siret: f.siret.replace(/\s/g, '') || null,
+          tvaIntra: f.tvaIntra.replace(/\s/g, '').toUpperCase() || null,
+          email: f.email.trim(),
+          telephone: f.telephone.trim() || null,
+          adresseFacturation: { ligne1: f.ligne1.trim(), ligne2: f.ligne2.trim() || undefined, cp: f.cp.trim(), ville: f.ville.trim(), pays: 'France' },
+        },
+        'Établissement mis à jour',
+      );
+      onClose();
+    } catch (e) {
+      setErr(e);
+      setBusy(false);
+    }
+  };
+  const champs = ['raisonSociale', 'enseigne', 'siret', 'tvaIntra', 'email', 'telephone', 'ligne1', 'cp', 'ville', 'licence', 'adresseFacturation'];
+  return (
+    <Dialog
+      titre="Établissement"
+      sous={`${nomCompte(c)} · coordonnées reprises sur les factures.`}
+      icone="store"
+      taille="l"
+      onClose={onClose}
+      onSubmit={envoyer}
+      pied={
+        <>
+          <Button onClick={onClose}>Annuler</Button>
+          <Button type="submit" variant="primary" busy={busy}>
+            Enregistrer
+          </Button>
+        </>
+      }
+    >
+      <div class="form">
+        <div class="form-grid">
+          <Input label="Raison sociale" value={f.raisonSociale} onInput={maj('raisonSociale')} error={erreurDe(err, 'raisonSociale')} />
+          <Input label="Enseigne" value={f.enseigne} onInput={maj('enseigne')} error={erreurDe(err, 'enseigne')} />
+          <Select label="Type d’établissement" value={f.type} onChange={maj('type')} options={Object.entries(COMPTE_TYPE).map(([value, label]) => ({ value, label }))} />
+          <Select
+            label="Licence de débit de boissons"
+            value={f.licence}
+            onChange={maj('licence')}
+            options={Object.entries(LICENCE).map(([value, label]) => ({ value, label }))}
+            help={f.licence === 'aucune' ? 'Sans licence, le compte ne voit pas les produits alcoolisés.' : null}
+            error={erreurDe(err, 'licence')}
+          />
+          <Input label="SIRET" opt inputMode="numeric" value={f.siret} onInput={maj('siret')} error={erreurDe(err, 'siret')} help="14 chiffres ; vide pour l’effacer" />
+          <Input label="TVA intracommunautaire" opt value={f.tvaIntra} onInput={maj('tvaIntra')} error={erreurDe(err, 'tvaIntra')} placeholder="FR…" />
+          <Input label="E-mail de facturation" type="email" value={f.email} onInput={maj('email')} error={erreurDe(err, 'email')} />
+          <Input label="Téléphone" opt type="tel" value={f.telephone} onInput={maj('telephone')} error={erreurDe(err, 'telephone')} />
+          <Input class="span-2" label="Adresse de facturation" value={f.ligne1} onInput={maj('ligne1')} error={erreurDe(err, 'ligne1', 'adresseFacturation')} autoComplete="off" />
+          <Input class="span-2" label="Complément" opt value={f.ligne2} onInput={maj('ligne2')} autoComplete="off" />
+          <Input label="Code postal" inputMode="numeric" value={f.cp} onInput={maj('cp')} error={erreurDe(err, 'cp')} autoComplete="off" />
+          <Input label="Ville" value={f.ville} onInput={maj('ville')} error={erreurDe(err, 'ville')} autoComplete="off" />
+        </div>
+        {err && !erreurDe(err, ...champs) && <Notice ton="err">{err.message}</Notice>}
+      </div>
+    </Dialog>
   );
 }
 
@@ -697,7 +810,7 @@ function DialogConditions({ c, commercial, onClose, patch }) {
   const [f, setF] = useState({ grille: c.grille, remise: String(c.remise ?? 0).replace('.', ','), conditions: c.conditions, francoHT: String(c.francoHT ?? '').replace('.', ','), encoursMax: String(c.encoursMax ?? '').replace('.', ','), commercialId: c.commercialId || '' });
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
-  const maj = (k) => (e) => setF({ ...f, [k]: e.currentTarget.value });
+  const maj = (k) => (e) => { const cible = e.currentTarget; setF((prec) => ({ ...prec, [k]: cible.value })); };
   const peutChoisir = commerciaux.length > 1;
   const envoyer = async () => {
     const remise = lireNombre(f.remise);
@@ -743,7 +856,7 @@ function DialogInviter({ compte, onClose, onFait }) {
   const [f, setF] = useState({ prenom: '', nom: '', email: '' });
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
-  const maj = (k) => (e) => setF({ ...f, [k]: e.currentTarget.value });
+  const maj = (k) => (e) => { const cible = e.currentTarget; setF((prec) => ({ ...prec, [k]: cible.value })); };
   const envoyer = async () => {
     setBusy(true);
     setErr(null);

@@ -191,7 +191,7 @@ export function NouvelleCommande() {
                   <Select
                     label="Adresse de livraison"
                     value={livraison.adresseId}
-                    onChange={(e) => setLivraison({ ...livraison, adresseId: e.currentTarget.value })}
+                    onChange={(e) => { const cible = e.currentTarget; setLivraison((prec) => ({ ...prec, adresseId: cible.value })); }}
                     options={cpt.adressesLivraison.map((a, i) => ({ value: a.id || String(i), label: formatAdresse(a).join(', ') }))}
                     help="Transporteur de la distillerie, 48 à 72 h ouvrées."
                   />
@@ -199,10 +199,10 @@ export function NouvelleCommande() {
                   <p class="small muted">Livraison à l’adresse du compte, par le transporteur de la distillerie.</p>
                 )}
                 <div class="form-grid">
-                  <Input label="Référence du client" opt value={pro.referenceClient} onInput={(e) => setPro({ ...pro, referenceClient: e.currentTarget.value })} maxLength={40} error={erreurDe(err, 'referenceClient')} placeholder="Bon de commande n°…" />
-                  <Input label="Date souhaitée" opt type="date" min={aujourdHui()} value={pro.dateSouhaitee} onInput={(e) => setPro({ ...pro, dateSouhaitee: e.currentTarget.value })} error={erreurDe(err, 'dateSouhaitee')} />
+                  <Input label="Référence du client" opt value={pro.referenceClient} onInput={(e) => { const cible = e.currentTarget; setPro((prec) => ({ ...prec, referenceClient: cible.value })); }} maxLength={40} error={erreurDe(err, 'referenceClient')} placeholder="Bon de commande n°…" />
+                  <Input label="Date souhaitée" opt type="date" min={aujourdHui()} value={pro.dateSouhaitee} onInput={(e) => { const cible = e.currentTarget; setPro((prec) => ({ ...prec, dateSouhaitee: cible.value })); }} error={erreurDe(err, 'dateSouhaitee')} />
                 </div>
-                <Textarea label="Commentaire du client" opt value={pro.commentaire} onInput={(e) => setPro({ ...pro, commentaire: e.currentTarget.value })} rows={2} style="min-height:64px" error={erreurDe(err, 'commentaire')} />
+                <Textarea label="Commentaire du client" opt value={pro.commentaire} onInput={(e) => { const cible = e.currentTarget; setPro((prec) => ({ ...prec, commentaire: cible.value })); }} rows={2} style="min-height:64px" error={erreurDe(err, 'commentaire')} />
                 <Textarea label="Note interne" opt value={note} onInput={(e) => setNote(e.currentTarget.value)} rows={2} placeholder="Ex. : livraison avant 11 h" style="min-height:64px" />
                 {cpt && (
                   <p class="small muted">
@@ -215,15 +215,15 @@ export function NouvelleCommande() {
           ) : (
             <Card titre="3. Livraison et paiement" icone="camion">
               <div class="form">
-                <Choices name="livraison" value={livraison.mode} onChange={(m) => setLivraison({ ...livraison, mode: m })} items={['retrait', 'colissimo', 'relais'].map((m) => ({ value: m, titre: LIVRAISON[m].label, icone: LIVRAISON[m].icone }))} />
+                <Choices name="livraison" value={livraison.mode} onChange={(m) => setLivraison((prec) => ({ ...prec, mode: m }))} items={['retrait', 'colissimo', 'relais'].map((m) => ({ value: m, titre: LIVRAISON[m].label, icone: LIVRAISON[m].icone }))} />
                 {livraison.mode === 'retrait' ? (
-                  <Input label="Jour de retrait" type="date" min={aujourdHui()} value={livraison.jourRetrait} onInput={(e) => setLivraison({ ...livraison, jourRetrait: e.currentTarget.value })} help="Du lundi au samedi, à la distillerie." error={erreurDe(err, 'jourRetrait')} />
+                  <Input label="Jour de retrait" type="date" min={aujourdHui()} value={livraison.jourRetrait} onInput={(e) => { const cible = e.currentTarget; setLivraison((prec) => ({ ...prec, jourRetrait: cible.value })); }} help="Du lundi au samedi, à la distillerie." error={erreurDe(err, 'jourRetrait')} />
                 ) : (
                   <div class="form-grid">
-                    <Input class="span-2" label={livraison.mode === 'relais' ? 'Adresse du client (pour choisir le relais)' : 'Adresse'} value={livraison.adresse.ligne1} onInput={(e) => setLivraison({ ...livraison, adresse: { ...livraison.adresse, ligne1: e.currentTarget.value } })} autoComplete="off" error={erreurDe(err, 'adresse', 'ligne1')} />
-                    <Input class="span-2" label="Complément" opt value={livraison.adresse.ligne2} onInput={(e) => setLivraison({ ...livraison, adresse: { ...livraison.adresse, ligne2: e.currentTarget.value } })} autoComplete="off" />
-                    <Input label="Code postal" inputMode="numeric" value={livraison.adresse.cp} onInput={(e) => setLivraison({ ...livraison, adresse: { ...livraison.adresse, cp: e.currentTarget.value } })} autoComplete="off" error={erreurDe(err, 'cp')} help="France métropolitaine" />
-                    <Input label="Ville" value={livraison.adresse.ville} onInput={(e) => setLivraison({ ...livraison, adresse: { ...livraison.adresse, ville: e.currentTarget.value } })} autoComplete="off" error={erreurDe(err, 'ville')} />
+                    <Input class="span-2" label={livraison.mode === 'relais' ? 'Adresse du client (pour choisir le relais)' : 'Adresse'} value={livraison.adresse.ligne1} onInput={(e) => { const cible = e.currentTarget; setLivraison((prec) => ({ ...prec, adresse: { ...prec.adresse, ligne1: cible.value } })); }} autoComplete="off" error={erreurDe(err, 'adresse', 'ligne1')} />
+                    <Input class="span-2" label="Complément" opt value={livraison.adresse.ligne2} onInput={(e) => { const cible = e.currentTarget; setLivraison((prec) => ({ ...prec, adresse: { ...prec.adresse, ligne2: cible.value } })); }} autoComplete="off" />
+                    <Input label="Code postal" inputMode="numeric" value={livraison.adresse.cp} onInput={(e) => { const cible = e.currentTarget; setLivraison((prec) => ({ ...prec, adresse: { ...prec.adresse, cp: cible.value } })); }} autoComplete="off" error={erreurDe(err, 'cp')} help="France métropolitaine" />
+                    <Input label="Ville" value={livraison.adresse.ville} onInput={(e) => { const cible = e.currentTarget; setLivraison((prec) => ({ ...prec, adresse: { ...prec.adresse, ville: cible.value } })); }} autoComplete="off" error={erreurDe(err, 'ville')} />
                   </div>
                 )}
                 <div class="form-grid">
@@ -330,10 +330,10 @@ function ChoixClient({ client, setClient, choisi, setChoisi, err }) {
       )}
       <p class="eyebrow" style="margin-top:6px">Ou nouveau client</p>
       <div class="form-grid">
-        <Input label="Prénom" value={client.prenom} onInput={(e) => setClient({ ...client, prenom: e.currentTarget.value })} autoComplete="off" />
-        <Input label="Nom" value={client.nom} onInput={(e) => setClient({ ...client, nom: e.currentTarget.value })} autoComplete="off" />
-        <Input label="E-mail" type="email" value={client.email} onInput={(e) => setClient({ ...client, email: e.currentTarget.value })} autoComplete="off" help="Le client y reçoit la confirmation." />
-        <Input label="Téléphone" opt type="tel" value={client.telephone} onInput={(e) => setClient({ ...client, telephone: e.currentTarget.value })} autoComplete="off" />
+        <Input label="Prénom" value={client.prenom} onInput={(e) => { const cible = e.currentTarget; setClient((prec) => ({ ...prec, prenom: cible.value })); }} autoComplete="off" />
+        <Input label="Nom" value={client.nom} onInput={(e) => { const cible = e.currentTarget; setClient((prec) => ({ ...prec, nom: cible.value })); }} autoComplete="off" />
+        <Input label="E-mail" type="email" value={client.email} onInput={(e) => { const cible = e.currentTarget; setClient((prec) => ({ ...prec, email: cible.value })); }} autoComplete="off" help="Le client y reçoit la confirmation." />
+        <Input label="Téléphone" opt type="tel" value={client.telephone} onInput={(e) => { const cible = e.currentTarget; setClient((prec) => ({ ...prec, telephone: cible.value })); }} autoComplete="off" />
       </div>
       {err && <p class="field__err">{err}</p>}
     </div>

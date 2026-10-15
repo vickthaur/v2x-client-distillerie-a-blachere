@@ -7,11 +7,12 @@ import { Link, clicLigne, navigate, useQuery } from '../lib/router.jsx';
 import { Icon } from '../ui/icons.jsx';
 import { Button, Card, Empty, Erreur, Notice, PageHead, Pagination, Pill, SearchInput, Skeleton, SkeletonRows, Statut, TabPanel, Tabs, cx, useTitre } from '../ui/base.jsx';
 import { Choices, Input, Textarea, erreurDe } from '../ui/form.jsx';
-import { Menu, MenuItem, confirmer, toast } from '../ui/overlay.jsx';
+import { Drawer, Menu, MenuItem, confirmer, toast } from '../ui/overlay.jsx';
 import { Anneau, BasculeTableau, Courbe } from '../charts/charts.jsx';
 import { ApercuCourriel } from '../ui/courriel.jsx';
 import { COULEURS } from '../lib/liens.js';
-import { ABONNE, ABONNE_SOURCE, CAMPAGNE, SEGMENT } from '../lib/statuts.js';
+import { ABONNE, ABONNE_SOURCE, CAMPAGNE, COURRIEL_TYPE, SEGMENT } from '../lib/statuts.js';
+import { ICONES } from './courriels.jsx';
 import { date, dateHeure, mois, moisCourt, nombre, pluriel, relatif } from '../lib/format.js';
 
 const PAR = 20;
@@ -35,34 +36,14 @@ export function Newsletter({ id }) {
   const onglet = q.get('onglet') || 'abonnes';
   const recherche = q.get('q') || '';
   const statut = q.get('statut') || '';
+  const source = q.get('source') || '';
   const page = Number(q.get('page')) || 1;
-  const r = useCrm('newsletter', { q: recherche, statut, page, par: PAR }, { garder: true });
-  // Lien direct vers un abonné (/crm/newsletter/<id>, depuis le journal ou le site) : l'API n'a pas
-  // de fiche abonné, on le cherche dans la liste puis on filtre sur son adresse.
+  const r = useCrm('newsletter', { q: recherche, statut, source, page, par: PAR }, { garder: true });
+  // /crm/newsletter/<id> (journal, site, liste) : fiche de l'abonné en panneau, la liste reste dessous
   useEffect(() => {
-    if (!id) return;
-    if (id === 'campagnes') return navigate('/crm/newsletter?onglet=campagnes', { replace: true });
-    let fini = false;
-    (async () => {
-      try {
-        for (let p = 1, pages = 1; p <= pages && !fini; p++) {
-          const d = await crm('newsletter', { query: { page: p, par: 100 } });
-          const a = elements(d?.liste).find((x) => x.id === id);
-          if (a) return navigate(`/crm/newsletter?q=${encodeURIComponent(a.email)}&abonne=${a.id}`, { replace: true });
-          pages = d?.liste?.pages || 1;
-        }
-        if (!fini) {
-          toast.info('Abonné introuvable', { detail: 'Il a pu être supprimé (RGPD).' });
-          navigate('/crm/newsletter', { replace: true });
-        }
-      } catch (e) {
-        if (!fini) navigate('/crm/newsletter', { replace: true });
-      }
-    })();
-    return () => {
-      fini = true;
-    };
+    if (id === 'campagnes') navigate('/crm/newsletter?onglet=campagnes', { replace: true });
   }, [id]);
+  const ficheId = id && id !== 'campagnes' ? id : null;
   const d = r.data;
   const peutModifier = s.peut('newsletter', 'ecriture');
   const campagnes = elements(d?.campagnes, 'campagnes');
@@ -76,7 +57,7 @@ export function Newsletter({ id }) {
         actions={
           <>
             {s.peut('exports') && (
-              <Button href={crmUrl('export', { type: 'abonnes' })} target="_blank" download="" icon="telecharger">
+              <Button href={crmUrl('export', { type: 'abonnes', statut, source, q: recherche })} target="_blank" download="" icon="telecharger" title="Exporte la liste filtrée au format CSV (tableur)">
                 <span class="hide-s">Exporter</span>
               </Button>
             )}
@@ -110,14 +91,15 @@ export function Newsletter({ id }) {
       )}
       {d && (
         <TabPanel id={onglet}>
-          {onglet === 'abonnes' ? <Abonnes d={d} recherche={recherche} statut={statut} vise={q.get('abonne')} page={page} setQ={setQ} r={r} peutModifier={peutModifier} /> : <ListeCampagnes campagnes={campagnes} peutModifier={peutModifier} />}
+          {onglet === 'abonnes' ? <Abonnes d={d} recherche={recherche} statut={statut} source={source} vise={ficheId} page={page} setQ={setQ} r={r} peutModifier={peutModifier} /> : <ListeCampagnes campagnes={campagnes} peutModifier={peutModifier} />}
         </TabPanel>
       )}
+      {ficheId && <FicheAbonne id={ficheId} peutModifier={peutModifier} onClose={() => navigate(`/crm/newsletter${location.search}`)} onChange={() => r.reload({ silencieux: true })} />}
     </div>
   );
 }
 
-function Abonnes({ d, recherche, statut, vise, page, setQ, r, peutModifier }) {
+function Abonnes({ d, recherche, statut, source, vise, page, setQ, r, peutModifier }) {
   const ab = d.abonnes || {};
   const sources = lireSources(ab.parSource);
   const evolution = lireEvolution(ab.evolution);
@@ -233,17 +215,25 @@ function Abonnes({ d, recherche, statut, vise, page, setQ, r, peutModifier }) {
         corps={false}
         actions={
           <div class="card-filtres">
-            <select class="select select--sm" aria-label="Statut" value={statut} onChange={(e) => setQ({ statut: e.currentTarget.value || undefined, page: undefined, abonne: undefined })}>
+            <select class="select select--sm" aria-label="Statut" value={statut} onChange={(e) => setQ({ statut: e.currentTarget.value || undefined, page: undefined })}>
               <option value="">Tous les statuts</option>
               <option value="inscrit">Inscrits</option>
               <option value="desinscrit">Désinscrits</option>
             </select>
-            <SearchInput value={recherche} onChange={(v) => setQ({ q: v, page: undefined, abonne: undefined })} placeholder="Rechercher une adresse" label="Rechercher un abonné" class="card-search" />
+            <select class="select select--sm" aria-label="Source" value={source} onChange={(e) => setQ({ source: e.currentTarget.value || undefined, page: undefined })}>
+              <option value="">Toutes les sources</option>
+              {Object.entries(ABONNE_SOURCE).map(([k, v]) => (
+                <option key={k} value={k}>
+                  {v}
+                </option>
+              ))}
+            </select>
+            <SearchInput value={recherche} onChange={(v) => setQ({ q: v, page: undefined })} placeholder="Rechercher une adresse" label="Rechercher un abonné" class="card-search" />
           </div>
         }
       >
         {liste.length === 0 ? (
-          <Empty petit icone="mail" titre={recherche || statut ? 'Aucun abonné trouvé' : 'Aucun abonné'} />
+          <Empty petit icone="mail" titre={recherche || statut || source ? 'Aucun abonné trouvé' : 'Aucun abonné'} />
         ) : (
           <div class={r.refreshing ? 'refreshing' : ''}>
             <div class="tbl-wrap only-desk">
@@ -262,9 +252,11 @@ function Abonnes({ d, recherche, statut, vise, page, setQ, r, peutModifier }) {
                 </thead>
                 <tbody>
                   {liste.map((a) => (
-                    <tr key={a.id} class={a.id === vise ? 'is-visee' : undefined}>
+                    <tr key={a.id} class={a.id === vise ? 'is-visee' : undefined} data-href="" onClick={clicLigne(`/crm/newsletter/${a.id}${location.search}`)}>
                       <td>
-                        <span class="strong">{a.email}</span>
+                        <Link class="tbl__main" href={`/crm/newsletter/${a.id}${location.search}`}>
+                          {a.email}
+                        </Link>
                         {a.prenom && <span class="tbl__sub">{a.prenom}</span>}
                       </td>
                       <td>{ABONNE_SOURCE[a.source] || a.source}</td>
@@ -284,12 +276,12 @@ function Abonnes({ d, recherche, statut, vise, page, setQ, r, peutModifier }) {
             <div class="list only-mob">
               {liste.map((a) => (
                 <div class={cx('list__item', a.id === vise && 'is-visee')} key={a.id}>
-                  <span class="list__main">
+                  <Link class="list__main" href={`/crm/newsletter/${a.id}${location.search}`}>
                     <span class="list__title">{a.email}</span>
                     <span class="list__meta">
                       {ABONNE_SOURCE[a.source] || a.source} · {date(a.inscritLe)}
                     </span>
-                  </span>
+                  </Link>
                   <Statut table={ABONNE} valeur={a.statut} />
                   {peutModifier && <ActionsAbonne a={a} desinscrire={desinscrire} supprimer={supprimer} />}
                 </div>
@@ -319,6 +311,129 @@ function ActionsAbonne({ a, desinscrire, supprimer }) {
         </>
       )}
     </Menu>
+  );
+}
+
+// Fiche d'un abonné (GET abonne) : origine, dates, fiche client de même e-mail, derniers courriels
+function FicheAbonne({ id, peutModifier, onClose, onChange }) {
+  const s = useSession();
+  const r = useCrm('abonne', { id });
+  const a = r.data;
+  useFil(a?.email);
+  useEffect(() => {
+    if (r.error?.status === 404) {
+      toast.info('Abonné introuvable', { detail: 'Il a pu être supprimé (RGPD).' });
+      onClose();
+    }
+  }, [r.error]);
+  const courriels = elements(a?.courriels);
+  const desinscrire = async () => {
+    try {
+      await crm('abonne', { method: 'PATCH', query: { id }, body: { statut: 'desinscrit' } });
+      toast(`${a.email} désinscrit`);
+      r.reload({ silencieux: true });
+      onChange();
+    } catch (e) {
+      toast.erreur(e);
+    }
+  };
+  const supprimer = async () => {
+    const ok = await confirmer({
+      titre: 'Supprimer cet abonné ?',
+      message: `${a.email} est effacé définitivement de la liste (droit à l’effacement, RGPD).`,
+      confirmer: 'Supprimer',
+      danger: true,
+      icone: 'corbeille',
+      action: () => crm('abonne', { method: 'DELETE', query: { id } }),
+    });
+    if (ok) {
+      toast('Abonné supprimé');
+      onChange();
+      onClose();
+    }
+  };
+  return (
+    <Drawer
+      titre={a?.email || 'Abonné'}
+      sous={a ? `${ABONNE_SOURCE[a.source] || a.source} · inscrit le ${date(a.inscritLe)}` : null}
+      onClose={onClose}
+      pied={
+        a &&
+        peutModifier && (
+          <>
+            <Button variant="danger-soft" icon="corbeille" onClick={supprimer}>
+              Supprimer
+            </Button>
+            {a.statut === 'inscrit' && (
+              <Button icon="interdit" onClick={desinscrire}>
+                Désinscrire
+              </Button>
+            )}
+          </>
+        )
+      }
+    >
+      {r.error && r.error.status !== 404 && <Erreur erreur={r.error} onRetry={r.reload} />}
+      {!a && !r.error && <SkeletonRows n={5} cols={2} />}
+      {a && (
+        <div class="stack">
+          <dl class="dl">
+            <dt>Statut</dt>
+            <dd>
+              <Statut table={ABONNE} valeur={a.statut} />
+            </dd>
+            <dt>Prénom</dt>
+            <dd>{a.prenom || '—'}</dd>
+            <dt>Source</dt>
+            <dd>{ABONNE_SOURCE[a.source] || a.source || '—'}</dd>
+            <dt>Inscription</dt>
+            <dd>{dateHeure(a.inscritLe)}</dd>
+            {a.desinscritLe && (
+              <>
+                <dt>Désinscription</dt>
+                <dd>{dateHeure(a.desinscritLe)}</dd>
+              </>
+            )}
+            <dt>Fiche client</dt>
+            <dd>
+              {a.client ? (
+                <Link class="link" href={`/crm/clients/${a.client.id}`}>
+                  {a.client.nom}
+                </Link>
+              ) : (
+                <span class="muted">{s.peut('clients') ? 'Aucun client à cette adresse' : '—'}</span>
+              )}
+            </dd>
+          </dl>
+          {s.peut('courriels') && (
+            <section class="stack stack--s" aria-labelledby="abo-courriels">
+              <h3 class="h3" id="abo-courriels">
+                Derniers courriels reçus
+              </h3>
+              {courriels.length === 0 ? (
+                <p class="small muted">Aucun courriel pour cette adresse dans la démo.</p>
+              ) : (
+                <div class="list list--bordee">
+                  {courriels.map((c) => (
+                    <Link key={c.id} class="list__item" href={`/crm/courriels/${c.id}`}>
+                      <span class="list__ico">
+                        <Icon name={ICONES[c.type] || 'mail'} size="s" />
+                      </span>
+                      <span class="list__main">
+                        <span class="list__title">{c.objet}</span>
+                        <span class="list__meta">
+                          {COURRIEL_TYPE[c.type] || c.type} · {relatif(c.date)}
+                        </span>
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
+        </div>
+      )}
+    </Drawer>
   );
 }
 
@@ -397,7 +512,7 @@ export function Campagne({ id }) {
   const envoyee = campagne?.statut === 'envoyee';
   const lecture = envoyee || !peutModifier;
   const segments = r.data?.segments || r.data?.abonnes?.parSegment || {};
-  const maj = (k) => (e) => setF({ ...f, [k]: e.currentTarget.value });
+  const maj = (k) => (e) => { const cible = e.currentTarget; setF((prec) => ({ ...prec, [k]: cible.value })); };
   const corpsApi = () => ({
     objet: f.objet.trim(),
     introduction: f.introduction.trim(),
@@ -559,7 +674,7 @@ export function Campagne({ id }) {
             <Choices
               name="segment"
               value={f.segment}
-              onChange={(v) => !lecture && setF({ ...f, segment: v })}
+              onChange={(v) => !lecture && setF((prec) => ({ ...prec, segment: v }))}
               items={Object.entries(SEGMENT).map(([k, x]) => {
                 const n = segments[k] ?? (campagne?.segment === k ? campagne.destinatairesPrevus : undefined);
                 return { value: k, titre: x.court, desc: `${x.label}${n !== undefined ? ` · ${pluriel(n, 'adresse', 'adresses')}` : ''}` };

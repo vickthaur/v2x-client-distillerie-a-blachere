@@ -30,11 +30,15 @@ function useCouche(ouvert, ref, onClose, { fermable = true, focusInitial } = {})
     const raf = requestAnimationFrame(() => {
       const el = ref.current;
       if (!el) return;
+      // déjà dans la fenêtre (champ touché avant cette image) : ne pas lui reprendre le focus
+      if (el.contains(document.activeElement) && document.activeElement !== el) return;
       const cible = (focusInitial && el.querySelector(focusInitial)) || el.querySelector('[data-autofocus]') || (window.matchMedia('(pointer: fine)').matches && el.querySelector(CHAMPS)) || el;
       cible.focus({ preventScroll: true });
     });
     const onKey = (e) => {
       if (pile[pile.length - 1] !== jeton) return;
+      // un menu ouvert depuis ce tiroir ou cette boîte de dialogue se ferme seul avec Échap
+      if (e.key === 'Escape' && document.querySelector('.menu[role=menu]')) return;
       if (e.key === 'Escape' && fermable) {
         e.preventDefault();
         e.stopPropagation();
@@ -267,12 +271,18 @@ export function Menu({ bouton, children, align = 'droite', haut = false, largeur
   const [pos, setPos] = useState(null);
   const btn = useRef(null);
   const menu = useRef(null);
+  // élément du DOM du bouton (une référence de composant Preact porte le sien dans .base)
+  const noeud = () => (btn.current && typeof btn.current.getBoundingClientRect === 'function' ? btn.current : btn.current?.base || null);
   const fermer = useCallback((rendreFocus = true) => {
     setOuvert(false);
-    if (rendreFocus) btn.current?.focus({ preventScroll: true });
+    if (rendreFocus) noeud()?.focus({ preventScroll: true });
   }, []);
+  const origine = useRef(null);
   const ouvrir = () => {
-    const r = btn.current.getBoundingClientRect();
+    const el = noeud();
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    origine.current = { top: r.top, left: r.left };
     const vw = document.documentElement.clientWidth;
     const p = {};
     if (haut) p.bottom = window.innerHeight - r.top + 6;
@@ -287,7 +297,7 @@ export function Menu({ bouton, children, align = 'droite', haut = false, largeur
     const items = () => [...(menu.current?.querySelectorAll('[role^=menuitem]') || [])];
     requestAnimationFrame(() => items()[0]?.focus({ preventScroll: true }));
     const surClic = (e) => {
-      if (menu.current?.contains(e.target) || btn.current?.contains(e.target)) return;
+      if (menu.current?.contains(e.target) || noeud()?.contains(e.target)) return;
       fermer(false);
     };
     const surTouche = (e) => {
@@ -315,6 +325,11 @@ export function Menu({ bouton, children, align = 'droite', haut = false, largeur
     };
     const surDefil = (e) => {
       if (menu.current?.contains(e.target)) return;
+      // un événement de défilement arrivé après l'ouverture (bouton amené à l'écran juste avant le
+      // clic, inertie du doigt) ne ferme pas le menu tant que le bouton n'a pas bougé
+      const r = noeud()?.getBoundingClientRect();
+      const o = origine.current;
+      if (r && o && Math.abs(r.top - o.top) < 2 && Math.abs(r.left - o.left) < 2) return;
       fermer(false);
     };
     document.addEventListener('pointerdown', surClic, true);

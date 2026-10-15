@@ -266,7 +266,7 @@ function DialogAccepter({ dm, onClose, onFait }) {
   const [busy, setBusy] = useState(false);
   const [res, setRes] = useState(null);
   const [courriel, setCourriel] = useState(null);
-  const maj = (k) => (e) => setF({ ...f, [k]: e.currentTarget.value });
+  const maj = (k) => (e) => { const cible = e.currentTarget; setF((prec) => ({ ...prec, [k]: cible.value })); };
   useEffect(() => {
     if (!f.commercialId && commerciaux.length) setF((x) => ({ ...x, commercialId: commerciaux.find((u) => u.role === 'commercial')?.id || commerciaux[0].id }));
   }, [commerciaux.length]);

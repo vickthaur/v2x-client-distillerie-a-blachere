@@ -45,7 +45,7 @@ export function Clients() {
         actions={
           <>
             {s.peut('exports') && (
-              <Button href={crmUrl('export', { type: 'clients' })} target="_blank" download="" icon="telecharger" title="Tous les clients, au format CSV (tableur)">
+              <Button href={crmUrl('export', { type: 'clients', segment, q: recherche, tri })} target="_blank" download="" icon="telecharger" title="Exporte la liste filtrée au format CSV (tableur)">
                 <span class="hide-s">Exporter</span>
               </Button>
             )}
@@ -193,7 +193,7 @@ function DialogClient({ client, onClose, onFait }) {
   }));
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
-  const maj = (k) => (e) => setF({ ...f, [k]: e.currentTarget.type === 'checkbox' ? e.currentTarget.checked : e.currentTarget.value });
+  const maj = (k) => (e) => { const cible = e.currentTarget; setF((prec) => ({ ...prec, [k]: cible.type === 'checkbox' ? cible.checked : cible.value })); };
   const envoyer = async () => {
     if (!f.nom.trim() || !/^\S+@\S+\.\S+$/.test(f.email.trim())) {
       setErr({ champ: !f.nom.trim() ? 'nom' : 'email', message: !f.nom.trim() ? 'Le nom est obligatoire.' : 'Adresse e-mail invalide.' });
@@ -201,8 +201,10 @@ function DialogClient({ client, onClose, onFait }) {
     }
     setBusy(true);
     setErr(null);
-    const adresse = f.ligne1.trim() ? { ligne1: f.ligne1.trim(), ligne2: f.ligne2.trim() || undefined, cp: f.cp.trim(), ville: f.ville.trim(), pays: 'France' } : undefined;
-    const body = { prenom: f.prenom.trim(), nom: f.nom.trim(), email: f.email.trim(), telephone: f.telephone.trim() || undefined, adresse, newsletter: f.newsletter };
+    // en modification, un champ facultatif vidé est effacé (null) ; à la création, il est omis
+    const vide = client ? null : undefined;
+    const adresse = f.ligne1.trim() ? { ligne1: f.ligne1.trim(), ligne2: f.ligne2.trim() || undefined, cp: f.cp.trim(), ville: f.ville.trim(), pays: 'France' } : vide;
+    const body = { prenom: f.prenom.trim(), nom: f.nom.trim(), email: f.email.trim(), telephone: f.telephone.trim() || vide, adresse, newsletter: f.newsletter };
     try {
       const d = client ? await crm('client', { method: 'PATCH', query: { id: client.id }, body }) : await crm('client', { method: 'POST', body: { ...body, origine: 'boutique' } });
       toast(client ? 'Fiche client mise à jour' : 'Client créé');
@@ -380,7 +382,20 @@ export function Client({ id }) {
       </div>
       <div class="cols cols--main">
         <div class="stack">
-          <Card titre="Commandes" icone="commandes" corps={false} sous={nb ? pluriel(nb, 'commande', 'commandes') : null}>
+          <Card
+            titre="Commandes"
+            icone="commandes"
+            corps={false}
+            sous={nb ? pluriel(nb, 'commande', 'commandes') : null}
+            actions={
+              nb > 0 && (
+                <Link class="more" href={`/crm/commandes?clientId=${c.id}`}>
+                  Voir dans la liste
+                  <Icon name="droite" />
+                </Link>
+              )
+            }
+          >
             {commandes.length === 0 ? (
               <Empty petit icone="commandes" titre="Aucune commande" texte="Ce client n’a pas encore commandé." />
             ) : (

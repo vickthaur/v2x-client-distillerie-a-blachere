@@ -61,7 +61,7 @@ const ROUTES = [
 
 // Écrans à deux volets (liste + détail) : la même instance reste en place quand on change
 // d'élément ; les autres écrans repartent de zéro à chaque adresse.
-const DEUX_VOLETS = new Set([Demandes, Produits, Visites, Messages, Courriels]);
+const DEUX_VOLETS = new Set([Demandes, Produits, Visites, Messages, Courriels, Newsletter]);
 const cleEcran = (route, path) => (route && DEUX_VOLETS.has(route.Ecran) ? route.motif.split('/:')[0] : path);
 
 function trouver(path) {

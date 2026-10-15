@@ -27,6 +27,7 @@ export function Produits({ slug }) {
   const stock = q.get('stock') || '';
   const r = useCrm('produits', {}, { garder: true });
   const tous = useMemo(() => lireProduits(r.data), [r.data]);
+  const nbEtat = (e) => tous.reduce((t, p) => t + p.variantes.filter((v) => etatStock(v) === e).length, 0);
   const peutPrix = s.peut('produits', 'ecriture');
   const peutStock = s.peut('stocks', 'ecriture');
   const [mouvement, setMouvement] = useState(null);
@@ -37,7 +38,8 @@ export function Produits({ slug }) {
     const t = plier(recherche.trim());
     return tous
       .map((p) => {
-        const variantes = p.variantes.filter((v) => !stock || (stock === 'bas' ? etatStock(v) !== 'disponible' : etatStock(v) === 'rupture'));
+        // même règle que l'API (et donc que l'export) : « bas » = stock bas hors rupture
+        const variantes = p.variantes.filter((v) => !stock || etatStock(v) === (stock === 'bas' ? 'stock-bas' : 'rupture'));
         return { ...p, variantes };
       })
       .filter((p) => p.variantes.length && (!gamme || p.gamme === gamme) && (!t || plier(`${p.nom} ${p.slug} ${GAMMES[p.gamme]?.nom || ''}`).includes(t)));
@@ -120,7 +122,7 @@ export function Produits({ slug }) {
               <span class="hide-s">Mouvements</span>
             </Button>
             {s.peut('exports') && (
-              <Button href={crmUrl('export', { type: 'produits' })} target="_blank" download="" icon="telecharger">
+              <Button href={crmUrl('export', { type: 'produits', gamme, q: recherche, stock })} target="_blank" download="" icon="telecharger" title="Exporte la liste filtrée au format CSV (tableur)">
                 <span class="hide-s">Exporter</span>
               </Button>
             )}
@@ -138,9 +140,14 @@ export function Produits({ slug }) {
           ))}
         </select>
         <div class="seg" role="group" aria-label="Stock">
-          {[['', 'Tous'], ['bas', 'Stock bas'], ['rupture', 'Rupture']].map(([id, l]) => (
+          {[
+            ['', 'Tous', null],
+            ['bas', 'Stock bas', nbEtat('stock-bas')],
+            ['rupture', 'Rupture', nbEtat('rupture')],
+          ].map(([id, l, n]) => (
             <button key={id} type="button" aria-pressed={stock === id ? 'true' : 'false'} onClick={() => setQ({ stock: id })}>
               {l}
+              {n ? <span class="seg__n">{n}</span> : null}
             </button>
           ))}
         </div>
@@ -311,7 +318,7 @@ function LigneVariante({ p, v, premiere, n, edition, onEditer, onAnnuler, onEnre
     }
   };
   const champ = (k, lab, suffixe, desactive) => (
-    <input class="input input--sm input--num" aria-label={`${lab} de ${p.nom} ${v.volume}`} inputMode="decimal" value={f[k]} disabled={desactive} onInput={(e) => setF({ ...f, [k]: e.currentTarget.value })} onKeyDown={touches} />
+    <input class="input input--sm input--num" aria-label={`${lab} de ${p.nom} ${v.volume}`} inputMode="decimal" value={f[k]} disabled={desactive} onInput={(e) => { const cible = e.currentTarget; setF((prec) => ({ ...prec, [k]: cible.value })); }} onKeyDown={touches} />
   );
   return (
     <tr class={cx(!premiere && 'tbl__suite', p.actif === false && 'is-inactif', edition && 'is-edition')} ref={ref}>
@@ -426,7 +433,7 @@ function DialogVariante({ p, v, peutPrix, peutStock, onClose, onEnregistrer }) {
   const [f, setF] = useState({ prixTTC: ecrireNombre(v.prixTTC), prixProHT: ecrireNombre(v.prixProHT), seuil: String(v.seuil ?? ''), colisage: String(v.colisage ?? '') });
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
-  const maj = (k) => (e) => setF({ ...f, [k]: e.currentTarget.value });
+  const maj = (k) => (e) => { const cible = e.currentTarget; setF((prec) => ({ ...prec, [k]: cible.value })); };
   const envoyer = async () => {
     const val = {};
     if (peutPrix) {

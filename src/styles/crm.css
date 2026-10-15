@@ -560,6 +560,7 @@ kbd { display: inline-grid; place-items: center; min-width: 20px; height: 20px; 
 .seg button:hover, .seg a:hover { color: var(--ink); }
 .seg [aria-pressed='true'], .seg [aria-selected='true'], .seg [aria-current='page'] { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgba(21, 19, 15, 0.12); }
 @media (pointer: coarse) { .seg button, .seg a { height: 38px; } }
+.seg__n { color: var(--ink-3); font-variant-numeric: tabular-nums; }
 
 /* Quantité (− 1 +) */
 .stepper { display: inline-flex; align-items: center; border: 1px solid var(--line-2); border-radius: var(--r-m); background: #fff; overflow: hidden; }
@@ -626,6 +627,9 @@ kbd { display: inline-grid; place-items: center; min-width: 20px; height: 20px; 
 a.list__item:hover, button.list__item:hover { background: var(--hover); }
 button.list__item { width: 100%; border-left: 0; border-right: 0; border-bottom: 0; background: none; text-align: left; font: inherit; }
 .list__main { flex: 1; min-width: 0; display: grid; gap: 3px; }
+a.list__main { color: inherit; text-decoration: none; }
+.list--bordee { border: 1px solid var(--line); border-radius: var(--r-m); overflow: hidden; background: #fff; }
+.list--bordee .list__item { padding: 10px 14px; }
 .list__title { display: flex; align-items: center; gap: 8px; font-weight: 620; min-width: 0; }
 .list__title > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .list__meta { color: var(--ink-3); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -725,7 +729,8 @@ button.list__item { width: 100%; border-left: 0; border-right: 0; border-bottom:
 .menu-wrap { position: relative; display: inline-flex; }
 .menu {
   position: absolute;
-  z-index: 80;
+  /* au-dessus des tiroirs (191) et des boîtes de dialogue (200), sous les notifications (300) */
+  z-index: 250;
   min-width: 220px;
   max-width: min(320px, calc(100vw - 24px));
   padding: 6px;
@@ -1420,6 +1425,8 @@ section:first-child > .grp-mob { border-top: 0; }
 .resa__main { flex: 1; min-width: 0; display: grid; gap: 3px; }
 .resa__top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .resa__msg { color: var(--ink-2); font-style: italic; }
+.resa__note { display: flex; align-items: flex-start; gap: 5px; color: var(--warn-ink); }
+.resa__note .ico { margin-top: 2px; flex: none; }
 @media (max-width: 640px) { .seance-tete { gap: 14px; } .seance-tete__chiffres { gap: 8px; } .seance-tete__chiffres .stat__v { font-size: 17px; } }
 
 /* ---------- Newsletter et campagnes ---------- */

@@ -72,7 +72,10 @@ export function Commandes() {
   const auQ = q.get('au') || '';
   const periode = q.get('periode') || (duQ || auQ ? 'perso' : '');
   const { du, au } = bornes(periode, duQ, auQ);
-  const query = { statut, canal, q: recherche, page, par: PAR, tri, du, au };
+  // commandes d'un seul compte pro ou d'un seul client (liens des fiches)
+  const compteId = q.get('compteId') || '';
+  const clientId = q.get('clientId') || '';
+  const query = { statut, canal, q: recherche, page, par: PAR, tri, du, au, compteId, clientId };
   const r = useCrm('commandes', query, { garder: true });
   const d = r.data;
   const liste = d?.elements || [];
@@ -127,7 +130,8 @@ export function Commandes() {
     } else await lancer();
   };
 
-  const exporter = crmUrl('export', { type: 'commandes' });
+  // l'export reprend les filtres et le tri de la liste affichée
+  const exporter = crmUrl('export', { type: 'commandes', statut, canal, du, au, q: recherche, compteId, clientId, tri });
   const tout = liste.length > 0 && liste.every((c) => sel.has(c.id));
   const basculer = (id) => {
     const n = new Set(sel);
@@ -144,7 +148,7 @@ export function Commandes() {
         actions={
           <>
             {s.peut('exports') && (
-              <Button href={exporter} icon="telecharger" target="_blank" download="" title="Toutes les commandes, au format CSV (tableur)">
+              <Button href={exporter} icon="telecharger" target="_blank" download="" title="Exporte la liste filtrée au format CSV (tableur)">
                 <span class="hide-s">Exporter</span>
               </Button>
             )}
@@ -188,6 +192,12 @@ export function Commandes() {
             <input type="date" class="input input--sm" style="width:auto" aria-label="Au" value={auQ} onChange={(e) => changer({ au: e.currentTarget.value })} />
           </div>
         )}
+        {(compteId || clientId) && (
+          <button type="button" class="chip" aria-pressed="true" onClick={() => changer({ compteId: '', clientId: '' })} aria-label="Retirer le filtre sur le compte ou le client">
+            {compteId ? 'Compte' : 'Client'} : {liste[0]?.client?.nom || '…'}
+            <Icon name="x" size="xs" />
+          </button>
+        )}
         {peutModifier && liste.length > 0 && (
           <Button size="sm" class="only-mob-inline" variant={modeSel ? 'primary' : undefined} icon="check" aria-pressed={modeSel ? 'true' : 'false'} aria-label={modeSel ? 'Terminer la sélection' : 'Sélectionner des commandes'} onClick={() => { setModeSel(!modeSel); setSel(new Set()); }}>
             {modeSel ? 'Terminer' : null}
@@ -209,7 +219,7 @@ export function Commandes() {
               icone="commandes"
               titre={recherche || statut || canal || periode ? 'Aucune commande ne correspond' : 'Aucune commande pour l’instant'}
               texte={recherche || statut || canal || periode ? 'Essayez d’élargir les filtres ou la période.' : 'Les commandes passées sur le site, dans l’espace pro ou saisies ici apparaîtront dans cette liste.'}
-              action={(recherche || statut || canal || periode) && <Button onClick={() => changer({ statut: '', canal: '', q: '', periode: '', du: undefined, au: undefined })}>Effacer les filtres</Button>}
+              action={(recherche || statut || canal || periode || compteId || clientId) && <Button onClick={() => changer({ statut: '', canal: '', q: '', periode: '', du: undefined, au: undefined, compteId: '', clientId: '' })}>Effacer les filtres</Button>}
             />
           </div>
         )}

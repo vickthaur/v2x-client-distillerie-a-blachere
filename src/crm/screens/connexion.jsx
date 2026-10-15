@@ -148,7 +148,7 @@ export function Connexion({ message, demo, onConnecte }) {
           </div>
 
           <form class="form auth__form" onSubmit={connecter} noValidate>
-            <Input label="Adresse e-mail" type="email" autoComplete="username" inputMode="email" value={f.email} onInput={(e) => setF({ ...f, email: e.currentTarget.value })} error={errEmail} />
+            <Input label="Adresse e-mail" type="email" autoComplete="username" inputMode="email" value={f.email} onInput={(e) => { const cible = e.currentTarget; setF((prec) => ({ ...prec, email: cible.value })); }} error={errEmail} />
             <div class="field">
               <div class="field__label">
                 <label for="mdp">Mot de passe</label>
@@ -164,7 +164,7 @@ export function Connexion({ message, demo, onConnecte }) {
                   type={voir ? 'text' : 'password'}
                   autoComplete="current-password"
                   value={f.motDePasse}
-                  onInput={(e) => setF({ ...f, motDePasse: e.currentTarget.value })}
+                  onInput={(e) => { const cible = e.currentTarget; setF((prec) => ({ ...prec, motDePasse: cible.value })); }}
                   aria-invalid={errMdp ? 'true' : undefined}
                   aria-describedby={errMdp ? 'mdp-err' : undefined}
                   style="padding-right:44px"
@@ -357,8 +357,8 @@ function FormulaireMdp({ bouton, onValider, email }) {
   return (
     <form class="form" onSubmit={envoyer} noValidate>
       {email && <input type="email" autoComplete="username" value={email} readOnly hidden />}
-      <Input label="Nouveau mot de passe" type="password" autoComplete="new-password" value={f.mdp} onInput={(e) => setF({ ...f, mdp: e.currentTarget.value })} error={err.mdp} help="10 caractères au moins. Une phrase courte est facile à retenir." />
-      <Input label="Confirmation" type="password" autoComplete="new-password" value={f.conf} onInput={(e) => setF({ ...f, conf: e.currentTarget.value })} error={err.conf} />
+      <Input label="Nouveau mot de passe" type="password" autoComplete="new-password" value={f.mdp} onInput={(e) => { const cible = e.currentTarget; setF((prec) => ({ ...prec, mdp: cible.value })); }} error={err.mdp} help="10 caractères au moins. Une phrase courte est facile à retenir." />
+      <Input label="Confirmation" type="password" autoComplete="new-password" value={f.conf} onInput={(e) => { const cible = e.currentTarget; setF((prec) => ({ ...prec, conf: cible.value })); }} error={err.conf} />
       {err.general && <Notice ton="err">{err.general}</Notice>}
       <Button type="submit" variant="primary" size="lg" block busy={busy}>
         {bouton}

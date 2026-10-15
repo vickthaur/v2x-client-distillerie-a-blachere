@@ -145,7 +145,7 @@ function DialogPromo({ promo, onClose, onFait }) {
   }));
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
-  const maj = (k) => (e) => setF({ ...f, [k]: e.currentTarget.type === 'checkbox' ? e.currentTarget.checked : e.currentTarget.value });
+  const maj = (k) => (e) => { const cible = e.currentTarget; setF((prec) => ({ ...prec, [k]: cible.type === 'checkbox' ? cible.checked : cible.value })); };
   const envoyer = async () => {
     const code = f.code.trim().toUpperCase().replace(/\s+/g, '');
     if (!/^[A-Z0-9-]{3,20}$/.test(code)) return setErr({ champ: 'code', message: '3 à 20 lettres, chiffres ou tirets.' });
@@ -192,14 +192,14 @@ function DialogPromo({ promo, onClose, onFait }) {
     >
       <div class="form">
         <div class="form-grid">
-          <Input label="Code" value={f.code} onInput={(e) => setF({ ...f, code: e.currentTarget.value.toUpperCase() })} error={erreurDe(err, 'code')} champClass="mono" placeholder="AUTOMNE15" autoComplete="off" spellcheck={false} />
+          <Input label="Code" value={f.code} onInput={(e) => { const cible = e.currentTarget; setF((prec) => ({ ...prec, code: cible.value.toUpperCase() })); }} error={erreurDe(err, 'code')} champClass="mono" placeholder="AUTOMNE15" autoComplete="off" spellcheck={false} />
           <Input label="Libellé" value={f.libelle} onInput={maj('libelle')} error={erreurDe(err, 'libelle')} placeholder="Opération d’automne" />
         </div>
         <Choices
           name="type"
           label="Avantage"
           value={f.type}
-          onChange={(t) => setF({ ...f, type: t })}
+          onChange={(t) => setF((prec) => ({ ...prec, type: t }))}
           items={[
             { value: 'pourcentage', titre: 'Pourcentage', icone: 'pourcent' },
             { value: 'montant', titre: 'Montant', icone: 'euro' },
