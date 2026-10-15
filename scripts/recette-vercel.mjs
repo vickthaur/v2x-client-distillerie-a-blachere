@@ -241,7 +241,11 @@ if (doit(5)) {
   await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
   const ok = (cond, libelle, detail) => (cond ? console.log(`  ✓ ${libelle}`) : note(`${libelle} : ${JSON.stringify(detail)?.slice(0, 300)}`));
   const jour = (d) => d.toISOString().slice(0, 10);
-  const demain = new Date(Date.now() + 86400000);
+  // Le serveur compte en jours de Paris : « demain » se calcule à partir de la date de Paris (sinon,
+  // entre 22 h et minuit UTC, « demain » en UTC est déjà « aujourd'hui » à Paris), jamais un dimanche.
+  const aujourdhuiParis = new Intl.DateTimeFormat('fr-CA', { timeZone: 'Europe/Paris' }).format(new Date());
+  const demain = new Date(`${aujourdhuiParis}T12:00:00Z`);
+  demain.setUTCDate(demain.getUTCDate() + 1);
   if (demain.getUTCDay() === 0) demain.setUTCDate(demain.getUTCDate() + 1);
 
   // a) commande en ligne, retrait à la distillerie, avec un spiritueux (âge confirmé)
@@ -279,8 +283,7 @@ if (doit(5)) {
   // c) réservation de visite sur le premier créneau libre
   let resa = null;
   for (let m = 0; m < 3 && !resa; m++) {
-    const d = new Date();
-    d.setUTCDate(1);
+    const d = new Date(`${aujourdhuiParis.slice(0, 7)}-01T12:00:00Z`);
     d.setUTCMonth(d.getUTCMonth() + m);
     const cr = await api(page, `/api/site?r=creneaux&mois=${jour(d).slice(0, 7)}`);
     const libre = cr.json?.jours?.find((j) => j.ouvert && (j.matin?.restantes >= 2 || j.apresMidi?.restantes >= 2));
