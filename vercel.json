@@ -9,17 +9,6 @@
   ],
   "cleanUrls": true,
   "trailingSlash": false,
-  "functions": {
-    "api/*.js": {
-      "maxDuration": 15
-    }
-  },
-  "crons": [
-    {
-      "path": "/api/menage",
-      "schedule": "17 3 * * *"
-    }
-  ],
   "rewrites": [
     {
       "source": "/boutique/:slug",
