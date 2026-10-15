@@ -9,6 +9,90 @@ chantiers (boutique, fiches, panier et commande, visites, espace pro, CRM, en-t�
 `src/app/site.js`, `vite.config.js`, `vercel.json`) : à faire quand ces chantiers seront fusionnés.
 Chaque point donne le fichier, le changement et la référence de l'audit.
 
+La deuxième vague (branche `wt-vague2`, un commit par thème) a fait les points 1 à 6, sauf ce qui
+attend le pré-rendu (fiches et grille pré-rendues, affiche des fiches dans le HTML, JSON-LD, vraies
+404, redirections), l'index léger du catalogue, la porte d'âge (UX-3, en attente de l'avis du
+juriste) et le domaine définitif ; et deux points du 7 (pause des animations, impression) : voir
+« Deuxième vague : fait » ci-dessous. Les sections 1 à 7 restent la liste d'origine.
+
+## Deuxième vague : fait (avant → après)
+
+Même méthode que pour la première vague : build de production servi par `vite preview`, Chromium sans
+tête, mêmes scripts avant et après (mesures de la vague, `scripts/audit/axe.mjs`, `clavier.mjs`,
+`debordements.mjs`).
+
+| Mesure | Avant | Après |
+|---|---|---|
+| Boutique au bureau (1 440 × 900) : `h1` / première carte / cartes dans le premier écran | 325 / 800 px / 4 | 158 / 360 px / 8 |
+| Boutique au téléphone (390 × 844) : `h1` / première carte | 193 / 677 px | 103 / 478 px |
+| Fiche au téléphone : `h1` / prix / bouton d'achat / plateau | 753 / 997 / 1 108 / 488 px | 572 / 815 / 926 / 390 px (56 svh au plus) |
+| Fiche au bureau : `h1` / prix / bouton d'achat | 334 / 578 / 627 px | 222 / 466 / 515 px |
+| Barre d'achat collante (téléphone et bureau) | aucune | nom, contenance, prix et « Ajouter » dès que le bouton passe sous l'en-tête, effacée au pied de page |
+| Fiche de sirop en mouvement réduit (de même en économie de données et en 2G) | three.js, index des photos, étiquette et contre-étiquette : 29 requêtes, 782 Ko | l'affiche seule, nommée : 22 requêtes, 265 Ko |
+| Fiche avec WebGL : contre-étiquette (184 Ko) | chargée d'office | au premier clic sur « Dos » |
+| Lignes de maquette visibles sans `?revue` (7 pages, en-tête et pied de page compris) | 25 | 0 |
+| Boutique : tri nommé au téléphone, groupes, rayon actif annoncé, `aria-valuetext` | non, non, non, 0 curseur | oui, oui, oui, 4 curseurs |
+| Prix au litre : cartes de la boutique / fiche La Camarguaise (70 cl) | 0 / « 31,70 € TTC · 70 cl » | 49 / « 31,70 € TTC · 70 cl soit 45,29 € le litre » |
+| Frais de port : fiche / panier (latéral et page) | rien / « calculés avec la distillerie » | « 7,90 € en point relais, 9,90 € à domicile, offerte dès 120,00 € d'achats » / « dès 12,90 € en point relais […], plus que 68,20 € » |
+| Espace avant « € » | insécable (U+00A0) | fine insécable (U+202F) |
+| Focus après « + » ou après un retrait, panier latéral et page panier | perdu (`body`) | reste sur le bouton, ou passe à la ligne suivante |
+| Erreurs reliées à leur champ (`aria-describedby`) : Visiter / espace pro / commande | 1 sur 6 / 0 sur 6 / 0 sur 5 | 6 sur 6 / 6 sur 6 / 5 sur 5 |
+| Boutique, fiche, panier : `canonical`, `og:url`, `og:description`, Archivo préchargée | non | oui (fiche : posés par `produit.js` tant qu'elle n'est pas pré-rendue) |
+| `/v2x/proposition.css` (5 pages mesurées) | bloque le rendu | ne bloque plus ; la pastille s'insère une fois sa feuille chargée |
+| Impression : fiche PAC Citron / recettes | 6 pages incomplètes (accordéons fermés, en-tête répété, bouton blanc sur blanc) / 45 pages | 5 pages complètes / 13 pages |
+| Campagnes et fiches de sirop : commande de pause (WCAG 2.2.2) | aucune | « Mettre l'animation en pause » (bascule, choix gardé d'une page à l'autre) |
+| Méga-menu ouvert au clavier : tabulations avant d'entrer dans le panneau / panneau resté ouvert quand le focus part | 7 / oui | 0 / non |
+| Recherche / menu du téléphone ouverts : éléments de la page atteints à la tabulation | 5 / 20 | 0 / 0 (vraies fenêtres modales, Échap rend le focus au bouton) |
+| axe (52 analyses de l'audit) : nœuds en échec | 3 (boutique : `aria-prohibited-attr` sur `#shop-chips`, tri sans nom au téléphone) | 0 |
+| Focus caché (clavier.mjs, 9 pages) | 17 | 15 : les cases des filtres et la visionneuse ne passent plus sous la pastille V2X ; restent le lien d'évitement (9, voulu), les curseurs des filtres couverts par leur piste (5, anneau sur la poignée) et une carte de recette de la fiche, plus haute que l'espace au-dessus de la pastille (1) |
+| Débordements de 320 à 2 560 px (180 cas) | 0 | 0 |
+
+Avant chacun des sept commits de code : build vert, `npm test` vert (174 tests, puis 176 avec
+`test/livraison.test.js`), recette complète (`node scripts/qa.mjs`, sans `--rapide`) verte : 258, 260,
+262, 265, 270, 273 puis 278 vérifications, aucune erreur de console. Contrôles ajoutés : double marge
+(17 pages, bureau et téléphone), fiche au téléphone et au bureau, barre d'achat, boutique au bureau,
+3D sobre et dos de l'étiquette, mode revue, méga-menus au clavier, fenêtres modales, focus du panier,
+prix au litre, frais de port, erreurs par champ, balises, cache des images, feuille de la pastille,
+pause des animations, impression.
+
+### Ce que la deuxième vague change pour les autres chantiers
+
+- `src/app/site.js` : `import '../lib/revue.js'` (mode revue sur toutes les pages) ; recherche et menu
+  du téléphone en `<dialog>` ouverts par `showModal()` (Échap ferme, focus rendu au bouton) ;
+  méga-menus dans `.nav__item`, fermés quand le focus quitte le bouton et le panneau ; `toast()`
+  s'affiche dans la fenêtre modale ouverte ; panier latéral mis à jour sans réécrire la liste ;
+  `affinerLivraison(root, totaux)` exportée ; accordéons ouverts à l'impression.
+- `src/partials/header.html` : `<dialog class="search">`, `<dialog class="menu">` ; langues et
+  « Compte » en `data-revue` ; `src/partials/footer.html` : langues en `data-revue`.
+- `src/partials/head.html` : `proposition.css` en `media="print"` (passée en `all` par
+  `public/v2x/proposition.js`) ; boutique, fiche et panier incluent maintenant `head.html`.
+- `src/lib/livraison.js` : barème de la démo (`BAREME`, `devisLocal()`) et `devis(lignes, local)`
+  (`POST /api/site?r=livraison`, repli sur le barème) ; test `test/livraison.test.js` (barème
+  identique à `PARAMETRES_DEFAUT.livraison`).
+- `src/lib/formulaire.js` : `erreursParChamp(form, erreurs, { resume, focus })` (message sous le
+  champ, `aria-invalid`, `aria-describedby`, résumé, focus au premier champ).
+- `src/lib/pause.js` : `pauseVoulue()`, `boutonPause(scene, { clair })` ; `Stage`, `HeroScene`,
+  `BottleViewer` : option `pause`, `pause(on)`, `paused`.
+- `src/lib/dom.js` : `whenVisible(el, rootMargin)` ; `src/three/stage.js` : `redraw()` ;
+  `src/three/viewer.js` : `dosDisponible`, `chargerDos()` ; `src/three/photoBottle.js` :
+  `userData.ajouterDos()`.
+- `src/data/products.js` : `euro()` avec U+202F, `prixAuLitre()`, `prixAuLitreTexte()`,
+  `prixAuLitreHTML()` ; `p.notes` en `{ t, revue }`.
+- `src/styles/print.css` (importée par `base.css`, sans effet sur l'espace pro et ses factures).
+- `vercel.json` : `public, max-age=86400, stale-while-revalidate=604800` pour les images ;
+  `fetchJSON()` (`src/lib/photos.js`) sans `cache: 'no-cache'`.
+
+### Reste à faire après la deuxième vague
+
+- Pré-rendu des fiches, de la grille de la boutique, des recettes et des archives, avec JSON-LD
+  `Product` / `Offer` / `BreadcrumbList`, vraies 404 et redirections 301 du site actuel (PERF-1, SEO-2,
+  SEO-4, SEO-5) ; index léger du catalogue (PERF-6) : hors du périmètre de cette vague.
+- Porte d'âge à la première action vers l'alcool (UX-3) : en attente de l'avis du juriste, porte
+  inchangée.
+- À la mise en ligne : domaine définitif dans `canonical`, `og:url` et le JSON-LD.
+- Garnitures 3D pré-cuites (PERF-2, PERF-5), instance allégée d'Archivo (PERF-5), bouton « Imprimer
+  la recette » et page par recette (QUAL-7, SEO-6).
+
 ## Mesures de la première vague (avant → après)
 
 Build de production servi par `vite preview` (octets bruts, non compressés), Chromium sans tête ;
