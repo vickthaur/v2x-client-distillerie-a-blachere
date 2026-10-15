@@ -407,19 +407,25 @@ inconnu ou mal formé → 404.
 
 ### `api/pro` (client pro connecté, limité à son compte)
 
+Session `bl_pro` d'un utilisateur actif d'un compte **actif** (compte suspendu : 401, connexion
+refusée avec `code: 'suspendu'`). Un identifiant d'un autre compte rend 404, comme un identifiant
+inconnu. Les commandes rendues au pro n'ont ni notes internes ni identifiants du personnel.
+
 | Méthode | `r` | Détail |
 |---|---|---|
-| GET | `accueil` | `{ compte, commercial: { nom, email, telephone }, encours, encoursMax, commandesEnCours, derniereCommande, facturesARegler, suggestions }` |
-| GET | `catalogue` | produits visibles pour ce compte : `{ slug, nom, gamme, alcool, degre, photo, variantes: [{ id, volume, colisage, prixHT, prixCartonHT, tva, etat }] }` + `conditions: { minimumHT, francoHT, fraisPortHT }` |
-| POST | `devis` | `{ lignes }` → totaux, franco restant, alertes (stock, minimum, encours) — sans rien enregistrer |
-| POST | `commande` | `{ lignes: [{ slug, varianteId, qte }], adresseId, dateSouhaitee?, referenceClient?, commentaire? }` → `201 { numero, … }` |
-| GET | `commandes` / `commande` | historique ; détail (suivi, historique, facture) |
-| GET | `recommander` | `id` → lignes encore disponibles, pour le panier |
-| GET | `factures` | factures du compte (statut, échéance, en retard) |
-| GET | `documents` | fiches techniques (générées du catalogue), médiathèque (logos, photos, PLV), conditions |
-| GET / PATCH | `compte` | infos (raison sociale, SIRET en lecture seule ; téléphone, e-mail de facturation modifiables) + utilisateurs |
-| POST / PATCH / DELETE | `adresse` | adresses de livraison |
-| GET / POST | `messages` / `message` | échanges avec la distillerie (arrivent dans les messages du CRM) |
+| GET | `accueil` | `{ compte, commercial: { nom, email, telephone, poste? }, encours, encoursMax, commandesEnCours: [résumé²], derniereCommande: résumé² \| null, facturesARegler: { nombre, totalTTC, enRetard, prochaineEcheance }, suggestions: [{ slug, varianteId, nom, volume, photo, colisage, prixHT, raison }] (4 au plus), conditions: { minimumHT, francoHT, fraisPortHT, delai } }` |
+| GET | `catalogue` | produits visibles pour ce compte (en vente ; spiritueux seulement avec une licence) : `{ produits: [{ slug, nom, type, gamme, gammeNom, univers, alcool, degre, photo, variantes: [{ id, volume, coffret, colisage, parCarton, prixHT, prixCartonHT, prixTTC, prixPublicTTC, tva, etat }] }], conditions: { minimumHT, francoHT, fraisPortHT, delai }, grille, remise, spiritueux: boolean, mentions?: { evin, mineurs } }` |
+| POST | `devis` | `{ lignes }` → `{ lignes (Ligne complète), totaux, francoRestantHT, alertes: [{ type: 'produit'\|'licence'\|'colisage'\|'stock'\|'minimum'\|'encours', message, slug?, varianteId?, disponible? }], valide, mentions? }` — sans rien enregistrer |
+| POST | `commande` | `{ lignes: [{ slug, varianteId, qte (bouteilles, multiple du colisage) }], adresseId?, dateSouhaitee?, referenceClient?, commentaire? }` → `201` commande complète (`numero`, `totaux`, `livraison.adresse`…) ; refus : 400 `colisage`, `minimum`, `adresse`, 403 `licence`, 409 `stock`, `encours` |
+| GET | `commandes` / `commande` | historique (`statut, page, par, tri=date\|total\|numero`) → résumés² ; détail : commande complète (suivi, historique, facture avec `enRetard`) |
+| GET | `recommander` | `id` → `{ depuis: { id, numero, date }, lignes: [{ slug, varianteId, nom, volume, qte (arrondie au carton, bornée au stock), colisage, prixHT, etat }], indisponibles: [{ …, raison }] }` |
+| GET | `factures` | `{ factures: [{ numero, date, echeance, statut, payeeLe?, enRetard, totalHT, totalTVA, totalTTC, commandeId, commandeNumero }], totalARegler, enRetard, emetteur (coordonnées de la distillerie), client }` |
+| GET | `documents` | `{ fiches: [{ slug, nom, nomOfficiel, type, gammeNom, alcool, degre, reference, photo, photoGrande, phrase, ingredients, nutrition, contenances, mentions }], mediatheque: [{ titre, type: 'logo'\|'photo', format, url }], plv, conditions }` |
+| GET / PATCH | `compte` | `{ compte (raison sociale, SIRET, conditions… en lecture), utilisateurs: [{ id, prenom, nom, email, statut, derniereConnexion }], commercial }` ; modifier `{ telephone?, email? }` (rien d'autre : 400) → compte |
+| POST / PATCH / DELETE | `adresse` | ajouter `{ nom?, ligne1, ligne2?, cp, ville, instructions? }` (10 au plus) → `201` adresse ; modifier `id` (remplace l'adresse) ; supprimer `id` (les commandes gardent l'adresse du jour de la commande) |
+| GET / POST | `messages` / `message` | liste paginée `[{ id, reference, sujet, statut, extrait, dernierMessage, nbMessages, createdAt }]` ; détail `id` + `fil: [{ date, de, nom, texte }]` ; nouveau `{ texte, sujet? (défaut 'pro') }` ou réponse `{ id, texte }` → `201` (arrive non lu dans les messages du CRM, attribué au commercial du compte) |
+
+² Résumé = `{ id, numero, date, statut, statutLibelle, articles, totalHT, totalTTC, referenceClient?, dateSouhaitee?, suivi?, facture?: { numero, statut, echeance, enRetard } }`.
 
 ## 8. Écrans
 
