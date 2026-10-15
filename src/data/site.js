@@ -2,8 +2,9 @@
 // Sources : note de prospection (blachere_et_spiritueux.md, sections 1 à 3), catalogue de la
 // recherche (infos_boutique, presse) et étude d'identité (reports/Identité visuelle Distillerie
 // Blachère.md), dont seuls les éléments marqués « Fait » sont repris. Rien d'inventé : un horaire,
-// un tarif ou une date qui manque est écrit « à confirmer ». Les citations restent à relire dans
-// les articles avant publication (liste dans le README).
+// un tarif ou une date qui manque est contourné (« Tarif sur demande ») ; la mention « à confirmer »
+// et l'écart entre les sources restent dans le champ revue (affiché en mode revue, ?revue :
+// src/lib/revue.js). Les citations restent à relire dans les articles avant publication (README).
 // alcool: true → affiché uniquement après la vérification de l'âge.
 
 export const infos = {
@@ -29,7 +30,8 @@ export const infos = {
 
 // ---------- Visites ----------
 // Saison 2026 : Provence-Alpes-Côte d'Azur Tourisme. Parcours : Pop Tourisme. Durée, taille des
-// groupes : Provence Guide. Les tarifs se contredisent d'une source à l'autre : « à confirmer ».
+// groupes : Provence Guide. Les tarifs se contredisent d'une source à l'autre : « sur demande » pour
+// le visiteur, « à confirmer » (revue) pour la distillerie.
 export const saison = { debut: '2026-02-12', fin: '2026-12-31', texte: 'Du 12 février au 31 décembre 2026', ferme: 'Fermé le dimanche', groupeMax: 25 };
 
 export const formules = [
@@ -41,7 +43,8 @@ export const formules = [
     duree: 'Aux heures du magasin',
     reservation: 'Sans réservation',
     prix: 'Gratuit',
-    prixNote: 'La dégustation en boutique est gratuite, selon la fiche de l’office de tourisme.',
+    prixNote: 'La dégustation en boutique est gratuite.',
+    revue: { prixNote: 'La dégustation en boutique est gratuite, selon la fiche de l’office de tourisme.' },
     reservable: false,
   },
   {
@@ -49,9 +52,10 @@ export const formules = [
     nom: 'Séance en boutique',
     sous: 'L’histoire de la maison et une dégustation',
     voir: ['L’histoire de la maison, racontée en boutique', 'La dégustation'],
-    duree: 'Durée à confirmer',
+    duree: 'Sur demande',
     reservation: 'Sur réservation',
-    prix: 'Tarif à confirmer',
+    prix: 'Tarif sur demande',
+    revue: { duree: 'Durée à confirmer', prix: 'Tarif à confirmer' },
     reservable: true,
   },
   {
@@ -62,8 +66,8 @@ export const formules = [
     duree: '1 h, dégustation comprise',
     capacite: '25 personnes au plus',
     reservation: 'Toute l’année, sur réservation ; fermé le dimanche',
-    prix: 'Tarif à confirmer',
-    prixNote: 'Gratuit, 4 €, 5 €, 7 € ou 10 € selon les sources : à trancher avec la distillerie.',
+    prix: 'Tarif sur demande',
+    revue: { prix: 'Tarif à confirmer', prixNote: 'Gratuit, 4 €, 5 €, 7 € ou 10 € selon les sources : à trancher avec la distillerie.' },
     reservable: true,
   },
   {
@@ -71,10 +75,11 @@ export const formules = [
     nom: 'Groupes',
     sous: 'La visite guidée, adaptée au groupe',
     voir: ['Le parcours de la visite guidée', 'La dégustation'],
-    duree: 'Durée à confirmer',
+    duree: 'Sur demande',
     capacite: 'Jusqu’à 25 personnes',
-    reservation: 'Délai de réservation à fixer',
-    prix: 'Tarif à confirmer',
+    reservation: 'Sur réservation',
+    prix: 'Tarif sur demande',
+    revue: { duree: 'Durée à confirmer', reservation: 'Délai de réservation à fixer', prix: 'Tarif à confirmer' },
     reservable: true,
   },
 ];

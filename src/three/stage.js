@@ -142,9 +142,14 @@ export class Stage {
   //  bottles: [{ product, x, z, ry }]
   //  target : () => DOMRect du rectangle où doivent tenir les bouteilles (sinon tout le canvas)
   //  dof    : profondeur de champ ; quality : 'auto' | 'high' | 'low'
-  constructor(canvas, { colors, gels = null, layout = null, bottles = [], target = null, dof = true, fill = 0.92, calm = false, exposure = 1, spot = null, interactive = true, tone = 'neutral', look = null, manual = false, dpr = null, sway = true, onUpdate = null } = {}) {
+  //  calm   : mouvement réduit (ni balancement ni parallaxe ; l'image n'est redessinée que si
+  //           quelque chose change : taille, défilement, angle, bouteilles)
+  //  dos    : charger le dos des étiquettes (visionneuse des fiches) ; les campagnes et les rendus de
+  //           vignettes montrent les bouteilles de face et s'en passent
+  constructor(canvas, { colors, gels = null, layout = null, bottles = [], target = null, dof = true, fill = 0.92, calm = false, exposure = 1, spot = null, interactive = true, tone = 'neutral', look = null, manual = false, dpr = null, sway = true, dos = true, onUpdate = null } = {}) {
     this.canvas = canvas;
     this.calm = calm;
+    this.dos = dos;
     this.target = target;
     this.fill = fill;
     this.mobile = innerWidth <= 760;
@@ -221,6 +226,8 @@ export class Stage {
     this.slots = [];
     this.ready = this.setBottles(bottles);
     this.ready.then(() => (this.isReady = true));
+    // première image dessinée avec les bouteilles (la campagne remplace alors son affiche en fondu)
+    this.firstFrame = new Promise((r) => (this.onFirstFrame = r));
 
     this.clock = new THREE.Clock();
     this.frames = [];
@@ -230,7 +237,7 @@ export class Stage {
     this.ro.observe(canvas);
     this.io = new IntersectionObserver(([e]) => (this.visible = e.isIntersecting), { rootMargin: '100px' });
     this.io.observe(canvas);
-    if (interactive) {
+    if (interactive && !calm) {
       this.onPointer = (e) => {
         this.state.pointerX = (e.clientX / innerWidth) * 2 - 1;
         this.state.pointerY = (e.clientY / innerHeight) * 2 - 1;
@@ -266,7 +273,7 @@ export class Stage {
     const slots = this.slots;
     await Promise.all(
       slots.map(async (s) => {
-        const bottle = await makeBottle(s.product, { lite: this.lite, anisotropy: this.anisotropy });
+        const bottle = await makeBottle(s.product, { lite: this.lite, anisotropy: this.anisotropy, dos: this.dos });
         if (this.disposed || slots !== this.slots) return disposeObject(bottle);
         s.bottle = bottle;
         s.pivot.add(bottle);
@@ -444,7 +451,7 @@ export class Stage {
 
   // Baisse la résolution si l'appareil n'arrive pas à tenir ~45 images par seconde.
   adapt(dt) {
-    if (TEST) return;
+    if (TEST || this.calm) return;
     this.frames.push(dt);
     if (this.frames.length < 60) return;
     const avg = this.frames.reduce((a, b) => a + b, 0) / this.frames.length;
@@ -460,7 +467,8 @@ export class Stage {
     const ease = 1 - Math.pow(0.02, dt);
     s.px += (s.pointerX - s.px) * ease * 0.6;
     s.py += (s.pointerY - s.py) * ease * 0.6;
-    s.appear += ((this.slots.every((x) => x.bottle) ? 1 : 0) - s.appear) * (1 - Math.pow(0.03, dt));
+    const shown = this.slots.every((x) => x.bottle) ? 1 : 0;
+    s.appear = this.calm ? shown : s.appear + (shown - s.appear) * (1 - Math.pow(0.03, dt));
     if (this.center) {
       this.place(this.center, this.distance);
       this.camera.updateMatrixWorld();
@@ -478,6 +486,8 @@ export class Stage {
         u.uLiquids.value[i].set(slot.bottle.userData.liquid).multiplyScalar(slot.bottle.userData.cloudy ? 0.35 : 0.8);
       } else b.w = 0;
     });
+    // plateau réutilisé pour moins de bouteilles (série de rendus) : plus d'ombre ni de caustique fantôme
+    for (let i = this.slots.length; i < MAX_BOTTLES; i++) u.uBottles.value[i].w = 0;
     if (this.garnish) {
       updateGarnish(this.garnish, { t, dt, scroll: s.scroll, spreadX: this.spreadX(), calm: this.calm, appear: s.appear });
       garnishBlobs(this.garnish, FLOOR_Y, this.blobs);
@@ -511,25 +521,37 @@ export class Stage {
     this.post.render(this.scene, this.camera, { focus: this.focus || 10, aperture: dbg.has('nodof') ? 0 : this.mobile ? 0.012 : 0.02, maxBlur: dbg.has('nodof') ? 0 : H * 0.008, time: t });
   }
 
+  // Ce qui change l'image quand rien ne bouge tout seul : taille, défilement, caméra, bouteilles, angles.
+  signature() {
+    const s = this.state;
+    const f = (v) => (v || 0).toFixed(4);
+    return `${this.width}x${this.height}@${this.dpr}|${f(s.scroll)}|${f(s.px)},${f(s.py)}|${f(s.appear)}|${f(this.distance)}|${this.slots.map((x) => `${x.bottle ? 1 : 0}:${f(x.angle)}`).join(',')}`;
+  }
+
   loop() {
     if (this.disposed) return;
     requestAnimationFrame(this.loop);
     const dt = Math.min(this.clock.getDelta(), 0.05);
     if (!this.visible || document.hidden) return;
-    // Mode recette (?test) : l'image est fixe (t = 6) ; une fois la scène prête et quelques images
-    // rendues, on ne la redessine plus que si quelque chose change (taille, défilement, bouteilles).
-    if (TEST) {
-      const sig = `${this.width}x${this.height}|${this.state.scroll}|${this.slots.map((x) => (x.bottle ? 1 : 0)).join('')}|${this.slots.map((x) => x.angle).join(',')}`;
-      if (sig !== this.testSig) {
-        this.testSig = sig;
-        this.testFrames = 0;
-      }
-      if (this.isReady && ++this.testFrames > 20) return;
-    }
+    // Mode recette (?test, image fixe à t = 6) et mouvement réduit (t = 0) : une fois la scène prête
+    // et quelques images dessinées, on ne redessine plus que si quelque chose change.
+    const still = TEST || this.calm;
     const t = TEST ? 6 : this.calm ? 0 : this.clock.elapsedTime;
     this.adapt(dt);
     this.update(t, TEST ? 1 : dt);
+    if (still) {
+      const sig = this.signature();
+      if (sig !== this.stillSig) {
+        this.stillSig = sig;
+        this.stillFrames = 0;
+      }
+      if (this.isReady && ++this.stillFrames > (TEST ? 20 : 3)) return;
+    }
     this.render(t);
+    if (this.isReady && this.onFirstFrame) {
+      this.onFirstFrame(this);
+      this.onFirstFrame = null;
+    }
   }
 
   setScroll(v) {

@@ -3,9 +3,12 @@
   <head>
     <!-- @include head.html -->
     <title>Les archives · Distillerie A. Blachère</title>
-    <meta name="description" content="Les archives de la Distillerie A. Blachère : étiquettes du PAC et de la menthe bleue « Aurélie », sirops pur sucre, cartes postales et papiers de la rue Molière, affiches et étiquettes des liqueurs (aile réservée aux majeurs)." />
+    <meta name="description" content="Les archives de la Distillerie A. Blachère : étiquettes du PAC et de la menthe « Aurélie », sirops pur sucre, cartes postales et papiers de la rue Molière." />
     <meta name="theme-color" content="#e8e3da" />
     <meta property="og:title" content="Les archives · Distillerie A. Blachère" />
+    <link rel="canonical" href="https://v2x-client-distillerie-a-blachere.vercel.app/musee" />
+    <meta property="og:url" content="https://v2x-client-distillerie-a-blachere.vercel.app/musee" />
+    <meta property="og:description" content="Les archives de la Distillerie A. Blachère : étiquettes du PAC et de la menthe « Aurélie », sirops pur sucre, cartes postales et papiers de la rue Molière." />
   </head>
   <body data-page="musee" class="musee-page">
     <!-- @include header.html -->
@@ -18,7 +21,7 @@
           </div>
           <div class="mus-hero__text">
             <p class="lead">Étiquettes, affiches, cartes postales, papiers à en-tête et photographies, tels que la distillerie les publie sur son site.</p>
-            <p class="bnote">Chaque cartel donne le titre, la date telle qu’elle est imprimée sur la pièce (sinon « Date à préciser »), la technique et le statut. Aucune date n’est déduite.</p>
+            <p class="bnote">Chaque cartel donne le titre, la date telle qu’elle est imprimée sur la pièce (sinon <span data-revue-hors>« sans date »</span><span data-revue>« Date à préciser »</span>), la technique et le statut.<span data-revue> Aucune date n’est déduite.</span></p>
           </div>
         </div>
         <nav class="wrap mus-nav" aria-label="Les ailes" id="mus-nav"></nav>
@@ -27,7 +30,7 @@
       <dialog class="mus-dialog" id="mus-dialog" aria-labelledby="mus-dialog-title">
         <div class="mus-dialog__in">
           <button type="button" class="tool mus-dialog__close" data-close aria-label="Fermer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg></button>
-          <figure class="mus-dialog__fig"><img id="mus-dialog-img" alt="" /></figure>
+          <figure class="mus-dialog__fig" id="mus-dialog-fig"></figure>
           <div class="mus-dialog__cartel cartel" id="mus-dialog-cartel"></div>
         </div>
       </dialog>

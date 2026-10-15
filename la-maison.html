@@ -3,9 +3,56 @@
   <head>
     <!-- @include head.html -->
     <title>La maison · Distillerie A. Blachère</title>
-    <meta name="description" content="La Distillerie A. Blachère, la plus ancienne distillerie de Provence : fondée en 1835 au 14 rue Molière à Avignon, à Châteauneuf-du-Pape depuis 1993. Son histoire, racontée par la maison, son savoir-faire et ses archives." />
+    <meta name="description" content="La plus ancienne distillerie de Provence : fondée en 1835 au 14 rue Molière à Avignon, à Châteauneuf-du-Pape depuis 1993. Son histoire et son savoir-faire." />
     <meta name="theme-color" content="#f7f5f0" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "AboutPage",
+            "@id": "https://v2x-client-distillerie-a-blachere.vercel.app/la-maison",
+            "url": "https://v2x-client-distillerie-a-blachere.vercel.app/la-maison",
+            "name": "La maison · Distillerie A. Blachère",
+            "inLanguage": "fr-FR",
+            "about": {
+              "@id": "https://v2x-client-distillerie-a-blachere.vercel.app/#organisation"
+            }
+          },
+          {
+            "@type": "Organization",
+            "@id": "https://v2x-client-distillerie-a-blachere.vercel.app/#organisation",
+            "name": "Distillerie A. Blachère",
+            "legalName": "SARL Distillerie A. Blachère",
+            "url": "https://v2x-client-distillerie-a-blachere.vercel.app/",
+            "logo": "https://v2x-client-distillerie-a-blachere.vercel.app/icon-512.png",
+            "image": "https://v2x-client-distillerie-a-blachere.vercel.app/og-v4.jpg",
+            "foundingDate": "1835",
+            "foundingLocation": {
+              "@type": "Place",
+              "name": "Avignon"
+            },
+            "telephone": "+33490835381",
+            "email": "info@distillerieablachere.com",
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "1695 route de Sorgues, quartier Cansaud",
+              "postalCode": "84230",
+              "addressLocality": "Châteauneuf-du-Pape",
+              "addressRegion": "Vaucluse",
+              "addressCountry": "FR"
+            },
+            "sameAs": [
+              "https://www.instagram.com/distillerieablachere/"
+            ]
+          }
+        ]
+      }
+    </script>
     <meta property="og:title" content="La maison · Distillerie A. Blachère" />
+    <link rel="canonical" href="https://v2x-client-distillerie-a-blachere.vercel.app/la-maison" />
+    <meta property="og:url" content="https://v2x-client-distillerie-a-blachere.vercel.app/la-maison" />
+    <meta property="og:description" content="La plus ancienne distillerie de Provence : fondée en 1835 au 14 rue Molière à Avignon, à Châteauneuf-du-Pape depuis 1993. Son histoire et son savoir-faire." />
   </head>
   <body data-page="maison" class="maison-page">
     <!-- @include header.html -->
@@ -18,7 +65,11 @@
             <p class="lead">Fondée en 1835 au 14 rue Molière, à Avignon, installée à Châteauneuf-du-Pape depuis 1993. La maison raconte elle-même son histoire, à la première personne.</p>
             <blockquote class="mh-epi" id="maison-epi" data-majeur hidden></blockquote>
           </div>
-          <figure class="mh-hero__fig" id="maison-hero-fig"></figure>
+          <!-- Écrite ici (et non en JS) : l'image du bandeau est découverte tout de suite, rien ne bouge -->
+          <figure class="mh-hero__fig" id="maison-hero-fig">
+            <span class="piece__frame"><span class="piece__mat"><img src="/archives/stand-palais-des-papes.webp" srcset="/archives-tailles/stand-palais-des-papes-400.webp 400w, /archives-tailles/stand-palais-des-papes-800.webp 800w, /archives/stand-palais-des-papes.webp 1296w" sizes="(max-width: 1000px) 80vw, 36vw" alt="Le stand de l’Exposition industrielle au Palais des Papes" width="1296" height="829" fetchpriority="high" decoding="async" /></span></span>
+            <figcaption class="cartel"><span class="cartel__title">Le stand de l’Exposition industrielle au Palais des Papes</span><span class="cartel__meta">Carte postale · archive de la distillerie</span></figcaption>
+          </figure>
         </div>
       </section>
 
@@ -29,7 +80,7 @@
               <p class="kicker">Notre histoire</p>
               <h2 class="h-section" id="histoire-title">Quatre époques</h2>
             </div>
-            <p class="bsource">Texte de la page Histoire du site de la distillerie.</p>
+            <p class="bsource" data-revue>Texte de la page Histoire du site de la distillerie.</p>
           </div>
           <div id="periodes"></div>
           <p class="bnote" id="histoire-note"></p>
@@ -42,7 +93,7 @@
             <p class="kicker kicker--light">Le savoir-faire</p>
             <h2 class="h-section" id="savoir-title">Des plantes, des secrets <span class="accent">et des mains</span></h2>
             <div class="prose" id="savoir-texte"></div>
-            <p class="bsource">Page Histoire du site de la distillerie ; parcours de la visite d’après Pop Tourisme.</p>
+            <p class="bsource" data-revue>Page Histoire du site de la distillerie ; parcours de la visite d’après Pop Tourisme.</p>
             <a class="btn btn--light" href="/visiter">Visiter la distillerie</a>
           </div>
           <div class="mh-savoir__photos" id="savoir-photos"></div>
@@ -71,7 +122,7 @@
           <div class="prose">
             <p>Moderniser, agrandir et restructurer la production, le stockage, l’accueil et la vente. Pour le rendre possible, la commune a adapté son plan local d’urbanisme ; l’enquête publique s’est tenue du 24 février au 25 mars 2025.</p>
             <p>Une nouvelle ligne d’embouteillage : environ 500 000 €, soutenus à 20 % par France Relance, pour atteindre à terme 6 000 bouteilles à l’heure.</p>
-            <p class="bsource">L’Écho du Mardi (décembre 2025).</p>
+            <p class="bsource" data-revue>L’Écho du Mardi (décembre 2025).</p>
           </div>
         </div>
       </section>

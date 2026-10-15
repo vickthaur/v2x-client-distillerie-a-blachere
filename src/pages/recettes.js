@@ -8,6 +8,10 @@ import { initSite } from '../app/site.js';
 import { evinHTML } from '../app/blocks.js';
 import { bySlug, recettes } from '../data/products.js';
 import { $, esc, plural } from '../lib/dom.js';
+import { noteRevue } from '../lib/revue.js';
+
+// Photos des recettes : 619 × 1 100 px (618 pour deux), réduites à l'import (scripts/import-site.mjs).
+const IMG = 'width="619" height="1100"';
 
 const site = initSite();
 let filtre = 'sans';
@@ -28,7 +32,7 @@ function render() {
   $('#rec-grid').innerHTML = items
     .map(
       (r) => `<li class="rcard"><a href="#${r.id}">
-        <span class="rcard__img"><img src="${r.image}" alt="" loading="lazy" decoding="async" /></span>
+        <span class="rcard__img"><img src="${r.image}" alt="" ${IMG} loading="lazy" decoding="async" /></span>
         <span class="rcard__title">${esc(r.titre)}</span>
         ${r.alcool ? '<span class="badge badge--age">18+</span>' : '<span class="rcard__meta">Sans alcool</span>'}
       </a></li>`,
@@ -38,7 +42,7 @@ function render() {
     .map(
       (r) => `<article class="section rec" id="${r.id}" aria-labelledby="t-${r.id}">
         <div class="wrap rec__in">
-          <figure class="rec__img"><img src="${r.image}" alt="${esc(r.titre)}" loading="lazy" decoding="async" /></figure>
+          <figure class="rec__img"><img src="${r.image}" alt="${esc(r.titre)}" ${IMG} loading="lazy" decoding="async" /></figure>
           <div class="rec__body">
             <p class="kicker">${r.alcool ? 'Avec alcool · 18+' : 'Sans alcool'}</p>
             <h2 class="h-section rec__title" id="t-${r.id}">${esc(r.titre)}</h2>
@@ -49,7 +53,7 @@ function render() {
             </div>
             ${r.preparation?.length ? `<div><h3 class="rec__h">Préparation</h3>${steps(r.preparation)}</div>` : ''}
             ${r.notes?.length ? `<div class="rec__notes">${r.notes.map((n) => `<p>${esc(n)}</p>`).join('')}</div>` : ''}
-            <p class="bsource">Recette du site de la distillerie · <a class="link" href="${r.url}" target="_blank" rel="noopener">voir la page<span class="sr-only"> (nouvel onglet)</span></a></p>
+            ${noteRevue(`Recette du site de la distillerie · <a class="link" href="${r.url}" target="_blank" rel="noopener">voir la page<span class="sr-only"> (nouvel onglet)</span></a>`, { tag: 'p', cls: 'bsource' })}
             ${r.alcool ? evinHTML('rec__evin') : ''}
           </div>
         </div>

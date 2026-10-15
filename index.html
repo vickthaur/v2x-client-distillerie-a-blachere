@@ -3,9 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Distillerie A. Blachère · PAC Citron, Fun Blue, sirops et spiritueux depuis 1835</title>
-    <meta name="description" content="La Distillerie A. Blachère, fondée à Avignon en 1835, à Châteauneuf-du-Pape depuis 1993 : PAC Citron, Fun Blue, les sirops Couleur Provence®, des pastis, liqueurs et marcs. Boutique, visites, archives." />
+    <title>Distillerie A. Blachère · PAC Citron, Fun Blue, sirops depuis 1835</title>
+    <meta name="description" content="La Distillerie A. Blachère, fondée à Avignon en 1835, à Châteauneuf-du-Pape depuis 1993 : PAC Citron, Fun Blue, sirops Couleur Provence®, visites." />
     <meta name="robots" content="noindex, nofollow" />
+    <link rel="preload" href="/src/fonts/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin />
     <meta name="theme-color" content="#c2177f" />
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -14,6 +15,8 @@
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Distillerie A. Blachère" />
     <meta property="og:title" content="Distillerie A. Blachère · maquette de refonte" />
+    <link rel="canonical" href="https://v2x-client-distillerie-a-blachere.vercel.app/" />
+    <meta property="og:url" content="https://v2x-client-distillerie-a-blachere.vercel.app/" />
     <meta property="og:description" content="Avignon 1835 · Châteauneuf-du-Pape. PAC Citron et Fun Blue, la boutique, les archives, les visites." />
     <meta property="og:image" content="https://v2x-client-distillerie-a-blachere.vercel.app/og-v4.jpg" />
     <meta property="og:image:width" content="1200" />
@@ -22,21 +25,110 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="https://v2x-client-distillerie-a-blachere.vercel.app/og-v4.jpg" />
     <meta property="og:locale" content="fr_FR" />
+    <!-- Données structurées : faits du site (src/data/site.js, mentions légales). Horaires du magasin
+         (page Contact) : d'octobre à mars 10 h – 18 h, d'avril à septembre 9 h – 19 h, du lundi au samedi. -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "LocalBusiness",
-        "name": "Distillerie A. Blachère",
-        "foundingDate": "1835",
-        "telephone": "+33490835565",
-        "email": "magasin@distillerieablachere.com",
-        "address": {
-          "@type": "PostalAddress",
-          "streetAddress": "1695 route de Sorgues, quartier Cansaud",
-          "postalCode": "84230",
-          "addressLocality": "Châteauneuf-du-Pape",
-          "addressCountry": "FR"
-        }
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://v2x-client-distillerie-a-blachere.vercel.app/#organisation",
+            "name": "Distillerie A. Blachère",
+            "legalName": "SARL Distillerie A. Blachère",
+            "url": "https://v2x-client-distillerie-a-blachere.vercel.app/",
+            "logo": "https://v2x-client-distillerie-a-blachere.vercel.app/icon-512.png",
+            "image": "https://v2x-client-distillerie-a-blachere.vercel.app/og-v4.jpg",
+            "foundingDate": "1835",
+            "foundingLocation": {
+              "@type": "Place",
+              "name": "Avignon"
+            },
+            "telephone": "+33490835381",
+            "email": "info@distillerieablachere.com",
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "1695 route de Sorgues, quartier Cansaud",
+              "postalCode": "84230",
+              "addressLocality": "Châteauneuf-du-Pape",
+              "addressRegion": "Vaucluse",
+              "addressCountry": "FR"
+            },
+            "sameAs": [
+              "https://www.instagram.com/distillerieablachere/"
+            ]
+          },
+          {
+            "@type": "Store",
+            "@id": "https://v2x-client-distillerie-a-blachere.vercel.app/#boutique",
+            "name": "Distillerie A. Blachère, la boutique de la distillerie",
+            "parentOrganization": {
+              "@id": "https://v2x-client-distillerie-a-blachere.vercel.app/#organisation"
+            },
+            "url": "https://v2x-client-distillerie-a-blachere.vercel.app/visiter",
+            "image": "https://v2x-client-distillerie-a-blachere.vercel.app/og-v4.jpg",
+            "telephone": "+33490835565",
+            "email": "magasin@distillerieablachere.com",
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "1695 route de Sorgues, quartier Cansaud",
+              "postalCode": "84230",
+              "addressLocality": "Châteauneuf-du-Pape",
+              "addressRegion": "Vaucluse",
+              "addressCountry": "FR"
+            },
+            "openingHoursSpecification": [
+              {
+                "@type": "OpeningHoursSpecification",
+                "dayOfWeek": [
+                  "Monday",
+                  "Tuesday",
+                  "Wednesday",
+                  "Thursday",
+                  "Friday",
+                  "Saturday"
+                ],
+                "opens": "10:00",
+                "closes": "18:00",
+                "validFrom": "2026-10-01",
+                "validThrough": "2027-03-31"
+              },
+              {
+                "@type": "OpeningHoursSpecification",
+                "dayOfWeek": [
+                  "Monday",
+                  "Tuesday",
+                  "Wednesday",
+                  "Thursday",
+                  "Friday",
+                  "Saturday"
+                ],
+                "opens": "09:00",
+                "closes": "19:00",
+                "validFrom": "2027-04-01",
+                "validThrough": "2027-09-30"
+              }
+            ]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://v2x-client-distillerie-a-blachere.vercel.app/#site",
+            "url": "https://v2x-client-distillerie-a-blachere.vercel.app/",
+            "name": "Distillerie A. Blachère",
+            "inLanguage": "fr-FR",
+            "publisher": {
+              "@id": "https://v2x-client-distillerie-a-blachere.vercel.app/#organisation"
+            },
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://v2x-client-distillerie-a-blachere.vercel.app/boutique?q={search_term_string}"
+              },
+              "query-input": "required name=search_term_string"
+            }
+          }
+        ]
       }
     </script>
     <link rel="stylesheet" href="/v2x/proposition.css" />
@@ -59,7 +151,13 @@
             </div>
             <div class="hero__op" id="hero-op" hidden></div>
           </div>
-          <div class="hero__stage" id="hero-stage" aria-hidden="true"></div>
+          <div class="hero__stage" id="hero-stage" aria-hidden="true">
+            <!-- Affiche : les vraies bouteilles (photos détourées) ; la 3D la remplace quand elle est prête -->
+            <div class="poster poster--2">
+              <span class="poster__b"><img src="/bouteilles/pac-citron/face.webp" alt="" width="287" height="1024" fetchpriority="high" decoding="async" /></span>
+              <span class="poster__b"><img src="/bouteilles/fun-blue/face.webp" alt="" width="290" height="1024" fetchpriority="high" decoding="async" /></span>
+            </div>
+          </div>
           <ul class="hero__tags" id="hero-tags" aria-label="Prix de la boutique"></ul>
         </div>
       </section>
@@ -114,15 +212,16 @@
             <div class="chiffre" data-reveal><dt>1835</dt><dd>Fondation à Avignon, au 14 rue Molière, par V.L. Blachère et son fils Auguste.</dd></div>
             <div class="chiffre" data-reveal><dt>8<sup>e</sup></dt><dd>génération : Sandrine Blachère et Raphaël Vannelle dirigent la maison.</dd></div>
             <div class="chiffre" data-reveal><dt>1993</dt><dd>Reprise de la distillerie et installation à Châteauneuf-du-Pape, au milieu des vignes.</dd></div>
+            <!-- Notes de la maquette (data-revue) : visibles avec ?revue (src/lib/revue.js) -->
             <div class="chiffre" data-reveal>
               <dt>800&nbsp;000</dt>
-              <dd>bouteilles de PAC par an selon L’Écho du Mardi (décembre 2025) ; un million selon Made in Marseille.</dd>
-              <dd class="chiffre__flag">Chiffres de presse</dd>
+              <dd>bouteilles de PAC par an, selon L’Écho du Mardi (décembre 2025)<span data-revue> ; un million selon Made in Marseille</span>.</dd>
+              <dd class="chiffre__flag" data-revue>Chiffres de presse</dd>
             </div>
             <div class="chiffre" data-reveal>
               <dt>4,9<small>/5</small></dt>
-              <dd>sur TripAdvisor, pour environ 354 avis de visiteurs.</dd>
-              <dd class="chiffre__flag">Relevé d’octobre 2026</dd>
+              <dd>sur TripAdvisor, pour environ 354 avis de visiteurs (octobre 2026).</dd>
+              <dd class="chiffre__flag" data-revue>Relevé d’octobre 2026</dd>
             </div>
           </dl>
         </div>

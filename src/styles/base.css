@@ -8,7 +8,8 @@
 :root {
   --ink: #15130f;
   --ink-2: rgba(21, 19, 15, 0.74);
-  --ink-3: rgba(21, 19, 15, 0.56);
+  /* 64 % : texte secondaire à 5,4:1 sur le papier, 5:1 sur la crème et la pierre (AA) */
+  --ink-3: rgba(21, 19, 15, 0.64);
   --paper: #f7f5f0;
   --paper-2: #f0ece4;
   --stone: #e6e1d7;
@@ -52,21 +53,29 @@
   --u-line: var(--line);
   --u-accent: var(--ink);
   --u-accent-ink: #fff;
+  /* Focus : un trait (--focus) posé sur un halo (--focus-halo). Encre sur halo blanc par défaut ;
+     blanc sur halo d'encre sur les aplats de marque, les campagnes et les fonds sombres. */
+  --focus: var(--ink);
+  --focus-halo: #fff;
   color-scheme: light;
 }
 
 /* Aplats contrôlés : chapitres de marque et rubriques sobres. */
-[data-univers='pac'] { --u-bg: var(--pac); --u-ink: #fff; --u-soft: rgba(255, 255, 255, 0.86); --u-line: rgba(255, 255, 255, 0.26); --u-accent: #fff; --u-accent-ink: var(--pac-deep); }
+[data-univers='pac'] { --u-bg: var(--pac); --u-ink: #fff; --u-soft: rgba(255, 255, 255, 0.9); --u-line: rgba(255, 255, 255, 0.26); --u-accent: #fff; --u-accent-ink: var(--pac-deep); }
 [data-univers='funblue'] { --u-bg: var(--fb); --u-ink: #fff; --u-soft: rgba(255, 255, 255, 0.86); --u-line: rgba(255, 255, 255, 0.26); --u-accent: #fff; --u-accent-ink: var(--fb-deep); }
 [data-univers='encre'], [data-univers='marcs'], [data-univers='collectors'] { --u-bg: var(--charcoal); --u-ink: #f4efe6; --u-soft: rgba(244, 239, 230, 0.76); --u-line: rgba(244, 239, 230, 0.16); --u-accent: #f4efe6; --u-accent-ink: var(--charcoal); }
 [data-univers='maison'], [data-univers='provence'] { --u-bg: var(--paper); --u-ink: var(--ink); --u-soft: var(--ink-2); --u-line: var(--line); }
 [data-univers='pierre'], [data-univers='comtat'], [data-univers='camargue'], [data-univers='ventoux'], [data-univers='spiritueux'] { --u-bg: var(--paper-2); --u-ink: var(--ink); --u-soft: var(--ink-2); --u-line: var(--line); }
 [data-univers] { background: var(--u-bg); color: var(--u-ink); }
+[data-univers='pac'], [data-univers='funblue'], [data-univers='encre'], [data-univers='marcs'], [data-univers='collectors'],
+.hero, .bhero--pac, .bhero--fb, .brand__lock, .mus-aile--sp, .ft, .hd__util,
+body[data-hero] .hd[data-state='top']:not(.has-mega) .hd__main { --focus: #fff; --focus-halo: var(--ink); }
 
 *,
 *::before,
 *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-padding-top: calc(var(--main-h) + 16px); }
+/* scroll-padding-bottom : un élément atteint au clavier ne passe pas sous la pastille V2X (à retirer avec elle) */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-padding-top: calc(var(--main-h) + 16px); scroll-padding-bottom: 72px; }
 body {
   margin: 0;
   min-height: 100vh;
@@ -85,6 +94,7 @@ body[data-hero-light] .hd[data-state='top']:not(.has-mega) .hd__main { backgroun
 img, svg, video, canvas { display: block; max-width: 100%; }
 img { height: auto; }
 a { color: inherit; }
+a[href^='tel:'] { white-space: nowrap; } /* un numéro de téléphone ne se coupe jamais */
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
 h1, h2, h3, h4, p, ul, ol, dl, dd, figure, blockquote { margin: 0; }
@@ -92,7 +102,9 @@ h1, h2, h3, h4, p, ul, ol, dl, dd, figure, blockquote { margin: 0; }
    latéral, étapes…) s'appliquent */
 :where(ul[class], ol[class]) { list-style: none; padding: 0; }
 sup { font-size: 0.55em; line-height: 0; vertical-align: 0.9em; }
-:focus-visible { outline: 2px solid var(--fb); outline-offset: 3px; }
+/* Anneau double (trait et halo) : lisible sur le papier, le fuchsia, le bleu Fun Blue et les fonds sombres */
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; box-shadow: 0 0 0 5px var(--focus-halo); }
+.v2x :focus-visible { box-shadow: none; }
 [hidden] { display: none !important; }
 .sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .skip { position: fixed; left: 12px; top: -60px; z-index: 300; padding: 10px 16px; border-radius: 999px; background: var(--ink); color: #fff; text-decoration: none; font-weight: 600; }
@@ -113,7 +125,7 @@ sup { font-size: 0.55em; line-height: 0; vertical-align: 0.9em; }
 .kicker { display: inline-flex; align-items: center; gap: 10px; font: 600 0.76rem/1.2 var(--font); letter-spacing: 0.16em; text-transform: uppercase; color: var(--u-soft, var(--ink-3)); }
 .kicker::before { content: ''; width: 18px; height: 1px; background: currentColor; opacity: 0.6; }
 .kicker--plain::before, .kicker--light::before { display: none; }
-.kicker--light { color: rgba(255, 255, 255, 0.72); }
+.kicker--light { color: rgba(255, 255, 255, 0.92); }
 .h-display { font: 800 clamp(2.6rem, 5.6vw, 5.6rem)/0.96 var(--font); font-stretch: 104%; letter-spacing: -0.038em; }
 .h-1 { font: 760 clamp(2.3rem, 4.4vw, 4.1rem)/1 var(--font); font-stretch: 102%; letter-spacing: -0.034em; }
 .h-section { font: 740 clamp(1.85rem, 3.2vw, 3rem)/1.04 var(--font); font-stretch: 102%; letter-spacing: -0.03em; }
@@ -193,16 +205,20 @@ sup { font-size: 0.55em; line-height: 0; vertical-align: 0.9em; }
 .hd__util-nav > a:hover, .hd__util-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.1); }
 .hd__util-count { display: inline-grid; place-items: center; min-width: 18px; height: 18px; margin-left: 6px; padding: 0 5px; border-radius: 999px; background: rgba(255, 255, 255, 0.16); font-size: 0.7rem; font-weight: 700; }
 .hd__lang { display: inline-flex; align-items: center; margin: 0 6px; padding: 0 6px; border-inline: 1px solid rgba(255, 255, 255, 0.18); }
-.hd__lang > * { display: inline-grid; place-items: center; min-width: 30px; height: 26px; padding: 0 6px; border: 0; background: none; color: inherit; font-size: 0.76rem; font-weight: 600; text-decoration: none; opacity: 0.6; border-radius: 6px; }
-.hd__lang > [aria-current] { opacity: 1; }
-.hd__lang > button:hover { opacity: 1; }
+/* langues : pleine couleur (lisibles sur la campagne), la langue courante soulignée */
+.hd__lang > * { display: inline-grid; place-items: center; min-width: 30px; height: 26px; padding: 0 6px; border: 0; background: none; color: inherit; font-size: 0.76rem; font-weight: 600; text-decoration: none; border-radius: 6px; }
+.hd__lang > [aria-current] { text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 0.32em; }
+.hd__lang > button:hover { background: rgba(255, 255, 255, 0.1); }
 .hd__main { height: var(--main-h); background: rgba(247, 245, 240, 0.94); -webkit-backdrop-filter: saturate(160%) blur(14px); backdrop-filter: saturate(160%) blur(14px); border-bottom: 1px solid var(--line); transition: background 0.35s var(--ease), border-color 0.35s var(--ease), box-shadow 0.35s var(--ease), color 0.35s var(--ease); }
 .hd__main-in { display: flex; align-items: center; gap: 28px; height: 100%; }
 .hd[data-state='scrolled'] { transform: translateY(calc(-1 * var(--util-h))); }
+/* La barre utilitaire, cachée au défilement, redescend dès qu'elle reçoit le focus : jamais de focus invisible. */
+.hd[data-state='scrolled']:has(.hd__util :focus-visible) { transform: none; }
+@supports not selector(:has(*)) { .hd[data-state='scrolled']:focus-within { transform: none; } }
 .hd[data-state='scrolled'] .hd__main { box-shadow: 0 8px 30px -18px rgba(21, 19, 15, 0.35); }
 
 /* En haut d'une page à visuel plein écran : en-tête transparent, texte blanc. */
-body[data-hero] .hd[data-state='top']:not(.has-mega) .hd__util { background: transparent; color: rgba(255, 255, 255, 0.86); }
+body[data-hero] .hd[data-state='top']:not(.has-mega) .hd__util { background: transparent; color: #fff; }
 body[data-hero] .hd[data-state='top']:not(.has-mega) .hd__util-in { border-bottom: 1px solid rgba(255, 255, 255, 0.16); }
 body[data-hero] .hd[data-state='top']:not(.has-mega) .hd__main { background: transparent; border-color: transparent; color: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; }
 body[data-hero] .hd[data-state='top']:not(.has-mega) .hd__cta { --b-bg: #fff; --b-ink: var(--ink); }
@@ -270,7 +286,7 @@ body[data-hero] .hd[data-state='top']:not(.has-mega) .logo__img--light { opacity
 .search__in { background: #fff; padding-block: 22px 32px; border-radius: 0 0 var(--r-l) var(--r-l); box-shadow: var(--shadow-2); max-height: 100vh; overflow: auto; }
 .search__form { display: flex; align-items: center; gap: 14px; border-bottom: 2px solid var(--ink); padding-bottom: 10px; }
 .search__form > svg { width: 26px; height: 26px; flex: none; }
-.search__form input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; font: 600 clamp(1.3rem, 2.4vw, 1.8rem)/1.2 var(--font); letter-spacing: -0.02em; padding: 8px 0; }
+.search__form input { flex: 1; min-width: 0; border: 0; background: none; font: 600 clamp(1.3rem, 2.4vw, 1.8rem)/1.2 var(--font); letter-spacing: -0.02em; padding: 8px 0; }
 .search__form input::-webkit-search-cancel-button { display: none; }
 .search__results { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 32px; margin-top: 24px; }
 .search__h { margin-bottom: 12px; font: 650 0.74rem/1.2 var(--font); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); }
@@ -324,6 +340,15 @@ body[data-hero] .hd[data-state='top']:not(.has-mega) .logo__img--light { opacity
   :root { --util-h: 0px; --main-h: 64px; }
   .hd__util { display: none; }
   .logo__img { height: 38px; }
+}
+/* Très petits écrans (320 px, zoom à 400 %) : logo plus petit et rétrécissable, outils serrés ;
+   le bouton du menu reste entier dans l'écran. */
+@media (max-width: 359px) {
+  .hd__main-in { gap: 8px; }
+  .hd .logo { flex: 0 1 auto; min-width: 0; }
+  .hd .logo__img { height: 30px; }
+  .hd__tools { gap: 0; }
+  .hd__tools .tool { width: 40px; height: 40px; }
 }
 
 /* ---------- Pied de page ---------- */
@@ -387,7 +412,9 @@ body[data-hero] .hd[data-state='top']:not(.has-mega) .logo__img--light { opacity
 }
 .field textarea { min-height: 120px; resize: vertical; }
 .field input:hover, .field select:hover, .field textarea:hover { border-color: rgba(21, 19, 15, 0.42); }
-.field input:focus, .field select:focus, .field textarea:focus, .dob input:focus { outline: 0; border-color: var(--ink); box-shadow: 0 0 0 3px rgba(21, 19, 15, 0.1); }
+/* champ actif : filet d'encre et l'anneau de focus commun (contour et halo) */
+.field input:focus, .field select:focus, .field textarea:focus, .dob input:focus { border-color: var(--ink); }
+.field input:focus-visible, .field select:focus-visible, .field textarea:focus-visible, .dob input:focus-visible { outline-offset: 2px; box-shadow: 0 0 0 4px var(--focus-halo); }
 .is-invalid, .field .is-invalid { border-color: var(--err) !important; box-shadow: 0 0 0 3px rgba(179, 38, 30, 0.1) !important; }
 .field small, .form-fine { font-size: 0.82rem; color: var(--ink-3); }
 .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 16px; }
@@ -509,6 +536,8 @@ body.menu-ouvert, body.search-ouverte { overflow: hidden; }
 .piece > a:hover .piece__frame { transform: translateY(-4px); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) inset, 0 30px 54px -24px rgba(21, 19, 15, 0.65), 0 4px 10px -4px rgba(21, 19, 15, 0.3); }
 .piece__mat { display: block; padding: 10%; background: #fbf9f4; box-shadow: inset 0 0 0 1px rgba(21, 19, 15, 0.08), inset 0 2px 7px rgba(21, 19, 15, 0.14); }
 .piece__frame--photo .piece__mat { padding: 6%; }
+/* cadre-bouton (archives : la pièce en grand, aussi au clavier) : même allure que le cadre */
+.piece__zoom { width: 100%; margin: 0; border: 0; font: inherit; color: inherit; text-align: inherit; cursor: zoom-in; -webkit-appearance: none; appearance: none; }
 .piece__mat img { display: block; width: 100%; height: auto; max-height: 62vh; object-fit: contain; box-shadow: 0 1px 3px rgba(21, 19, 15, 0.28); }
 .cartel { display: grid; gap: 3px; max-width: 36ch; padding-left: 12px; border-left: 2px solid currentColor; }
 .cartel__title { font: 680 0.98rem/1.3 var(--font); }
@@ -530,6 +559,17 @@ body.menu-ouvert, body.search-ouverte { overflow: hidden; }
 .thumb--wait { display: flex; align-items: flex-end; justify-content: center; gap: 4%; width: 100%; height: 100%; padding: 12% 10% 8%; background: var(--thumb-bg); }
 .thumb--wait img { height: 100%; width: auto; max-width: 30%; object-fit: contain; filter: drop-shadow(0 16px 12px rgba(0, 0, 0, 0.22)); }
 .thumb--wait.thumb--n1 img { max-width: 60%; }
+
+/* ---------- Mode revue (?revue, src/lib/revue.js) : notes de la maquette ----------
+   Masquées par défaut (le site se lit comme un site fini) ; en revue, filet pointillé et étiquette. */
+html:not(.revue) [data-revue] { display: none !important; }
+html.revue [data-revue-hors] { display: none !important; }
+html.revue [data-revue] { outline: 1px dashed rgba(173, 18, 112, 0.7); outline-offset: 2px; }
+html.revue [data-revue]::before { content: 'Note V2X'; display: inline-block; margin-right: 6px; padding: 2px 5px; border-radius: 3px; background: #ad1270; color: #fff; font: 700 0.6rem/1.2 var(--font); letter-spacing: 0.06em; text-transform: uppercase; vertical-align: 0.15em; }
+.sr-only [data-revue]::before { content: none; }
+.revue-tag { position: fixed; right: 14px; bottom: calc(14px + env(safe-area-inset-bottom)); z-index: 199; max-width: calc(100vw - 28px); margin: 0; padding: 9px 16px; border-radius: 999px; background: #ad1270; color: #fff; font: 600 0.8rem/1.3 var(--font); box-shadow: var(--shadow-1); --focus: #fff; --focus-halo: var(--ink); }
+.revue-tag a { color: inherit; font-weight: 700; }
+@media (max-width: 560px) { .revue-tag { bottom: calc(66px + env(safe-area-inset-bottom)); } }
 
 /* ---------- Marques : PAC et Fun Blue (voir src/lib/marques.js) ----------
    Logotype vectorisé depuis l'étiquette dans les titres et étiquettes ; dans le texte courant,
@@ -569,12 +609,17 @@ body.menu-ouvert, body.search-ouverte { overflow: hidden; }
 .card__name .wm--pac, .search__name .wm--pac, .hero__tag-name .wm--pac, .bprice__name .wm--pac, .line__name .wm--pac, .co-line__name .wm--pac, .menu__brand-name .wm--pac { width: 2.25em; height: 1.85em; vertical-align: -0.66em; }
 .ft__brands .wm--fb { width: 4.4em; height: 2.27em; vertical-align: -0.8em; }
 .ft__brands .wm--pac { width: 2.4em; height: 1.97em; vertical-align: -0.72em; }
+/* Contraste forcé (Windows) et impression : les images de fond disparaissent, le nom revient en texte. */
+@media print, (forced-colors: active) {
+  .wm { width: auto !important; height: auto !important; margin: 0 !important; background-image: none !important; vertical-align: baseline !important; }
+  .wm > .sr-only { position: static !important; width: auto; height: auto; margin: 0; clip: auto; white-space: normal; }
+}
 
 /* ---------- Recherche à filet (boutique, où trouver) ---------- */
 .shop-search { position: relative; flex: 1 1 320px; min-width: 0; }
 .shop-search svg { position: absolute; left: 0; top: 50%; width: 20px; height: 20px; transform: translateY(-50%); fill: none; stroke: var(--ink-2); stroke-width: 1.8; stroke-linecap: round; }
 .shop-search input { width: 100%; min-height: 48px; padding: 0 8px 0 32px; border: 0; border-bottom: 1px solid var(--line-2); border-radius: 0; background: transparent; font: 500 1rem var(--font); color: var(--ink); }
-.shop-search input:focus { outline: none; border-bottom-color: var(--ink); }
+.shop-search input:focus { border-bottom-color: var(--ink); }
 
 /* ---------- Onglets texte à filet (rayons de la boutique, ailes des archives, points de vente) ---------- */
 .cats { display: flex; flex-wrap: wrap; gap: 0; border-bottom: 1px solid var(--line); }

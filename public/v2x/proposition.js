@@ -44,7 +44,7 @@
       </button>
       <div class="v2x-panneau" id="v2x-panneau" role="dialog" aria-label="À propos de cette maquette" hidden>
         <p class="v2x-k">Maquette préparée pour ${CONFIG.client}</p>
-        <p class="v2x-t">Ce site est une proposition de V2X Studio, studio web à Cavaillon. Les textes reprennent votre histoire et vos produits tels qu’ils sont présentés publiquement&nbsp;; les bouteilles 3D et leurs étiquettes sont dessinées en code, en attendant vos vrais visuels. À voir&nbsp;: les deux univers (sirops pour tous, spiritueux après vérification de l’âge), la réservation de visites et l’espace pro.</p>
+        <p class="v2x-t">Ce site est une proposition de V2X Studio, studio web à Cavaillon. Les textes reprennent votre histoire et vos produits tels qu’ils sont présentés publiquement&nbsp;; les bouteilles 3D sont construites à partir des photos et des étiquettes publiées sur votre site. À voir&nbsp;: les deux univers (sirops pour tous, spiritueux après vérification de l’âge), la réservation de visites et l’espace pro.</p>
         <div class="v2x-boutons">
           <a href="${CONFIG.siteActuel}" target="_blank" rel="noopener">Comparer avec le site actuel</a>
           <a class="v2x-plein" href="${TEL_LIEN}">Appeler Victor · ${TEL}</a>

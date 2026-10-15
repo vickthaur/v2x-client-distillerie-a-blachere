@@ -3,9 +3,12 @@
   <head>
     <!-- @include head.html -->
     <title>PAC Citron · Distillerie A. Blachère</title>
-    <meta name="description" content="PAC Citron, le sirop de citron 100 % naturel et sans colorant de la Distillerie A. Blachère, fabriqué en Provence : son histoire, le PAC à l’eau, sa composition, ses recettes et ses étiquettes d’archives." />
+    <meta name="description" content="PAC Citron, le sirop de citron 100 % naturel et sans colorant de la Distillerie A. Blachère, fabriqué en Provence : histoire, recettes, archives." />
     <meta name="theme-color" content="#c2177f" />
     <meta property="og:title" content="PAC Citron · Distillerie A. Blachère" />
+    <link rel="canonical" href="https://v2x-client-distillerie-a-blachere.vercel.app/pac-citron" />
+    <meta property="og:url" content="https://v2x-client-distillerie-a-blachere.vercel.app/pac-citron" />
+    <meta property="og:description" content="PAC Citron, le sirop de citron 100 % naturel et sans colorant de la Distillerie A. Blachère, fabriqué en Provence : histoire, recettes, archives." />
   </head>
   <body data-page="pac" class="brand-page brand-page--pac" data-hero>
     <!-- @include header.html -->
@@ -25,7 +28,12 @@
               <a class="btn btn--ghost-light" href="/ou-trouver">Où le trouver</a>
             </div>
           </div>
-          <div class="bhero__stage" id="bhero-stage" aria-hidden="true"></div>
+          <div class="bhero__stage" id="bhero-stage" aria-hidden="true">
+            <!-- Affiche : les vraies bouteilles (photos détourées) ; la 3D la remplace quand elle est prête -->
+            <div class="poster poster--1">
+              <span class="poster__b"><img src="/bouteilles/pac-citron/face.webp" alt="" width="287" height="1024" fetchpriority="high" decoding="async" /></span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -39,7 +47,7 @@
             <p class="kicker">L’histoire</p>
             <h2 class="h-section" id="pac-histoire">Né d’étés torrides</h2>
             <div class="prose bquote" id="pac-saviez"></div>
-            <p class="bsource">Fiche PAC Citron et page Histoire du site de la distillerie.</p>
+            <p class="bsource" data-revue>Fiche PAC Citron et page Histoire du site de la distillerie.</p>
           </div>
           <div class="bstory__pieces" id="pac-pieces-a"></div>
         </div>
@@ -69,7 +77,7 @@
           <div>
             <p class="kicker">La composition</p>
             <h2 class="h-section" id="pac-compo">Sucre, eau, jus de citron</h2>
-            <p class="lead">Les ingrédients et les valeurs nutritionnelles de la fiche officielle.</p>
+            <p class="lead">Les ingrédients et les valeurs nutritionnelles<span data-revue> de la fiche officielle</span>.</p>
           </div>
           <div id="pac-facts"></div>
         </div>
@@ -100,6 +108,8 @@
             <a class="arrow-link" href="/musee">Visiter les archives <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>
           </div>
           <div id="pac-pieces"></div>
+          <!-- Les collectors des 60 ans (cible de /pac-citron#collectors : actualités, univers « collectors ») -->
+          <div class="bcollec" id="collectors"></div>
         </div>
       </section>
 

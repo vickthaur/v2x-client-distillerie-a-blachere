@@ -15,6 +15,9 @@ export function canvas(w, h = w) {
   const c = document.createElement('canvas');
   c.width = w;
   c.height = h;
+  // Ces textures sont relues pixel par pixel (getImageData) : contexte 2D gardé en mémoire vive
+  // (le premier appel fixe le réglage, les getContext('2d') suivants retrouvent ce contexte).
+  c.getContext('2d', { willReadFrequently: true });
   return c;
 }
 

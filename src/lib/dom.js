@@ -17,6 +17,16 @@ export const fold = (s) =>
 
 export const calm = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+// Sobriété : mouvement réduit, économiseur de données ou connexion très lente (2G). Ni 3D ni rendus
+// faits à la volée : les vraies photos des bouteilles suffisent.
+export function sobre() {
+  const c = (typeof navigator !== 'undefined' && navigator.connection) || {};
+  return calm() || c.saveData === true || /2g$/.test(c.effectiveType || '');
+}
+
+// Premier moment libre du navigateur (après le chargement de la page), sans attendre plus de « max » ms.
+export const idle = (max = 1500) => new Promise((r) => (typeof requestIdleCallback === 'function' ? requestIdleCallback(() => r(), { timeout: max }) : setTimeout(r, 200)));
+
 export function debounce(fn, ms = 150) {
   let t;
   return (...a) => {

@@ -1,6 +1,11 @@
 /* Pages de marque (PAC Citron, Fun Blue, Couleur Provence) : campagne 3D sur l'aplat de la marque,
    puis un récit sobre (textes officiels, archives encadrées, presse). */
 
+/* Blocs remplis par le JavaScript de la page : place réservée tant qu'ils sont vides, pour que le pied
+   de page ne soit pas peint en haut de l'écran puis repoussé (décalages de mise en page). */
+#mus-ailes:empty, #rec-grid:empty, #cgv-body:empty, #ot-list:empty, #actus:empty { min-height: 100svh; }
+#spirits-root:empty, #legal-official:empty, #periodes:empty, #presse:empty { min-height: 60svh; }
+
 /* ---------- Campagne ---------- */
 .bhero { position: relative; isolation: isolate; min-height: max(620px, min(100svh, 1040px)); overflow: hidden; color: #fff; background: var(--pac); }
 .bhero--fb { background: var(--fb); }
@@ -16,8 +21,6 @@
 .bhero__lead { max-width: 44ch; font-size: clamp(1.02rem, 1.2vw, 1.18rem); line-height: 1.55; opacity: 0.92; }
 .bhero__ctas { display: flex; flex-wrap: wrap; gap: 12px; }
 .bhero__stage { min-height: 0; }
-.bhero.is-static .bhero__stage { display: flex; justify-content: center; align-items: center; }
-.bhero.is-static .bhero__stage .thumb { height: 100%; max-height: 64vh; width: auto; }
 .bprice { display: flex; align-items: center; gap: 16px; justify-self: start; padding: 10px 10px 10px 18px; border: 1px solid rgba(255, 255, 255, 0.24); border-radius: 14px; background: rgba(20, 16, 22, 0.24); -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%); }
 .bhero--cp .bprice { border-color: var(--line-2); background: rgba(255, 255, 255, 0.6); }
 .bprice__txt { display: grid; gap: 2px; }
@@ -83,6 +86,11 @@
 /* ---------- Archives ---------- */
 .barch { background: var(--u-bg); }
 .barch .pieces { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+/* Les collectors des 60 ans (page PAC) : un cartel sans image, sous les étiquettes */
+.bcollec { display: grid; gap: 10px; justify-items: start; max-width: 62ch; margin-top: clamp(36px, 4vw, 56px); padding-top: 28px; border-top: 1px solid var(--line-2); scroll-margin-top: calc(var(--main-h) + 24px); }
+.bcollec:empty { display: none; }
+.bcollec__title { font: 720 1.3rem/1.2 var(--font); letter-spacing: -0.015em; }
+.bcollec__text { color: var(--ink-2); }
 @media (max-width: 1100px) { .barch .pieces { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 560px) { .barch .pieces, .bstory__pieces .pieces { grid-template-columns: 1fr 1fr; gap: 18px; } }
 
@@ -116,7 +124,9 @@
 .bgamme__title > span:not([class]) { margin-left: 8px; font: 600 0.84rem/1 var(--font); color: var(--ink-3); }
 
 /* ---------- Spiritueux : sobre, photographique ---------- */
-.sp-hero { padding: calc(var(--header-h) + clamp(28px, 5vw, 64px)) 0 clamp(40px, 6vw, 80px); background: var(--u-bg, #1d1b18); color: #fff; }
+/* Bandeaux des pages sans campagne : body a déjà la marge de l'en-tête (base.css), on n'en remet pas
+   une seconde (≈ 112 px au bureau, 64 px au téléphone de vide en moins sous l'en-tête). */
+.sp-hero { padding: clamp(28px, 5vw, 64px) 0 clamp(40px, 6vw, 80px); background: var(--u-bg, #1d1b18); color: #fff; }
 .sp-hero__in { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: clamp(28px, 5vw, 80px); align-items: center; }
 .sp-hero__copy { display: grid; gap: 20px; }
 .sp-hero__copy .lead { color: rgba(255, 255, 255, 0.82); max-width: 56ch; }
@@ -139,7 +149,7 @@
 
 /* ---------- Les archives : accrochage de musée ---------- */
 .musee-page { background: #e9e5dd; }
-.mus-hero { padding: calc(var(--header-h) + clamp(32px, 5vw, 72px)) 0 0; }
+.mus-hero { padding: clamp(32px, 5vw, 72px) 0 0; }
 .mus-hero__in { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: 24px clamp(28px, 5vw, 80px); align-items: end; }
 .mus-hero__text { display: grid; gap: 12px; }
 .mus-nav { display: flex; flex-wrap: wrap; margin-top: clamp(28px, 4vw, 48px); border-bottom: 1px solid var(--line-2); }
@@ -176,7 +186,7 @@
 @media (max-width: 560px) { .mus-wall { columns: 2 140px; column-gap: 18px; } }
 
 /* ---------- La maison ---------- */
-.mh-hero { padding: calc(var(--header-h) + clamp(32px, 5vw, 72px)) 0 clamp(40px, 6vw, 80px); }
+.mh-hero { padding: clamp(32px, 5vw, 72px) 0 clamp(40px, 6vw, 80px); }
 .mh-hero__in { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: clamp(28px, 5vw, 88px); align-items: center; }
 .mh-hero__copy { display: grid; gap: 20px; }
 .mh-epi { max-width: 40ch; margin: 8px 0 0; padding-left: 16px; border-left: 2px solid var(--ink); font: italic 420 1.06rem/1.5 var(--serif); color: var(--ink-2); }
@@ -202,7 +212,7 @@
 }
 
 /* ---------- Visiter ---------- */
-.vis-hero { padding: calc(var(--header-h) + clamp(32px, 5vw, 72px)) 0 clamp(40px, 6vw, 80px); }
+.vis-hero { padding: clamp(32px, 5vw, 72px) 0 clamp(40px, 6vw, 80px); }
 .vis-hero__in { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: clamp(28px, 5vw, 88px); align-items: center; }
 .vis-hero__copy { display: grid; gap: 20px; }
 .vis-hero__ph { position: relative; aspect-ratio: 5 / 4; overflow: hidden; border-radius: var(--r); background: #ece6da; }

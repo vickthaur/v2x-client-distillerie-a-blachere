@@ -6,6 +6,9 @@
     <meta name="description" content="Les recettes de la Distillerie A. Blachère : le Blue Mojito au Fun Blue et au PAC, sans alcool, et les idées des fiches des sirops." />
     <meta name="theme-color" content="#eee8b9" />
     <meta property="og:title" content="Recettes · Distillerie A. Blachère" />
+    <link rel="canonical" href="https://v2x-client-distillerie-a-blachere.vercel.app/recettes" />
+    <meta property="og:url" content="https://v2x-client-distillerie-a-blachere.vercel.app/recettes" />
+    <meta property="og:description" content="Les recettes de la Distillerie A. Blachère : le Blue Mojito au Fun Blue et au PAC, sans alcool, et les idées des fiches des sirops." />
   </head>
   <body data-page="recettes" class="recettes-page">
     <!-- @include header.html -->
@@ -15,8 +18,10 @@
           <div class="mh-hero__copy">
             <p class="kicker">Recettes</p>
             <h1 class="h-display" id="rec-title">Recettes <span class="accent">de la maison</span></h1>
-            <p class="lead" id="rec-lead"></p>
-            <nav class="cats" aria-label="Filtre des recettes" id="rec-filtre"></nav>
+            <!-- Écrits d'avance (recettes.js les réécrit, à l'identique) : la page ne bouge pas au chargement -->
+            <p class="lead" id="rec-lead">Les 26 recettes publiées par la distillerie : cocktails, boissons et desserts. Les 13 recettes sans alcool s’affichent d’abord ; celles qui contiennent de l’alcool sont réservées aux personnes majeures.</p>
+            <nav class="cats" aria-label="Filtre des recettes" id="rec-filtre"><button type="button" class="cat is-on" data-f="sans" aria-pressed="true">Sans alcool<span class="cat__n">13</span></button>
+              <button type="button" class="cat" data-f="toutes" aria-pressed="false">Toutes les recettes · 18+<span class="cat__n"></span></button></nav>
           </div>
         </div>
       </section>

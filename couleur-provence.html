@@ -3,9 +3,12 @@
   <head>
     <!-- @include head.html -->
     <title>Sirops Couleur Provence® · Distillerie A. Blachère</title>
-    <meta name="description" content="Les sirops Couleur Provence® de la Distillerie A. Blachère : grenadine, menthe, lavande, violette, châtaigne, melon, réglisse et les autres parfums, avec leurs prix de la boutique." />
+    <meta name="description" content="Les sirops Couleur Provence® de la Distillerie A. Blachère : grenadine, menthe, lavande, violette, châtaigne, réglisse… avec les prix de la boutique." />
     <meta name="theme-color" content="#e6dcc5" />
     <meta property="og:title" content="Sirops Couleur Provence® · Distillerie A. Blachère" />
+    <link rel="canonical" href="https://v2x-client-distillerie-a-blachere.vercel.app/couleur-provence" />
+    <meta property="og:url" content="https://v2x-client-distillerie-a-blachere.vercel.app/couleur-provence" />
+    <meta property="og:description" content="Les sirops Couleur Provence® de la Distillerie A. Blachère : grenadine, menthe, lavande, violette, châtaigne, réglisse… avec les prix de la boutique." />
   </head>
   <body data-page="provence" class="brand-page brand-page--cp" data-hero-light>
     <!-- @include header.html -->
@@ -23,7 +26,14 @@
               <a class="btn btn--ghost" href="/recettes">Les recettes</a>
             </div>
           </div>
-          <div class="bhero__stage" id="bhero-stage" aria-hidden="true"></div>
+          <div class="bhero__stage" id="bhero-stage" aria-hidden="true">
+            <!-- Affiche : les vraies bouteilles (photos détourées) ; la 3D la remplace quand elle est prête -->
+            <div class="poster poster--3">
+              <span class="poster__b"><img src="/bouteilles/sirop-couleur-provence-grenadine/face.webp" alt="" width="290" height="1024" fetchpriority="high" decoding="async" /></span>
+              <span class="poster__b"><img src="/bouteilles/sirop-menthe/face.webp" alt="" width="290" height="1024" fetchpriority="high" decoding="async" /></span>
+              <span class="poster__b"><img src="/bouteilles/sirop-lavande/face.webp" alt="" width="289" height="1024" fetchpriority="high" decoding="async" /></span>
+            </div>
+          </div>
         </div>
       </section>
 

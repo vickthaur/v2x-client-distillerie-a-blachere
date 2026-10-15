@@ -8,6 +8,7 @@ import { initSite } from '../app/site.js';
 import { mountBrandHero, priceCardHTML, compositionHTML, recipesHTML, piecesHTML, ailleursHTML, bindAdd, bySlug, reveal } from '../app/brand.js';
 import textes from '../data/site/textes.json';
 import { $, esc } from '../lib/dom.js';
+import { selonRevue } from '../lib/revue.js';
 
 const site = initSite();
 const p = bySlug['fun-blue'];
@@ -23,7 +24,7 @@ $('#fb-saviez').innerHTML = [
     .map((x) => x.trim())
     .filter(Boolean)
     .map((x) => `<p>${esc(x)}</p>`),
-  frere ? `<p>La page Histoire de la maison raconte qu’elle a orienté son activité vers les sirops, ${esc(frere.charAt(0).toLowerCase() + frere.slice(1))}</p>` : '',
+  frere ? `<p>${selonRevue('La maison a orienté son activité vers les sirops, ', 'La page Histoire de la maison raconte qu’elle a orienté son activité vers les sirops, ')}${esc(frere.charAt(0).toLowerCase() + frere.slice(1))}</p>` : '',
 ].join('');
 $('#fb-pieces-a').innerHTML = piecesHTML(['aurelie', 'fun-blue-70cl']);
 

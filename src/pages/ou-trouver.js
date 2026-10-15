@@ -10,6 +10,7 @@ import { bySlug, EVIN } from '../data/products.js';
 import { couches, infos, pointsDeVente } from '../data/site.js';
 import { $, $$, esc, fold, plural, debounce } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
+import { noteRevue } from '../lib/revue.js';
 
 const site = initSite();
 const params = new URLSearchParams(location.search);
@@ -51,7 +52,7 @@ function render() {
         <p class="pdv__lieu">${icons.pin}${esc(pdv.lieu)}</p>
         <p class="pdv__produits">${produits.map((p) => `<span>${esc(p.nom)}</span>`).join('')}</p>
         ${pdv.detail ? `<p class="note">${esc(pdv.detail)}</p>` : ''}
-        ${pdv.accord ? '<p class="tbc">Accord du café à demander</p>' : ''}
+        ${pdv.accord ? noteRevue('Accord du café à demander', { tag: 'p', cls: 'tbc' }) : ''}
         ${produits.some((p) => p.alcool) ? `<p class="note">${esc(EVIN)}</p>` : ''}
         ${pdv.url ? `<a class="link" href="${pdv.url}" target="_blank" rel="noopener">Voir chez ${esc(pdv.nom)}<span class="sr-only"> (nouvel onglet)</span></a>` : ''}
       </li>`,

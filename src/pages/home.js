@@ -8,12 +8,14 @@ import '../styles/operation.css';
 import { initSite, addToCart, reveal } from '../app/site.js';
 import { cardHTML } from '../app/cards.js';
 import { fillPlaces } from '../app/lieux.js';
-import { pieceById, pieceHTML } from '../app/pieces.js';
+import { imgPiece, pieceById, pieceHTML } from '../app/pieces.js';
 import { products, bySlug, minPrice, euro, EVIN } from '../data/products.js';
 import { infos, formules, saison } from '../data/site.js';
 import textes from '../data/site/textes.json';
-import { $, $$, esc, calm, clamp, hasWebGL } from '../lib/dom.js';
+import { monterCampagne } from '../lib/campagne.js';
+import { $, $$, esc, calm } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
+import { noteRevue, selonRevue } from '../lib/revue.js';
 import { renderHTML, upgradeThumbs } from '../lib/thumbs.js';
 import { monterBandeau, pastilleHTML } from '../lib/operation.js';
 
@@ -26,8 +28,6 @@ if (operation) {
   $('#hero-op').innerHTML = pastilleHTML(operation, { href: '#octobre-rose' });
   $('#hero-op').hidden = false;
 }
-const TEST = new URLSearchParams(location.search).has('test');
-
 // ---------- 1. Campagne ----------
 function heroTags() {
   $('#hero-tags').innerHTML = heroProducts
@@ -46,30 +46,9 @@ function heroTags() {
     .join('');
 }
 
-async function mountHero() {
-  const hero = $('#hero');
-  const stageEl = $('#hero-stage');
-  if (!hasWebGL()) {
-    hero.classList.add('is-static');
-    stageEl.innerHTML = renderHTML(heroProducts.map((p) => p.slug), { bg: '', fmt: 'paysage' });
-    return;
-  }
-  try {
-    const { HeroScene } = await import('../three/hero.js');
-    const scene = new HeroScene($('#hero-canvas'), { scene: 'duo', products: heroProducts, target: () => stageEl.getBoundingClientRect(), calm: calm() });
-    window.__hero = scene;
-    await scene.ready;
-    hero.classList.add('is-live');
-    // défilement : les éléments montent et les bouteilles tournent un peu, au rythme de la page
-    const onScroll = () => scene.setScroll(clamp(scrollY / Math.max(hero.offsetHeight, 1), 0, 1));
-    addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-    if (TEST) setTimeout(() => (window.__heroReady = true), 600);
-  } catch (err) {
-    console.warn('3D indisponible, visuel fixe affiché.', err);
-    hero.classList.add('is-static');
-  }
-}
+// L'affiche (les deux vraies bouteilles) est dans le HTML ; la 3D la remplace quand elle est prête,
+// sauf en mouvement réduit, en économie de données ou sans WebGL (src/lib/campagne.js).
+const mountHero = () => monterCampagne({ hero: $('#hero'), stage: $('#hero-stage'), canvas: $('#hero-canvas'), scene: 'duo', products: heroProducts });
 
 // ---------- 2. Nos marques ----------
 function brands() {
@@ -128,12 +107,12 @@ function savoir() {
     ? [
         ['savoir__ph--a', '<figure class="ph"><span class="ph__slot" data-lieu="boutique-rayons"></span><figcaption>La boutique de la distillerie, à Châteauneuf-du-Pape</figcaption></figure>'],
         ['savoir__ph--b', '<figure class="ph"><span class="ph__slot" data-lieu="boutique-salon"></span><figcaption>Le salon de la boutique</figcaption></figure>'],
-        ['savoir__ph--c', `<figure class="ph ph--archive"><img src="${pieceById['stand-palais-des-papes'].image}" alt="" loading="lazy" width="${pieceById['stand-palais-des-papes'].largeur}" height="${pieceById['stand-palais-des-papes'].hauteur}" /><figcaption>Le stand de la maison au Palais des Papes (carte postale)</figcaption></figure>`],
+        ['savoir__ph--c', `<figure class="ph ph--archive">${imgPiece(pieceById['stand-palais-des-papes'], { sizes: '(max-width: 900px) 45vw, 22vw' })}<figcaption>Le stand de la maison au Palais des Papes (carte postale)</figcaption></figure>`],
       ]
     : [
-        ['savoir__ph--a', `<figure class="ph ph--archive"><img src="${pieceById['stand-palais-des-papes'].image}" alt="" loading="lazy" width="${pieceById['stand-palais-des-papes'].largeur}" height="${pieceById['stand-palais-des-papes'].hauteur}" /><figcaption>Le stand de la maison au Palais des Papes (carte postale)</figcaption></figure>`],
-        ['savoir__ph--b', `<figure class="ph ph--archive ph--paper"><img src="${pieceById['lettre-14-rue-moliere'].image}" alt="" loading="lazy" width="${pieceById['lettre-14-rue-moliere'].largeur}" height="${pieceById['lettre-14-rue-moliere'].hauteur}" /><figcaption>Papier à en-tête, 14 rue Molière, Avignon</figcaption></figure>`],
-        ['savoir__ph--c', `<figure class="ph ph--archive"><img src="${pieceById['avenue-de-la-gare'].image}" alt="" loading="lazy" width="${pieceById['avenue-de-la-gare'].largeur}" height="${pieceById['avenue-de-la-gare'].hauteur}" /><figcaption>Avignon, avenue de la Gare (carte postale)</figcaption></figure>`],
+        ['savoir__ph--a', `<figure class="ph ph--archive">${imgPiece(pieceById['stand-palais-des-papes'], { sizes: '(max-width: 900px) 50vw, 26vw' })}<figcaption>Le stand de la maison au Palais des Papes (carte postale)</figcaption></figure>`],
+        ['savoir__ph--b', `<figure class="ph ph--archive ph--paper">${imgPiece(pieceById['lettre-14-rue-moliere'], { sizes: '(max-width: 900px) 45vw, 22vw' })}<figcaption>Papier à en-tête, 14 rue Molière, Avignon</figcaption></figure>`],
+        ['savoir__ph--c', `<figure class="ph ph--archive">${imgPiece(pieceById['avenue-de-la-gare'], { sizes: '(max-width: 900px) 45vw, 22vw' })}<figcaption>Avignon, avenue de la Gare (carte postale)</figcaption></figure>`],
       ];
   box.innerHTML = items.map(([cls, html]) => html.replace('<figure class="ph', `<figure class="${cls} ph`)).join('');
   fillPlaces(box);
@@ -157,13 +136,14 @@ function visit() {
     [icons.clock, `<strong>Boutique :</strong> du lundi au samedi, ${infos.horaires.map((h) => `${esc(h.heures)} ${esc(h.periode.toLowerCase().replace('d’', 'd’'))}`).join(', ')} (hors jours fériés)`],
     [icons.route, `<strong>Visite guidée :</strong> ${esc(g.duree)}, groupes de ${saison.groupeMax} personnes au plus, sur réservation`],
     [icons.pin, esc(infos.adresseLigne)],
-    [icons.card, 'Tarif de la visite guidée à confirmer avec la distillerie'],
+    // tarif inconnu (les sources se contredisent) : contourné, la note reste visible en revue
+    [icons.card, selonRevue(`<strong>Tarifs :</strong> sur demande à la boutique, au <a href="${infos.magasin.telLien}">${esc(infos.magasin.tel)}</a>`, 'Tarif de la visite guidée à confirmer avec la distillerie')],
   ];
   $('#visit-facts').innerHTML = facts.map(([i, t]) => `<li>${i}<span>${t}</span></li>`).join('');
   const stand = pieceById['stand-palais-des-papes'];
   $('#visit-photo').innerHTML = site.majeur
     ? '<span class="ph__slot" data-lieu="boutique-rayons"></span><figcaption>La boutique de la distillerie</figcaption>'
-    : `<img src="${stand.image}" alt="" loading="lazy" width="${stand.largeur}" height="${stand.hauteur}" /><figcaption>Le stand de la maison au Palais des Papes (carte postale ancienne)</figcaption>`;
+    : `${imgPiece(stand, { sizes: '(max-width: 900px) 92vw, 50vw' })}<figcaption>Le stand de la maison au Palais des Papes (carte postale ancienne)</figcaption>`;
   fillPlaces($('#visit-photo'));
 }
 
@@ -175,7 +155,7 @@ function news() {
       (a) => `<li class="newscard" data-reveal>
         <p class="newscard__meta"><span>${a.type === 'video' ? 'Vidéo' : 'Presse'}</span><span>${esc(a.date)}</span></p>
         <h3 class="newscard__title">${esc(a.titre)}</h3>
-        <a class="newscard__src" href="${a.url}" target="_blank" rel="noopener">${a.type === 'video' ? 'Voir la vidéo' : 'Lire l’article'} sur le site de la distillerie<span class="sr-only"> (nouvel onglet)</span></a>
+        <a class="newscard__src" href="${a.url}" target="_blank" rel="noopener">${a.type === 'video' ? 'Voir la vidéo' : 'Lire l’article'}${noteRevue(' sur le site de la distillerie')}<span class="sr-only"> (nouvel onglet)</span></a>
       </li>`,
     )
     .join('');
