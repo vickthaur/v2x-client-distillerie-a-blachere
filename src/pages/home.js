@@ -4,6 +4,7 @@
 // et l'espace pro ; la lettre d'information et le pied de page complet suivent.
 import '../styles/base.css';
 import '../styles/home.css';
+import '../styles/operation.css';
 import { initSite, addToCart, reveal } from '../app/site.js';
 import { cardHTML } from '../app/cards.js';
 import { fillPlaces } from '../app/lieux.js';
@@ -14,9 +15,17 @@ import textes from '../data/site/textes.json';
 import { $, $$, esc, calm, clamp, hasWebGL } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
 import { renderHTML, upgradeThumbs } from '../lib/thumbs.js';
+import { monterBandeau, pastilleHTML } from '../lib/operation.js';
 
 const site = initSite();
 const heroProducts = [bySlug['pac-citron'], bySlug['fun-blue']];
+
+// ---------- Opération du moment (Octobre Rose) : bandeau sous le héros, pastille dans le héros ----------
+const operation = monterBandeau($('#octobre-rose'));
+if (operation) {
+  $('#hero-op').innerHTML = pastilleHTML(operation, { href: '#octobre-rose' });
+  $('#hero-op').hidden = false;
+}
 const TEST = new URLSearchParams(location.search).has('test');
 
 // ---------- 1. Campagne ----------

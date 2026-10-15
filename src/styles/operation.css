@@ -1,0 +1,114 @@
+/* Opérations du moment (Octobre Rose). Bandeau moderne : rose poudré, « 1 € » en très grand, grand
+   ruban dessiné en dégradés derrière la vraie bouteille ; les brins se tracent à l'apparition. */
+.op-band {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding-block: clamp(56px, 7vw, 112px);
+  background:
+    radial-gradient(70% 90% at 82% 46%, #f9cfe1 0%, rgba(249, 207, 225, 0) 62%),
+    linear-gradient(180deg, #fff4f8 0%, #fde8f1 100%);
+  --op-rose: #c2177f;
+  --op-rose-2: #e0559c;
+}
+.op-band__in {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+  grid-template-areas: 'copy visuel';
+  align-items: center;
+  gap: clamp(28px, 5vw, 88px);
+}
+.op-band__copy { grid-area: copy; display: grid; justify-items: start; gap: 18px; }
+.op-band__kicker { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font: 650 0.76rem/1.2 var(--font); letter-spacing: 0.16em; text-transform: uppercase; color: #a3105f; }
+.op-band__ruban-mini { width: 15px; height: 22px; flex: none; }
+.op-band__dates { padding-left: 12px; border-left: 1px solid rgba(163, 16, 95, 0.32); color: var(--ink-2); }
+.op-band__dates sup { font-size: 0.7em; vertical-align: 0.45em; letter-spacing: 0.04em; }
+.op-band__montant {
+  margin: 4px 0 -6px;
+  font: 820 clamp(6.2rem, 14vw, 12.5rem)/0.8 var(--font);
+  font-stretch: 74%;
+  letter-spacing: -0.045em;
+  background: linear-gradient(100deg, var(--op-rose) 0%, var(--op-rose-2) 70%, #f08cbc 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.op-band__titre { max-width: 18ch; font: 740 clamp(1.6rem, 2.7vw, 2.6rem)/1.06 var(--font); letter-spacing: -0.03em; color: var(--ink); text-wrap: balance; }
+.op-band__titre .wm--pac { vertical-align: -0.5em; }
+.op-band__benef { max-width: 44ch; font-size: 1.05rem; line-height: 1.5; color: var(--ink-2); }
+.op-band__benef strong { color: var(--ink); font-weight: 680; }
+.op-band__benef-sous { white-space: nowrap; }
+.op-band__benef-sous::before { content: '· '; }
+.op-band__ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px; }
+.op-band__cta { --b-bg: var(--op-rose); --b-ink: #fff; --mq-pac: #feed01; --wm-pac: url('/marques/pac.svg'); gap: 14px; }
+.op-band__cta:hover { --b-bg: #a3105f; }
+.op-band__prix { padding-left: 14px; border-left: 1px solid rgba(255, 255, 255, 0.4); font-weight: 600; font-variant-numeric: tabular-nums; }
+.op-band__fine { max-width: 62ch; margin-top: 4px; font-size: 0.82rem; line-height: 1.5; color: var(--ink-3); }
+
+.op-band__visuel { grid-area: visuel; position: relative; justify-self: center; width: min(100%, 500px); aspect-ratio: 1 / 1; }
+.op-band__halo { position: absolute; inset: 6% 4% 10% 14%; border-radius: 50%; background: radial-gradient(closest-side, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0)); }
+.op-band__visuel::after { content: ''; position: absolute; left: 67%; bottom: 1.5%; width: 30%; height: 5%; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(closest-side, rgba(110, 10, 64, 0.32), rgba(110, 10, 64, 0)); z-index: 0; }
+.op-band__ruban { position: absolute; left: 38%; top: 0; height: 100%; width: auto; transform: translateX(-50%) rotate(-5deg); transform-origin: 50% 60%; overflow: visible; }
+.op-band__bouteille {
+  position: absolute; z-index: 1; left: 67%; bottom: 3%; height: 80%; width: auto;
+  transform: translateX(-50%) rotate(3deg);
+  filter: drop-shadow(0 26px 22px rgba(110, 10, 64, 0.28)) drop-shadow(0 4px 6px rgba(80, 10, 50, 0.22));
+}
+
+/* Apparition : les deux brins se tracent, puis la bouteille monte (rien si mouvement réduit). */
+.op-band__brin { stroke-dasharray: 1; stroke-dashoffset: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .op-band[data-reveal]:not(.is-in) .op-band__brin { stroke-dashoffset: 1; }
+  .op-band[data-reveal]:not(.is-in) .op-band__bouteille { opacity: 0; transform: translate(-50%, 28px) rotate(3deg); }
+  .op-band[data-reveal]:not(.is-in) .op-band__montant { opacity: 0; transform: translateY(18px); }
+  .op-band__brin--dos { transition: stroke-dashoffset 1.1s var(--ease) 0.1s; }
+  .op-band__brin--face { transition: stroke-dashoffset 1.2s var(--ease) 0.55s; }
+  .op-band__bouteille { transition: opacity 0.9s var(--ease) 0.7s, transform 1s var(--ease) 0.7s; }
+  .op-band__montant { transition: opacity 0.8s var(--ease) 0.15s, transform 0.9s var(--ease) 0.15s; }
+}
+
+@media (max-width: 900px) {
+  .op-band__in { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'visuel' 'copy'; gap: 8px; }
+  .op-band__visuel { width: min(86%, 360px); }
+  .op-band__copy { justify-items: start; }
+}
+@media (max-width: 520px) {
+  .op-band__visuel { width: min(80%, 290px); }
+  .op-band__benef-sous { white-space: normal; }
+}
+
+/* Pastille du héros de l'accueil */
+.op-pill {
+  display: inline-flex; align-items: center; gap: 10px; justify-self: start; max-width: 100%;
+  padding: 8px 16px 8px 10px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.14); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  color: #fff; font: 500 0.9rem/1.3 var(--font); text-decoration: none;
+  transition: background-color 0.2s var(--ease), transform 0.2s var(--ease);
+}
+.op-pill strong { font-weight: 700; }
+.op-pill:hover { background: rgba(255, 255, 255, 0.24); transform: translateY(-1px); }
+.op-pill:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.op-pill__ruban { width: 16px; height: 24px; flex: none; }
+
+/* Encart de fiche produit */
+.op-note {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: start;
+  margin-top: 16px; padding: 14px 16px; border-radius: var(--r-s);
+  background: #fdf0f6; border: 1px solid #f4c4dc; color: var(--ink);
+  font-size: 0.93rem; line-height: 1.5;
+}
+.op-note__ruban { width: 20px; height: 30px; margin-top: 2px; }
+.op-note__titre { font: 700 0.74rem/1.3 var(--font); letter-spacing: 0.14em; text-transform: uppercase; color: #a3105f; margin-bottom: 4px; }
+.op-note__fine { margin-top: 6px; font-size: 0.8rem; color: var(--ink-2); }
+
+/* Ligne du panier et de la commande */
+.op-cart {
+  display: flex; gap: 10px; align-items: flex-start; margin-top: 12px; padding: 10px 12px; border-radius: var(--r-s);
+  background: #fdf0f6; border: 1px solid #f4c4dc; font-size: 0.88rem; line-height: 1.45; color: var(--ink);
+}
+.op-cart__ruban { width: 14px; height: 21px; flex: none; margin-top: 1px; }
+.op-cart strong { color: #a3105f; }
+
+@media (prefers-reduced-motion: reduce) {
+  .op-pill { transition: none; }
+}

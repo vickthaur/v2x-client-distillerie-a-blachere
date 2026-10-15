@@ -3,12 +3,18 @@ import { EVIN, products, minPrice, euro, DISPO_BOUTIQUE, surtitre } from '../dat
 import { esc, plural } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
 import { thumbHTML } from '../lib/thumbs.js';
+import { operationAffichee, concerne } from '../lib/operation.js';
 
 export function cardHTML(p, { tag = 'li' } = {}) {
   const price = minPrice(p);
   const c = p.contenances[0];
   const volumes = p.contenances.map((k) => k.volume).join(' · ') || (p.enLigne ? 'Contenance à confirmer' : 'Contenance et degré à confirmer');
-  const badges = [p.bestSeller ? '<span class="badge badge--best">Meilleure vente</span>' : '', p.alcool ? '<span class="badge badge--age">18+</span>' : ''].join('');
+  const op = operationAffichee();
+  const badges = [
+    p.bestSeller ? '<span class="badge badge--best">Meilleure vente</span>' : '',
+    concerne(op, p.slug) ? `<span class="badge badge--rose">${esc(op.nom)}</span>` : '',
+    p.alcool ? '<span class="badge badge--age">18+</span>' : '',
+  ].join('');
   return `<${tag} class="card" data-theme="${p.theme}" data-slug="${p.slug}" style="--c:${p.color};--l:${p.light};--d:${p.deep}">
     <a class="card__media" href="/boutique/${p.slug}" tabindex="-1" aria-hidden="true">${thumbHTML(p)}</a>
     ${badges ? `<div class="card__badges">${badges}</div>` : ''}

@@ -12,15 +12,15 @@
   "rewrites": [
     {
       "source": "/boutique/:slug",
-      "destination": "/produit.html"
+      "destination": "/produit"
     },
     {
       "source": "/crm/:path*",
-      "destination": "/crm.html"
+      "destination": "/crm"
     },
     {
       "source": "/espace-pro/:path+",
-      "destination": "/pro.html"
+      "destination": "/pro"
     }
   ],
   "redirects": [
