@@ -593,6 +593,7 @@
   .cmd-line__qte { grid-area: qte; }
   .cmd-line__total { grid-area: total; align-self: center; justify-self: end; white-space: nowrap; }
   .cmd-line__del { grid-area: del; align-self: start; }
+  .cmd-line .pro-step__u { display: none; }
   .pro-table-wrap { overflow: visible; border: 0; background: none; }
   .pro-table, .pro-table tbody, .pro-table tr, .pro-table th, .pro-table td { display: block; }
   .pro-table thead { display: none; }
@@ -636,8 +637,8 @@
   .pro-again__actions { width: 100%; }
   .acc-adr__actions { width: 100%; padding-left: 50px; }
   /* Feuilles A4 sur téléphone : marges réduites, colonnes empilées */
-  .sheet { min-height: 0; padding: 40px 16px 20px; font-size: 12px; }
-  .sheet__demo { right: 16px; }
+  .sheet { min-height: 0; padding: 0 16px 20px; font-size: 12px; }
+  .sheet__demo { position: static; display: inline-block; margin-bottom: 16px; }
   .sheet__logo { width: 150px; }
   .inv__parties, .inv__bottom, .fiche__cols { grid-template-columns: minmax(0, 1fr); gap: 16px; }
   .inv__table { font-size: 11.5px; }
