@@ -52,7 +52,7 @@ export async function demoCourante(ctx) {
   return lu;
 }
 
-// Nouveau jeu de démonstration (en mémoire), dans la limite de 20 créations par heure et par
+// Nouveau jeu de démonstration (en mémoire), dans la limite de 60 créations par heure et par
 // adresse IP (et par instance).
 async function nouveauJeu(ctx) {
   if (!limiter(`demos:${ctx.ip}`, LIMITES.demos.max, LIMITES.demos.fenetre, ctx.maintenant.getTime())) {

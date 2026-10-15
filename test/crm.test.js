@@ -645,3 +645,219 @@ describe('Octobre Rose au tableau de bord', () => {
     assert.equal((await s.post('site', 'commande', commandePublique())).json.operation, undefined);
   });
 });
+
+// Écarts relevés par l'interface du CRM : effacement d'un champ facultatif, CA des 30 jours
+// précédents, fiche d'un abonné, exports filtrés comme les listes, dates des messages en français.
+describe('retours du CRM', () => {
+  let n;
+  beforeEach(async () => {
+    environnementNeuf();
+    n = new Navigateur();
+    await n.entrer('direction');
+  });
+
+  const sansIso = (texte) => assert.doesNotMatch(texte, /\d{4}-\d{2}-\d{2}/, texte);
+
+  test('PATCH séance : guideId null retire le guide, notes "" efface les notes', async () => {
+    const lea = (await docDe(n)).utilisateurs.find((u) => u.role === 'boutique');
+    const s = (await n.post('crm', 'seance', { date: '2026-12-27', moment: 'matin', guideId: lea.id, notes: 'Groupe scolaire' })).json;
+    assert.equal(s.guide.id, lea.id);
+    assert.equal(s.notes, 'Groupe scolaire');
+    const x = await n.patch('crm', 'seance', { guideId: null, notes: '' }, { query: { id: s.id } });
+    assert.equal(x.status, 200, x.texte);
+    assert.equal(x.json.guide, undefined);
+    assert.equal(x.json.notes, undefined);
+    const stockee = (await docDe(n)).seances.find((y) => y.id === s.id);
+    assert.ok(!('guideId' in stockee) && !('notes' in stockee), JSON.stringify(stockee));
+    // champ absent : inchangé ; '' vaut null ; guide inconnu : 400 sur guideId
+    assert.equal((await n.patch('crm', 'seance', { guideId: lea.id, notes: 'Accueil en anglais' }, { query: { id: s.id } })).json.guide.id, lea.id);
+    const c = (await n.patch('crm', 'seance', { capacite: 12 }, { query: { id: s.id } })).json;
+    assert.equal(c.guide.id, lea.id);
+    assert.equal(c.notes, 'Accueil en anglais');
+    assert.equal((await n.patch('crm', 'seance', { guideId: '' }, { query: { id: s.id } })).json.guide, undefined);
+    const inconnu = await n.patch('crm', 'seance', { guideId: 'usr_aaaaaaaaaaaa' }, { query: { id: s.id } });
+    assert.equal(inconnu.status, 400);
+    assert.equal(inconnu.json.champ, 'guideId');
+    // journal : libellé daté en français
+    const j = (await docDe(n)).journal.filter((e) => e.cible?.id === s.id);
+    assert.equal(j[0].cible.libelle, 'Séance du 27 décembre (matin)');
+    for (const e of j) sansIso(`${e.cible.libelle} ${e.details || ''}`);
+  });
+
+  test('PATCH : null ou "" efface aussi les autres champs facultatifs', async () => {
+    const doc = await docDe(n);
+    const lea = doc.utilisateurs.find((u) => u.role === 'boutique');
+    // client : téléphone et adresse retirés, notes vidées
+    const k = doc.clients.find((c) => c.telephone && c.adresse);
+    await n.patch('crm', 'client', { notes: 'À rappeler' }, { query: { id: k.id } });
+    const kx = (await n.patch('crm', 'client', { telephone: null, adresse: null, notes: '' }, { query: { id: k.id } })).json;
+    assert.equal(kx.telephone, undefined);
+    assert.equal(kx.adresse, undefined);
+    assert.equal(kx.notes, '');
+    assert.equal(kx.email, k.email);
+    // compte : commercial, téléphone, SIRET ; notes vidées
+    const compte = doc.comptes.find((c) => c.telephone && c.commercialId && c.siret);
+    const cx = (await n.patch('crm', 'compte', { commercialId: null, telephone: '', siret: null, notes: null }, { query: { id: compte.id } })).json;
+    assert.equal(cx.commercial, null);
+    assert.equal(cx.telephone, undefined);
+    assert.equal(cx.siret, undefined);
+    assert.equal(cx.notes, '');
+    assert.equal(cx.enseigne, compte.enseigne);
+    // membre : poste et téléphone
+    const mx = (await n.patch('crm', 'membre', { telephone: null, poste: '' }, { query: { id: lea.id } })).json.membre;
+    assert.equal(mx.telephone, undefined);
+    assert.equal(mx.poste, undefined);
+    // demande : note
+    const dem = doc.demandes.find((d) => d.statut === 'nouvelle');
+    assert.equal((await n.patch('crm', 'demande', { note: 'Rappeler lundi' }, { query: { id: dem.id } })).json.note, 'Rappeler lundi');
+    assert.equal((await n.patch('crm', 'demande', { note: null }, { query: { id: dem.id } })).json.note, undefined);
+    // réservation : notes
+    const r = (await n.post('crm', 'reservation', { date: '2026-12-26', moment: 'apres-midi', personnes: 2, nom: 'Anne Essai', email: 'anne.visite@example.org', notes: 'Fauteuil roulant' })).json;
+    assert.equal(r.notes, 'Fauteuil roulant', JSON.stringify(r));
+    assert.equal((await n.patch('crm', 'reservation', { notes: '' }, { query: { id: r.id } })).json.notes, undefined);
+    // message : attribution retirée par ''
+    const msg = doc.messages.find((m) => m.statut === 'nouveau');
+    assert.equal((await n.patch('crm', 'message', { assigneA: lea.id }, { query: { id: msg.id } })).json.assigneA.id, lea.id);
+    assert.equal((await n.patch('crm', 'message', { assigneA: '' }, { query: { id: msg.id } })).json.assigneA, null);
+    // promo : fin retirée, limite levée (null, comme à la création)
+    const p = (await n.post('crm', 'promo', { code: 'HIVER5', libelle: '−5 €', type: 'montant', valeur: 5, fin: '2026-12-31', limite: 10 })).json;
+    const px = (await n.patch('crm', 'promo', { fin: '', limite: null }, { query: { id: p.id } })).json;
+    assert.equal(px.fin, undefined);
+    assert.equal(px.limite, null);
+    assert.equal(px.etat, 'actif');
+  });
+
+  test('tableau : CA HT des 30 jours précédents (J−59 à J−30)', async () => {
+    const t = (await n.get('crm', 'tableau')).json;
+    const doc = await docDe(n);
+    const idx = index(doc);
+    const valides = doc.commandes.filter((c) => !['annulee', 'remboursee'].includes(c.statut)).map((c) => commandeComplete(c, idx));
+    const htDu = (f) => Math.round(valides.filter(f).reduce((s, c) => s + Math.round(c.totaux.totalHT * 100), 0)) / 100;
+    assert.equal(t.ca.precedent30, htDu((c) => jourParis(c.createdAt) >= '2026-08-17' && jourParis(c.createdAt) <= '2026-09-15'));
+    assert.ok(t.ca.precedent30 > 0);
+    // une commande d'aujourd'hui ne change pas les 30 jours précédents
+    await n.post('site', 'commande', commandePublique());
+    assert.equal((await n.get('crm', 'tableau')).json.ca.precedent30, t.ca.precedent30);
+  });
+
+  test('fiche d’un abonné : abonné, client de même e-mail, courriels reçus ; droits', async () => {
+    await n.post('site', 'commande', commandePublique({ newsletter: true, client: { prenom: 'Iris', nom: 'Abonnée', email: 'iris.abonnee@example.org', telephone: '06 39 98 11 22' } }));
+    const doc = await docDe(n);
+    const a = doc.abonnes.find((x) => x.email === 'iris.abonnee@example.org');
+    const f = await n.get('crm', 'abonne', { id: a.id });
+    assert.equal(f.status, 200, f.texte);
+    assert.equal(f.json.id, a.id);
+    assert.equal(f.json.email, 'iris.abonnee@example.org');
+    assert.equal(f.json.statut, 'inscrit');
+    assert.equal(f.json.source, 'commande');
+    assert.equal(f.json.client.nom, 'Iris Abonnée');
+    assert.deepEqual(
+      f.json.courriels.map((c) => c.type),
+      ['bienvenue', 'commande'],
+    );
+    assert.ok(f.json.courriels.every((c) => c.id && c.date && c.objet));
+    // un abonné sans fiche client
+    const seul = doc.abonnes.find((x) => !doc.clients.some((k) => k.email === x.email));
+    assert.equal((await n.get('crm', 'abonne', { id: seul.id })).json.client, null);
+    assert.equal((await n.get('crm', 'abonne', { id: 'abo_aaaaaaaaaaaa' })).status, 404);
+    assert.equal((await n.get('crm', 'abonne', { id: 'pas-un-id' })).status, 404);
+    const l = new Navigateur();
+    l.cookies = new Map(n.cookies);
+    await l.entrer('logistique');
+    assert.equal((await l.get('crm', 'abonne', { id: a.id })).status, 403);
+    await l.entrer('boutique');
+    assert.equal((await l.get('crm', 'abonne', { id: a.id })).status, 200);
+  });
+
+  test('exports : mêmes filtres que la liste quand ils sont fournis, complets sinon', async () => {
+    const lignes = (r) => {
+      assert.equal(r.status, 200, r.texte);
+      return r.texte.slice(1).split('\r\n').filter(Boolean).slice(1);
+    };
+    const exporter = async (type, filtres = {}) => lignes(await n.get('crm', 'export', { type, ...filtres }));
+    const doc = await docDe(n);
+    // commandes
+    assert.equal((await exporter('commandes')).length, doc.commandes.length);
+    for (const f of [{ statut: 'livree' }, { canal: 'pro', du: '2026-09-01', au: '2026-09-30' }, { q: 'platanes' }, { canal: 'en-ligne', statut: 'nouvelle' }]) {
+      const liste = (await n.get('crm', 'commandes', { ...f, par: 100 })).json;
+      const csv = await exporter('commandes', f);
+      assert.equal(csv.length, liste.total, JSON.stringify(f));
+      assert.ok(liste.total > 0, JSON.stringify(f));
+      // même ordre que la liste (plus récente d'abord)
+      assert.deepEqual(
+        csv.slice(0, liste.elements.length).map((x) => x.split(';')[0]),
+        liste.elements.map((c) => c.numero),
+      );
+    }
+    assert.ok((await exporter('commandes', { statut: 'livree' })).every((x) => x.split(';')[5] === 'Livrée'));
+    assert.equal((await n.get('crm', 'export', { type: 'commandes', statut: 'inconnu' })).status, 400);
+    // tri inconnu (même un nom d'Object.prototype) : tri par défaut, pas d'erreur interne
+    for (const tri of ['__proto__', 'constructor', '-toString']) {
+      assert.equal((await n.get('crm', 'commandes', { tri })).status, 200, tri);
+      assert.equal((await n.get('crm', 'export', { type: 'clients', tri })).status, 200, tri);
+    }
+    // clients
+    assert.equal((await exporter('clients')).length, doc.clients.length);
+    const fideles = (await n.get('crm', 'clients', { segment: 'fideles', par: 100 })).json;
+    assert.equal((await exporter('clients', { segment: 'fideles' })).length, fideles.total);
+    assert.ok(fideles.total > 0 && fideles.total < doc.clients.length);
+    // comptes
+    assert.equal((await exporter('comptes')).length, doc.comptes.length);
+    const chr = (await n.get('crm', 'comptes', { type: 'chr', par: 100 })).json;
+    assert.deepEqual(
+      (await exporter('comptes', { typeCompte: 'chr' })).map((x) => x.split(';')[0]),
+      chr.elements.map((k) => k.enseigne),
+    );
+    // abonnés
+    assert.equal((await exporter('abonnes')).length, doc.abonnes.length);
+    const desinscrits = (await n.get('crm', 'newsletter', { statut: 'desinscrit', par: 100 })).json.liste;
+    assert.equal((await exporter('abonnes', { statut: 'desinscrit' })).length, desinscrits.total);
+    assert.ok(desinscrits.total > 0);
+    // réservations : période du planning
+    assert.equal((await exporter('reservations')).length, doc.reservations.length);
+    const vis = (await n.get('crm', 'visites', { du: '2026-10-15', au: '2026-10-28' })).json;
+    assert.deepEqual(
+      (await exporter('reservations', { du: '2026-10-15', au: '2026-10-28' })).map((x) => x.split(';')[0]),
+      vis.reservations.map((r) => r.reference),
+    );
+    assert.ok(vis.reservations.length > 0);
+    assert.equal((await n.get('crm', 'export', { type: 'reservations', du: '2026-10-28', au: '2026-10-15' })).status, 400);
+    // produits : une ligne par contenance des produits de la liste
+    const variantes = (l) => l.reduce((t, p) => t + p.variantes.length, 0);
+    const tous = (await n.get('crm', 'produits')).json;
+    assert.equal((await exporter('produits')).length, variantes(tous.elements));
+    const rupture = (await n.get('crm', 'produits', { stock: 'rupture' })).json;
+    assert.equal((await exporter('produits', { stock: 'rupture' })).length, variantes(rupture.elements));
+    assert.ok(rupture.elements.length > 0 && rupture.elements.length < tous.elements.length);
+  });
+
+  test('messages d’erreur : dates en français, jamais au format ISO', async () => {
+    // séance fermée
+    const s = (await n.post('crm', 'seance', { date: '2026-12-27', moment: 'matin' })).json;
+    await n.patch('crm', 'seance', { statut: 'fermee' }, { query: { id: s.id } });
+    const fermee = await n.post('crm', 'reservation', { date: '2026-12-27', moment: 'matin', personnes: 2, nom: 'Anne Essai', email: 'anne.visite@example.org' });
+    assert.equal(fermee.status, 409);
+    assert.match(fermee.json.erreur, /^Pas de visite le 27 décembre \(matin\)\s: séance fermée\.$/);
+    // journal des réservations
+    const r = await n.post('crm', 'reservation', { date: '2026-12-26', moment: 'apres-midi', personnes: 3, nom: 'Club Essai', email: 'club@example.org' });
+    assert.equal(r.status, 201, r.texte);
+    const e = (await docDe(n)).journal.at(-1);
+    assert.equal(e.action, 'reservation.creation');
+    assert.equal(e.details, '3 personnes, 26 décembre (après-midi)');
+    // jour sans visite : saison et jours de fermeture tirés des paramètres
+    const corps = { date: '2026-10-18', moment: 'matin', personnes: 2, nom: 'Anne Essai', email: 'anne.visite@example.org', rgpd: true };
+    const dimanche = await n.post('site', 'reservation', corps);
+    assert.equal(dimanche.status, 400);
+    assert.match(dimanche.json.erreur, /^La distillerie ne propose pas de visite ce jour-là \(saison du 12 février au 31 décembre, fermé le dimanche\)\.$/);
+    await n.patch('crm', 'parametres', { visites: { saison: { debut: '03-01', fin: '11-30' }, fermeLe: [0, 1] } });
+    assert.match((await n.post('site', 'reservation', corps)).json.erreur, /\(saison du 1er mars au 30 novembre, fermé le lundi et le dimanche\)\.$/);
+    // codes promo pas encore valables ou expirés
+    await n.post('crm', 'promo', { code: 'NOVEMBRE', libelle: 'Novembre', type: 'montant', valeur: 2, debut: '2026-11-01' });
+    await n.post('crm', 'promo', { code: 'RENTREE', libelle: 'Rentrée', type: 'montant', valeur: 2, fin: '2026-10-01' });
+    const panier = { lignes: [ligne('pac-citron', '1000', 3)] };
+    assert.match((await n.post('site', 'code-promo', { code: 'NOVEMBRE', ...panier })).json.erreur, /^Ce code promo n’est valable qu’à partir du 1er novembre\.$/);
+    assert.match((await n.post('site', 'code-promo', { code: 'RENTREE', ...panier })).json.erreur, /^Ce code promo a expiré le 1er octobre\.$/);
+    // jeu de démonstration : aucune date ISO dans le journal
+    for (const x of (await docDe(n)).journal) sansIso(`${x.cible?.libelle || ''} ${x.details || ''}`);
+  });
+});

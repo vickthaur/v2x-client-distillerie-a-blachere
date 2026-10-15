@@ -254,3 +254,20 @@ export function sansVide(o) {
   for (const k of Object.keys(o)) if (o[k] === undefined) delete o[k];
   return o;
 }
+
+// Modification (PATCH) d'un champ facultatif : absent → undefined (laissé tel quel) ; null ou texte
+// vide → `vide` (null : champ retiré ; '' : texte vidé) ; sinon la valeur lue par lire().
+export function effacable(corps, champ, lire, { vide = null } = {}) {
+  if (!corps || !Object.hasOwn(corps, champ)) return undefined;
+  return absent(corps[champ]) ? vide : lire();
+}
+
+// Applique une modification : undefined laisse le champ, null le retire, toute autre valeur le
+// remplace.
+export function appliquer(cible, modif) {
+  for (const [k, v] of Object.entries(modif)) {
+    if (v === null) delete cible[k];
+    else if (v !== undefined) cible[k] = v;
+  }
+  return cible;
+}

@@ -389,12 +389,13 @@ async function compteGet(ctx) {
 
 async function comptePatch(ctx) {
   const d = V.sansVide({
-    telephone: V.telephone(ctx.corps, 'telephone'),
+    // null ou '' efface le téléphone
+    telephone: V.effacable(ctx.corps, 'telephone', () => V.telephone(ctx.corps, 'telephone')),
     email: V.email(ctx.corps, 'email', { libelle: 'E-mail de facturation' }),
   });
   if (!Object.keys(d).length) throw erreur(400, 'Seuls le téléphone et l’e-mail de facturation se modifient ici ; pour le reste, contactez votre commercial.', { code: 'saisie' });
   return ecrire(ctx, (doc, m, moi, compte) => {
-    Object.assign(compte, d);
+    V.appliquer(compte, d);
     journaliser(doc, m.maintenant, { par: { id: moi.id, nom: nomComplet(moi), role: 'pro' }, action: 'compte.modification', cible: { type: 'compte', id: compte.id, libelle: compte.enseigne }, details: `Modifié dans l’espace pro : ${Object.keys(d).join(', ')}` });
     return vueCompte(compte);
   });
