@@ -8,6 +8,7 @@
 import '../styles/base.css';
 import '../styles/shop.css';
 import '../styles/product.css';
+import '../styles/operation.css';
 import { initSite, addToCart } from '../app/site.js';
 import { cardHTML } from '../app/cards.js';
 import { bySlug, products, visibleProducts, recettes, FAMILLES, EVIN, MINEURS, euro, DISPO_BOUTIQUE, formatsAilleursTexte } from '../data/products.js';
@@ -16,8 +17,11 @@ import { $, $$, esc, calm, hasWebGL } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
 import { thumbHTML, upgradeThumbs } from '../lib/thumbs.js';
 import { photoOf } from '../lib/photos.js';
+import { operationAffichee, concerne, encartFicheHTML } from '../lib/operation.js';
 
 const site = initSite({ askAge: false });
+// Opération du moment (Octobre Rose) : pastille et encart sur la fiche des produits concernés.
+const operation = operationAffichee();
 const slug = decodeURIComponent(location.pathname.replace(/\/+$/, '').split('/').pop() || '');
 const p = bySlug[slug];
 const root = $('#product-root');
@@ -202,7 +206,7 @@ function render() {
       <p class="pp__source" id="source" hidden></p>
     </div>
     <div class="pp__info">
-      <p class="pp__gamme"><span>${esc(p.gammeNom)}</span>${p.bestSeller ? ' <span class="badge badge--best">Meilleure vente</span>' : ''}${p.alcool ? ' <span class="badge badge--age">18+</span>' : ''}</p>
+      <p class="pp__gamme"><span>${esc(p.gammeNom)}</span>${p.bestSeller ? ' <span class="badge badge--best">Meilleure vente</span>' : ''}${concerne(operation, p.slug) ? ` <span class="badge badge--rose">${esc(operation.nom)}</span>` : ''}${p.alcool ? ' <span class="badge badge--age">18+</span>' : ''}</p>
       <h1 class="pp__name">${esc(p.nom).replace(/®/g, '<sup>®</sup>')}</h1>
       <p class="pp__type">${esc(p.type)}${p.alcool && p.degre ? ` · ${String(p.degre).replace('.', ',')} % vol.` : ''}</p>
       ${lead ? `<p class="pp__lead">${esc(lead)}</p>` : ''}
@@ -219,6 +223,7 @@ function render() {
           <button type="submit" class="btn btn--primary pp__add">${icons.bag}Ajouter au panier</button>
         </div>
       </form>
+      ${concerne(operation, p.slug) ? encartFicheHTML(operation) : ''}
       ${ailleurs ? `<p class="pp__ailleurs">${esc(ailleurs)} — voir <a href="/ou-trouver">Où trouver nos produits</a></p>` : ''}
       <ul class="pp__reassure">
         <li>${icons.truck}<span><strong>Expédiée sous 3 jours ouvrés</strong> au plus après le règlement</span></li>

@@ -175,6 +175,7 @@ sup { font-size: 0.55em; line-height: 0; vertical-align: 0.9em; }
 .badge--best { background: var(--ink); color: #fff; }
 .badge--age { background: transparent; border: 1px solid currentColor; }
 .badge--dispo { background: var(--paper-2); color: var(--ink-2); }
+.badge--rose { background: #fbe1ee; color: #a3105f; }
 
 /* ---------- En-tête ---------- */
 .hd {
