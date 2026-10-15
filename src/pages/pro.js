@@ -10,6 +10,7 @@ import { api, demoActive } from '../lib/api.js';
 import { mountDemoBar } from '../lib/demo.js';
 import { $, $$, esc } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
+import { erreursParChamp } from '../lib/formulaire.js';
 
 const site = initSite({ askAge: false });
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -56,11 +57,11 @@ function go(redirection) {
 login.addEventListener('submit', async (e) => {
   e.preventDefault();
   const d = Object.fromEntries(new FormData(login));
-  const bad = new Set();
-  if (!EMAIL.test((d.email || '').trim())) bad.add('email');
-  if (!d.mdp) bad.add('mdp');
-  mark(login, bad);
-  if (bad.size) return say(loginMsg, 'Indiquez votre identifiant (une adresse e-mail) et votre mot de passe.');
+  const err = new Map();
+  if (!EMAIL.test((d.email || '').trim())) err.set('email', 'Indiquez votre identifiant\u00a0: l’adresse e-mail du compte.');
+  if (!d.mdp) err.set('mdp', 'Indiquez votre mot de passe.');
+  erreursParChamp(login, err);
+  if (err.size) return say(loginMsg, 'Indiquez votre identifiant (une adresse e-mail) et votre mot de passe.');
   const btn = login.querySelector('button[type="submit"]');
   busy(btn, true, 'Connexion…');
   try {
@@ -184,30 +185,20 @@ $('#pro-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const form = e.currentTarget;
   const d = Object.fromEntries(new FormData(form));
-  const bad = new Set();
-  const errs = [];
-  if (!d.societe?.trim()) bad.add('societe');
-  if (!d.activite) bad.add('activite');
-  if (!d.nom?.trim()) bad.add('nom');
-  if (!d.ville?.trim()) bad.add('ville');
-  if (!EMAIL.test((d.email || '').trim())) bad.add('email');
-  if (bad.size) errs.push('Complétez les champs en rouge.');
+  // Une erreur par champ, sous le champ (A11Y-10)
+  const err = new Map();
+  if (!d.societe?.trim()) err.set('societe', 'Indiquez le nom de l’établissement.');
+  if (!d.activite) err.set('activite', 'Choisissez une activité.');
   const siret = (d.siret || '').replace(/\s/g, '');
-  if (siret && !/^\d{14}$/.test(siret)) {
-    bad.add('siret');
-    errs.push('Le SIRET compte 14 chiffres.');
-  }
-  if (d.tel && !/^[+\d][\d\s.-]{8,}$/.test(d.tel.trim())) {
-    bad.add('tel');
-    errs.push('Ce numéro de téléphone ne semble pas valide.');
-  }
-  if (!d.rgpd) {
-    bad.add('rgpd');
-    errs.push('Cochez la case d’accord.');
-  }
-  mark(form, bad);
+  if (siret && !/^\d{14}$/.test(siret)) err.set('siret', 'Le SIRET compte 14\u00a0chiffres.');
+  if (!d.nom?.trim()) err.set('nom', 'Indiquez votre nom.');
+  if (!d.ville?.trim()) err.set('ville', 'Indiquez la ville.');
+  if (!EMAIL.test((d.email || '').trim())) err.set('email', 'Indiquez une adresse e-mail valide (ex. prenom@exemple.fr).');
+  if (d.tel && !/^[+\d][\d\s.-]{8,}$/.test(d.tel.trim())) err.set('tel', 'Ce numéro de téléphone ne semble pas valide.');
+  if (!d.rgpd) err.set('rgpd', 'Cochez la case d’accord.');
   const msg = $('#pro-msg');
-  if (errs.length) return say(msg, errs.join(' '));
+  msg.className = 'form-msg err';
+  if (erreursParChamp(form, err, { resume: msg })) return;
   const btn = form.querySelector('button[type="submit"]');
   busy(btn, true, 'Envoi de la demande…');
   msg.textContent = '';
@@ -231,7 +222,7 @@ $('#pro-form').addEventListener('submit', async (e) => {
   } catch (x) {
     busy(btn, false, 'Envoyer la demande');
     const champ = FIELD[String(x?.champ || '').split('.').pop()];
-    mark(form, new Set(champ ? [champ] : []));
+    erreursParChamp(form, champ ? { [champ]: x.message } : {});
     return say(msg, x?.message || 'La demande n’a pas pu être enregistrée. Réessayez.');
   }
   const crm = r?.liens?.crm;

@@ -14,6 +14,8 @@ import { $, $$, esc, calm } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
 import { api } from '../lib/api.js';
 import { mountDemoBar } from '../lib/demo.js';
+import { noteRevue, selonRevue } from '../lib/revue.js';
+import { erreursParChamp } from '../lib/formulaire.js';
 
 const site = initSite();
 const reservables = formules.filter((f) => f.reservable);
@@ -32,23 +34,30 @@ site.onAge(photo);
 
 $('#saison').innerHTML = saisonHTML();
 $('#formules').innerHTML = formulesHTML({ choose: true });
+// Valeur d'une formule : le texte public (« Tarif sur demande »), la note « à confirmer » en revue.
+const val = (f, k) => selonRevue(esc(f[k] || ''), f.revue?.[k] ? esc(f.revue[k]) : '');
 $('#booking-formules').innerHTML = reservables
-  .map((f, i) => `<label><input type="radio" name="formule" value="${f.id}"${i === 1 ? ' checked' : ''} /><strong>${esc(f.nom)}</strong><span>${esc(f.duree)}${f.capacite ? ` · ${esc(f.capacite)}` : ''}</span><span>${esc(f.prix)}</span></label>`)
+  .map((f, i) => `<label><input type="radio" name="formule" value="${f.id}"${i === 1 ? ' checked' : ''} /><strong>${esc(f.nom)}</strong><span>${val(f, 'duree')}${f.capacite ? ` · ${esc(f.capacite)}` : ''}</span><span>${val(f, 'prix')}</span></label>`)
   .join('');
 
 $('#infos').innerHTML = `
   <div class="info-card"><h3>${icons.pin}Adresse</h3><p>${infos.adresse.map(esc).join('<br />')}</p><p><a class="link" href="${infos.itineraire}" target="_blank" rel="noopener">Itinéraire<span class="sr-only"> (nouvel onglet)</span></a></p><p>La distillerie a sa fiche sur le site La Provence à Vélo.</p></div>
-  <div class="info-card"><h3>${icons.clock}Magasin</h3><p>${esc(infos.jours)}</p>${infos.horaires.map((h) => `<p><strong>${esc(h.periode)}</strong>\u00a0: ${esc(h.heures)}</p>`).join('')}<p>Bureaux et entrepôts\u00a0: ${esc(infos.bureauxHoraires.jours.toLowerCase())}, ${esc(infos.bureauxHoraires.heures)}.</p><p class="note">${esc(infos.horairesNote)} Visites fermées le dimanche.</p></div>
+  <div class="info-card"><h3>${icons.clock}Magasin</h3><p>${esc(infos.jours)}</p>${infos.horaires.map((h) => `<p><strong>${esc(h.periode)}</strong>\u00a0: ${esc(h.heures)}</p>`).join('')}<p>Bureaux et entrepôts\u00a0: ${esc(infos.bureauxHoraires.jours.toLowerCase())}, ${esc(infos.bureauxHoraires.heures)}.</p><p class="note">${noteRevue(`${esc(infos.horairesNote)} `)}Visites fermées le dimanche.</p></div>
   <div class="info-card"><h3>${icons.phone}Contact</h3><p>Magasin\u00a0: <a href="${infos.magasin.telLien}">${infos.magasin.tel}</a><br /><a href="mailto:${infos.magasin.email}">${infos.magasin.email}</a></p><p>Bureaux\u00a0: <a href="${infos.bureaux.telLien}">${infos.bureaux.tel}</a><br /><a href="mailto:${infos.bureaux.email}">${infos.bureaux.email}</a></p></div>`;
 
+// Réponses en HTML (texte échappé) : le tarif de la visite guidée reste « sur demande » ; l'écart
+// entre les sources est une note du mode revue.
 const faq = [
-  ['Faut-il réserver\u202f?', 'Pas pour passer à la boutique et goûter. La visite guidée de la distillerie, elle, se fait uniquement sur réservation.'],
-  ['Combien de temps dure la visite guidée\u202f?', 'Une heure, dégustation comprise, par groupes de 25 personnes au plus. Le parcours passe par la zone de stockage, l’herboristerie, la salle d’étiquetage, le vieux chai et la production, visible derrière les vitres.'],
-  ['Peut-on venir avec des enfants\u202f?', 'Oui\u00a0: les mineurs dégustent les sirops. Les alcools sont réservés aux personnes majeures.'],
-  ['Est-ce ouvert le dimanche\u202f?', 'Les visites sont fermées le dimanche. La saison 2026 court du 12 février au 31 décembre.'],
-  ['Quel est le tarif\u202f?', 'La dégustation en boutique est gratuite. Le tarif de la visite guidée est à confirmer\u00a0: les sources ne donnent pas toutes le même.'],
+  ['Faut-il réserver\u202f?', esc('Pas pour passer à la boutique et goûter. La visite guidée de la distillerie, elle, se fait uniquement sur réservation.')],
+  ['Combien de temps dure la visite guidée\u202f?', esc('Une heure, dégustation comprise, par groupes de 25 personnes au plus. Le parcours passe par la zone de stockage, l’herboristerie, la salle d’étiquetage, le vieux chai et la production, visible derrière les vitres.')],
+  ['Peut-on venir avec des enfants\u202f?', esc('Oui\u00a0: les mineurs dégustent les sirops. Les alcools sont réservés aux personnes majeures.')],
+  ['Est-ce ouvert le dimanche\u202f?', esc('Les visites sont fermées le dimanche. La saison 2026 court du 12 février au 31 décembre.')],
+  [
+    'Quel est le tarif\u202f?',
+    `La dégustation en boutique est gratuite. Le tarif de la visite guidée est donné sur demande, au <a href="${infos.magasin.telLien}">${esc(infos.magasin.tel)}</a>.${noteRevue(' Tarif à confirmer\u00a0: les sources ne donnent pas toutes le même.')}`,
+  ],
 ];
-$('#faq').innerHTML = faq.map(([q, a]) => `<details><summary>${esc(q)}${icons.chevron}</summary><p>${esc(a)}</p></details>`).join('');
+$('#faq').innerHTML = faq.map(([q, a]) => `<details><summary>${esc(q)}${icons.chevron}</summary><p>${a}</p></details>`).join('');
 
 // ---------- Réservation ----------
 const NB = ' ';
@@ -63,7 +72,7 @@ const min = iso(tomorrow) > saison.debut ? iso(tomorrow) : saison.debut;
 dateInput.min = min;
 dateInput.max = saison.fin;
 const seasonOver = min > saison.fin;
-$('#date-hint').textContent = seasonOver ? 'La saison 2026 est terminée\u00a0: les dates de 2027 sont à annoncer.' : `Du ${new Date(min).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} au 31 décembre 2026, sauf le dimanche. Choisissez dans le calendrier ou saisissez la date.`;
+$('#date-hint').innerHTML = seasonOver ? `La saison 2026 est terminée.${noteRevue(' Les dates de 2027 sont à annoncer.')}` : `Du ${new Date(min).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} au 31 décembre 2026, sauf le dimanche. Choisissez dans le calendrier ou saisissez la date.`;
 const MOMENTS = { matin: 'Matin', 'apres-midi': 'Après-midi' };
 const LANGUES = { fr: 'Français', en: 'Anglais', de: 'Allemand' };
 const heureFr = (h) => (h ? h.replace(/^0/, '').replace(':00', `${NB}h`).replace(':', `${NB}h${NB}`) : '');
@@ -227,6 +236,8 @@ function syncMoments() {
 function choisir(d, { focus = false } = {}) {
   dateInput.value = d;
   dateInput.classList.remove('is-invalid');
+  dateInput.removeAttribute('aria-invalid');
+  $('#err-date').textContent = '';
   $('#booking-alt').hidden = true;
   if (moisDe(d) !== vue) voir(moisDe(d));
   else renderCal(focus ? d : null);
@@ -243,61 +254,25 @@ dateInput.addEventListener('change', () => {
 form.elements.personnes.addEventListener('input', syncMoments);
 voir(vue);
 
+// Une erreur par champ (A11Y-10) : nom du champ → message, écrit sous le champ (src/lib/formulaire.js).
 function check() {
   const d = Object.fromEntries(new FormData(form));
-  const errs = [];
-  const bad = new Set();
-  if (!d.formule) errs.push('Choisissez une formule.');
-  if (!d.date) {
-    errs.push('Choisissez une date.');
-    bad.add('date');
-  } else if (d.date < min || d.date > saison.fin) {
-    errs.push('Cette date est hors de la saison des visites.');
-    bad.add('date');
-  } else if (new Date(`${d.date}T12:00:00`).getDay() === 0) {
-    errs.push('Les visites sont fermées le dimanche\u00a0: choisissez un autre jour.');
-    bad.add('date');
-  } else if (etatJour(d.date) === 'ferme') {
-    errs.push('La distillerie ne fait pas de visite ce jour-là\u00a0: choisissez un autre jour.');
-    bad.add('date');
-  }
+  const e = new Map();
+  if (!d.formule) e.set('formule', 'Choisissez une formule.');
+  if (!d.date) e.set('date', 'Choisissez une date.');
+  else if (d.date < min || d.date > saison.fin) e.set('date', 'Cette date est hors de la saison des visites.');
+  else if (new Date(`${d.date}T12:00:00`).getDay() === 0) e.set('date', 'Les visites sont fermées le dimanche\u00a0: choisissez un autre jour.');
+  else if (etatJour(d.date) === 'ferme') e.set('date', 'La distillerie ne fait pas de visite ce jour-là\u00a0: choisissez un autre jour.');
   const n = Number(d.personnes);
   const m = Number(d.mineurs || 0);
-  if (!Number.isInteger(n) || n < 1 || n > saison.groupeMax) {
-    errs.push(`Le groupe compte de 1 à ${saison.groupeMax} personnes.`);
-    bad.add('personnes');
-  }
-  if (!Number.isInteger(m) || m < 0 || m >= n) {
-    errs.push('Au moins un adulte accompagne le groupe\u00a0: les mineurs sont comptés dans le nombre de personnes.');
-    bad.add('mineurs');
-  }
-  if (!d.moment) {
-    errs.push('Ce jour est complet\u00a0: choisissez un autre jour.');
-    bad.add('date');
-  }
-  if (!d.nom?.trim()) {
-    errs.push('Indiquez votre nom.');
-    bad.add('nom');
-  }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email || '')) {
-    errs.push('Indiquez une adresse e-mail valide.');
-    bad.add('email');
-  }
-  if (d.tel && !/^[+\d][\d\s.-]{8,}$/.test(d.tel)) {
-    errs.push('Ce numéro de téléphone ne semble pas valide.');
-    bad.add('tel');
-  }
-  if (!d.rgpd) {
-    errs.push('Cochez la case d’accord pour que la distillerie puisse vous répondre.');
-    bad.add('rgpd');
-  }
-  $$('input, select, textarea', form).forEach((el) => {
-    const on = bad.has(el.name);
-    el.classList.toggle('is-invalid', on);
-    if (on) el.setAttribute('aria-invalid', 'true');
-    else el.removeAttribute('aria-invalid');
-  });
-  return { d, errs };
+  if (!Number.isInteger(n) || n < 1 || n > saison.groupeMax) e.set('personnes', `Le groupe compte de 1 à ${saison.groupeMax}\u00a0personnes.`);
+  if (!Number.isInteger(m) || m < 0 || m >= n) e.set('mineurs', 'Au moins un adulte accompagne le groupe\u00a0: les mineurs sont comptés dans le nombre de personnes.');
+  if (!d.moment && !e.has('date')) e.set('moment', 'Ce jour est complet\u00a0: choisissez un autre jour.');
+  if (!d.nom?.trim()) e.set('nom', 'Indiquez votre nom.');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email || '')) e.set('email', 'Indiquez une adresse e-mail valide (ex. prenom@exemple.fr).');
+  if (d.tel && !/^[+\d][\d\s.-]{8,}$/.test(d.tel)) e.set('tel', 'Ce numéro de téléphone ne semble pas valide.');
+  if (!d.rgpd) e.set('rgpd', 'Cochez la case d’accord pour que la distillerie puisse vous répondre.');
+  return { d, e };
 }
 
 // Autres disponibilités (séance complète) : boutons qui choisissent le jour et le moment.
@@ -344,17 +319,14 @@ function autresSeances(date, moment, n) {
   return out;
 }
 
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const { d, errs } = check();
+form.addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const { d, e } = check();
   const msg = $('#booking-err');
   $('#booking-alt').hidden = true;
-  if (errs.length) {
-    msg.className = 'form-msg err';
-    msg.textContent = errs.join(' ');
-    form.querySelector('.is-invalid')?.focus();
-    return;
-  }
+  msg.className = 'form-msg err';
+  erreursParChamp(form, e, { resume: msg });
+  if (e.size) return;
   const n = Number(d.personnes);
   const j = jours.get(d.date);
   if (j && restantes(j, d.moment) < n) {
@@ -396,11 +368,8 @@ form.addEventListener('submit', async (e) => {
       voir(moisDe(d.date));
       return alternatives(x.data?.disponibilites || autresSeances(d.date, d.moment, n), 'Autres séances disponibles\u00a0:');
     }
-    const champ = { telephone: 'tel', date: 'date', personnes: 'personnes', mineurs: 'mineurs', email: 'email', nom: 'nom', rgpd: 'rgpd' }[String(x?.champ || '').split('.').pop()];
-    if (champ) {
-      form.elements[champ]?.classList.add('is-invalid');
-      form.elements[champ]?.focus();
-    }
+    const champ = { telephone: 'tel', date: 'date', moment: 'moment', personnes: 'personnes', mineurs: 'mineurs', email: 'email', nom: 'nom', rgpd: 'rgpd' }[String(x?.champ || '').split('.').pop()];
+    if (champ) erreursParChamp(form, { [champ]: x.message });
     return;
   }
   const date = jourFr(r?.date || d.date, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
@@ -411,7 +380,7 @@ form.addEventListener('submit', async (e) => {
     <h3>Visite réservée</h3>
     <p class="vis-done__when"><strong>${esc(date)}</strong> à <strong>${esc(heure)}</strong>${r?.reference ? `<br />Référence <strong>${esc(r.reference)}</strong>` : ''}</p>
     <dl class="recap">
-      <div><dt>Formule</dt><dd>${esc(f.nom)} · ${esc(f.prix)}</dd></div>
+      <div><dt>Formule</dt><dd>${esc(f.nom)} · ${val(f, 'prix')}</dd></div>
       <div><dt>Groupe</dt><dd>${esc(d.personnes)} personne${n > 1 ? 's' : ''}${Number(d.mineurs) ? `, dont ${esc(d.mineurs)} mineur${d.mineurs > 1 ? 's' : ''} (sirops)` : ''}</dd></div>
       <div><dt>Langue</dt><dd>${esc(LANGUES[d.langue] || d.langue)}</dd></div>
       <div><dt>Contact</dt><dd>${esc(d.nom)} · ${esc(d.email)}${d.tel ? ` · ${esc(d.tel)}` : ''}</dd></div>

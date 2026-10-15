@@ -11,13 +11,16 @@ import '../styles/product.css';
 import '../styles/operation.css';
 import { initSite, addToCart } from '../app/site.js';
 import { cardHTML } from '../app/cards.js';
-import { bySlug, products, visibleProducts, recettes, FAMILLES, EVIN, MINEURS, euro, DISPO_BOUTIQUE, formatsAilleursTexte } from '../data/products.js';
+import { bySlug, products, visibleProducts, recettes, FAMILLES, EVIN, MINEURS, euro, DISPO_BOUTIQUE, formatsAilleursTexte, prixAuLitreTexte, prixAuLitreHTML } from '../data/products.js';
+import { devis, devisLocal } from '../lib/livraison.js';
+import { boutonPause, pauseVoulue } from '../lib/pause.js';
 import { infos } from '../data/site.js';
-import { $, $$, esc, calm, hasWebGL } from '../lib/dom.js';
+import { $, $$, esc, calm, hasWebGL, idle, sobre, whenVisible } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
 import { thumbHTML, upgradeThumbs } from '../lib/thumbs.js';
 import { photoOf } from '../lib/photos.js';
 import { operationAffichee, concerne, encartFicheHTML } from '../lib/operation.js';
+import { noteRevue, selonRevue } from '../lib/revue.js';
 import { demoCatalogue, appliquerDemo, etatDemo, indisponible, ETATS } from '../lib/demo.js';
 
 const site = initSite({ askAge: false });
@@ -78,8 +81,41 @@ function rich(text) {
   return html;
 }
 
+// ---------- Balises de la fiche (SEO-3) ----------
+// Tant que les fiches ne sont pas pré-rendues, une seule page sert les 63 adresses : l'adresse
+// canonique (/boutique/<fiche>), og:url, le titre et la description sont posés ici. Fiche de
+// spiritueux encore verrouillée : rien du produit (ni nom ni description) dans les balises.
+const SITE = 'https://v2x-client-distillerie-a-blachere.vercel.app';
+function balise(sel, creer) {
+  let el = document.head.querySelector(sel);
+  if (!el) {
+    el = creer();
+    document.head.append(el);
+  }
+  return el;
+}
+const meta = (attr, nom) =>
+  balise(`meta[${attr}="${nom}"]`, () => {
+    const m = document.createElement('meta');
+    m.setAttribute(attr, nom);
+    return m;
+  });
+function balises({ titre, description = null, canonique = true }) {
+  const url = `${SITE}/boutique/${encodeURIComponent(slug)}`;
+  if (canonique) balise('link[rel="canonical"]', () => Object.assign(document.createElement('link'), { rel: 'canonical' })).href = url;
+  else document.head.querySelector('link[rel="canonical"]')?.remove();
+  meta('property', 'og:url').content = url;
+  meta('property', 'og:title').content = titre;
+  if (description) {
+    const d = description.length > 155 ? `${description.slice(0, 154).replace(/\s+\S*$/, '')}…` : description;
+    meta('name', 'description').content = d;
+    meta('property', 'og:description').content = d;
+  }
+}
+
 function notFound() {
   document.title = 'Produit introuvable · Distillerie A. Blachère';
+  balises({ titre: document.title, canonique: false });
   root.innerHTML = `<section class="wrap product-msg">
     <p class="kicker">Boutique</p>
     <h1 class="h-section">Ce produit est introuvable.</h1>
@@ -91,6 +127,7 @@ function notFound() {
 // Porte d'âge propre à la fiche : aucun élément du produit dans la page.
 function lockedView() {
   document.title = 'Produit réservé aux personnes majeures · Distillerie A. Blachère';
+  balises({ titre: document.title, description: 'Spiritueux de la Distillerie A. Blachère, réservé aux personnes majeures.' });
   const minor = site.age === 'mineur';
   root.innerHTML = `<section class="wrap product-msg product-msg--locked">
     <span class="product-msg__icon">${icons.lock}</span>
@@ -111,14 +148,16 @@ function priceHTML() {
   const c = p.contenances[selected];
   const etat = etatDe(c);
   const stock = etat && etat !== 'disponible' ? `<span class="pp__stock pp__stock--${etat}">${esc(ETATS[etat])}${etat === 'stock-bas' ? ' · dernières bouteilles' : etat === 'rupture' ? ' · réassort à venir' : ''}</span>` : '';
-  if (c?.prix != null) return `<p class="pp__price"><strong>${euro(c.prix)}</strong><span>TTC · ${esc(c.volume)}</span>${stock}</p>`;
+  // prix au litre à côté du prix, sauf en 1 L (UX-5)
+  const unite = prixAuLitreTexte(c);
+  if (c?.prix != null) return `<p class="pp__price"><strong>${euro(c.prix)}</strong><span>TTC · ${esc(c.volume)}</span>${unite ? `<span class="pp__unit">soit ${unite}</span>` : ''}${stock}</p>`;
   return `<p class="pp__price pp__price--none"><strong>Prix en boutique</strong><span>Ce prix n’est pas affiché en ligne : la distillerie vous le donne au magasin ou par téléphone (${infos.magasin.tel}).</span></p>`;
 }
 
 function boutiqueHTML() {
   return `<div class="pp__dispo">
     <p class="pp__dispo-title">${icons.store}<strong>${esc(DISPO_BOUTIQUE)}</strong></p>
-    <p>Ce produit n’est pas vendu en ligne. Prix, contenance${p.alcool ? ' et degré' : ''} à confirmer avec la distillerie : ${esc(infos.magasin.tel)}.</p>
+    <p>Ce produit n’est pas vendu en ligne. Prix, contenance${p.alcool ? ' et degré' : ''}\u00a0: renseignez-vous à la boutique, au <a href="${infos.magasin.telLien}">${esc(infos.magasin.tel)}</a>.${noteRevue(` Prix, contenance${p.alcool ? ' et degré' : ''} à confirmer avec la distillerie.`)}</p>
     <a class="link" href="/visiter">Préparer une visite</a>
   </div>`;
 }
@@ -172,6 +211,10 @@ function livraisonHTML() {
 
 function render() {
   document.title = `${p.nom} · Boutique · Distillerie A. Blachère`;
+  // accroche courte (« La liqueur de Camargue ! ») : complétée par le type et la maison
+  const signature = `${p.type || p.nom}, Distillerie A. Blachère, Châteauneuf-du-Pape.`;
+  const a = accroche();
+  balises({ titre: document.title, description: a ? (a.length < 80 ? `${a} ${signature}` : a) : signature });
   const majeur = site.majeur;
   const notes = p.notes.filter((n) => (!n.alcool || majeur) && !/^Sa fiche/.test(n.t));
   const recs = recettes.filter((r) => r.produits?.includes(p.slug) && (!r.alcool || majeur));
@@ -180,16 +223,16 @@ function render() {
   const facts = [
     ['Gamme', p.gammeNom],
     ['Arôme', famille(p)],
-    ['Contenance', p.contenances.map((c) => (c.prix != null ? `${c.volume} (${euro(c.prix)})` : c.volume)).join(' · ') || 'À confirmer'],
-    p.alcool ? ['Degré d’alcool', p.degre ? `${String(p.degre).replace('.', ',')} % vol.` : 'À confirmer avec la distillerie'] : ['Alcool', 'Sans alcool'],
+    ['Contenance', p.contenances.map((c) => c.volume).join(' · ') || null, 'Sur demande à la boutique', 'À confirmer'],
+    p.alcool ? ['Degré d’alcool', p.degre ? `${String(p.degre).replace('.', ',')}\u202f% vol.` : null, 'Sur demande à la boutique', 'À confirmer avec la distillerie'] : ['Alcool', 'Sans alcool'],
     p.reference ? ['Référence', p.reference] : null,
-  ].filter((f) => f && f[1]);
+  ].filter((f) => f && (f[1] || f[2]));
   const volumes =
     p.contenances.length > 1
       ? `<fieldset class="pp__volumes"><legend>Contenance</legend><div class="pp__vols">${p.contenances
           .map(
             (c, i) =>
-              `<label class="vol${indisponible(etatDe(c)) ? ' is-off' : ''}"><input type="radio" name="volume" value="${i}"${i === selected ? ' checked' : ''} /><span class="vol__in"><span class="vol__name">${esc(c.volume)}</span>${c.prix != null ? `<span class="vol__price">${euro(c.prix)}${indisponible(etatDe(c)) ? ` · ${esc(ETATS[etatDe(c)].toLowerCase())}` : ''}</span>` : ''}</span></label>`,
+              `<label class="vol${indisponible(etatDe(c)) ? ' is-off' : ''}"><input type="radio" name="volume" value="${i}"${i === selected ? ' checked' : ''} /><span class="vol__in"><span class="vol__name">${esc(c.volume)}</span>${c.prix != null ? `<span class="vol__price">${euro(c.prix)}${indisponible(etatDe(c)) ? ` · ${esc(ETATS[etatDe(c)].toLowerCase())}` : ''}</span>` : ''}${prixAuLitreHTML(c) ? `<span class="vol__unit">${prixAuLitreHTML(c)}</span>` : ''}</span></label>`,
           )
           .join('')}</div></fieldset>`
       : p.contenances.length
@@ -205,16 +248,16 @@ function render() {
       <canvas class="pp__canvas" id="viewer" tabindex="0" aria-label="Bouteille ${esc(p.nom)} en 3D : faites-la tourner en la faisant glisser, ou avec les flèches gauche et droite"></canvas>
       <div class="pp__stage-ui">
         <p class="pp__hint">${icons.rotate}<span>Glissez pour faire tourner</span></p>
-        <div class="pp__sides" role="group" aria-label="Voir la bouteille">
+        <div class="pp__sides" role="group" aria-label="Voir la bouteille" hidden>
           <button type="button" data-side="0">Face</button><button type="button" data-side="1">Dos</button>
         </div>
       </div>
-      <p class="pp__source" id="source" hidden></p>
+      <p class="pp__source" id="source" data-revue hidden></p>
     </div>
     <div class="pp__info">
       <p class="pp__gamme"><span>${esc(p.gammeNom)}</span>${p.bestSeller ? ' <span class="badge badge--best">Meilleure vente</span>' : ''}${concerne(operation, p.slug) ? ` <span class="badge badge--rose">${esc(operation.nom)}</span>` : ''}${p.alcool ? ' <span class="badge badge--age">18+</span>' : ''}</p>
       <h1 class="pp__name">${esc(p.nom).replace(/®/g, '<sup>®</sup>')}</h1>
-      <p class="pp__type">${esc(p.type)}${p.alcool && p.degre ? ` · ${String(p.degre).replace('.', ',')} % vol.` : ''}</p>
+      <p class="pp__type">${esc(p.type)}${p.alcool && p.degre ? ` · ${String(p.degre).replace('.', ',')}\u202f% vol.` : ''}</p>
       ${lead ? `<p class="pp__lead">${esc(lead)}</p>` : ''}
       ${p.enLigne ? '' : boutiqueHTML()}
       <form class="pp__buy" id="buy" novalidate${p.enLigne ? '' : ' hidden'}>
@@ -228,6 +271,7 @@ function render() {
           </span>
           <button type="submit" class="btn btn--primary pp__add">${icons.bag}Ajouter au panier</button>
         </div>
+        <p class="pp__ship" id="pp-ship">${icons.truck}<span id="pp-ship-txt"></span></p>
       </form>
       ${concerne(operation, p.slug) ? encartFicheHTML(operation) : ''}
       ${ailleurs ? `<p class="pp__ailleurs">${esc(ailleurs)} — voir <a href="/ou-trouver">Où trouver nos produits</a></p>` : ''}
@@ -237,9 +281,9 @@ function render() {
         <li>${icons.store}<span><strong>La boutique de la distillerie</strong> à Châteauneuf-du-Pape, du lundi au samedi</span></li>
       </ul>
       ${p.alcool ? `<p class="evin pp__evin">${esc(EVIN)} ${esc(MINEURS)}</p>` : ''}
-      <dl class="pp__facts">${facts.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
+      <dl class="pp__facts">${facts.map(([k, v, sinon, revue]) => `<div><dt>${esc(k)}</dt><dd>${v ? esc(v) : selonRevue(esc(sinon), esc(revue))}</dd></div>`).join('')}</dl>
       <div class="pp__details">${detailsHTML()}</div>
-      ${notes.length ? `<div class="pp__notes"><h2>À savoir</h2><ul>${notes.map((n) => `<li>${esc(n.t)}</li>`).join('')}</ul></div>` : ''}
+      ${notes.length ? `<div class="pp__notes"><h2>À savoir</h2><ul>${notes.map((n) => `<li>${n.revue ? selonRevue(esc(n.t), esc(n.revue)) : esc(n.t)}</li>`).join('')}</ul></div>` : ''}
     </div>
   </article>
   ${
@@ -260,6 +304,7 @@ function render() {
       : ''
   }`;
   bindBuy();
+  bindBar();
   mountViewer();
   renderRelated();
 }
@@ -272,6 +317,124 @@ function syncStock() {
   const off = indisponible(etat);
   btn.disabled = off;
   btn.innerHTML = off ? `${icons.bag}${esc(etat === 'rupture' ? 'En rupture de stock' : 'Indisponible')}` : `${icons.bag}Ajouter au panier`;
+  syncBar();
+}
+
+// ---------- Frais de livraison dès la fiche (UX-4) ----------
+// Pour la contenance et la quantité choisies : Colissimo en point relais et à domicile, franco,
+// retrait gratuit. Le barème de démonstration s'affiche tout de suite ; la route de la démo (barème
+// réglable dans le CRM) le confirme ou le corrige.
+let shipTimer = 0;
+let shipToken = 0;
+function syncShip() {
+  const box = $('#pp-ship');
+  const out = $('#pp-ship-txt');
+  if (!box || !out) return;
+  const c = p.contenances[selected];
+  box.hidden = !c || c.prix == null;
+  if (box.hidden) return;
+  const articlesTTC = Math.round(c.prix * qty * 100) / 100;
+  const local = devisLocal({ bouteilles: qty, articlesTTC });
+  const note = noteRevue(' Barème de démonstration (docs/crm-espace-pro.md, § 5), réglable dans le CRM\u00a0: à remplacer par celui de la distillerie.');
+  const ecrire = (d) => {
+    const n = qty === 1 ? 'd’une bouteille' : `de ${qty}\u00a0bouteilles`;
+    out.innerHTML =
+      d.relais || d.colissimo
+        ? `Livraison ${n}\u00a0: <strong>${euro(d.relais)}</strong> en point relais, ${euro(d.colissimo)} à domicile, offerte dès ${euro(d.francoTTC)} d’achats. Retrait gratuit à la distillerie.${note}`
+        : `Livraison ${n} offerte. Retrait gratuit à la distillerie.${note}`;
+  };
+  ecrire(local);
+  const t = ++shipToken;
+  clearTimeout(shipTimer);
+  shipTimer = setTimeout(() => devis([{ slug: p.slug, varianteId: String(c.id), qte: qty }], local).then((d) => t === shipToken && out.isConnected && ecrire(d)), 250);
+}
+
+// ---------- Barre d'achat collante (UX-1) ----------
+// Quand le bouton d'ajout est passé sous l'en-tête (on descend lire la fiche), une barre rappelle le
+// produit, la contenance choisie, son prix, et garde le bouton d'ajout à portée de pouce. Elle
+// s'efface quand le bouton revient à l'écran et quand le pied de page arrive (mentions et pastilles
+// dégagées). Hors de l'écran, elle est inerte : ni focus ni lecture.
+const bar = document.createElement('div');
+bar.className = 'pp-bar';
+bar.id = 'pp-bar';
+bar.setAttribute('role', 'region');
+bar.setAttribute('aria-label', 'Achat rapide');
+bar.inert = true;
+$('#contenu')?.append(bar);
+let barWanted = false;
+
+function barHTML() {
+  return `<div class="pp-bar__in wrap">
+    <span class="pp-bar__img" aria-hidden="true">${thumbHTML(p)}</span>
+    <p class="pp-bar__txt"><span class="pp-bar__name" data-wordmark>${esc(p.nom).replace(/®/g, '<sup>®</sup>')}</span><span class="pp-bar__meta" id="pp-bar-meta"></span></p>
+    <button type="button" class="btn btn--primary pp-bar__add" id="pp-bar-add">${icons.bag}<span class="pp-bar__label"></span></button>
+  </div>${p.alcool ? `<p class="pp-bar__evin wrap">${esc(EVIN)}</p>` : ''}`;
+}
+
+// Contenu de la barre : contenance, prix, quantité et état du bouton suivent le formulaire.
+function syncBar() {
+  const btn = $('#pp-bar-add', bar);
+  const main = $('.pp__add');
+  if (!btn || !main) return;
+  const c = p.contenances[selected];
+  $('#pp-bar-meta', bar).innerHTML = [c?.volume ? esc(c.volume) : null, c?.prix != null ? euro(c.prix) : null, prixAuLitreHTML(c) || null, qty > 1 ? `${qty}\u00a0bouteilles` : null].filter(Boolean).join(' · ');
+  btn.disabled = main.disabled;
+  $('.pp-bar__label', btn).innerHTML = main.disabled ? esc(main.textContent.trim()) : 'Ajouter<span class="pp-bar__long"> au panier</span>';
+  if (main.disabled) btn.removeAttribute('aria-label');
+  else btn.setAttribute('aria-label', `Ajouter au panier : ${p.nom}${c ? `, ${c.volume}` : ''}${qty > 1 ? `, ${qty} bouteilles` : ''}`);
+}
+
+function showBar(on) {
+  barWanted = on;
+  if (on === bar.classList.contains('is-on')) return;
+  // le focus clavier est dans la barre : elle reste jusqu'à ce qu'il en sorte (après un clic de
+  // souris, le bouton garde le focus sans contour : la barre s'efface quand même)
+  if (!on && bar.contains(document.activeElement) && document.activeElement.matches(':focus-visible')) return;
+  bar.classList.toggle('is-on', on);
+  bar.inert = !on;
+  document.body.classList.toggle('pp-bar-on', on);
+  if (on) document.body.style.setProperty('--pp-bar-h', `${bar.offsetHeight}px`);
+}
+bar.addEventListener('focusout', () => setTimeout(() => !bar.contains(document.activeElement) && showBar(barWanted)));
+bar.addEventListener('click', (e) => {
+  if (e.target.closest('#pp-bar-add')) $('.pp__add')?.click();
+});
+
+// Position du bouton d'ajout et du pied de page, lue au défilement (une fois par image) : un saut
+// (lien d'ancre, défilement rapide) qui passe d'un coup au-delà du bouton est vu aussi.
+let barSuivi = null;
+function bindBar() {
+  if (barSuivi) {
+    removeEventListener('scroll', barSuivi);
+    removeEventListener('resize', barSuivi);
+    barSuivi = null;
+  }
+  const row = $('#buy .pp__row');
+  if (!row || !p.enLigne || $('#buy').hidden) {
+    bar.replaceChildren();
+    return showBar(false);
+  }
+  bar.innerHTML = barHTML();
+  syncBar();
+  const ft = $('.ft');
+  let attente = false;
+  const mesure = () => {
+    attente = false;
+    if (!row.isConnected) return;
+    // hauteur de l'en-tête collé (64 px au téléphone, 76 px au bureau) : sous lui, le bouton est caché
+    const head = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--main-h')) || 64;
+    const passe = row.getBoundingClientRect().bottom < head;
+    const pied = !!ft && ft.getBoundingClientRect().top < innerHeight;
+    showBar(passe && !pied);
+  };
+  barSuivi = () => {
+    if (attente) return;
+    attente = true;
+    requestAnimationFrame(mesure);
+  };
+  addEventListener('scroll', barSuivi, { passive: true });
+  addEventListener('resize', barSuivi, { passive: true });
+  mesure();
 }
 
 function bindBuy() {
@@ -281,13 +444,17 @@ function bindBuy() {
       selected = Number(e.target.value);
       $('#price').innerHTML = priceHTML();
       syncStock();
+      syncShip();
     }
   });
   syncStock();
+  syncShip();
   const input = $('#qty');
   const setQty = (n) => {
     qty = Math.min(99, Math.max(1, Number.isFinite(n) ? Math.round(n) : 1));
     input.value = qty;
+    syncBar();
+    syncShip();
   };
   $$('[data-step]', form).forEach((b) => b.addEventListener('click', () => setQty(qty + Number(b.dataset.step))));
   input.addEventListener('change', () => setQty(parseInt(input.value, 10)));
@@ -298,38 +465,76 @@ function bindBuy() {
       if (indisponible(etatDe(c))) return;
       addToCart(p.slug, c?.id ?? null, qty, { open: true });
     });
-  $$('[data-side]').forEach((b) => b.addEventListener('click', () => viewer?.setAngle(Number(b.dataset.side) ? Math.PI : 0)));
+  // Face / dos : le dos de l'étiquette n'est téléchargé qu'au premier clic sur « Dos » (PERF-2).
+  $$('[data-side]').forEach((b) => {
+    const dos = b.dataset.side === '1';
+    if (dos) b.addEventListener('pointerdown', () => viewer?.chargerDos());
+    b.addEventListener('click', async () => {
+      const v = viewer;
+      if (!v) return;
+      if (dos && !v.dosCharge) {
+        b.setAttribute('aria-busy', 'true');
+        await v.chargerDos();
+        b.removeAttribute('aria-busy');
+      }
+      if (v === viewer) v.setAngle(dos ? Math.PI : 0);
+    });
+  });
 }
 
+// 3D sobre (PERF-2, PERF-4) : l'affiche (photo de face, dans le rendu de la fiche) d'abord, et
+// elle suffit en mouvement réduit, en économie de données, en 2G et sans WebGL ; sinon la
+// visionneuse est chargée quand le plateau approche de l'écran, au premier moment libre du
+// navigateur, comme les campagnes (src/lib/campagne.js), sans le dos de l'étiquette (bouton « Dos »).
+// L'index des photos (29 Ko) n'est lu que pour les flacons « à plat » (millésimes, coffret).
 async function mountViewer() {
   const stage = $('#stage');
-  const photo = await photoOf(p.slug);
   const source = $('#source');
-  // Carafe et étui (millésimes, coffret) : la photo, telle quelle, sans 3D tournante.
-  if (photo?.plat && photo.photo) {
-    $('#poster').innerHTML = `<img class="thumb pp__flat" src="${photo.photo}" alt="${esc(p.nom)}" />`;
-    stage.classList.add('is-static', 'is-flat');
-    source.textContent = 'Photo du produit.';
-    source.hidden = false;
-    return;
-  }
-  source.textContent = photo ? (photo.etiquette ? 'Bouteille 3D tirée de la photo du produit, avec son étiquette d’origine.' : 'Bouteille 3D tirée de la photo du produit.') : 'Bouteille dessinée en code, en attendant la photo du produit.';
-  source.hidden = false;
-  if (!photo?.etiquetteDos) $('.pp__sides')?.setAttribute('hidden', '');
-  if (!hasWebGL()) {
+  const canvas = $('#viewer');
+  const still = (texte) => {
     stage.classList.add('is-static');
-    return;
+    canvas.hidden = true;
+    // sans la 3D, l'affiche est la seule image du produit : elle porte son nom
+    $('#poster img')?.setAttribute('alt', p.nom);
+    source.textContent = texte;
+    source.hidden = false;
+  };
+  // Carafe et étui (millésimes, coffret) : la photo, telle quelle, sans 3D tournante.
+  if (p.plat) {
+    const photo = await photoOf(p.slug);
+    if (!stage.isConnected) return;
+    if (photo?.photo) {
+      $('#poster').innerHTML = `<img class="thumb pp__flat" src="${photo.photo}" alt="${esc(p.nom)}" />`;
+      stage.classList.add('is-flat');
+      return still('Photo du produit.');
+    }
   }
+  if (sobre() || !hasWebGL()) return still('Photo du produit.');
+  await whenVisible(stage);
+  await idle();
+  if (!stage.isConnected) return;
+  let v = null;
   try {
     const { BottleViewer } = await import('../three/viewer.js');
+    if (!stage.isConnected) return;
     // Spiritueux : présentation sobre (ni décor, ni rotation automatique).
-    viewer = new BottleViewer($('#viewer'), p, { calm: calm() || p.alcool, target: () => $('#stage').getBoundingClientRect() });
-    await viewer.ready;
+    v = viewer = new BottleViewer(canvas, p, { calm: calm() || p.alcool, dos: false, pause: pauseVoulue(), target: () => stage.getBoundingClientRect() });
+    await v.ready;
+    if (v !== viewer) return;
     stage.classList.add('is-live');
-    if (import.meta.env.DEV || new URLSearchParams(location.search).has('test')) window.__viewer = viewer;
+    // rotation automatique (sirops) : bouton « Mettre l'animation en pause » en haut à droite (A11Y-7)
+    // (avant « Face / Dos » dans l'ordre du clavier, comme à l'écran)
+    if (!v.calm) $('.pp__stage-ui', stage).before(boutonPause(v, { clair: true }));
+    $('.pp__sides', stage).hidden = !v.dosDisponible;
+    source.textContent = v.kind === 'photo' ? (v.labelSource === 'etiquette' ? 'Bouteille 3D tirée de la photo du produit, avec son étiquette d’origine.' : 'Bouteille 3D tirée de la photo du produit.') : 'Bouteille dessinée en code, en attendant la photo du produit.';
+    source.hidden = false;
+    if (import.meta.env.DEV || new URLSearchParams(location.search).has('test')) window.__viewer = v;
   } catch (err) {
+    if (v && v !== viewer) return;
     console.warn('3D indisponible, photo affichée.', err);
-    stage.classList.add('is-static');
+    viewer?.dispose();
+    viewer = null;
+    still('Photo du produit.');
   }
 }
 
@@ -350,6 +555,13 @@ function renderRelated() {
 function show() {
   viewer?.dispose();
   viewer = null;
+  if (barSuivi) {
+    removeEventListener('scroll', barSuivi);
+    removeEventListener('resize', barSuivi);
+    barSuivi = null;
+  }
+  bar.replaceChildren();
+  showBar(false);
   if (!p) return notFound();
   if (p.alcool && site.age !== 'majeur') return lockedView();
   render();
@@ -375,8 +587,11 @@ demoCatalogue().then((d) => {
     label.classList.toggle('is-off', indisponible(etat));
     const price = $('.vol__price', label);
     if (price && c?.prix != null) price.textContent = `${euro(c.prix)}${indisponible(etat) ? ` · ${ETATS[etat].toLowerCase()}` : ''}`;
+    const unit = $('.vol__unit', label);
+    if (unit) unit.innerHTML = prixAuLitreHTML(c);
   });
   syncStock();
+  syncShip();
   renderRelated();
 });
 // Spiritueux sans âge vérifié : on pose la question tout de suite.

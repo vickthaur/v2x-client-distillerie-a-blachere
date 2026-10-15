@@ -5,7 +5,7 @@
 // - première visite : la date de naissance est demandée ; les sirops restent accessibles sans répondre ;
 // - moins de 18 ans : les spiritueux sont retirés de toutes les pages pour la session ;
 // - 18 ans ou plus : réponse gardée dans le navigateur (clé blachere-age).
-import { bySlug, products, euro, EVIN, MINEURS, DISPO_BOUTIQUE, surtitre } from '../data/products.js';
+import { bySlug, products, euro, EVIN, MINEURS, DISPO_BOUTIQUE, surtitre, prixAuLitreHTML } from '../data/products.js';
 import { readAge, saveAge, resetAge, ageFrom } from '../lib/age.js';
 import { cart } from '../lib/cart.js';
 import { $, $$, esc, calm, plural, fold } from '../lib/dom.js';
@@ -14,7 +14,10 @@ import { thumbHTML, renderHTML, upgradeThumbs } from '../lib/thumbs.js';
 import { watchBrands } from '../lib/marques.js';
 import { api } from '../lib/api.js';
 import { mountDemoBar, loadDemoPrices } from '../lib/demo.js';
+import { devis, devisLocal } from '../lib/livraison.js';
 import { operationAffichee, lignePanierHTML } from '../lib/operation.js';
+// Mode revue (?revue) sur toutes les pages : notes de la maquette masquées par défaut (QUAL-8).
+import '../lib/revue.js';
 import '../styles/operation.css';
 
 let age = readAge(); // 'majeur' | 'mineur' | 'sirops' | null
@@ -255,6 +258,15 @@ function bindHeader() {
   document.addEventListener('click', (e) => {
     if (!e.target.closest('.mega') && !e.target.closest('[data-mega]')) closeMegas();
   });
+  // Au clavier : le panneau suit son bouton dans l'ordre du focus ; il se ferme quand le focus
+  // quitte le bouton et le panneau (un clic dans le vide du panneau ne le ferme pas).
+  $$('.nav__item').forEach((item) => {
+    const btn = $('[data-mega]', item);
+    if (!btn) return;
+    item.addEventListener('focusout', (e) => {
+      if (btn.getAttribute('aria-expanded') === 'true' && e.relatedTarget && !item.contains(e.relatedTarget)) closeMegas();
+    });
+  });
   addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
     const open = $('[data-mega][aria-expanded="true"]');
@@ -263,7 +275,7 @@ function bindHeader() {
       open.focus();
     }
   });
-  // langues et compte : maquette
+  // langues et compte : pas encore en place, visibles seulement en mode revue (UX-13)
   $$('[data-lang]').forEach((b) => b.addEventListener('click', () => toast(`Version ${b.dataset.lang === 'en' ? 'anglaise' : 'allemande'}\u00a0: à venir (maquette).`)));
   $$('[data-account]').forEach((b) => b.addEventListener('click', () => toast('Espace client\u00a0: prévu pour la mise en ligne (maquette).')));
   $$('[data-cart-open]').forEach((b) => b.addEventListener('click', openCart));
@@ -289,20 +301,24 @@ function bindSearch() {
   if (!box || !btn) return;
   const input = $('#search-q');
   const out = $('#search-results');
-  const set = (on) => {
-    box.hidden = !on;
-    btn.setAttribute('aria-expanded', String(on));
-    document.body.classList.toggle('search-ouverte', on);
-    if (on) {
-      closeMegas();
-      requestAnimationFrame(() => box.classList.add('is-open'));
-      input.focus();
-      run();
-    } else {
-      box.classList.remove('is-open');
-      btn.focus({ preventScroll: true });
-    }
+  // Fenêtre modale : le reste de la page est inerte, Échap ferme (événement « close »).
+  const open = () => {
+    if (box.open) return;
+    closeMegas();
+    box.showModal();
+    void box.offsetWidth; // départ du fondu
+    box.classList.add('is-open');
+    btn.setAttribute('aria-expanded', 'true');
+    document.body.classList.add('search-ouverte');
+    input.focus();
+    run();
   };
+  box.addEventListener('close', () => {
+    box.classList.remove('is-open');
+    btn.setAttribute('aria-expanded', 'false');
+    document.body.classList.remove('search-ouverte');
+    btn.focus({ preventScroll: true });
+  });
   const run = () => {
     const q = fold(input.value.trim());
     const pool = products.filter((p) => !p.alcool || age === 'majeur');
@@ -319,33 +335,64 @@ function bindSearch() {
     }</div>`;
     upgradeThumbs(out);
   };
-  btn.addEventListener('click', () => set(box.hidden));
-  $('[data-search-close]', box).addEventListener('click', () => set(false));
+  btn.addEventListener('click', () => (box.open ? box.close() : open()));
+  $('[data-search-close]', box).addEventListener('click', () => box.close());
   input.addEventListener('input', run);
-  box.addEventListener('click', (e) => e.target === box && set(false));
-  addEventListener('keydown', (e) => e.key === 'Escape' && !box.hidden && set(false));
+  // Échap ferme du premier coup, même avec du texte (un champ « search » se viderait d'abord)
+  input.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    e.preventDefault();
+    box.close();
+  });
+  // clic sur le voile, hors du panneau
+  box.addEventListener('click', (e) => e.target === box && box.close());
 }
 
+// Menu du téléphone : fenêtre modale qui glisse depuis la droite ; elle ne se ferme (et ne rend le
+// focus au bouton) qu'une fois sortie de l'écran.
 function bindMenu() {
   const menu = $('#menu');
   const open = $('#menu-open');
   if (!menu || !open) return;
-  const set = (on) => {
-    menu.classList.toggle('is-open', on);
-    menu.inert = !on;
-    open.setAttribute('aria-expanded', String(on));
-    document.body.classList.toggle('menu-ouvert', on);
-    if (on) {
-      fillRenders(menu);
-      $('#menu-close').focus();
-    } else open.focus({ preventScroll: true });
+  let timer = 0;
+  const show = () => {
+    if (menu.open) return;
+    clearTimeout(timer);
+    fillRenders(menu);
+    menu.showModal();
+    void menu.offsetWidth; // départ du glissé
+    menu.classList.add('is-open');
+    open.setAttribute('aria-expanded', 'true');
+    document.body.classList.add('menu-ouvert');
+    $('#menu-close').focus();
   };
-  open.addEventListener('click', () => set(true));
-  $('#menu-close').addEventListener('click', () => set(false));
-  menu.addEventListener('click', (e) => {
-    if (e.target === menu || e.target.closest('a')) set(false);
+  const hide = () => {
+    if (!menu.open || !menu.classList.contains('is-open')) return;
+    menu.classList.remove('is-open');
+    const done = () => {
+      clearTimeout(timer);
+      menu.removeEventListener('transitionend', end);
+      if (menu.open) menu.close();
+    };
+    const end = (e) => e.target === menu && done();
+    menu.addEventListener('transitionend', end);
+    timer = setTimeout(done, calm() ? 0 : 650);
+  };
+  menu.addEventListener('cancel', (e) => {
+    e.preventDefault();
+    hide();
   });
-  addEventListener('keydown', (e) => e.key === 'Escape' && menu.classList.contains('is-open') && set(false));
+  menu.addEventListener('close', () => {
+    menu.classList.remove('is-open');
+    open.setAttribute('aria-expanded', 'false');
+    document.body.classList.remove('menu-ouvert');
+    open.focus({ preventScroll: true });
+  });
+  open.addEventListener('click', show);
+  $('#menu-close').addEventListener('click', hide);
+  menu.addEventListener('click', (e) => {
+    if (e.target === menu || e.target.closest('a')) hide();
+  });
 }
 
 // Lettre d'information : inscription enregistrée dans la démo de ce navigateur (api/site, newsletter).
@@ -404,14 +451,16 @@ function openCart() {
   if (!d.open) d.showModal();
 }
 
+// Contenance, prix et prix au litre d'une ligne (UX-5).
+const lineMeta = (l) => [l.contenance?.volume ? esc(l.contenance.volume) : 'Contenance à confirmer', l.prix !== null ? euro(l.prix) : 'Prix en boutique', l.prix !== null ? prixAuLitreHTML({ ...l.contenance, prix: l.prix }) : ''].filter(Boolean).join(' · ');
+
 function lineHTML(l, { compact = false } = {}) {
   const p = l.product;
-  const meta = [l.contenance?.volume || 'Contenance à confirmer', l.prix !== null ? euro(l.prix) : 'Prix en boutique'].join(' · ');
   return `<li class="line" data-slug="${p.slug}" data-v="${l.v ?? ''}">
     <a class="line__img" href="/boutique/${p.slug}" style="--c:${p.light}" tabindex="-1" aria-hidden="true">${thumbHTML(p)}</a>
     <span>
       <a class="line__name" href="/boutique/${p.slug}">${esc(p.nom)}</a>
-      <span class="line__meta">${esc(meta)}</span>
+      <span class="line__meta" data-meta>${lineMeta(l)}</span>
       ${p.alcool && !compact ? `<span class="line__meta">${esc(EVIN)}</span>` : ''}
     </span>
     <span class="qty" role="group" aria-label="Quantité de ${esc(p.nom)}">
@@ -422,22 +471,63 @@ function lineHTML(l, { compact = false } = {}) {
   </li>`;
 }
 
+// Livraison au panier (UX-4) : retrait gratuit, livraison dès … en point relais, franco et reste à
+// atteindre ; barème de démonstration tout de suite, confirmé par la route de la démo.
+const lignesDevis = (t) => t.lines.filter((l) => l.prix !== null).map((l) => ({ slug: l.product.slug, varianteId: String(l.v), qte: l.qty }));
+const devisDuPanier = (t) => devisLocal({ bouteilles: t.count, articlesTTC: t.subtotal });
+function livraisonTexte(d) {
+  if (!d.relais && !d.colissimo) return 'Retrait gratuit à la distillerie, ou livraison offerte pour ce panier\u00a0: vous choisissez à l’étape suivante.';
+  return `Retrait gratuit à la distillerie, ou livraison dès ${euro(Math.min(d.relais, d.colissimo))} en point relais\u00a0: vous choisissez à l’étape suivante. Livraison offerte dès ${euro(d.francoTTC)} d’achats${d.francoRestantTTC > 0 ? `, plus que ${euro(d.francoRestantTTC)}` : ''}.`;
+}
+export function affinerLivraison(root, t = cart.totals()) {
+  const el = root && $('[data-livraison]', root);
+  const lignes = lignesDevis(t);
+  if (!el || !lignes.length) return;
+  devis(lignes, devisDuPanier(t)).then((d) => el.isConnected && (el.textContent = livraisonTexte(d)));
+}
+
 export function totalsHTML(t, { mode = 'panier' } = {}) {
   const rows = [`<div class="totals__row"><span>Sous-total${t.unpriced ? ' (prix connus)' : ''}</span><strong data-subtotal>${euro(t.subtotal)}</strong></div>`];
   if (t.unpriced)
     rows.push(`<p class="totals__note">+ ${plural(t.unpriced, 'article')} au prix de la boutique : le montant vous est confirmé par la distillerie.</p>`);
-  if (mode === 'panier') rows.push('<p class="totals__note">Retrait à la distillerie ou livraison : vous choisissez à l’étape suivante. Les frais de livraison sont calculés avec la distillerie.</p>');
+  if (mode === 'panier') rows.push(`<p class="totals__note" data-livraison>${livraisonTexte(devisDuPanier(t))}</p>`);
   return `<div class="totals">${rows.join('')}</div>`;
 }
 
+// Panier latéral. Quand seules les quantités changent, la liste n'est pas réécrite : le focus reste
+// sur le bouton « + » ou « − » et la nouvelle quantité est lue (aria-live). Quand une ligne
+// disparaît, le focus passe à la ligne suivante (ou au message « panier vide ») ; jamais perdu (A11Y-6).
 function renderDrawer() {
   const list = $('#cart-list');
   const foot = $('#cart-foot');
   if (!list) return;
   const t = cart.totals();
-  list.innerHTML = t.lines.length
-    ? t.lines.map((l) => lineHTML(l)).join('')
-    : `<li class="drawer__empty"><p>Votre panier est vide.</p><a class="oval" href="/boutique">Voir la boutique</a></li>`;
+  const lis = $$('.line', list);
+  const memes = t.lines.length && lis.length === t.lines.length && t.lines.every((l, i) => lis[i].dataset.slug === l.product.slug && lis[i].dataset.v === String(l.v ?? ''));
+  if (memes) {
+    t.lines.forEach((l, i) => {
+      const out = $('output', lis[i]);
+      if (out.textContent !== String(l.qty)) out.textContent = l.qty;
+      const meta = $('[data-meta]', lis[i]);
+      const html = lineMeta(l);
+      if (meta && meta.innerHTML !== html) meta.innerHTML = html;
+    });
+  } else {
+    const actif = list.contains(document.activeElement) ? document.activeElement : null;
+    const ancienne = actif?.closest('.line');
+    const repere = ancienne ? { slug: ancienne.dataset.slug, v: ancienne.dataset.v, q: actif.dataset.q || '-1', rang: lis.indexOf(ancienne) } : null;
+    list.innerHTML = t.lines.length
+      ? t.lines.map((l) => lineHTML(l)).join('')
+      : `<li class="drawer__empty"><p tabindex="-1">Votre panier est vide.</p><a class="oval" href="/boutique">Voir la boutique</a></li>`;
+    if (repere) {
+      const nouvelles = $$('.line', list);
+      const meme = nouvelles.find((li) => li.dataset.slug === repere.slug && li.dataset.v === repere.v);
+      const voisine = nouvelles[Math.min(Math.max(repere.rang, 0), nouvelles.length - 1)];
+      const cible = meme ? $(`[data-q="${repere.q}"]`, meme) : voisine ? $(`[data-q="${repere.q}"]`, voisine) : $('.drawer__empty p', list);
+      cible?.focus();
+    }
+    upgradeThumbs(list);
+  }
   // Opération du moment (Octobre Rose) : don correspondant aux bouteilles concernées du panier.
   const op = operationAffichee();
   foot.innerHTML = t.lines.length
@@ -447,7 +537,7 @@ function renderDrawer() {
        ${t.alcohol ? `<p class="evin">${esc(EVIN)} ${esc(MINEURS)}</p>` : ''}`
     : '';
   foot.hidden = !t.lines.length;
-  upgradeThumbs(list);
+  affinerLivraison(foot, t);
 }
 
 function bindCart() {
@@ -505,11 +595,27 @@ export function addToCart(slug, v = null, qty = 1, { open = false } = {}) {
 
 // ---------- Message ----------
 let toastTimer;
+// Une fenêtre modale est ouverte (menu, recherche, panier, porte d'âge) : le message s'affiche dans
+// la fenêtre, sinon il serait caché derrière elle et inerte (jamais lu par les lecteurs d'écran).
+const modale = () => {
+  try {
+    return [...document.querySelectorAll('dialog[open]')].reverse().find((d) => d.matches(':modal')) || null;
+  } catch {
+    return null;
+  }
+};
 function toast(text) {
   const t = $('#toast');
   if (!t) return;
-  t.textContent = text;
-  t.classList.add('is-on');
+  const host = modale() || document.body;
+  const show = () => {
+    t.textContent = text;
+    t.classList.add('is-on');
+  };
+  if (t.parentElement !== host) {
+    host.append(t);
+    requestAnimationFrame(show);
+  } else show();
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('is-on'), 2400);
 }
@@ -535,6 +641,23 @@ export function reveal(root = document) {
 }
 
 // ---------- Démarrage ----------
+// Impression (QUAL-7, src/styles/print.css) : les accordéons fermés (ingrédients, valeurs
+// nutritionnelles, questions) s'impriment ouverts, puis se referment.
+function bindPrint() {
+  addEventListener('beforeprint', () =>
+    $$('details:not([open])').forEach((d) => {
+      d.dataset.imprime = '';
+      d.open = true;
+    }),
+  );
+  addEventListener('afterprint', () =>
+    $$('details[data-imprime]').forEach((d) => {
+      d.open = false;
+      delete d.dataset.imprime;
+    }),
+  );
+}
+
 export function initSite({ askAge = true } = {}) {
   document.documentElement.dataset.age = age || 'inconnu';
   // PAC et Fun Blue : logotypes dans les titres, police et couleur de marque dans le texte
@@ -546,6 +669,7 @@ export function initSite({ askAge = true } = {}) {
   bindGate();
   bindCart();
   bindNewsletter();
+  bindPrint();
   // Démo active dans ce navigateur : pastille d'accès au CRM et à l'espace pro (en bas à droite).
   mountDemoBar({ toast });
   $$('[data-year]').forEach((el) => (el.textContent = new Date().getFullYear()));

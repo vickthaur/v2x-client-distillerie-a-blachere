@@ -1,63 +1,59 @@
 <!doctype html>
 <html lang="fr">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- @include head.html -->
     <title>Boutique · Distillerie A. Blachère</title>
     <meta name="description" content="PAC Citron, Fun Blue, sirops Couleur Provence® et spiritueux de la Distillerie A. Blachère, à Châteauneuf-du-Pape. Retrait à la distillerie ou livraison." />
-    <meta name="robots" content="noindex, nofollow" />
     <meta name="theme-color" content="#17170f" />
-    <link rel="icon" href="/favicon.ico" sizes="32x32" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="manifest" href="/site.webmanifest" />
-    <meta property="og:image" content="https://v2x-client-distillerie-a-blachere.vercel.app/og-v4.jpg" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="L’accueil du site de la Distillerie A. Blachère : PAC Citron et Fun Blue en 3D, citrons, menthe et glaçons" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="https://v2x-client-distillerie-a-blachere.vercel.app/og-v4.jpg" />
-    <link rel="stylesheet" href="/v2x/proposition.css" />
+    <link rel="canonical" href="https://v2x-client-distillerie-a-blachere.vercel.app/boutique" />
+    <meta property="og:url" content="https://v2x-client-distillerie-a-blachere.vercel.app/boutique" />
+    <meta property="og:title" content="Boutique · Distillerie A. Blachère" />
+    <meta property="og:description" content="PAC Citron, Fun Blue, sirops Couleur Provence® et spiritueux de la Distillerie A. Blachère&nbsp;: retrait gratuit à Châteauneuf-du-Pape ou livraison." />
   </head>
   <body data-page="boutique">
     <!-- @include header.html -->
     <main id="contenu" class="shop-page">
+      <!-- En-tête compact : titre et introduction d'une ligne, puis rayons, recherche et tri sur une
+           rangée ; les produits commencent dans le premier écran, au bureau comme au téléphone. -->
       <section class="shop-hero" aria-labelledby="shop-title">
         <div class="wrap shop-hero__in">
-          <div class="shop-hero__text">
-            <p class="kicker">Boutique de la distillerie</p>
+          <p class="kicker">Boutique de la distillerie</p>
+          <div class="shop-hero__row">
             <h1 id="shop-title">La boutique</h1>
-            <p class="lead">Les sirops pour tout le monde, les spiritueux pour les personnes majeures. Prix TTC du site de la distillerie ; commande expédiée sous trois jours ouvrés au plus après le règlement.</p>
+            <p class="shop-hero__lead">Les sirops pour tout le monde, les spiritueux pour les personnes majeures. Prix TTC<span data-revue> du site de la distillerie</span>, expédition sous trois jours ouvrés.</p>
           </div>
-          <nav class="cats" aria-label="Rayons" id="shop-tiles"></nav>
         </div>
       </section>
 
       <div class="wrap shop">
-        <div class="shop__bar">
-          <label class="shop-search">
-            <span class="sr-only">Rechercher un produit</span>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="M20 20l-4.2-4.2" /></svg>
-            <input type="search" id="shop-q" placeholder="Rechercher : citron, menthe, grenadine…" autocomplete="off" enterkeyhint="search" />
-          </label>
-          <label class="sort">
-            <span>Trier</span>
-            <select id="shop-sort">
-              <option value="ventes">Meilleures ventes d’abord</option>
-              <option value="prix-asc">Prix croissant</option>
-              <option value="prix-desc">Prix décroissant</option>
-              <option value="nom">Nom, de A à Z</option>
-            </select>
-          </label>
-          <button type="button" class="btn btn--ink btn--sm shop__filters-btn" id="filters-open" aria-haspopup="dialog">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4" /></svg>
-            Filtres <span class="shop__filters-n" id="filters-n" hidden></span>
-          </button>
-        </div>
-
-        <div class="shop__status">
-          <p class="shop__count" id="shop-count" role="status" aria-live="polite"></p>
-          <div class="chips" id="shop-chips" aria-label="Filtres actifs"></div>
+        <!-- Rayons, recherche et tri sur une rangée quand la place le permet (sinon la recherche et le
+             tri passent sur la rangée du compteur), puis le compteur et les filtres actifs. -->
+        <div class="shop__bar" id="shop-bar">
+          <nav class="cats shop__cats" aria-label="Rayons" id="shop-tiles"></nav>
+          <div class="shop__tools">
+            <label class="shop-search">
+              <span class="sr-only">Rechercher un produit</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="M20 20l-4.2-4.2" /></svg>
+              <input type="search" id="shop-q" placeholder="Citron, menthe, grenadine…" autocomplete="off" enterkeyhint="search" />
+            </label>
+            <label class="sort">
+              <span>Trier</span>
+              <select id="shop-sort">
+                <option value="ventes">Meilleures ventes d’abord</option>
+                <option value="prix-asc">Prix croissant</option>
+                <option value="prix-desc">Prix décroissant</option>
+                <option value="nom">Nom, de A à Z</option>
+              </select>
+            </label>
+            <button type="button" class="btn btn--ink btn--sm shop__filters-btn" id="filters-open" aria-haspopup="dialog">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4" /></svg>
+              Filtres <span class="shop__filters-n" id="filters-n" hidden></span>
+            </button>
+          </div>
+          <div class="shop__status">
+            <p class="shop__count" id="shop-count" role="status" aria-live="polite" tabindex="-1"></p>
+            <div class="chips" id="shop-chips" role="group" aria-label="Filtres actifs"></div>
+          </div>
         </div>
 
         <div class="shop__layout">
@@ -65,7 +61,7 @@
             <form class="filters" id="filters" novalidate></form>
           </aside>
           <div class="shop__results">
-            <div class="shop-groups" id="shop-grid" aria-label="Produits"></div>
+            <div class="shop-groups" id="shop-grid" role="group" aria-label="Produits"></div>
             <div class="empty" id="shop-empty" hidden>
               <p class="empty__title">Aucun produit ne correspond à ces filtres.</p>
               <p>Essayez une autre recherche, ou retirez un filtre.</p>

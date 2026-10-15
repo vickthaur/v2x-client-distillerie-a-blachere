@@ -8,10 +8,11 @@
         <a href="/espace-pro" data-nav="pro">Espace pro</a>
         <a href="/visiter" data-nav="visiter">Visiter</a>
         <a href="/contact" data-nav="contact">Contact</a>
-        <span class="hd__lang" role="group" aria-label="Langue du site">
+        <!-- Langues et compte client : pas encore en place, montrés seulement en mode revue (?revue) -->
+        <span class="hd__lang" role="group" aria-label="Langue du site" data-revue>
           <a href="/" lang="fr" aria-current="true">FR</a><button type="button" lang="en" data-lang="en">EN</button><button type="button" lang="de" data-lang="de">DE</button>
         </span>
-        <button type="button" class="hd__util-btn" data-account>Compte</button>
+        <button type="button" class="hd__util-btn" data-account data-revue>Compte</button>
         <button type="button" class="hd__util-btn" data-cart-open>Panier <span class="hd__util-count" data-cart-count>0</span></button>
       </nav>
     </div>
@@ -22,11 +23,76 @@
         <img class="logo__img logo__img--ink" src="/logos/logo.svg" alt="" width="289" height="71" />
         <img class="logo__img logo__img--light" src="/logos/logo-blanc.svg" alt="" width="289" height="71" />
       </a>
+      <!-- Chaque méga-menu suit son bouton dans le code : au clavier, le panneau ouvert vient juste
+           après le bouton (A11Y-3) ; il se place sous l'en-tête comme avant. -->
       <nav class="nav" aria-label="Navigation principale">
         <ul class="nav__list">
-          <li class="nav__item"><button type="button" class="nav__link" data-mega="marques" aria-expanded="false" aria-controls="mega-marques">Nos marques</button></li>
-          <li class="nav__item"><button type="button" class="nav__link" data-mega="spiritueux" aria-expanded="false" aria-controls="mega-spiritueux">Spiritueux <span class="tag18">18+</span></button></li>
-          <li class="nav__item"><button type="button" class="nav__link" data-mega="maison" aria-expanded="false" aria-controls="mega-maison">La maison</button></li>
+          <li class="nav__item">
+            <button type="button" class="nav__link" data-mega="marques" aria-expanded="false" aria-controls="mega-marques">Nos marques</button>
+            <div class="mega" id="mega-marques" data-panel="marques" hidden>
+              <div class="mega__in wrap">
+                <ul class="mega__brands">
+                  <li>
+                    <a class="mega-brand mega-brand--pac" href="/pac-citron" data-nav="pac" style="--b: var(--pac)">
+                      <span class="mega-brand__render" data-render="pac-citron" data-bg="#c2177f"></span>
+                      <span class="mega-brand__txt"><span class="mega-brand__name">PAC Citron<sup>®</sup></span><span class="mega-brand__line">Le sirop de citron sans colorant, depuis plus de 60 ans</span></span>
+                    </a>
+                  </li>
+                  <li>
+                    <a class="mega-brand mega-brand--fb" href="/fun-blue" data-nav="funblue" style="--b: var(--fb)">
+                      <span class="mega-brand__render" data-render="fun-blue" data-bg="#1f56a8"></span>
+                      <span class="mega-brand__txt"><span class="mega-brand__name">Fun Blue<sup>®</sup></span><span class="mega-brand__line">Sirop de menthe bleue, depuis 1995</span></span>
+                    </a>
+                  </li>
+                  <li>
+                    <a class="mega-brand" href="/couleur-provence" data-nav="provence" style="--b: var(--provence)">
+                      <span class="mega-brand__render mega-brand__render--trio" data-render="sirop-couleur-provence-grenadine sirop-lavande sirop-menthe" data-bg="#e9dfc8"></span>
+                      <span class="mega-brand__txt"><span class="mega-brand__name">Couleur Provence<sup>®</sup></span><span class="mega-brand__line">Sirops de fruits, de fleurs et de plantes</span></span>
+                    </a>
+                  </li>
+                </ul>
+                <div class="mega__aside">
+                  <p class="mega__h">Sirops</p>
+                  <a href="/boutique?univers=sirops">Tous les sirops</a>
+                  <a href="/recettes" data-nav="recettes">Recettes et cocktails sans alcool</a>
+                  <a href="/ou-trouver">Où trouver nos produits</a>
+                </div>
+              </div>
+            </div>
+          </li>
+          <li class="nav__item">
+            <button type="button" class="nav__link" data-mega="spiritueux" aria-expanded="false" aria-controls="mega-spiritueux">Spiritueux <span class="tag18">18+</span></button>
+            <div class="mega" id="mega-spiritueux" data-panel="spiritueux" hidden>
+              <div class="mega__in wrap">
+                <div class="mega__spirits" data-spirits-menu></div>
+                <div class="mega__aside">
+                  <p class="mega__h">Spiritueux · 18+</p>
+                  <a href="/spiritueux" data-nav="spiritueux">Pastis, liqueurs, marcs et eaux-de-vie</a>
+                  <a href="/boutique?univers=spiritueux">La boutique des spiritueux</a>
+                  <p class="mega__evin">L’abus d’alcool est dangereux pour la santé, à consommer avec modération.</p>
+                </div>
+              </div>
+            </div>
+          </li>
+          <li class="nav__item">
+            <button type="button" class="nav__link" data-mega="maison" aria-expanded="false" aria-controls="mega-maison">La maison</button>
+            <div class="mega" id="mega-maison" data-panel="maison" hidden>
+              <div class="mega__in wrap">
+                <ul class="mega__links">
+                  <li><a href="/la-maison" data-nav="maison"><span class="mega__k">1835 → 2035</span><span class="mega__t">Notre histoire</span><span class="mega__d">Huit générations, d’Avignon à Châteauneuf-du-Pape.</span></a></li>
+                  <li><a href="/la-maison#savoir-faire"><span class="mega__k">Le métier</span><span class="mega__t">Le savoir-faire</span><span class="mega__d">Distillation, macération, infusion, vieillissement.</span></a></li>
+                  <li><a href="/musee" data-nav="musee"><span class="mega__k">Collection</span><span class="mega__t">Les archives</span><span class="mega__d">Étiquettes et affiches de la maison, présentées comme au musée.</span></a></li>
+                  <li><a href="/actualites" data-nav="actualites"><span class="mega__k">Presse</span><span class="mega__t">Actualités</span><span class="mega__d">Ce que la presse dit de la distillerie.</span></a></li>
+                </ul>
+                <div class="mega__aside">
+                  <p class="mega__h">Venir à la distillerie</p>
+                  <a href="/visiter">Visites et dégustation</a>
+                  <a href="/visiter#reserver">Réserver une visite</a>
+                  <a href="/ou-trouver">Où trouver nos produits</a>
+                </div>
+              </div>
+            </div>
+          </li>
           <li class="nav__item"><a class="nav__link" href="/visiter" data-nav="visiter">Visiter</a></li>
           <li class="nav__item"><a class="nav__link" href="/boutique" data-nav="boutique">Boutique</a></li>
         </ul>
@@ -46,69 +112,11 @@
       </div>
     </div>
   </div>
-
-  <div class="mega" id="mega-marques" data-panel="marques" hidden>
-    <div class="mega__in wrap">
-      <ul class="mega__brands">
-        <li>
-          <a class="mega-brand mega-brand--pac" href="/pac-citron" data-nav="pac" style="--b: var(--pac)">
-            <span class="mega-brand__render" data-render="pac-citron" data-bg="#c2177f"></span>
-            <span class="mega-brand__txt"><span class="mega-brand__name">PAC Citron<sup>®</sup></span><span class="mega-brand__line">Le sirop de citron sans colorant, depuis plus de 60 ans</span></span>
-          </a>
-        </li>
-        <li>
-          <a class="mega-brand mega-brand--fb" href="/fun-blue" data-nav="funblue" style="--b: var(--fb)">
-            <span class="mega-brand__render" data-render="fun-blue" data-bg="#1f56a8"></span>
-            <span class="mega-brand__txt"><span class="mega-brand__name">Fun Blue<sup>®</sup></span><span class="mega-brand__line">Sirop de menthe bleue, depuis 1995</span></span>
-          </a>
-        </li>
-        <li>
-          <a class="mega-brand" href="/couleur-provence" data-nav="provence" style="--b: var(--provence)">
-            <span class="mega-brand__render mega-brand__render--trio" data-render="sirop-couleur-provence-grenadine sirop-lavande sirop-menthe" data-bg="#e9dfc8"></span>
-            <span class="mega-brand__txt"><span class="mega-brand__name">Couleur Provence<sup>®</sup></span><span class="mega-brand__line">Sirops de fruits, de fleurs et de plantes</span></span>
-          </a>
-        </li>
-      </ul>
-      <div class="mega__aside">
-        <p class="mega__h">Sirops</p>
-        <a href="/boutique?univers=sirops">Tous les sirops</a>
-        <a href="/recettes" data-nav="recettes">Recettes et cocktails sans alcool</a>
-        <a href="/ou-trouver">Où trouver nos produits</a>
-      </div>
-    </div>
-  </div>
-
-  <div class="mega" id="mega-spiritueux" data-panel="spiritueux" hidden>
-    <div class="mega__in wrap">
-      <div class="mega__spirits" data-spirits-menu></div>
-      <div class="mega__aside">
-        <p class="mega__h">Spiritueux · 18+</p>
-        <a href="/spiritueux" data-nav="spiritueux">Pastis, liqueurs, marcs et eaux-de-vie</a>
-        <a href="/boutique?univers=spiritueux">La boutique des spiritueux</a>
-        <p class="mega__evin">L’abus d’alcool est dangereux pour la santé, à consommer avec modération.</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="mega" id="mega-maison" data-panel="maison" hidden>
-    <div class="mega__in wrap">
-      <ul class="mega__links">
-        <li><a href="/la-maison" data-nav="maison"><span class="mega__k">1835 → 2035</span><span class="mega__t">Notre histoire</span><span class="mega__d">Huit générations, d’Avignon à Châteauneuf-du-Pape.</span></a></li>
-        <li><a href="/la-maison#savoir-faire"><span class="mega__k">Le métier</span><span class="mega__t">Le savoir-faire</span><span class="mega__d">Distillation, macération, infusion, vieillissement.</span></a></li>
-        <li><a href="/musee" data-nav="musee"><span class="mega__k">Collection</span><span class="mega__t">Les archives</span><span class="mega__d">Étiquettes et affiches de la maison, présentées comme au musée.</span></a></li>
-        <li><a href="/actualites" data-nav="actualites"><span class="mega__k">Presse</span><span class="mega__t">Actualités</span><span class="mega__d">Ce que la presse dit de la distillerie.</span></a></li>
-      </ul>
-      <div class="mega__aside">
-        <p class="mega__h">Venir à la distillerie</p>
-        <a href="/visiter">Visites et dégustation</a>
-        <a href="/visiter#reserver">Réserver une visite</a>
-        <a href="/ou-trouver">Où trouver nos produits</a>
-      </div>
-    </div>
-  </div>
 </header>
 
-<div class="search" id="search" role="dialog" aria-modal="true" aria-label="Rechercher sur le site" hidden>
+<!-- Recherche et menu du téléphone : vraies fenêtres modales (<dialog>, showModal) ; le reste de la
+     page est inerte pendant l'ouverture, Échap ferme, le focus revient au bouton (A11Y-4). -->
+<dialog class="search" id="search" aria-label="Rechercher sur le site">
   <div class="search__in wrap">
     <form class="search__form" action="/boutique" role="search">
       <label class="sr-only" for="search-q">Rechercher un produit ou une page</label>
@@ -120,10 +128,10 @@
     </form>
     <div class="search__results" id="search-results" aria-live="polite"></div>
   </div>
-</div>
+</dialog>
 
-<nav class="menu" id="menu" aria-label="Menu" inert>
-  <div class="menu__in">
+<dialog class="menu" id="menu" aria-label="Menu">
+  <nav class="menu__in" aria-label="Menu principal">
     <div class="menu__top">
       <a class="logo" href="/" aria-label="Distillerie A. Blachère, accueil"><img class="logo__img" src="/logos/logo.svg" alt="" width="289" height="71" /></a>
       <button type="button" class="tool" id="menu-close" aria-label="Fermer le menu">
@@ -164,10 +172,10 @@
     <div class="menu__foot">
       <a class="btn btn--primary btn--block" href="/visiter#reserver">Réserver une visite</a>
       <p class="menu__util">
-        <span class="hd__lang" role="group" aria-label="Langue du site"><a href="/" lang="fr" aria-current="true">FR</a><button type="button" lang="en" data-lang="en">EN</button><button type="button" lang="de" data-lang="de">DE</button></span>
-        <button type="button" class="hd__util-btn" data-account>Compte</button>
+        <span class="hd__lang" role="group" aria-label="Langue du site" data-revue><a href="/" lang="fr" aria-current="true">FR</a><button type="button" lang="en" data-lang="en">EN</button><button type="button" lang="de" data-lang="de">DE</button></span>
+        <button type="button" class="hd__util-btn" data-account data-revue>Compte</button>
         <a href="tel:+33490835565">04 90 83 55 65</a>
       </p>
     </div>
-  </div>
-</nav>
+  </nav>
+</dialog>

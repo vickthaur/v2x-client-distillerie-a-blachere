@@ -1,5 +1,6 @@
 /* Fiche produit : plateau de studio neutre à gauche (3D), informations et détails à droite. */
-.product-page { padding-top: var(--header-h); background: var(--paper); }
+/* body porte déjà la marge de l'en-tête fixe : la page n'en rajoute pas (QUAL-6, UX-1). */
+.product-page { background: var(--paper); }
 .product-loading { display: grid; place-items: center; min-height: 60vh; color: var(--ink-3); }
 .crumbs { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 22px; padding-bottom: 18px; font-size: 0.84rem; color: var(--ink-3); }
 .crumbs a { color: var(--ink-2); text-decoration: none; }
@@ -11,8 +12,10 @@
 /* ---------- Plateau ---------- */
 .pp__stage { position: sticky; top: calc(var(--main-h) + 18px); width: 100%; aspect-ratio: 4 / 5; max-height: calc(100svh - var(--main-h) - 36px); overflow: hidden; border-radius: var(--r-l); background: radial-gradient(120% 90% at 50% 38%, #f4f1eb 0%, #e8e3da 62%, #ddd6ca 100%); isolation: isolate; }
 .pp[data-alcool='1'] .pp__stage { background: radial-gradient(120% 90% at 50% 38%, #efebe4 0%, #e1dbd0 62%, #d3cbbd 100%); }
-.pp__poster { position: absolute; inset: 7% 0 6%; display: grid; place-items: center; transition: opacity 0.6s; }
-.pp__poster .thumb { width: auto; height: 100%; max-width: 100%; object-fit: contain; filter: drop-shadow(0 26px 22px rgba(21, 19, 15, 0.22)); }
+/* Affiche (photo de face) : la bouteille entière dans le cadre, à peu près à la taille de la bouteille
+   3D qui la remplace en fondu ; seule sans WebGL, en mouvement réduit, en économie de données. */
+.pp__poster { position: absolute; inset: 7% 0 6%; transition: opacity 0.6s; }
+.pp__poster .thumb { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: contain; filter: drop-shadow(0 26px 22px rgba(21, 19, 15, 0.22)); }
 .pp__poster .thumb--wait { background: transparent; }
 .pp__stage.is-flat .pp__poster { inset: 10% 8% 8%; }
 .pp__flat { filter: drop-shadow(0 30px 26px rgba(21, 19, 15, 0.28)) !important; }
@@ -20,8 +23,14 @@
 .pp__canvas.is-dragging { cursor: grabbing; }
 .pp__stage.is-live .pp__canvas { opacity: 1; }
 .pp__stage.is-live .pp__poster { opacity: 0; }
-.pp__stage-ui { position: absolute; left: 16px; right: 16px; bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 8px; pointer-events: none; }
+/* consigne et boutons face / dos : seulement quand la 3D est là (l'affiche ne tourne pas) */
+.pp__stage-ui { position: absolute; left: 16px; right: 16px; bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 8px; pointer-events: none; opacity: 0; visibility: hidden; transition: opacity 0.6s, visibility 0s linear 0.6s; }
+.pp__stage.is-live .pp__stage-ui { opacity: 1; visibility: visible; transition: opacity 0.6s; }
 .pp__stage.is-static .pp__stage-ui { display: none; }
+.pp__sides button[aria-busy='true'] { cursor: progress; }
+/* Pause de la rotation automatique (src/lib/pause.js) : en haut à droite de la scène */
+.pp__stage > .anim-pause { position: absolute; top: 16px; right: 16px; z-index: 2; }
+.pp__stage.is-static > .anim-pause { display: none; }
 .pp__hint { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; background: rgba(255, 255, 255, 0.82); color: var(--ink); font-size: 0.8rem; font-weight: 600; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
 .pp__hint svg { width: 16px; height: 16px; }
 .pp__sides { display: inline-flex; padding: 3px; border-radius: 999px; background: rgba(255, 255, 255, 0.82); pointer-events: auto; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
@@ -46,12 +55,14 @@
 .vol__in { display: grid; gap: 2px; min-width: 104px; padding: 10px 16px; border: 1px solid var(--line-2); border-radius: 10px; background: #fff; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; }
 .vol__name { font: 650 0.94rem/1.2 var(--font); }
 .vol__price { font-size: 0.84rem; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.vol__unit { font-size: 0.74rem; color: var(--ink-3); font-variant-numeric: tabular-nums; }
 .vol input:checked + .vol__in { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
 .vol input:focus-visible + .vol__in { outline: 2px solid var(--ink); outline-offset: 2px; }
 .pp__one { font-weight: 650; }
 .pp__price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
 .pp__price strong { font: 760 2rem/1 var(--font); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
 .pp__price > span { font-size: 0.86rem; color: var(--ink-3); }
+.pp__price .pp__unit { color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .pp__price--none strong { font-size: 1.3rem; }
 .pp__price--none > span { flex-basis: 100%; }
 .pp__row { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -61,6 +72,10 @@
 .qty--big button { width: 46px; }
 .qty--big input { width: 48px; font-size: 1rem; }
 .pp__muted { color: var(--ink-3); }
+/* frais de livraison pour la contenance et la quantité choisies (UX-4) */
+.pp__ship { display: flex; align-items: flex-start; gap: 10px; margin-top: -2px; font-size: 0.88rem; line-height: 1.5; color: var(--ink-2); }
+.pp__ship > svg { flex: none; width: 20px; height: 20px; margin-top: 1px; color: var(--ink); }
+.pp__ship strong { color: var(--ink); font-weight: 680; }
 .pp__ailleurs { font-size: 0.9rem; color: var(--ink-2); }
 .pp__ailleurs a { color: var(--ink); }
 .pp__dispo { display: grid; gap: 8px; padding: 18px 20px; border: 1px solid var(--line-2); border-radius: var(--r); }
@@ -93,6 +108,36 @@
 .pp__notes h2 { font: 700 0.74rem/1 var(--font); letter-spacing: 0.14em; text-transform: uppercase; }
 .pp__notes ul { display: grid; gap: 8px; padding-left: 18px; list-style: disc; font-size: 0.92rem; color: var(--ink-2); }
 
+/* ---------- Barre d'achat collante (UX-1) ----------
+   En bas de l'écran quand le bouton d'ajout est passé sous l'en-tête ; inerte et hors de l'écran
+   sinon. Les pastilles (V2X, démo), le repère du mode revue et les messages passent au-dessus. */
+.pp-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 70; padding-bottom: env(safe-area-inset-bottom); border-top: 1px solid var(--line); background: #fff; box-shadow: 0 -14px 34px -24px rgba(21, 19, 15, 0.5); transform: translateY(105%); visibility: hidden; transition: transform 0.4s var(--ease), visibility 0s linear 0.4s; }
+.pp-bar:empty { display: none; }
+.pp-bar.is-on { transform: none; visibility: visible; transition: transform 0.4s var(--ease), visibility 0s; }
+.pp-bar__in { display: flex; align-items: center; gap: 14px; min-height: 68px; padding-block: 9px; }
+.pp-bar__img { display: block; flex: none; width: 38px; height: 50px; overflow: hidden; border-radius: 7px; background: var(--thumb-bg); }
+.pp-bar__img .thumb { width: 100%; height: 100%; object-fit: contain; padding: 3px 0; }
+.pp-bar__txt { display: grid; flex: 1; gap: 1px; min-width: 0; }
+.pp-bar__name { overflow: hidden; font: 700 0.98rem/1.3 var(--font); letter-spacing: -0.01em; white-space: nowrap; text-overflow: ellipsis; }
+.pp-bar__name sup { font-size: 0.5em; }
+.pp-bar__name .wm--pac { width: 2.1em; height: 1.72em; vertical-align: -0.6em; }
+.pp-bar__name .wm--fb { width: 3.9em; height: 2em; vertical-align: -0.68em; }
+.pp-bar__meta { overflow: hidden; font-size: 0.86rem; color: var(--ink-2); white-space: nowrap; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.pp-bar__add { flex: none; min-height: 46px; padding: 0 22px; }
+.pp-bar__add svg { width: 18px; height: 18px; }
+.pp-bar__evin { padding-bottom: 8px; font-size: 0.72rem; line-height: 1.35; color: var(--ink-3); }
+body.pp-bar-on .v2x, body.pp-bar-on .demo-bar, body.pp-bar-on .revue-tag { bottom: calc(var(--pp-bar-h, 68px) + 12px); }
+body.pp-bar-on .toast { bottom: calc(var(--pp-bar-h, 68px) + 18px); }
+@media (max-width: 760px) {
+  body.pp-bar-on.demo-on .toast { bottom: calc(var(--pp-bar-h, 68px) + 66px); }
+}
+@media (max-width: 560px) {
+  .pp-bar__in { gap: 12px; }
+  .pp-bar__long { display: none; }
+  .pp-bar__add { padding: 0 18px; }
+  body.pp-bar-on .revue-tag { bottom: calc(var(--pp-bar-h, 68px) + 62px); }
+}
+
 /* Recettes et « vous aimerez aussi » */
 .pp-recipes { padding-bottom: clamp(48px, 6vw, 88px); }
 .pp-recipes__list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(14px, 2vw, 24px); }
@@ -113,11 +158,17 @@
 
 @media (max-width: 980px) {
   .pp { grid-template-columns: 1fr; }
-  .pp__stage { position: relative; top: 0; max-height: none; aspect-ratio: 1 / 1.05; }
+  .pp__stage { position: relative; top: 0; max-height: 62svh; aspect-ratio: 1 / 1.05; }
   .pp-recipes__list { grid-template-columns: 1fr 1fr; }
 }
+/* Téléphone : plateau carré, jamais plus de 56 % de l'écran ; le nom, le prix et l'achat remontent. */
+@media (max-width: 760px) {
+  .crumbs { padding-top: 14px; padding-bottom: 12px; }
+  .pp { gap: 22px; }
+  .pp__stage { aspect-ratio: 1 / 1; max-height: 56svh; }
+}
 @media (max-width: 560px) {
-  .pp__stage { aspect-ratio: 4 / 5; margin-inline: calc(-1 * var(--gutter)); width: auto; border-radius: 0; }
+  .pp__stage { margin-inline: calc(-1 * var(--gutter)); width: auto; border-radius: 0; }
   .pp__facts > div { grid-template-columns: 1fr; gap: 2px; }
   .pp-recipes__list { grid-template-columns: 1fr; }
 }

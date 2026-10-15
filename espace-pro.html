@@ -26,8 +26,8 @@
             <div id="login-zone">
               <form id="pro-login" novalidate>
                 <div class="form-grid">
-                  <label class="field full"><span class="field__label">Identifiant (e-mail)</span><input type="email" name="email" autocomplete="username" inputmode="email" required /></label>
-                  <label class="field full"><span class="field__label">Mot de passe</span><input type="password" name="mdp" autocomplete="current-password" required /></label>
+                  <label class="field full"><span class="field__label">Identifiant (e-mail)</span><input type="email" name="email" autocomplete="username" inputmode="email" required aria-describedby="err-login-email" /><small class="field__err" id="err-login-email" data-err="email"></small></label>
+                  <label class="field full"><span class="field__label">Mot de passe</span><input type="password" name="mdp" autocomplete="current-password" required aria-describedby="err-login-mdp" /><small class="field__err" id="err-login-mdp" data-err="mdp"></small></label>
                   <div class="login-opts full">
                     <label class="check"><input type="checkbox" name="rester" value="1" /><span>Rester connecté sur cet appareil</span></label>
                     <button type="button" class="link login-forgot" id="forgot-open" aria-controls="pro-forgot" aria-expanded="false">Mot de passe oublié&#8239;?</button>
@@ -59,15 +59,16 @@
               <li><strong>Fiches techniques</strong><span>Ingrédients, valeurs nutritionnelles, formats et colisage, à imprimer</span></li>
               <li><strong>Médiathèque</strong><span>Logos et photos des bouteilles à télécharger</span></li>
             </ul>
-            <p class="note">Démonstration&nbsp;: comptes, tarifs professionnels, colisages et stocks sont fictifs&#8239;; les fiches reprennent le catalogue officiel. EAN et éléments de PLV à fournir par la distillerie.</p>
+            <p class="note">Démonstration&nbsp;: comptes, tarifs professionnels, colisages et stocks sont fictifs&#8239;; les fiches reprennent le catalogue officiel.<span data-revue> EAN et éléments de PLV à fournir par la distillerie.</span></p>
           </div>
           <div class="form-card" id="pro-card">
             <h2>Demander un compte ou un référencement</h2>
             <form id="pro-form" novalidate>
+              <p class="form-note">Les champs marqués d’un astérisque (*) sont obligatoires.</p>
               <div class="form-grid">
-                <label class="field full"><span class="field__label">Établissement</span><input type="text" name="societe" autocomplete="organization" required /></label>
-                <label class="field"><span class="field__label">Activité</span>
-                  <select name="activite" required>
+                <label class="field full"><span class="field__label">Établissement<span class="req" aria-hidden="true"> *</span></span><input type="text" name="societe" autocomplete="organization" required aria-describedby="err-pro-societe" /><small class="field__err" id="err-pro-societe" data-err="societe"></small></label>
+                <label class="field"><span class="field__label">Activité<span class="req" aria-hidden="true"> *</span></span>
+                  <select name="activite" required aria-describedby="err-pro-activite">
                     <option value="">Choisir…</option>
                     <option value="chr">Café, bar, restaurant</option>
                     <option value="hotel">Hôtel</option>
@@ -77,14 +78,15 @@
                     <option value="distributeur">Distributeur, centrale d’achat</option>
                     <option value="autre">Autre</option>
                   </select>
+                  <small class="field__err" id="err-pro-activite" data-err="activite"></small>
                 </label>
-                <label class="field"><span class="field__label">SIRET</span><input type="text" name="siret" inputmode="numeric" placeholder="14 chiffres" /><span class="field__hint">Facultatif</span></label>
-                <label class="field"><span class="field__label">Nom</span><input type="text" name="nom" autocomplete="name" required /></label>
-                <label class="field"><span class="field__label">Ville</span><input type="text" name="ville" autocomplete="address-level2" required /></label>
-                <label class="field"><span class="field__label">E-mail</span><input type="email" name="email" autocomplete="email" required /></label>
-                <label class="field"><span class="field__label">Téléphone</span><input type="tel" name="tel" autocomplete="tel" /></label>
+                <label class="field"><span class="field__label">SIRET</span><input type="text" name="siret" inputmode="numeric" placeholder="14 chiffres" aria-describedby="aide-pro-siret err-pro-siret" /><span class="field__hint" id="aide-pro-siret">Facultatif</span><small class="field__err" id="err-pro-siret" data-err="siret"></small></label>
+                <label class="field"><span class="field__label">Nom<span class="req" aria-hidden="true"> *</span></span><input type="text" name="nom" autocomplete="name" required aria-describedby="err-pro-nom" /><small class="field__err" id="err-pro-nom" data-err="nom"></small></label>
+                <label class="field"><span class="field__label">Ville<span class="req" aria-hidden="true"> *</span></span><input type="text" name="ville" autocomplete="address-level2" required aria-describedby="err-pro-ville" /><small class="field__err" id="err-pro-ville" data-err="ville"></small></label>
+                <label class="field"><span class="field__label">E-mail<span class="req" aria-hidden="true"> *</span></span><input type="email" name="email" autocomplete="email" required aria-describedby="err-pro-email" /><small class="field__err" id="err-pro-email" data-err="email"></small></label>
+                <label class="field"><span class="field__label">Téléphone</span><input type="tel" name="tel" autocomplete="tel" aria-describedby="err-pro-tel" /><small class="field__err" id="err-pro-tel" data-err="tel"></small></label>
                 <label class="field full"><span class="field__label">Votre demande</span><textarea name="message" rows="3"></textarea></label>
-                <label class="check full"><input type="checkbox" name="rgpd" required /><span>J’accepte que la distillerie utilise ces informations pour répondre à ma demande.</span></label>
+                <div class="full"><label class="check"><input type="checkbox" name="rgpd" required aria-describedby="err-pro-rgpd" /><span>J’accepte que la distillerie utilise ces informations pour répondre à ma demande.<span class="req" aria-hidden="true"> *</span></span></label><small class="field__err" id="err-pro-rgpd" data-err="rgpd"></small></div>
               </div>
               <p class="form-msg" id="pro-msg" role="alert"></p>
               <button type="submit" class="btn btn--primary">Envoyer la demande</button>

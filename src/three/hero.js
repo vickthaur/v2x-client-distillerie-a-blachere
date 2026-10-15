@@ -27,9 +27,9 @@ export const SCENES = {
 };
 
 export class HeroScene {
-  constructor(canvas, { scene = 'duo', products, target = null, calm = false } = {}) {
+  constructor(canvas, { scene = 'duo', products, target = null, calm = false, pause = false } = {}) {
     // dos : false → les bouteilles restent de face : le dos des étiquettes n'est pas téléchargé
-    this.stage = new Stage(canvas, { ...SCENES[scene](products), target, calm, fill: 0.94, dos: false });
+    this.stage = new Stage(canvas, { ...SCENES[scene](products), target, calm, pause, fill: 0.94, dos: false });
     this.ready = this.stage.ready;
     // bouteilles posées et première image dessinée : l'affiche peut s'effacer
     this.shown = this.ready.then(() => this.stage.firstFrame);
@@ -37,6 +37,15 @@ export class HeroScene {
 
   setScroll(v) {
     this.stage.setScroll(v);
+  }
+
+  // Bouton « Mettre l'animation en pause » (src/lib/pause.js)
+  get paused() {
+    return this.stage.paused;
+  }
+
+  pause(on) {
+    this.stage.pause(on);
   }
 
   reframe() {

@@ -29,7 +29,7 @@
             <div>
               <p class="kicker">Les formules</p>
               <h2 class="h-section" id="formules-title">Ce que vous verrez vraiment</h2>
-              <p class="lead">Les tarifs diffèrent d’une source à l’autre&nbsp;: ils sont affichés «&nbsp;à confirmer&nbsp;» jusqu’à l’arbitrage de la distillerie.</p>
+              <p class="lead" data-revue>Les tarifs diffèrent d’une source à l’autre&nbsp;: ils sont affichés «&nbsp;à confirmer&nbsp;» jusqu’à l’arbitrage de la distillerie.</p>
             </div>
           </div>
           <div id="formules"></div>
@@ -51,33 +51,36 @@
           </div>
           <div class="form-card" id="booking-card">
             <form id="booking" novalidate>
-              <fieldset class="full" style="border:0;padding:0;margin:0 0 18px">
-                <legend class="field__label">Formule</legend>
+              <p class="form-note">Les champs marqués d’un astérisque (*) sont obligatoires.</p>
+              <fieldset class="full" style="border:0;padding:0;margin:0 0 18px" aria-describedby="err-formule">
+                <legend class="field__label">Formule<span class="req" aria-hidden="true"> *</span></legend>
                 <div class="choice" id="booking-formules"></div>
+                <small class="field__err" id="err-formule" data-err="formule"></small>
               </fieldset>
               <div class="form-grid">
                 <div class="field full vis-when">
-                  <label class="vis-date"><span class="field__label">Date de la visite</span><input type="date" name="date" required aria-describedby="date-hint" /><span class="field__hint" id="date-hint"></span></label>
+                  <label class="vis-date"><span class="field__label">Date de la visite<span class="req" aria-hidden="true"> *</span></span><input type="date" name="date" required aria-describedby="date-hint err-date" /><span class="field__hint" id="date-hint"></span><small class="field__err" id="err-date" data-err="date"></small></label>
                   <div class="cal" id="cal" aria-live="off"></div>
                 </div>
-                <fieldset class="field full vis-moments" style="border:0;padding:0;margin:0">
-                  <legend class="field__label">Moment</legend>
+                <fieldset class="field full vis-moments" style="border:0;padding:0;margin:0" aria-describedby="err-moment">
+                  <legend class="field__label">Moment<span class="req" aria-hidden="true"> *</span></legend>
                   <div class="choice choice--inline" id="moments">
-                    <label><input type="radio" name="moment" value="matin" checked /><strong>Matin</strong><span data-moment="matin">10 h 30</span></label>
+                    <label><input type="radio" name="moment" value="matin" checked required /><strong>Matin</strong><span data-moment="matin">10 h 30</span></label>
                     <label><input type="radio" name="moment" value="apres-midi" /><strong>Après-midi</strong><span data-moment="apres-midi">15 h</span></label>
                   </div>
+                  <small class="field__err" id="err-moment" data-err="moment"></small>
                 </fieldset>
-                <label class="field"><span class="field__label">Nombre de personnes</span><input type="number" name="personnes" min="1" max="25" value="2" inputmode="numeric" required /><span class="field__hint">25 personnes au plus</span></label>
-                <label class="field"><span class="field__label">Dont mineurs</span><input type="number" name="mineurs" min="0" max="25" value="0" inputmode="numeric" /><span class="field__hint">Ils dégusteront des sirops</span></label>
+                <label class="field"><span class="field__label">Nombre de personnes<span class="req" aria-hidden="true"> *</span></span><input type="number" name="personnes" min="1" max="25" value="2" inputmode="numeric" required aria-describedby="aide-personnes err-personnes" /><span class="field__hint" id="aide-personnes">25 personnes au plus</span><small class="field__err" id="err-personnes" data-err="personnes"></small></label>
+                <label class="field"><span class="field__label">Dont mineurs</span><input type="number" name="mineurs" min="0" max="25" value="0" inputmode="numeric" aria-describedby="aide-mineurs err-mineurs" /><span class="field__hint" id="aide-mineurs">Ils dégusteront des sirops</span><small class="field__err" id="err-mineurs" data-err="mineurs"></small></label>
                 <label class="field"><span class="field__label">Langue de la visite</span>
-                  <select name="langue"><option value="fr">Français</option><option value="en">Anglais</option><option value="de">Allemand</option></select>
-                  <span class="field__hint">Selon disponibilité, à confirmer</span>
+                  <select name="langue" aria-describedby="aide-langue"><option value="fr">Français</option><option value="en">Anglais</option><option value="de">Allemand</option></select>
+                  <span class="field__hint" id="aide-langue">Selon disponibilité<span data-revue>, à confirmer</span></span>
                 </label>
-                <label class="field"><span class="field__label">Nom</span><input type="text" name="nom" autocomplete="name" required /></label>
-                <label class="field"><span class="field__label">E-mail</span><input type="email" name="email" autocomplete="email" required /></label>
-                <label class="field"><span class="field__label">Téléphone</span><input type="tel" name="tel" autocomplete="tel" /><span class="field__hint">Facultatif</span></label>
+                <label class="field"><span class="field__label">Nom<span class="req" aria-hidden="true"> *</span></span><input type="text" name="nom" autocomplete="name" required aria-describedby="err-nom" /><small class="field__err" id="err-nom" data-err="nom"></small></label>
+                <label class="field"><span class="field__label">E-mail<span class="req" aria-hidden="true"> *</span></span><input type="email" name="email" autocomplete="email" required aria-describedby="err-email" /><small class="field__err" id="err-email" data-err="email"></small></label>
+                <label class="field"><span class="field__label">Téléphone</span><input type="tel" name="tel" autocomplete="tel" aria-describedby="aide-tel err-tel" /><span class="field__hint" id="aide-tel">Facultatif</span><small class="field__err" id="err-tel" data-err="tel"></small></label>
                 <label class="field full"><span class="field__label">Message</span><textarea name="message" rows="3"></textarea></label>
-                <label class="check full"><input type="checkbox" name="rgpd" required /><span>J’accepte que la distillerie utilise ces informations pour répondre à ma demande.</span></label>
+                <div class="full"><label class="check"><input type="checkbox" name="rgpd" required aria-describedby="err-rgpd" /><span>J’accepte que la distillerie utilise ces informations pour répondre à ma demande.<span class="req" aria-hidden="true"> *</span></span></label><small class="field__err" id="err-rgpd" data-err="rgpd"></small></div>
                 <label class="check full"><input type="checkbox" name="news" /><span>Je souhaite recevoir les actualités de la distillerie (facultatif).</span></label>
               </div>
               <p class="form-msg" id="booking-err" role="alert"></p>

@@ -13,6 +13,7 @@ import { applyFilters, facets, matches, parseState, serializeState, activeCount,
 import { icons } from '../lib/icons.js';
 import { upgradeThumbs } from '../lib/thumbs.js';
 import { demoCatalogue, appliquerDemo, etatDemo, indisponible, ETATS } from '../lib/demo.js';
+import { noteRevue } from '../lib/revue.js';
 
 const site = initSite();
 let state = parseState(location.search);
@@ -43,20 +44,42 @@ function renderTiles() {
         ? `<a class="cat" href="/boutique?univers=spiritueux" data-tile="spiritueux">Spiritueux 18+<span class="cat__n">${spiritsCount}</span></a>`
         : `<button type="button" class="cat cat--locked" data-verify>${icons.lock}Spiritueux 18+<span class="cat__n">vérifier mon âge</span></button>`;
   $('#shop-tiles').innerHTML = all + html + spirits;
+  ajusterBarre();
 }
+
+// ---------- Rangée des rayons et des outils (UX-2) ----------
+// Au bureau, rayons, recherche et tri tiennent sur une rangée quand la place le permet ; sinon la
+// recherche et le tri passent sur la rangée du compteur (is-serre). Les rayons ne vont jamais à la
+// ligne.
+function ajusterBarre() {
+  const bar = $('#shop-bar');
+  const tiles = $$('#shop-tiles > *');
+  if (!bar || !tiles.length) return;
+  if (!matchMedia('(min-width: 1024px)').matches) return bar.classList.remove('is-serre');
+  const dernier = tiles[tiles.length - 1];
+  const rayons = dernier.getBoundingClientRect().right + (parseFloat(getComputedStyle(dernier).marginRight) || 0) - tiles[0].getBoundingClientRect().left;
+  const outils = $('.shop__tools', bar).getBoundingClientRect().width;
+  const ecart = parseFloat(getComputedStyle(bar).columnGap) || 0;
+  bar.classList.toggle('is-serre', rayons + ecart + outils > bar.clientWidth + 0.5);
+}
+if ('ResizeObserver' in window) new ResizeObserver(() => ajusterBarre()).observe($('#shop-bar'));
+document.fonts?.ready.then(ajusterBarre);
 
 // ---------- Formulaire de filtres ----------
 const opt = (type, name, value, label, n, checked, extra = '') =>
   `<label class="opt${n === 0 && !checked ? ' is-empty' : ''}"><input type="${type}" name="${name}" value="${esc(value)}"${checked ? ' checked' : ''}${n === 0 && !checked ? ' disabled' : ''} ${extra}/><span class="opt__label">${label}</span><span class="opt__n" data-n="${name}:${esc(value)}">${n}</span></label>`;
 
+// Curseurs d'un intervalle : la valeur est annoncée en clair (« 4,40 € », « 40 % vol. »), pas
+// « 4.4 » (aria-valuetext, A11Y-9).
+const fmtRange = (name) => (name === 'prix' ? (n) => euro(Number(n)) : (n) => `${n}\u202f% vol.`);
 function rangeHTML(name, title, [min, max], value, fmt, step) {
   const [a, b] = value || [min, max];
   return `<fieldset class="fgroup fgroup--range" data-range="${name}" data-min="${min}" data-max="${max}">
     <legend>${title}</legend>
     <p class="range__out" id="${name}-out">${fmt(a)} – ${fmt(b)}</p>
     <div class="range">
-      <input type="range" name="${name}-min" min="${min}" max="${max}" step="${step}" value="${a}" aria-label="${title} minimum" />
-      <input type="range" name="${name}-max" min="${min}" max="${max}" step="${step}" value="${b}" aria-label="${title} maximum" />
+      <input type="range" name="${name}-min" min="${min}" max="${max}" step="${step}" value="${a}" aria-label="${title} minimum" aria-valuetext="${esc(fmt(a))}" />
+      <input type="range" name="${name}-max" min="${min}" max="${max}" step="${step}" value="${b}" aria-label="${title} maximum" aria-valuetext="${esc(fmt(b))}" />
       <span class="range__fill" aria-hidden="true"></span>
     </div>
   </fieldset>`;
@@ -78,8 +101,8 @@ function buildForm() {
     groups.push(`<fieldset class="fgroup"><legend>Arôme</legend>${f.familles.map((x) => opt('checkbox', 'arome', x.id, esc(x.nom), x.n, state.familles.has(x.id))).join('')}</fieldset>`);
   if (f.volumes.length > 1)
     groups.push(`<fieldset class="fgroup"><legend>Contenance</legend><div class="opts-inline">${f.volumes.map((v) => opt('checkbox', 'contenance', v.ml, v.label, v.n, state.volumes.has(v.ml))).join('')}</div></fieldset>`);
-  if (f.prix) groups.push(rangeHTML('prix', 'Prix', [Math.floor(f.prix[0]), Math.ceil(f.prix[1])], state.prix, (n) => euro(n), 0.1));
-  if (site.majeur && f.degre) groups.push(rangeHTML('degre', 'Degré d’alcool', f.degre, state.degre, (n) => `${n} % vol.`, 1));
+  if (f.prix) groups.push(rangeHTML('prix', 'Prix', [Math.floor(f.prix[0]), Math.ceil(f.prix[1])], state.prix, fmtRange('prix'), 0.1));
+  if (site.majeur && f.degre) groups.push(rangeHTML('degre', 'Degré d’alcool', f.degre, state.degre, fmtRange('degre'), 1));
   if (f.best)
     groups.push(`<fieldset class="fgroup"><legend>Sélection</legend><label class="switch"><input type="checkbox" name="meilleures" value="1"${state.best ? ' checked' : ''} /><span class="switch__track" aria-hidden="true"></span><span>Meilleures ventes <span class="opt__n" data-n="meilleures:1">${f.best}</span></span></label></fieldset>`);
   if (f.prix) groups.push('<p class="filters__note">Le filtre de prix ne garde que les produits dont le prix est affiché en ligne.</p>');
@@ -96,8 +119,10 @@ function syncRange(fs) {
   const fill = $('.range__fill', fs);
   fill.style.left = `${((lo - min) / (max - min || 1)) * 100}%`;
   fill.style.right = `${100 - ((hi - min) / (max - min || 1)) * 100}%`;
-  const fmt = fs.dataset.range === 'prix' ? (n) => euro(n) : (n) => `${n} % vol.`;
+  const fmt = fmtRange(fs.dataset.range);
   $('.range__out', fs).textContent = `${fmt(lo)} – ${fmt(hi)}`;
+  a.setAttribute('aria-valuetext', fmt(a.value));
+  b.setAttribute('aria-valuetext', fmt(b.value));
   return [lo, hi, min, max];
 }
 
@@ -168,14 +193,20 @@ function render({ scroll = false } = {}) {
   $('#filters-n').hidden = !nActive;
   $('#filters-n').textContent = nActive;
   const tout = state.univers === 'tous' && !state.gammes.size;
-  $$('[data-tile]').forEach((t) =>
-    t.classList.toggle('is-on', (t.dataset.tile === 'tout' && tout) || (t.dataset.tile === 'spiritueux' && state.univers === 'spiritueux' && !state.gammes.size) || (state.gammes.size === 1 && state.gammes.has(t.dataset.tile))),
-  );
+  // rayon actif : souligné, et annoncé (aria-current, A11Y-9)
+  $$('[data-tile]').forEach((t) => {
+    const on = (t.dataset.tile === 'tout' && tout) || (t.dataset.tile === 'spiritueux' && state.univers === 'spiritueux' && !state.gammes.size) || (state.gammes.size === 1 && state.gammes.has(t.dataset.tile));
+    t.classList.toggle('is-on', on);
+    if (on) t.setAttribute('aria-current', 'true');
+    else t.removeAttribute('aria-current');
+  });
   const spiritsShown = results.some((p) => p.alcool);
+  // La source des prix est une note du mode revue ; la démonstration (prix et stocks modifiables,
+  // paiement simulé) reste dite à tous.
   $('#shop-note').innerHTML = `<span>${
     demo
       ? 'Prix TTC et stocks de la démonstration, modifiables dans le CRM de démonstration. Les produits sans prix en ligne sont vendus au prix de la boutique.'
-      : 'Prix TTC du site actuel de la distillerie. Les produits sans prix en ligne sont vendus au prix de la boutique.'
+      : `Prix TTC.${noteRevue(' Prix du site actuel de la distillerie.')} Les produits sans prix en ligne sont vendus au prix de la boutique.`
   } Démonstration\u00a0: le paiement est simulé.</span>${spiritsShown ? `<span class="evin">${esc(EVIN)} ${esc(MINEURS)}</span>` : ''}`;
   history.replaceState(null, '', `${location.pathname}${serializeState(state)}`);
   stocks(grid);
@@ -219,7 +250,7 @@ function renderChips() {
   state.familles.forEach((f) => chips.push(['arome', f, fam[f] || f]));
   state.volumes.forEach((v) => chips.push(['contenance', v, volumeLabel(v)]));
   if (state.prix) chips.push(['prix', '', `${euro(state.prix[0])} – ${euro(state.prix[1])}`]);
-  if (state.degre) chips.push(['degre', '', `${state.degre[0]} – ${state.degre[1]} % vol.`]);
+  if (state.degre) chips.push(['degre', '', `${state.degre[0]} – ${state.degre[1]}\u202f% vol.`]);
   if (state.best) chips.push(['meilleures', '', 'Meilleures ventes']);
   $('#shop-chips').innerHTML = chips.length
     ? chips.map(([k, v, label]) => `<button type="button" class="chip" data-chip="${k}" data-value="${esc(v)}" aria-label="Retirer le filtre ${esc(label)}">${esc(label)}${icons.close}</button>`).join('') +
@@ -227,19 +258,42 @@ function renderChips() {
     : '';
 }
 
-function removeChip(k, v) {
+// Retirer un filtre actif : la case (ou le curseur) correspondante est remise à zéro dans le
+// formulaire, sans le reconstruire ; le focus passe au filtre actif suivant (ou au compteur de
+// résultats quand il n'en reste plus), jamais perdu (A11Y-6).
+function removeChip(k, v, chip) {
+  const form = $('#filters');
+  const rang = chip ? $$('#shop-chips [data-chip]').indexOf(chip) : -1;
   if (k === 'q') {
     state.q = '';
     $('#shop-q').value = '';
-  } else if (k === 'univers') state.univers = 'tous';
-  else if (k === 'gamme') state.gammes.delete(v);
-  else if (k === 'arome') state.familles.delete(v);
-  else if (k === 'contenance') state.volumes.delete(String(v));
-  else if (k === 'prix') state.prix = null;
-  else if (k === 'degre') state.degre = null;
-  else if (k === 'meilleures') state.best = false;
-  buildForm();
+  } else if (k === 'univers') {
+    state.univers = 'tous';
+    const r = $('input[name="univers"][value="tous"]', form);
+    if (r) r.checked = true;
+  } else if (k === 'gamme' || k === 'arome' || k === 'contenance' || k === 'meilleures') {
+    const name = k === 'meilleures' ? 'meilleures' : k;
+    $$(`input[name="${name}"]`, form).forEach((x) => {
+      if (k === 'meilleures' || x.value === String(v)) x.checked = false;
+    });
+    if (k === 'gamme') state.gammes.delete(v);
+    else if (k === 'arome') state.familles.delete(v);
+    else if (k === 'contenance') state.volumes.delete(String(v));
+    else state.best = false;
+  } else if (k === 'prix' || k === 'degre') {
+    const fs = $(`[data-range="${k}"]`, form);
+    if (fs) {
+      const [a, b] = $$('input[type=range]', fs);
+      a.value = fs.dataset.min;
+      b.value = fs.dataset.max;
+      syncRange(fs);
+    }
+    state[k] = null;
+  }
   render();
+  const reste = $$('#shop-chips [data-chip]');
+  const suivant = reste[Math.min(Math.max(rang, 0), reste.length - 1)];
+  (suivant || $('#shop-count')).focus();
 }
 
 function reset() {
@@ -308,8 +362,14 @@ document.addEventListener('click', (e) => {
     return;
   }
   const chip = e.target.closest('[data-chip]');
-  if (chip) return removeChip(chip.dataset.chip, chip.dataset.value);
-  if (e.target.closest('[data-reset]')) return reset();
+  if (chip) return removeChip(chip.dataset.chip, chip.dataset.value, chip);
+  const raz = e.target.closest('[data-reset]');
+  if (raz) {
+    reset();
+    // bouton disparu (filtres actifs, état vide) : le focus va au compteur de résultats
+    if (!raz.isConnected || raz.closest('[hidden]')) $('#shop-count').focus();
+    return;
+  }
   const tile = e.target.closest('[data-tile]');
   if (tile) {
     e.preventDefault();

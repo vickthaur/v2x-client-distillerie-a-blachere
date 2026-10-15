@@ -146,9 +146,16 @@ export class Stage {
   //           quelque chose change : taille, défilement, angle, bouteilles)
   //  dos    : charger le dos des étiquettes (visionneuse des fiches) ; les campagnes et les rendus de
   //           vignettes montrent les bouteilles de face et s'en passent
-  constructor(canvas, { colors, gels = null, layout = null, bottles = [], target = null, dof = true, fill = 0.92, calm = false, exposure = 1, spot = null, interactive = true, tone = 'neutral', look = null, manual = false, dpr = null, sway = true, dos = true, onUpdate = null } = {}) {
+  //  pause  : scène figée dès le départ (choix « Mettre l'animation en pause » gardé, src/lib/pause.js)
+  constructor(canvas, { colors, gels = null, layout = null, bottles = [], target = null, dof = true, fill = 0.92, calm = false, exposure = 1, spot = null, interactive = true, tone = 'neutral', look = null, manual = false, dpr = null, sway = true, dos = true, pause = false, onUpdate = null } = {}) {
     this.canvas = canvas;
     this.calm = calm;
+    // Pause (A11Y-7) : le temps de l'animation s'arrête (garnitures, balancement, caustiques, grain,
+    // parallaxe du pointeur) et l'image n'est redessinée que si quelque chose change, comme en
+    // mouvement réduit ; la reprise repart du même instant. Figée dès le départ : la composition de
+    // la recette (t = 6).
+    this.paused = !!pause;
+    this.time = pause ? 6 : 0;
     this.dos = dos;
     this.target = target;
     this.fill = fill;
@@ -451,7 +458,7 @@ export class Stage {
 
   // Baisse la résolution si l'appareil n'arrive pas à tenir ~45 images par seconde.
   adapt(dt) {
-    if (TEST || this.calm) return;
+    if (TEST || this.calm || this.paused) return;
     this.frames.push(dt);
     if (this.frames.length < 60) return;
     const avg = this.frames.reduce((a, b) => a + b, 0) / this.frames.length;
@@ -465,10 +472,13 @@ export class Stage {
   update(t, dt) {
     const s = this.state;
     const ease = 1 - Math.pow(0.02, dt);
-    s.px += (s.pointerX - s.px) * ease * 0.6;
-    s.py += (s.pointerY - s.py) * ease * 0.6;
+    // en pause, la caméra ne suit plus le pointeur
+    if (!this.paused) {
+      s.px += (s.pointerX - s.px) * ease * 0.6;
+      s.py += (s.pointerY - s.py) * ease * 0.6;
+    }
     const shown = this.slots.every((x) => x.bottle) ? 1 : 0;
-    s.appear = this.calm ? shown : s.appear + (shown - s.appear) * (1 - Math.pow(0.03, dt));
+    s.appear = this.calm || this.paused ? shown : s.appear + (shown - s.appear) * (1 - Math.pow(0.03, dt));
     if (this.center) {
       this.place(this.center, this.distance);
       this.camera.updateMatrixWorld();
@@ -489,6 +499,8 @@ export class Stage {
     // plateau réutilisé pour moins de bouteilles (série de rendus) : plus d'ombre ni de caustique fantôme
     for (let i = this.slots.length; i < MAX_BOTTLES; i++) u.uBottles.value[i].w = 0;
     if (this.garnish) {
+      // en pause, les éléments sont là tout de suite (pas d'apparition en fondu figée à mi-chemin)
+      if (this.paused) this.garnish.userData.appear = s.appear;
       updateGarnish(this.garnish, { t, dt, scroll: s.scroll, spreadX: this.spreadX(), calm: this.calm, appear: s.appear });
       garnishBlobs(this.garnish, FLOOR_Y, this.blobs);
       const n = Math.min(MAX_BLOBS, this.blobs.length);
@@ -533,10 +545,11 @@ export class Stage {
     requestAnimationFrame(this.loop);
     const dt = Math.min(this.clock.getDelta(), 0.05);
     if (!this.visible || document.hidden) return;
-    // Mode recette (?test, image fixe à t = 6) et mouvement réduit (t = 0) : une fois la scène prête
-    // et quelques images dessinées, on ne redessine plus que si quelque chose change.
-    const still = TEST || this.calm;
-    const t = TEST ? 6 : this.calm ? 0 : this.clock.elapsedTime;
+    // Mode recette (?test, image fixe à t = 6), mouvement réduit (t = 0) et pause (temps arrêté) : une
+    // fois la scène prête et quelques images dessinées, on ne redessine plus que si quelque chose change.
+    const still = TEST || this.calm || this.paused;
+    if (!still) this.time += dt;
+    const t = TEST ? 6 : this.calm ? 0 : this.time;
     this.adapt(dt);
     this.update(t, TEST ? 1 : dt);
     if (still) {
@@ -556,6 +569,18 @@ export class Stage {
 
   setScroll(v) {
     this.state.scroll = v;
+  }
+
+  // Bouton « Mettre l'animation en pause » (src/lib/pause.js) : fige ou relance la scène.
+  pause(on = true) {
+    this.paused = !!on;
+    this.stillSig = null;
+  }
+
+  // Image fixe (mouvement réduit, recette) : redessiner après un changement que la signature ne voit
+  // pas (texture arrivée après coup, comme le dos d'une étiquette).
+  redraw() {
+    this.stillSig = null;
   }
 
   dispose() {
