@@ -14,6 +14,8 @@ const ok = (n) => typeof n === 'number' && Number.isFinite(n);
 
 // 1 234,50 €
 export const euros = (n) => (ok(n) ? eur.format(n) : '—');
+// 3 € (entier) ou 2,50 € : montants ronds sans centimes inutiles
+export const eurosSimple = (n) => (ok(n) ? (Number.isInteger(n) ? eur0.format(n) : eur.format(n)) : '—');
 // 1 235 € (sans centimes, pour les grands chiffres)
 export const eurosRond = (n) => (ok(n) ? eur0.format(n) : '—');
 // 12,4 k€ (axes et tuiles compactes)
@@ -161,6 +163,17 @@ export function ton(cle = '') {
   return (h % 6) + 1;
 }
 export const nomComplet = (u) => (u ? [u.prenom, u.nom].filter(Boolean).join(' ') || u.email || '' : '');
+
+// Typographie française d'un texte saisi (affichage) : insécables avant « : » et « ; ! ? »,
+// dans les guillemets « ».
+export function typo(t) {
+  if (typeof t !== 'string') return t;
+  return t
+    .replace(/ :(?=\s|$)/g, '\u00a0:')
+    .replace(/ ([;!?])(?=\s|$|[»)])/g, '\u202f$1')
+    .replace(/« /g, '«\u00a0')
+    .replace(/ »/g, '\u00a0»');
+}
 
 // Recherche sans accents
 export const plier = (s) => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();

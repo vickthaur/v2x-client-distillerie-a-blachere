@@ -158,37 +158,39 @@ export function Produits({ slug }) {
           <Empty icone="bouteille" titre="Aucun produit" texte="Aucun produit ne correspond à ces filtres." action={<Button onClick={() => setQ({ q: '', gamme: '', stock: '' })}>Effacer les filtres</Button>} />
         </div>
       )}
-      <div class={cx('stack', r.refreshing && 'refreshing')}>
-        {groupes.map(([g, produits]) => (
-          <section key={g} class="card gamme" aria-labelledby={`gamme-${g}`}>
-            <div class="card__head card__head--line">
-              <h2 class="card__title" id={`gamme-${g}`}>
-                <Marque texte={GAMMES[g]?.nom || g} logo />
-              </h2>
-              <span class="small muted">
-                {pluriel(produits.length, 'produit', 'produits')}
-                {produits.some((p) => p.alcool) && <span class="age18" style="margin-left:8px">18+</span>}
-              </span>
-            </div>
-            <div class="tbl-wrap only-desk">
-              <table class="tbl tbl--produits">
-                <caption class="sr-only">{GAMMES[g]?.nom || g}</caption>
-                <thead>
-                  <tr>
-                    <th>Produit</th>
-                    <th>Contenance</th>
-                    <th class="num">Prix TTC</th>
-                    <th class="num">Pro HT</th>
-                    <th class="num">Stock</th>
-                    <th class="num">Seuil</th>
-                    <th class="num">Colis</th>
-                    <th class="num">Vendus 30 j</th>
-                    <th class="w-actions">
-                      <span class="sr-only">Actions</span>
+      {groupes.length > 0 && (
+        <div class={cx('card', r.refreshing && 'refreshing')}>
+          <div class="tbl-wrap only-desk">
+            <table class="tbl tbl--produits">
+              <caption class="sr-only">Produits et stocks par gamme</caption>
+              <thead>
+                <tr>
+                  <th>Produit</th>
+                  <th>Contenance</th>
+                  <th class="num">Prix TTC</th>
+                  <th class="num">Pro HT</th>
+                  <th class="num">Stock</th>
+                  <th class="num">Seuil</th>
+                  <th class="num">Colis</th>
+                  <th class="num">Vendus 30 j</th>
+                  <th class="w-actions">
+                    <span class="sr-only">Actions</span>
+                  </th>
+                </tr>
+              </thead>
+              {groupes.map(([g, produits]) => (
+                <tbody key={g}>
+                  <tr class="grp">
+                    <th colSpan={9} scope="colgroup" id={`gamme-${g}`}>
+                      <span class="grp__nom">
+                        <Marque texte={GAMMES[g]?.nom || g} logo />
+                      </span>
+                      <span class="grp__n">
+                        {pluriel(produits.length, 'produit', 'produits')}
+                        {produits.some((p) => p.alcool) && <span class="age18" style="margin-left:8px">18+</span>}
+                      </span>
                     </th>
                   </tr>
-                </thead>
-                <tbody>
                   {produits.map((p) => (
                     <Fragment key={p.slug}>
                       {p.variantes.map((v, i) => (
@@ -211,16 +213,26 @@ export function Produits({ slug }) {
                     </Fragment>
                   ))}
                 </tbody>
-              </table>
-            </div>
-            <div class="prod-cards only-mob">
-              {produits.map((p) => (
-                <CarteProduit key={p.slug} p={p} peutPrix={peutPrix} peutStock={peutStock} onActif={(a) => basculerActif(p, a)} onMouvement={(v) => setMouvement({ p, v })} onEditer={(v) => setEdition(`m:${p.slug}/${v.id}`)} />
               ))}
-            </div>
-          </section>
-        ))}
-      </div>
+            </table>
+          </div>
+          <div class="only-mob">
+            {groupes.map(([g, produits]) => (
+              <section key={g} aria-labelledby={`gm-${g}`}>
+                <h2 class="grp-mob" id={`gm-${g}`}>
+                  <Marque texte={GAMMES[g]?.nom || g} logo />
+                  <span class="grp__n">{pluriel(produits.length, 'produit', 'produits')}</span>
+                </h2>
+                <div class="prod-cards">
+                  {produits.map((p) => (
+                    <CarteProduit key={p.slug} p={p} peutPrix={peutPrix} peutStock={peutStock} onActif={(a) => basculerActif(p, a)} onMouvement={(v) => setMouvement({ p, v })} onEditer={(v) => setEdition(`m:${p.slug}/${v.id}`)} />
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        </div>
+      )}
 
       {edition?.startsWith('m:') &&
         (() => {

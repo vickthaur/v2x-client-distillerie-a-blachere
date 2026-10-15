@@ -51,7 +51,7 @@ export function Input({ label, opt, help, error, class: cls, champClass, suffixe
   return (
     <Field label={label} opt={opt} help={help} error={error} id={id} class={cls}>
       {suffixe || icone ? (
-        <div class="input-group">
+        <div class="input-group" style={suffixe ? { '--suffixe': `${String(suffixe).length + 0.5}ch` } : undefined}>
           {icone && <Icon name={icone} size="s" />}
           {input}
           {suffixe && <span class="input-group__suffix">{suffixe}</span>}

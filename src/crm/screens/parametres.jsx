@@ -114,11 +114,11 @@ function Bareme({ lignes, onChange, disabled, label }) {
       </div>
       {lignes.map((l, i) => (
         <div class="bareme__ligne" key={i}>
-          <div class="input-group">
+          <div class="input-group" style="--suffixe:5.5ch">
             <input class="input input--sm" inputMode="numeric" value={l.jusquA} disabled={disabled} aria-label={`${label}, tranche ${i + 1} : nombre de bouteilles`} onInput={(e) => onChange(lignes.map((x, k) => (k === i ? { ...x, jusquA: e.currentTarget.value } : x)))} />
             <span class="input-group__suffix">bout.</span>
           </div>
-          <div class="input-group">
+          <div class="input-group" style="--suffixe:1.5ch">
             <input class="input input--sm" inputMode="decimal" value={l.prixTTC} disabled={disabled} aria-label={`${label}, tranche ${i + 1} : prix TTC`} onInput={(e) => onChange(lignes.map((x, k) => (k === i ? { ...x, prixTTC: e.currentTarget.value } : x)))} />
             <span class="input-group__suffix">€</span>
           </div>

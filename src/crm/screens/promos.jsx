@@ -9,11 +9,11 @@ import { Choices, Input, Switch, ecrireNombre, erreurDe, lireNombre } from '../u
 import { Dialog, toast } from '../ui/overlay.jsx';
 import { Jauge } from '../charts/charts.jsx';
 import { PROMO_TYPE } from '../lib/statuts.js';
-import { aujourdHui, date, euros, nombre, pluriel } from '../lib/format.js';
+import { aujourdHui, date, euros, eurosSimple, nombre, pluriel } from '../lib/format.js';
 
 export function valeurPromo(p) {
   if (p.type === 'pourcentage') return `−${String(p.valeur).replace('.', ',')} %`;
-  if (p.type === 'montant') return `−${euros(p.valeur)}`;
+  if (p.type === 'montant') return `−${eurosSimple(p.valeur)}`;
   return 'Livraison offerte';
 }
 function etatPromo(p) {
@@ -83,7 +83,7 @@ export function Promos() {
                 <dl class="promo__dl">
                   <div>
                     <dt>Minimum</dt>
-                    <dd>{p.minimumTTC ? `${euros(p.minimumTTC)} TTC` : 'Aucun'}</dd>
+                    <dd>{p.minimumTTC ? `${eurosSimple(p.minimumTTC)} TTC` : 'Aucun'}</dd>
                   </div>
                   <div>
                     <dt>Période</dt>

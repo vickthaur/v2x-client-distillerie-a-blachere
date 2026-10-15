@@ -11,7 +11,7 @@ import { Input, Select, Textarea, erreurDe } from '../ui/form.jsx';
 import { Marque } from '../ui/marque.jsx';
 import { Ruban } from '../ui/ruban.jsx';
 import { CANAL, COMMANDE, FACTURE, LIVRAISON, PAIEMENT_MODE, PAIEMENT_STATUT, TRANSITION, CONDITIONS } from '../lib/statuts.js';
-import { aujourdHui, date, dateHeure, euros, heure, jourSemaine, nombre, pluriel, relatif, taux, telephone } from '../lib/format.js';
+import { aujourdHui, date, dateHeure, euros, eurosSimple, heure, jourSemaine, nombre, pluriel, relatif, taux, telephone } from '../lib/format.js';
 
 const TRANSPORTEURS = ['Colissimo', 'Chronopost', 'DPD', 'GLS', 'Transporteur de la distillerie', 'Autre'];
 const AVANT = new Set(['en-preparation', 'prete', 'expediee', 'livree', 'retiree']);
@@ -430,7 +430,7 @@ function Lignes({ c, pro }) {
           <p class="op-ligne">
             <Ruban />
             <span>
-              <strong>{c.operation.nom || 'Octobre Rose'}</strong> : {euros(c.operation.montant)} {c.operation.montant > 1 ? 'reversés' : 'reversé'} à {c.operation.beneficiaire?.startsWith('l’') || c.operation.beneficiaire?.startsWith('l\'') ? c.operation.beneficiaire : `l’${c.operation.beneficiaire || 'Institut du Cancer Avignon-Provence'}`}
+              <strong>{c.operation.nom || 'Octobre Rose'}</strong> : {eurosSimple(c.operation.montant)} {c.operation.montant > 1 ? 'reversés' : 'reversé'} à {c.operation.beneficiaire?.startsWith('l’') || c.operation.beneficiaire?.startsWith('l\'') ? c.operation.beneficiaire : `l’${c.operation.beneficiaire || 'Institut du Cancer Avignon-Provence'}`}
               {c.operation.bouteilles ? ` (${pluriel(c.operation.bouteilles, 'bouteille', 'bouteilles')} de PAC Citron)` : ''}
             </span>
           </p>

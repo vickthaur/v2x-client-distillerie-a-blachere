@@ -161,13 +161,19 @@ export function Commandes() {
 
       <div class="toolbar">
         <SearchInput class="toolbar__search" value={recherche} onChange={(v) => changer({ q: v })} placeholder="Numéro, client, e-mail…" label="Rechercher une commande" />
-        <div class="seg" role="group" aria-label="Canal">
+        <div class="seg only-desk-flex" role="group" aria-label="Canal">
           {[['', 'Tous'], ['en-ligne', 'En ligne'], ['pro', 'Pro'], ['telephone', 'Téléphone']].map(([id, l]) => (
             <button key={id} type="button" aria-pressed={canal === id ? 'true' : 'false'} onClick={() => changer({ canal: id })}>
               {l}
             </button>
           ))}
         </div>
+        <select class="select select--sm only-mob" style="width:auto" aria-label="Canal" value={canal} onChange={(e) => changer({ canal: e.currentTarget.value })}>
+          <option value="">Tous les canaux</option>
+          <option value="en-ligne">En ligne</option>
+          <option value="pro">Pro</option>
+          <option value="telephone">Téléphone</option>
+        </select>
         <select class="select select--sm" style="width:auto" aria-label="Période" value={periode} onChange={(e) => changer({ periode: e.currentTarget.value, du: undefined, au: undefined })}>
           {PERIODES.map((p) => (
             <option key={p.id} value={p.id}>
@@ -183,8 +189,8 @@ export function Commandes() {
           </div>
         )}
         {peutModifier && liste.length > 0 && (
-          <Button size="sm" class="only-mob-inline" variant={modeSel ? 'primary' : undefined} icon="check" onClick={() => { setModeSel(!modeSel); setSel(new Set()); }}>
-            {modeSel ? 'Terminer' : 'Sélectionner'}
+          <Button size="sm" class="only-mob-inline" variant={modeSel ? 'primary' : undefined} icon="check" aria-pressed={modeSel ? 'true' : 'false'} aria-label={modeSel ? 'Terminer la sélection' : 'Sélectionner des commandes'} onClick={() => { setModeSel(!modeSel); setSel(new Set()); }}>
+            {modeSel ? 'Terminer' : null}
           </Button>
         )}
       </div>

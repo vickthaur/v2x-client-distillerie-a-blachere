@@ -433,7 +433,7 @@ export function DialogPartage({ onClose }) {
               Lien de la démo
             </label>
             <div class="row" style="gap:8px">
-              <input id="lien-demo" ref={champ} class="input mono" readOnly value={etat.lien} onFocus={(e) => e.currentTarget.select()} />
+              <input id="lien-demo" ref={champ} class="input code" readOnly value={etat.lien} onFocus={(e) => e.currentTarget.select()} />
               <Button icon={copie ? 'check' : 'copier'} onClick={copier} variant={copie ? 'primary' : undefined}>
                 {copie ? 'Copié' : 'Copier'}
               </Button>
@@ -612,6 +612,7 @@ export function Palette({ onClose }) {
 // Écran « Plus » du téléphone : toutes les rubriques, la démo et le compte
 export function Plus() {
   const s = useSession();
+  const [mdp, setMdp] = useState(false);
   return (
     <div class="page page--narrow">
       <header class="page__head">
@@ -631,21 +632,58 @@ export function Plus() {
                 {g.nom}
               </h2>
               <div class="list">
-                {items.map((i) => (
-                  <Link key={i.id} class="list__item" href={i.href}>
-                    <span class="list__ico">
-                      <Icon name={i.icone} />
-                    </span>
-                    <span class="list__main">
-                      <span class="list__title">{i.nom}</span>
-                    </span>
-                    <Icon name="droite" class="list__chev" />
-                  </Link>
-                ))}
+                {items.map((i) => {
+                  const n = i.notif ? s.notifs?.[i.notif] : 0;
+                  return (
+                    <Link key={i.id} class="list__item" href={i.href}>
+                      <span class="list__ico">
+                        <Icon name={i.icone} />
+                      </span>
+                      <span class="list__main">
+                        <span class="list__title">{i.nom}</span>
+                      </span>
+                      {n > 0 && <Badge n={n} ton={i.notifTon} label={`${n} à voir`} />}
+                      <Icon name="droite" class="list__chev" />
+                    </Link>
+                  );
+                })}
               </div>
             </section>
           );
         })}
+        <section class="card" aria-labelledby="plus-compte">
+          <h2 class="eyebrow" id="plus-compte" style="padding:14px 16px 4px">
+            Mon compte
+          </h2>
+          <div class="list">
+            <div class="list__item">
+              <Avatar nom={nomComplet(s.moi)} cle={s.moi.id} />
+              <span class="list__main">
+                <span class="list__title">{nomComplet(s.moi)}</span>
+                <span class="list__meta">
+                  {roleNom(s.moi.role)} · {s.moi.email}
+                </span>
+              </span>
+            </div>
+            <button type="button" class="list__item" onClick={() => setMdp(true)}>
+              <span class="list__ico">
+                <Icon name="cle" />
+              </span>
+              <span class="list__main">
+                <span class="list__title">Changer le mot de passe</span>
+              </span>
+            </button>
+            <button type="button" class="list__item" onClick={() => s.deconnecter()}>
+              <span class="list__ico">
+                <Icon name="sortie" />
+              </span>
+              <span class="list__main">
+                <span class="list__title">Se déconnecter</span>
+              </span>
+            </button>
+          </div>
+        </section>
+        {mdp && <DialogMotDePasse onClose={() => setMdp(false)} />}
         {s.demo?.active && (
           <section class="card" aria-labelledby="plus-demo">
             <h2 class="eyebrow" id="plus-demo" style="padding:14px 16px 4px">

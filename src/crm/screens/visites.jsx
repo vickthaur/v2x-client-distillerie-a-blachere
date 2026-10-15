@@ -131,6 +131,7 @@ export function Visites() {
           <p class="small muted only-desk" style="margin-top:10px">
             Deux séances par jour, du lundi au samedi (fermé le dimanche), 25 personnes au plus. Saison du 12 février au 31 décembre.
           </p>
+          <ReservationsSemaine reservations={reservations} seances={seances} ouvrir={(id) => setQ({ seance: id })} />
 
           <div class="only-mob">
             <div class="jours-strip" role="tablist" aria-label="Jour">
@@ -163,6 +164,7 @@ export function Visites() {
                 );
               })}
             </div>
+            <VisiteursDuJour reservations={reservations.filter((x) => x.date === jourMob)} seances={seances} ouvrir={(id) => setQ({ seance: id })} />
           </div>
         </>
       )}
@@ -194,6 +196,102 @@ export function Visites() {
         />
       )}
     </div>
+  );
+}
+
+// Visiteurs du jour (téléphone) : qui vient, à quelle séance
+function VisiteursDuJour({ reservations, seances, ouvrir }) {
+  const liste = [...reservations].sort((a, b) => `${a.moment === 'matin' ? 0 : 1}${a.statut === 'annulee' ? 1 : 0}${a.nom}`.localeCompare(`${b.moment === 'matin' ? 0 : 1}${b.statut === 'annulee' ? 1 : 0}${b.nom}`, 'fr'));
+  if (!liste.length) return null;
+  return (
+    <section class="card mt" aria-labelledby="visiteurs-jour">
+      <div class="card__head">
+        <h2 class="card__title" id="visiteurs-jour">
+          Visiteurs du jour
+        </h2>
+        <span class="small muted">{pluriel(personnes(liste), 'personne', 'personnes')}</span>
+      </div>
+      <div class="list" style="margin-top:6px">
+        {liste.map((x) => {
+          const se = seances.find((y) => y.id === x.seanceId);
+          return (
+            <button key={x.id} type="button" class={cx('list__item', x.statut === 'annulee' && 'is-inactif')} onClick={() => se && ouvrir(se.id)}>
+              <span class="list__main">
+                <span class="list__title">
+                  <span>{x.nom}</span>
+                </span>
+                <span class="list__meta">
+                  {heure(se?.heure || HEURES[x.moment])} · {pluriel(x.personnes, 'personne', 'personnes')}
+                  {x.langue && x.langue !== 'fr' ? ` · ${LANGUE_COURT[x.langue]}` : ''}
+                </span>
+              </span>
+              <Statut table={RESERVATION} valeur={x.statut} />
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+// Toutes les réservations de la semaine (ordinateur), par jour et séance
+function ReservationsSemaine({ reservations, seances, ouvrir }) {
+  const ordre = (x) => `${x.date}-${x.moment === 'matin' ? 0 : 1}-${x.statut === 'annulee' ? 1 : 0}-${x.nom}`;
+  const liste = [...reservations].sort((a, b) => (ordre(a) < ordre(b) ? -1 : 1));
+  if (!liste.length) return null;
+  return (
+    <section class="card mt only-desk" aria-labelledby="resa-semaine">
+      <div class="card__head">
+        <h2 class="card__title" id="resa-semaine">
+          Réservations de la semaine
+        </h2>
+        <span class="small muted">{pluriel(actives(liste).length, 'réservation', 'réservations')} · {pluriel(personnes(liste), 'personne', 'personnes')}</span>
+      </div>
+      <div class="tbl-wrap" style="margin-top:12px">
+        <table class="tbl tbl--compact">
+          <caption class="sr-only">Réservations de la semaine</caption>
+          <thead>
+            <tr>
+              <th>Séance</th>
+              <th>Nom</th>
+              <th class="num">Personnes</th>
+              <th>Langue</th>
+              <th>Contact</th>
+              <th>Source</th>
+              <th>Statut</th>
+            </tr>
+          </thead>
+          <tbody>
+            {liste.map((x) => {
+              const se = seances.find((y) => y.id === x.seanceId);
+              return (
+                <tr key={x.id} data-href="" onClick={() => se && ouvrir(se.id)} class={x.statut === 'annulee' ? 'is-inactif' : ''}>
+                  <td class="nowrap">
+                    <button type="button" class="tbl__main lien-btn" onClick={() => se && ouvrir(se.id)}>
+                      {jourCourt(x.date)} · {heure(se?.heure || HEURES[x.moment])}
+                    </button>
+                  </td>
+                  <td>
+                    <span class="strong">{x.nom}</span>
+                    <span class="tbl__sub mono">{x.reference}</span>
+                  </td>
+                  <td class="num">
+                    {x.personnes}
+                    {x.mineurs ? <span class="tbl__sub">dont {x.mineurs} mineur{x.mineurs > 1 ? 's' : ''}</span> : null}
+                  </td>
+                  <td>{LANGUE_COURT[x.langue] || x.langue}</td>
+                  <td class="small">{x.telephone ? telephone(x.telephone) : x.email || '—'}</td>
+                  <td class="small muted">{RESERVATION_SOURCE[x.source] || x.source}</td>
+                  <td>
+                    <Statut table={RESERVATION} valeur={x.statut} />
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }
 

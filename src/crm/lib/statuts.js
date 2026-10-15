@@ -17,18 +17,18 @@ export const ORDRE_COMMANDE = ['nouvelle', 'en-preparation', 'prete', 'expediee'
 export const TRANSITION = {
   'en-preparation': { label: 'Passer en préparation', icone: 'box' },
   prete: { label: 'Prête au retrait', icone: 'store' },
-  expediee: { label: 'Expédier', icone: 'truck' },
+  expediee: { label: 'Expédier', icone: 'camion' },
   livree: { label: 'Marquer livrée', icone: 'check' },
   retiree: { label: 'Marquer retirée', icone: 'check' },
   annulee: { label: 'Annuler la commande', icone: 'x', danger: true },
-  remboursee: { label: 'Rembourser', icone: 'undo', danger: true },
-  nouvelle: { label: 'Remettre en « nouvelle »', icone: 'undo' },
+  remboursee: { label: 'Rembourser', icone: 'annuler', danger: true },
+  nouvelle: { label: 'Remettre en « nouvelle »', icone: 'annuler' },
 };
 
 export const CANAL = {
   'en-ligne': { label: 'En ligne', icone: 'globe' },
-  pro: { label: 'Pro', icone: 'building' },
-  telephone: { label: 'Téléphone', icone: 'phone' },
+  pro: { label: 'Pro', icone: 'store' },
+  telephone: { label: 'Téléphone', icone: 'telephone' },
 };
 
 export const PAIEMENT_STATUT = {
@@ -56,9 +56,9 @@ export const FACTURE = {
 
 export const LIVRAISON = {
   retrait: { label: 'Retrait à la distillerie', court: 'Retrait', icone: 'store' },
-  colissimo: { label: 'Colissimo à domicile', court: 'Colissimo', icone: 'truck' },
+  colissimo: { label: 'Colissimo à domicile', court: 'Colissimo', icone: 'camion' },
   relais: { label: 'Point relais', court: 'Relais', icone: 'pin' },
-  transporteur: { label: 'Transporteur', court: 'Transporteur', icone: 'truck' },
+  transporteur: { label: 'Transporteur', court: 'Transporteur', icone: 'camion' },
 };
 
 export const CLIENT_ORIGINE = {

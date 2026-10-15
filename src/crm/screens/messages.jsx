@@ -4,13 +4,13 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { crm, elements, invalider, useCrm } from '../lib/data.js';
 import { useFil, useSession } from '../lib/session.jsx';
-import { Link, useQuery } from '../lib/router.jsx';
+import { Link, origineNavigation, useQuery } from '../lib/router.jsx';
 import { Icon } from '../ui/icons.jsx';
 import { Avatar, Button, Chips, Empty, Erreur, Notice, PageHead, SearchInput, SkeletonRows, Statut, cx, useTitre } from '../ui/base.jsx';
 import { Menu, MenuItem, MenuLabel, MenuSep, toast } from '../ui/overlay.jsx';
 import { Marque } from '../ui/marque.jsx';
 import { MESSAGE, SUJET } from '../lib/statuts.js';
-import { dateHeure, nomComplet, relatif, telephone } from '../lib/format.js';
+import { dateHeure, nomComplet, relatif, telephone, typo } from '../lib/format.js';
 
 const ORDRE = ['nouveau', 'en-cours', 'traite', 'archive'];
 const PLURIELS = { nouveau: 'Nouveaux', 'en-cours': 'En cours', traite: 'Traités', archive: 'Archivés' };
@@ -121,7 +121,7 @@ function Lecture({ id, retour, onChange }) {
     if (r.data) onChange();
   }, [!!r.data]);
   useEffect(() => {
-    titre.current?.focus({ preventScroll: true });
+    if (m && origineNavigation() !== 'init') titre.current?.focus({ preventScroll: true });
   }, [id, !!m]);
 
   if (r.error && !m) return r.error.status === 404 ? <Empty icone="message" titre="Message introuvable" /> : <Erreur erreur={r.error} onRetry={r.reload} />;
@@ -288,7 +288,7 @@ function Lecture({ id, retour, onChange }) {
               {String(x.texte || '')
                 .split('\n')
                 .map((l, j) => (
-                  <p key={j}>{l ? <Marque texte={l} /> : ' '}</p>
+                  <p key={j}>{l ? <Marque texte={typo(l)} /> : ' '}</p>
                 ))}
             </div>
           </li>
@@ -304,7 +304,11 @@ function Lecture({ id, retour, onChange }) {
           <textarea id={`rep-${m.id}`} class="textarea" rows={4} value={texte} onInput={(e) => setTexte(e.currentTarget.value)} placeholder={`Répondre à ${m.nom.split(' ')[0]}…`} onKeyDown={(e) => (e.metaKey || e.ctrlKey) && e.key === 'Enter' && repondre(e)} />
           <div class="reponse__pied">
             <span class="small muted">
-              Envoyée à {m.email} · <kbd>Ctrl</kbd> <kbd>↵</kbd>
+              Envoyée à {m.email}
+              <span class="kbd-astuce">
+                {' '}
+                · <kbd>Ctrl</kbd> <kbd>↵</kbd>
+              </span>
             </span>
             <Button type="submit" variant="primary" icon="send" busy={envoi} disabled={texte.trim().length < 2}>
               Envoyer la réponse

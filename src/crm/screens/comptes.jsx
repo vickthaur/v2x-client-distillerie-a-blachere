@@ -389,8 +389,8 @@ export function Compte({ id }) {
         sous={
           <>
             <span>{COMPTE_TYPE[c.type] || c.type}</span>
-            {c.raisonSociale && c.raisonSociale !== c.enseigne && <span>· {c.raisonSociale}</span>}
-            {(c.adresseFacturation?.ville || c.ville) && <span>· {c.adresseFacturation?.ville || c.ville}</span>}
+            {c.raisonSociale && c.raisonSociale !== c.enseigne && <span>{c.raisonSociale}</span>}
+            {(c.adresseFacturation?.ville || c.ville) && <span>{c.adresseFacturation?.ville || c.ville}</span>}
           </>
         }
         actions={

@@ -3,7 +3,7 @@
 // recalculés par le serveur.
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { crm, elements, invalider, useCrm } from '../lib/data.js';
-import { useSession } from '../lib/session.jsx';
+import { useFil, useSession } from '../lib/session.jsx';
 import { navigate, useQuery } from '../lib/router.jsx';
 import { Icon } from '../ui/icons.jsx';
 import { Avatar, Button, Card, Empty, Notice, PageHead, Pill, SearchInput, cx, useTitre } from '../ui/base.jsx';
@@ -30,6 +30,7 @@ function prochainJourOuvre() {
 
 export function NouvelleCommande() {
   useTitre('Nouvelle commande');
+  useFil('Nouvelle commande');
   const s = useSession();
   const [q] = useQuery();
   const peutPro = s.peut('commandes-pro', 'ecriture');
@@ -358,6 +359,22 @@ function Catalogue({ catalogue, chargement, erreur, onAjouter, pro }) {
       <SearchInput value={q} onChange={setQ} delai={120} placeholder="Ajouter un produit : PAC, menthe, pastis…" label="Chercher un produit à ajouter" />
       {erreur && <Notice ton="err">{erreur.message}</Notice>}
       {chargement && <p class="small muted">Chargement du catalogue…</p>}
+      {!terme && catalogue.length > 0 && (
+        <div class="rapide">
+          <span class="small muted">Les plus vendus :</span>
+          {catalogue
+            .flatMap((p) => p.variantes.filter((v) => v.stock > 0).map((v) => ({ p, v })))
+            .sort((a, b) => (b.v.vendus30 || 0) - (a.v.vendus30 || 0))
+            .slice(0, 6)
+            .map(({ p, v }) => (
+              <button key={`${p.slug}-${v.id}`} type="button" class="chip" onClick={() => onAjouter(p, v)} aria-label={`Ajouter ${p.nom} ${v.volume}`}>
+                <Icon name="plus" size="xs" />
+                <Marque texte={p.nom} />
+                <span class="chip__n">{v.volume}</span>
+              </button>
+            ))}
+        </div>
+      )}
       {terme && (
         <div class="suggestions">
           {filtres.length === 0 && <Empty petit icone="bouteille" titre="Aucun produit" texte={`Rien ne correspond à « ${q.trim()} ».`} />}

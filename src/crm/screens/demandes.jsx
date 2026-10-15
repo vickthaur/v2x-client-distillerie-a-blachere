@@ -3,14 +3,15 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { crm, elements, invalider, useCrm } from '../lib/data.js';
 import { useFil, useSession } from '../lib/session.jsx';
-import { Link, navigate, useQuery } from '../lib/router.jsx';
+import { Link, navigate, origineNavigation, useQuery } from '../lib/router.jsx';
 import { Icon } from '../ui/icons.jsx';
 import { Avatar, Button, Chips, Empty, Erreur, Notice, PageHead, Pill, SkeletonRows, Statut, cx, useTitre } from '../ui/base.jsx';
 import { Input, Select, Textarea, erreurDe, lireNombre } from '../ui/form.jsx';
 import { Dialog, toast } from '../ui/overlay.jsx';
 import { ApercuCourriel } from '../ui/courriel.jsx';
 import { COMPTE_TYPE, CONDITIONS, DEMANDE, GRILLE } from '../lib/statuts.js';
-import { date, dateHeure, nomComplet, pluriel, relatif, telephone } from '../lib/format.js';
+import { date, dateHeure, nomComplet, pluriel, relatif, telephone, typo } from '../lib/format.js';
+import { Marque } from '../ui/marque.jsx';
 import { useCommerciaux } from './comptes.jsx';
 
 const ORDRE = ['nouvelle', 'en-cours', 'acceptee', 'refusee'];
@@ -100,7 +101,7 @@ function Detail({ id, depuisListe, retour, onChange }) {
   const peutModifier = s.peut('comptes', 'ecriture');
   useEffect(() => setNote(dm?.note || ''), [dm?.note]);
   useEffect(() => {
-    titre.current?.focus({ preventScroll: true });
+    if (origineNavigation() !== 'init') titre.current?.focus({ preventScroll: true });
   }, [id]);
 
   if (!dm && r.error) return <Erreur erreur={r.error} onRetry={r.reload} />;
@@ -198,7 +199,9 @@ function Detail({ id, depuisListe, retour, onChange }) {
 
       {dm.message && (
         <figure class="citation">
-          <blockquote>{dm.message}</blockquote>
+          <blockquote>
+            <Marque texte={typo(dm.message)} />
+          </blockquote>
           <figcaption>— {dm.nom}</figcaption>
         </figure>
       )}

@@ -302,7 +302,7 @@ export function Client({ id }) {
         sous={
           <>
             <span>Client depuis le {date(c.createdAt)}</span>
-            {c.origine && <span>· {CLIENT_ORIGINE[c.origine] || c.origine}</span>}
+            {c.origine && <span>{CLIENT_ORIGINE[c.origine] || c.origine}</span>}
           </>
         }
         actions={
@@ -500,7 +500,7 @@ export function NotesClient({ c, patch, peutModifier, titre = 'Notes' }) {
   return (
     <Card titre={titre} icone="note" sous="Visibles par l’équipe seulement">
       <div class="stack stack--s">
-        <Textarea label="Notes" value={v} onInput={(e) => setV(e.currentTarget.value)} disabled={!peutModifier} rows={4} placeholder="Goûts, habitudes, échanges…" />
+        <textarea class="textarea" aria-label={titre} value={v} onInput={(e) => setV(e.currentTarget.value)} disabled={!peutModifier} rows={4} placeholder="Goûts, habitudes, échanges…" />
         {peutModifier && (
           <div class="btn-row btn-row--end">
             {change && (

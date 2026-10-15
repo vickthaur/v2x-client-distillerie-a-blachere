@@ -98,7 +98,10 @@ function Kpis({ d }) {
   return (
     <div class="kpis" role="list" aria-label="Chiffres clés">
       <div class="card kpi kpi--hero" role="listitem">
-        <p class="kpi__label">Chiffre d’affaires · 30 jours</p>
+        <p class="kpi__label">
+          <span class="kpi__long">Chiffre d’affaires · 30 jours</span>
+          <span class="kpi__court">CA · 30 jours</span>
+        </p>
         <p class="kpi__value">{eurosRond(ca30)}</p>
         <div class="kpi__spark">
           <MiniCourbe valeurs={parJour} couleur={COULEURS.enLigne} largeur={240} hauteur={30} />
@@ -116,11 +119,7 @@ function Kpis({ d }) {
       <div class="card kpi" role="listitem">
         <p class="kpi__label">Commandes · 30 jours</p>
         <p class="kpi__value">{nombre(d.commandes30)}</p>
-        <div class="kpi__foot">
-          <span class="kpi__cmp">
-            {eurosRond(ca.enLigne30)} en ligne · {eurosRond(ca.pro30)} pro
-          </span>
-        </div>
+        <Repartition enLigne={ca.enLigne30 || 0} pro={ca.pro30 || 0} />
       </div>
       <div class="card kpi" role="listitem">
         <p class="kpi__label">Panier moyen</p>
@@ -139,6 +138,30 @@ function Kpis({ d }) {
           <span class="kpi__cmp">{totalATraiter ? `${pluriel(a.commandes || 0, 'commande', 'commandes')}, ${pluriel(a.messages || 0, 'message', 'messages')}…` : 'Rien en attente'}</span>
         </div>
       </Link>
+    </div>
+  );
+}
+
+// Part en ligne / pro du chiffre d'affaires (barre à deux segments, valeurs écrites)
+function Repartition({ enLigne, pro }) {
+  const total = enLigne + pro;
+  const p = total ? enLigne / total : 0;
+  return (
+    <div class="repart">
+      <div class="repart__barre" role="img" aria-label={`Chiffre d’affaires : ${eurosRond(enLigne)} en ligne, ${eurosRond(pro)} pro`}>
+        {enLigne > 0 && <span style={{ width: `${p * 100}%`, background: COULEURS.enLigne }} />}
+        {pro > 0 && <span style={{ width: `${(1 - p) * 100}%`, background: COULEURS.pro }} />}
+      </div>
+      <div class="repart__leg">
+        <span>
+          <i style={{ background: COULEURS.enLigne }} />
+          En ligne <strong>{eurosRond(enLigne)}</strong>
+        </span>
+        <span>
+          <i style={{ background: COULEURS.pro }} />
+          Pro <strong>{eurosRond(pro)}</strong>
+        </span>
+      </div>
     </div>
   );
 }

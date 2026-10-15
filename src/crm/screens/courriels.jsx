@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'preact/hooks';
 import { elements, useCrm } from '../lib/data.js';
 import { useFil } from '../lib/session.jsx';
-import { Link, useQuery } from '../lib/router.jsx';
+import { Link, origineNavigation, useQuery } from '../lib/router.jsx';
 import { Icon } from '../ui/icons.jsx';
 import { Empty, Erreur, Notice, PageHead, Pagination, SkeletonRows, cx, useTitre } from '../ui/base.jsx';
 import { ApercuCourriel } from '../ui/courriel.jsx';
@@ -96,7 +96,7 @@ function Apercu({ id, depuisListe }) {
   useFil(c?.objet);
   const ref = useRef(null);
   useEffect(() => {
-    ref.current?.focus({ preventScroll: true });
+    if (c && origineNavigation() !== 'init') ref.current?.focus({ preventScroll: true });
   }, [id, !!c]);
   if (besoin && r.error) return <Erreur erreur={r.error} onRetry={r.reload} />;
   if (!c) return <div class="card"><SkeletonRows n={6} cols={2} /></div>;
