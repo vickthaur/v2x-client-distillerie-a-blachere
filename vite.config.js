@@ -1,6 +1,7 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
+import { decider } from './server/portail.js';
 
 // Pages du site (Vite multi-pages). Les adresses propres (/boutique, /panier…) et les fiches
 // produits (/boutique/<slug> → produit.html) sont réécrites ici en développement et en
@@ -37,6 +38,38 @@ clean['/la-distillerie'] = 'la-maison.html';
 
 // <!-- @include header.html --> → contenu de src/partials/header.html (en-tête, pied de page,
 // fenêtres communes) : un seul exemplaire pour toutes les pages, en HTML statique.
+// Accès privé (même décision que middleware.js sur Vercel), en local seulement si MAQUETTES_SECRET
+// est défini : MAQUETTES_SECRET=… npm run preview, pour essayer le lien d'accès et la page privée.
+function portail() {
+  const secret = process.env.MAQUETTES_SECRET;
+  const garde = (req, res, next) => {
+    const d = decider({
+      url: req.url,
+      cookie: req.headers.cookie || '',
+      accept: req.headers.accept || '',
+      secret,
+      retiree: process.env.MAQUETTE_RETIREE === '1',
+    });
+    if (d.type === 'passer') {
+      // en http local, un cookie « Secure » ne serait pas gardé
+      if (d.cookie) res.setHeader('Set-Cookie', d.cookie.replace('; Secure', ''));
+      return next();
+    }
+    res.statusCode = d.status;
+    for (const [k, v] of Object.entries(d.headers)) res.setHeader(k, v);
+    res.end(req.method === 'HEAD' ? undefined : d.body);
+  };
+  return {
+    name: 'blachere-portail',
+    configureServer(server) {
+      if (secret) server.middlewares.use(garde);
+    },
+    configurePreviewServer(server) {
+      if (secret) server.middlewares.use(garde);
+    },
+  };
+}
+
 function partials() {
   const dir = resolve(__dirname, 'src/partials');
   const include = (html, depth = 0) =>
@@ -92,7 +125,7 @@ function cleanUrls() {
 
 export default defineConfig({
   appType: 'mpa',
-  plugins: [partials(), cleanUrls()],
+  plugins: [portail(), partials(), cleanUrls()],
   server: { port: 5173 },
   preview: { port: 4173 },
   build: {

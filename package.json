@@ -15,9 +15,11 @@
     "build": "vite build",
     "preview": "vite preview",
     "qa": "node scripts/qa.mjs",
-    "test:photos": "node scripts/test-packshot.mjs"
+    "test:photos": "node scripts/test-packshot.mjs",
+    "test": "node --test 'test/*.test.js'"
   },
   "dependencies": {
+    "@vercel/functions": "3.9.11",
     "three": "0.169.0"
   },
   "devDependencies": {
