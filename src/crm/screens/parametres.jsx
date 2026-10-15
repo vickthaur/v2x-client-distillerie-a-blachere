@@ -154,15 +154,15 @@ function Livraison({ v, peutModifier, enregistrer }) {
       <div class="cols cols--2">
         <div class="stack stack--s">
           <h3 class="form-section__title">Colissimo à domicile</h3>
-          <Bareme lignes={sct.f.colissimo} onChange={(l) => sct.setF({ ...sct.f, colissimo: l })} disabled={!peutModifier} label="Colissimo" />
+          <Bareme lignes={sct.f.colissimo} onChange={(l) => sct.setF((prec) => ({ ...prec, colissimo: l }))} disabled={!peutModifier} label="Colissimo" />
         </div>
         <div class="stack stack--s">
           <h3 class="form-section__title">Point relais</h3>
-          <Bareme lignes={sct.f.relais} onChange={(l) => sct.setF({ ...sct.f, relais: l })} disabled={!peutModifier} label="Point relais" />
+          <Bareme lignes={sct.f.relais} onChange={(l) => sct.setF((prec) => ({ ...prec, relais: l }))} disabled={!peutModifier} label="Point relais" />
         </div>
       </div>
       <div class="form-grid">
-        <Input label="Livraison offerte dès" suffixe="€ TTC" inputMode="decimal" value={sct.f.francoTTC} disabled={!peutModifier} onInput={(e) => sct.setF({ ...sct.f, francoTTC: e.currentTarget.value })} help="Montant des articles, hors port" />
+        <Input label="Livraison offerte dès" suffixe="€ TTC" inputMode="decimal" value={sct.f.francoTTC} disabled={!peutModifier} onInput={(e) => { const v = e.currentTarget.value; sct.setF((prec) => ({ ...prec, francoTTC: v })); }} help="Montant des articles, hors port" />
         <div class="field">
           <span class="field__label">Retrait à la distillerie</span>
           <p class="small muted" style="padding-top:8px">
@@ -182,7 +182,7 @@ function Pro({ v, peutModifier, enregistrer }) {
     'Conditions pro enregistrées',
     (f) => ({ minimumHT: lireNombre(f.minimumHT) || 0, francoHT: lireNombre(f.francoHT) || 0, fraisPortHT: lireNombre(f.fraisPortHT) || 0, delai: f.delai.trim() }),
   );
-  const m = (k) => (e) => sct.setF({ ...sct.f, [k]: e.currentTarget.value });
+  const m = (k) => (e) => { const v = e.currentTarget.value; sct.setF((prec) => ({ ...prec, [k]: v })); };
   return (
     <Section id="pro" titre="Professionnels" sous="Conditions générales de l’espace pro ; chaque compte peut avoir son propre franco." icone="store" change={sct.change} busy={sct.busy} onSave={sct.sauver} onReset={sct.reset} err={sct.err} peutModifier={peutModifier}>
       <div class="form-grid">
@@ -203,8 +203,8 @@ function Visites({ v, peutModifier, enregistrer }) {
     'Réglages des visites enregistrés',
     (f) => ({ capacite: parseInt(f.capacite, 10) || 25, horaires: { matin: f.matin, 'apres-midi': f.apresMidi }, saison: { debut: f.debut, fin: f.fin }, fermeLe: f.fermeLe }),
   );
-  const m = (k) => (e) => sct.setF({ ...sct.f, [k]: e.currentTarget.value });
-  const basculer = (j) => sct.setF({ ...sct.f, fermeLe: sct.f.fermeLe.includes(j) ? sct.f.fermeLe.filter((x) => x !== j) : [...sct.f.fermeLe, j].sort() });
+  const m = (k) => (e) => { const v = e.currentTarget.value; sct.setF((prec) => ({ ...prec, [k]: v })); };
+  const basculer = (j) => sct.setF((prec) => ({ ...prec, fermeLe: prec.fermeLe.includes(j) ? prec.fermeLe.filter((x) => x !== j) : [...prec.fermeLe, j].sort() }));
   return (
     <Section id="visites" titre="Visites" sous="Capacité et horaires des nouvelles séances ; les séances existantes se règlent dans l’agenda." icone="calendrier" change={sct.change} busy={sct.busy} onSave={sct.sauver} onReset={sct.reset} err={sct.err} peutModifier={peutModifier}>
       <div class="form-grid form-grid--3">
@@ -234,7 +234,7 @@ function Entreprise({ v, peutModifier, enregistrer }) {
     'Coordonnées de l’entreprise enregistrées',
     (f) => ({ nom: f.nom.trim(), adresse: f.adresse.replace(/\s*\n\s*/g, ', ').trim(), telephone: f.telephone.trim(), email: f.email.trim(), siret: f.siret.replace(/\s/g, '') || undefined, tvaIntra: f.tvaIntra.replace(/\s/g, '') || undefined, rcs: f.rcs.trim() || undefined }),
   );
-  const m = (k) => (e) => sct.setF({ ...sct.f, [k]: e.currentTarget.value });
+  const m = (k) => (e) => { const v = e.currentTarget.value; sct.setF((prec) => ({ ...prec, [k]: v })); };
   return (
     <Section id="entreprise" titre="Entreprise" sous="Reprises en tête des factures. Les numéros légaux inconnus restent « à compléter »." icone="facture" change={sct.change} busy={sct.busy} onSave={sct.sauver} onReset={sct.reset} err={sct.err} peutModifier={peutModifier}>
       <div class="form-grid">

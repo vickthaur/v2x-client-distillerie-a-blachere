@@ -11,7 +11,7 @@ import { Check, Input, Select, Stepper, Switch, Textarea, erreurDe } from '../ui
 import { Dialog, Drawer, Menu, MenuItem, toast } from '../ui/overlay.jsx';
 import { Jauge, JaugeRonde } from '../charts/charts.jsx';
 import { LANGUE, LANGUE_COURT, MOMENT, RESERVATION, RESERVATION_SOURCE } from '../lib/statuts.js';
-import { ajouterJours, aujourdHui, date, dateCourte, heure, jourCourt, jourDeSemaine, jourSemaine, lundi, nombre, nomComplet, pluriel, relatif, telephone } from '../lib/format.js';
+import { ajouterJours, aujourdHui, date, dateCourte, heure, jourCourt, jourDeSemaine, jourSemaine, lundi, nombre, nomComplet, pluriel, relatif, telephone, typo } from '../lib/format.js';
 import { useMembres } from './comptes.jsx';
 
 const MOMENTS = ['matin', 'apres-midi'];
@@ -74,7 +74,7 @@ export function Visites({ id }) {
         actions={
           <>
             {s.peut('exports') && (
-              <Button href={crmUrl('export', { type: 'reservations' })} target="_blank" download="" icon="telecharger" title="Toutes les réservations, au format CSV (tableur)">
+              <Button href={crmUrl('export', { type: 'reservations', du: semaine, au: fin })} target="_blank" download="" icon="telecharger" title="Exporte les réservations de la semaine affichée au format CSV (tableur)">
                 <span class="hide-s">Exporter</span>
               </Button>
             )}
@@ -414,6 +414,7 @@ function DrawerSeance({ se, reservations, visee, inscrits, peutModifier, onClose
     }
   };
   const passee = se.date < aujourdHui();
+  const [noteResa, setNoteResa] = useState(null);
 
   return (
     <Drawer
@@ -464,11 +465,11 @@ function DrawerSeance({ se, reservations, visee, inscrits, peutModifier, onClose
               <div class="form-grid">
                 <div class="field">
                   <span class="field__label">Capacité</span>
-                  <Stepper value={f.capacite} min={Math.max(1, inscrits)} max={60} onChange={(v) => setF({ ...f, capacite: v })} label="Capacité de la séance" />
+                  <Stepper value={f.capacite} min={Math.max(1, inscrits)} max={60} onChange={(v) => setF((prec) => ({ ...prec, capacite: v }))} label="Capacité de la séance" />
                 </div>
-                <Select label="Langue" value={f.langue} onChange={(e) => setF({ ...f, langue: e.currentTarget.value })} options={Object.entries(LANGUE).map(([value, label]) => ({ value, label }))} />
-                <Select class="span-2" label="Guide" value={f.guideId} onChange={(e) => setF({ ...f, guideId: e.currentTarget.value })} options={[{ value: '', label: 'Non attribué' }, ...optionsGuides.map((u) => ({ value: u.id, label: nomComplet(u) }))]} />
-                <Textarea class="span-2" label="Notes" opt value={f.notes} onInput={(e) => setF({ ...f, notes: e.currentTarget.value })} rows={2} placeholder="Ex. : groupe scolaire, accès PMR…" style="min-height:64px" />
+                <Select label="Langue" value={f.langue} onChange={(e) => { const cible = e.currentTarget; setF((prec) => ({ ...prec, langue: cible.value })); }} options={Object.entries(LANGUE).map(([value, label]) => ({ value, label }))} />
+                <Select class="span-2" label="Guide" value={f.guideId} onChange={(e) => { const cible = e.currentTarget; setF((prec) => ({ ...prec, guideId: cible.value })); }} options={[{ value: '', label: 'Non attribué' }, ...optionsGuides.map((u) => ({ value: u.id, label: nomComplet(u) }))]} />
+                <Textarea class="span-2" label="Notes" opt value={f.notes} onInput={(e) => { const cible = e.currentTarget; setF((prec) => ({ ...prec, notes: cible.value })); }} rows={2} placeholder="Ex. : groupe scolaire, accès PMR…" style="min-height:64px" />
               </div>
               <div class="btn-row btn-row--end">
                 <Button size="sm" variant="primary" disabled={!change} busy={busy === 'reglages'} onClick={() => patchSeance({ capacite: f.capacite, guideId: f.guideId || null, notes: f.notes, langue: f.langue }, 'reglages', 'Séance mise à jour')}>
@@ -515,10 +516,15 @@ function DrawerSeance({ se, reservations, visee, inscrits, peutModifier, onClose
                         </a>
                       )}
                     </div>
-                    {(x.message || x.notes) && <p class="small resa__msg">« {x.message || x.notes} »</p>}
+                    {x.message && <p class="small resa__msg">« {typo(x.message)} »</p>}
+                    {x.notes && (
+                      <p class="small resa__note">
+                        <Icon name="note" size="xs" /> {typo(x.notes)}
+                      </p>
+                    )}
                   </div>
                   {peutModifier && (
-                    <Menu label={`Statut de ${x.nom}`} bouton={(p) => <Button size="sm" variant="ghost" icon="points" aria-label={`Changer le statut de la réservation de ${x.nom}`} {...p} />}>
+                    <Menu label={`Actions pour la réservation de ${x.nom}`} bouton={(p) => <Button size="sm" variant="ghost" icon="points" {...p} />}>
                       {(fermer) => (
                         <>
                           {x.statut !== 'venue' && x.statut !== 'annulee' && (
@@ -536,6 +542,9 @@ function DrawerSeance({ se, reservations, visee, inscrits, peutModifier, onClose
                               Remettre en « confirmée »
                             </MenuItem>
                           )}
+                          <MenuItem icone="note" fermer={fermer} onSelect={() => setNoteResa(x)}>
+                            {x.notes ? 'Modifier la note interne…' : 'Ajouter une note interne…'}
+                          </MenuItem>
                           {x.statut !== 'annulee' && (
                             <MenuItem icone="x" danger fermer={fermer} onSelect={() => statutResa(x, 'annulee')}>
                               Annuler la réservation
@@ -551,7 +560,59 @@ function DrawerSeance({ se, reservations, visee, inscrits, peutModifier, onClose
           )}
         </section>
       </div>
+      {noteResa && (
+        <DialogNoteResa
+          res={noteResa}
+          onClose={() => setNoteResa(null)}
+          onFait={(notes) => {
+            mutate((d) => (d ? { ...d, reservations: (d.reservations || []).map((y) => (y.id === noteResa.id ? { ...y, notes } : y)) } : d));
+            onChange();
+          }}
+        />
+      )}
     </Drawer>
+  );
+}
+
+// Note interne d'une réservation (vidée : effacée)
+function DialogNoteResa({ res, onClose, onFait }) {
+  const [v, setV] = useState(res.notes || '');
+  const [err, setErr] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const envoyer = async () => {
+    setBusy(true);
+    setErr(null);
+    try {
+      await crm('reservation', { method: 'PATCH', query: { id: res.id }, body: { notes: v.trim() } });
+      toast(v.trim() ? `Note enregistrée pour ${res.nom}` : `Note de ${res.nom} effacée`);
+      onFait(v.trim());
+      onClose();
+    } catch (e) {
+      setErr(e);
+      setBusy(false);
+    }
+  };
+  return (
+    <Dialog
+      titre="Note interne"
+      sous={`${res.nom} · ${res.reference} · visible par l’équipe seulement`}
+      icone="note"
+      onClose={onClose}
+      onSubmit={envoyer}
+      pied={
+        <>
+          <Button onClick={onClose}>Annuler</Button>
+          <Button type="submit" variant="primary" busy={busy}>
+            Enregistrer
+          </Button>
+        </>
+      }
+    >
+      <div class="form">
+        <Textarea label="Note" value={v} onInput={(e) => setV(e.currentTarget.value)} rows={3} placeholder="Ex. : groupe avec une personne en fauteuil, prévoir l’accès PMR" error={erreurDe(err, 'notes')} help="Laissez vide pour effacer la note." />
+        {err && !erreurDe(err, 'notes') && <Notice ton="err">{err.message}</Notice>}
+      </div>
+    </Dialog>
   );
 }
 
@@ -560,7 +621,7 @@ function DialogReservation({ init, seances, onClose, onFait }) {
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
   const se = seances.find((x) => x.date === f.date && x.moment === f.moment);
-  const maj = (k) => (e) => setF({ ...f, [k]: e.currentTarget.type === 'checkbox' ? e.currentTarget.checked : e.currentTarget.value });
+  const maj = (k) => (e) => { const cible = e.currentTarget; setF((prec) => ({ ...prec, [k]: cible.type === 'checkbox' ? cible.checked : cible.value })); };
   const envoyer = async () => {
     if (!f.nom.trim()) return setErr({ champ: 'nom', message: 'Indiquez le nom de la réservation.' });
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) return setErr({ champ: 'email', message: 'Indiquez l’e-mail : la confirmation et le rappel y sont envoyés.' });
@@ -625,11 +686,11 @@ function DialogReservation({ init, seances, onClose, onFait }) {
         <div class="form-grid">
           <div class="field">
             <span class="field__label">Personnes</span>
-            <Stepper value={f.personnes} min={1} max={25} onChange={(v) => setF({ ...f, personnes: v, mineurs: Math.min(f.mineurs, v - 1) })} label="Nombre de personnes" />
+            <Stepper value={f.personnes} min={1} max={25} onChange={(v) => setF((prec) => ({ ...prec, personnes: v, mineurs: Math.min(prec.mineurs, v - 1) }))} label="Nombre de personnes" />
           </div>
           <div class="field">
             <span class="field__label">Dont mineurs</span>
-            <Stepper value={f.mineurs} min={0} max={Math.max(0, f.personnes - 1)} onChange={(v) => setF({ ...f, mineurs: v })} label="Nombre de mineurs" />
+            <Stepper value={f.mineurs} min={0} max={Math.max(0, f.personnes - 1)} onChange={(v) => setF((prec) => ({ ...prec, mineurs: v }))} label="Nombre de mineurs" />
             {erreurDe(err, 'mineurs') && <p class="field__err">{erreurDe(err, 'mineurs')}</p>}
           </div>
           <Input class="span-2" label="Nom" value={f.nom} onInput={maj('nom')} error={erreurDe(err, 'nom')} autoComplete="off" />
@@ -652,7 +713,7 @@ function DialogReservation({ init, seances, onClose, onFait }) {
                       type="button"
                       class="chip"
                       onClick={() => {
-                        setF({ ...f, date: x.date, moment: x.moment });
+                        setF((prec) => ({ ...prec, date: x.date, moment: x.moment }));
                         setErr(null);
                       }}
                     >

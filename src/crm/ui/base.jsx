@@ -1,6 +1,7 @@
 // Composants de base : boutons, pastilles d'état, cartes, en-tête de page, états de chargement,
 // vide et erreur, onglets, filtres, pagination.
 import { useEffect, useRef, useState } from 'preact/hooks';
+import { forwardRef } from 'preact/compat';
 import { Icon } from './icons.jsx';
 import { Link, origineNavigation } from '../lib/router.jsx';
 import { initiales, nombre, ton as tonDeCle } from '../lib/format.js';
@@ -8,7 +9,8 @@ import { initiales, nombre, ton as tonDeCle } from '../lib/format.js';
 const cx = (...c) => c.filter(Boolean).join(' ');
 export { cx };
 
-export function Button({ variant, size, icon, iconEnd, busy, block, href, children, class: cls, type = 'button', ...props }) {
+// La référence (ref) atteint l'élément du DOM : un menu s'ouvre sous son bouton.
+export const Button = forwardRef(function Button({ variant, size, icon, iconEnd, busy, block, href, children, class: cls, type = 'button', ...props }, ref) {
   const c = cx('btn', variant && `btn--${variant}`, size && `btn--${size}`, block && 'btn--block', !children && icon && 'btn--icon', cls);
   const inner = (
     <>
@@ -20,7 +22,7 @@ export function Button({ variant, size, icon, iconEnd, busy, block, href, childr
   if (href) {
     const ext = props.target === '_blank' || !href.startsWith('/crm');
     return ext ? (
-      <a class={c} href={href} {...props}>
+      <a class={c} href={href} ref={ref} {...props}>
         {inner}
       </a>
     ) : (
@@ -30,11 +32,11 @@ export function Button({ variant, size, icon, iconEnd, busy, block, href, childr
     );
   }
   return (
-    <button type={type} class={c} data-busy={busy ? '' : undefined} aria-busy={busy ? 'true' : undefined} {...props}>
+    <button type={type} class={c} data-busy={busy ? '' : undefined} aria-busy={busy ? 'true' : undefined} ref={ref} {...props}>
       {inner}
     </button>
   );
-}
+});
 
 // Pastille d'état : point + libellé (jamais la couleur seule)
 export function Pill({ ton = 'mute', children, lg, nodot, class: cls, title }) {

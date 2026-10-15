@@ -1,16 +1,16 @@
 // Phrases du journal (tableau de bord et écran Journal) : qui, quoi, sur quel élément, et des
-// détails lisibles (codes de statut, dates ISO et noms de champs traduits).
+// détails lisibles (codes de statut, sources et noms de champs traduits ; le serveur écrit déjà
+// les dates en français).
 import { Link } from '../lib/router.jsx';
 import { lienCible } from '../lib/liens.js';
 import { roleNom } from '../lib/droits.js';
 import { useSession } from '../lib/session.jsx';
 import { rubriqueDe, accessible } from '../nav.js';
-import { ABONNE_SOURCE, ACTIONS, COMMANDE, DEMANDE, MESSAGE, MOMENT, RESERVATION, SEANCE, libelle } from '../lib/statuts.js';
-import { dateCourte, typo } from '../lib/format.js';
+import { ABONNE_SOURCE, ACTIONS, COMMANDE, DEMANDE, MESSAGE, RESERVATION, SEANCE, libelle } from '../lib/statuts.js';
+import { typo } from '../lib/format.js';
 
 // Libellé du serveur sans le nom du type, que la phrase porte déjà (« Commande WEB-… » → « WEB-… »)
 const PREFIXE = /^(Commande|Visite|Demande|Message|Facture|Séance du)\s+/;
-const ISO = /\b(\d{4}-\d{2}-\d{2})\b/g;
 const STATUTS = { commande: COMMANDE, demande: DEMANDE, message: MESSAGE, reservation: RESERVATION, seance: SEANCE };
 const CHAMPS = {
   tags: 'étiquettes',
@@ -54,19 +54,17 @@ const CHAMPS = {
 };
 
 const minuscule = (s) => (s ? s.charAt(0).toLowerCase() + s.slice(1) : s);
-const dates = (s) => String(s).replace(ISO, (m) => dateCourte(m));
 
 // Détails d'une entrée, lisibles
 export function detailsJournal(e) {
   let d = e.details;
   if (d === undefined || d === null || d === '') return null;
   if (typeof d !== 'string') d = Object.entries(d).map(([k, v]) => `${CHAMPS[k] || k} : ${v}`).join(' · ');
-  if (e.action?.startsWith('seance.') && MOMENT[d]) return MOMENT[d];
   const table = STATUTS[e.cible?.type];
   d = d.replace(/^Statut\s*:\s*([a-z-]+)$/, (m, c) => `Statut : ${minuscule(table ? libelle(table, c) : c)}`);
   d = d.replace(/^(Champs|Rubriques)\s*:\s*(.+)$/, (m, s, l) => `${s} : ${l.split(/,\s*/).map((c) => CHAMPS[c] || c).join(', ')}`);
   d = d.replace(/^Source\s*:\s*([a-z-]+)$/, (m, c) => `Source : ${minuscule(ABONNE_SOURCE[c] || c)}`);
-  return typo(dates(d));
+  return typo(d);
 }
 
 // Verbe selon l'auteur : membre de l'équipe, client pro (espace pro) ou site public
@@ -89,7 +87,7 @@ function objetDe(e) {
   if (!c?.libelle) return null;
   if (ACTIONS[e.action]?.sansObjet) return null;
   if (c.type === 'utilisateur' && e.par?.id && c.id === e.par.id) return null;
-  let t = dates(c.libelle.replace(PREFIXE, ''));
+  let t = c.libelle.replace(PREFIXE, '');
   if (c.type === 'campagne') t = `« ${t} »`;
   return { texte: typo(t), href: ACTIONS[e.action]?.sansLien ? null : lienCible(c) };
 }

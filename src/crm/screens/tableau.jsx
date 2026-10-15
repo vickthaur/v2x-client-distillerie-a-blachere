@@ -93,22 +93,9 @@ function Kpis({ d }) {
   const ventes = d.ventes30 || [];
   const parJour = ventes.map((v) => (Number(v.enLigne) || 0) + (Number(v.pro) || 0));
   const ca30 = Number.isFinite(ca.enLigne30) || Number.isFinite(ca.pro30) ? (Number(ca.enLigne30) || 0) + (Number(ca.pro30) || 0) : parJour.reduce((t, v) => t + v, 0);
-  // Variation : avec les 30 jours précédents si l'API les donne, sinon 15 derniers jours contre
-  // les 15 d'avant (tirés de ventes30)
-  const precedent30 = Number.isFinite(ca.precedent30) ? ca.precedent30 : null;
-  let delta = null;
-  let cmp = '';
-  if (precedent30 > 0) {
-    delta = (ca30 - precedent30) / precedent30;
-    cmp = 'vs 30 jours précédents';
-  } else if (parJour.length >= 30) {
-    const avant = parJour.slice(0, 15).reduce((t, v) => t + v, 0);
-    const apres = parJour.slice(15).reduce((t, v) => t + v, 0);
-    if (avant > 0) {
-      delta = (apres - avant) / avant;
-      cmp = '15 derniers jours vs 15 précédents';
-    }
-  }
+  // Variation sur 30 jours : CA HT tous canaux des 30 jours d'avant (J−59 à J−30, ca.precedent30)
+  const precedent30 = Number(ca.precedent30) || 0;
+  const delta = precedent30 > 0 ? (ca30 - precedent30) / precedent30 : null;
   const a = d.aTraiter || {};
   const totalATraiter = (a.commandes || 0) + (a.demandes || 0) + (a.messages || 0) + (a.facturesEnRetard || 0);
   const ht = d.montants === 'TTC' ? 'TTC' : 'HT';
@@ -130,7 +117,9 @@ function Kpis({ d }) {
               {variation(delta)}
             </span>
           )}
-          <span class="kpi__cmp">{delta !== null ? cmp : 'Pas assez d’historique pour comparer'}</span>
+          <span class="kpi__cmp" title={precedent30 > 0 ? `30 jours précédents : ${eurosRond(precedent30)}` : undefined}>
+            {delta !== null ? 'vs les 30 jours précédents' : 'Pas d’historique pour comparer'}
+          </span>
         </div>
       </div>
       <div class="card kpi" role="listitem">

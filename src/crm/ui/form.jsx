@@ -1,8 +1,18 @@
 // Champs de formulaire : libellé relié, aide et erreur annoncées (aria-describedby), erreurs de
 // l'API rattachées à leur champ (ApiError.champ).
-import { useId } from 'preact/hooks';
+import { useRef } from 'preact/hooks';
 import { Icon } from './icons.jsx';
 import { cx } from './base.jsx';
+
+// Identifiant unique d'un champ (libellé, aide, erreur). Pas useId de Preact : il recommence à
+// « P0-0 » dans chaque portail, et un champ de boîte de dialogue ouverte sur un tiroir portait le
+// même identifiant qu'un champ du tiroir (libellé relié au mauvais champ).
+let suivant = 0;
+function useIdChamp() {
+  const r = useRef(null);
+  if (!r.current) r.current = `champ-${(++suivant).toString(36)}`;
+  return r.current;
+}
 
 // Erreur de l'API pour un champ donné (ou plusieurs noms possibles)
 export function erreurDe(erreur, ...noms) {
@@ -45,7 +55,7 @@ export function Field({ label, opt, help, error, id, children, class: cls, aide 
 const decrit = (id, help, error) => (error ? `${id}-err` : help ? `${id}-aide` : undefined);
 
 export function Input({ label, opt, help, error, class: cls, champClass, suffixe, icone, ...props }) {
-  const auto = useId();
+  const auto = useIdChamp();
   const id = props.id || auto;
   const input = <input class={cx('input', champClass)} id={id} aria-invalid={error ? 'true' : undefined} aria-describedby={decrit(id, help, error)} {...props} />;
   return (
@@ -64,7 +74,7 @@ export function Input({ label, opt, help, error, class: cls, champClass, suffixe
 }
 
 export function Select({ label, opt, help, error, class: cls, options = [], children, champClass, ...props }) {
-  const auto = useId();
+  const auto = useIdChamp();
   const id = props.id || auto;
   return (
     <Field label={label} opt={opt} help={help} error={error} id={id} class={cls}>
@@ -87,7 +97,7 @@ export function Select({ label, opt, help, error, class: cls, options = [], chil
 }
 
 export function Textarea({ label, opt, help, error, class: cls, ...props }) {
-  const auto = useId();
+  const auto = useIdChamp();
   const id = props.id || auto;
   return (
     <Field label={label} opt={opt} help={help} error={error} id={id} class={cls}>

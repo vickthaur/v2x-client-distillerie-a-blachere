@@ -22,6 +22,7 @@ export function Equipe() {
   const r = useCrm('equipe', {});
   const membres = elements(r.data, 'membres', 'equipe', 'utilisateurs').filter((u) => u.role !== 'pro');
   const [inviter, setInviter] = useState(false);
+  const [coordonnees, setCoordonnees] = useState(null);
   const peutModifier = s.peut('equipe', 'ecriture');
 
   const patch = async (u, body, message) => {
@@ -115,6 +116,9 @@ export function Equipe() {
                             </MenuItem>
                           ))}
                           <MenuSep />
+                          <MenuItem icone="crayon" fermer={fermer} onSelect={() => setCoordonnees(u)}>
+                            Poste et téléphone…
+                          </MenuItem>
                           <MenuItem icone={u.actif === false ? 'lecture' : 'interdit'} danger={u.actif !== false} fermer={fermer} onSelect={() => desactiver(u)}>
                             {u.actif === false ? 'Réactiver' : 'Désactiver'}
                           </MenuItem>
@@ -142,7 +146,52 @@ export function Equipe() {
         <p class="small muted" style="margin-top:12px">Le serveur vérifie les droits à chaque action ; l’interface masque simplement ce qu’un rôle ne peut pas faire.</p>
       </Card>
       {inviter && <DialogInviterMembre onClose={() => setInviter(false)} onFait={() => r.reload({ silencieux: true })} />}
+      {coordonnees && <DialogCoordonnees u={coordonnees} onClose={() => setCoordonnees(null)} onFait={() => r.reload({ silencieux: true })} />}
     </div>
+  );
+}
+
+// Poste et téléphone d'un membre (vidés : effacés)
+function DialogCoordonnees({ u, onClose, onFait }) {
+  const [f, setF] = useState({ poste: u.poste || '', telephone: u.telephone || '' });
+  const [err, setErr] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const maj = (k) => (e) => { const cible = e.currentTarget; setF((prec) => ({ ...prec, [k]: cible.value })); };
+  const envoyer = async () => {
+    setBusy(true);
+    setErr(null);
+    try {
+      await crm('membre', { method: 'PATCH', query: { id: u.id }, body: { poste: f.poste.trim() || null, telephone: f.telephone.trim() || null } });
+      toast(`Coordonnées de ${nomComplet(u)} enregistrées`);
+      onFait();
+      onClose();
+    } catch (e) {
+      setErr(e);
+      setBusy(false);
+    }
+  };
+  return (
+    <Dialog
+      titre={nomComplet(u)}
+      sous="Poste et téléphone affichés dans l’équipe et sur les fiches des comptes pro."
+      icone="equipe"
+      onClose={onClose}
+      onSubmit={envoyer}
+      pied={
+        <>
+          <Button onClick={onClose}>Annuler</Button>
+          <Button type="submit" variant="primary" busy={busy}>
+            Enregistrer
+          </Button>
+        </>
+      }
+    >
+      <div class="form">
+        <Input label="Poste" opt value={f.poste} onInput={maj('poste')} error={erreurDe(err, 'poste')} placeholder="Ex. : commercial Vaucluse et Gard" />
+        <Input label="Téléphone" opt type="tel" value={f.telephone} onInput={maj('telephone')} error={erreurDe(err, 'telephone')} />
+        {err && !erreurDe(err, 'poste', 'telephone') && <Notice ton="err">{err.message}</Notice>}
+      </div>
+    </Dialog>
   );
 }
 
@@ -150,7 +199,7 @@ function DialogInviterMembre({ onClose, onFait }) {
   const [f, setF] = useState({ prenom: '', nom: '', email: '', role: 'boutique', poste: '' });
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
-  const maj = (k) => (e) => setF({ ...f, [k]: e.currentTarget.value });
+  const maj = (k) => (e) => { const cible = e.currentTarget; setF((prec) => ({ ...prec, [k]: cible.value })); };
   const envoyer = async () => {
     setBusy(true);
     setErr(null);
@@ -193,7 +242,7 @@ function DialogInviterMembre({ onClose, onFait }) {
           <Input label="E-mail" type="email" value={f.email} onInput={maj('email')} error={erreurDe(err, 'email')} />
           <Input label="Poste" opt value={f.poste} onInput={maj('poste')} error={erreurDe(err, 'poste')} placeholder="Ex. : vendeuse en boutique" />
         </div>
-        <Choices name="role" label="Rôle" value={f.role} onChange={(v) => setF({ ...f, role: v })} items={ROLES_EQUIPE.map((ro) => ({ value: ro, titre: roleNom(ro), desc: ROLES[ro].desc }))} />
+        <Choices name="role" label="Rôle" value={f.role} onChange={(v) => setF((prec) => ({ ...prec, role: v }))} items={ROLES_EQUIPE.map((ro) => ({ value: ro, titre: roleNom(ro), desc: ROLES[ro].desc }))} />
         {err && !erreurDe(err, 'prenom', 'nom', 'email', 'role') && <Notice ton="err">{err.message}</Notice>}
       </div>
     </Dialog>

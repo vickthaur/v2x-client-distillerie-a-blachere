@@ -271,7 +271,7 @@ export function DialogMotDePasse({ onClose }) {
       setBusy(false);
     }
   };
-  const maj = (k) => (e) => setF({ ...f, [k]: e.currentTarget.value });
+  const maj = (k) => (e) => { const cible = e.currentTarget; setF((prec) => ({ ...prec, [k]: cible.value })); };
   return (
     <Dialog
       titre="Changer le mot de passe"
