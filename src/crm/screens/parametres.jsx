@@ -228,23 +228,18 @@ function Visites({ v, peutModifier, enregistrer }) {
 
 function Entreprise({ v, peutModifier, enregistrer }) {
   const sct = useSection(
-    { nom: v.nom || '', adresse: Array.isArray(v.adresse) ? v.adresse.join('\n') : v.adresse || '', telephone: v.telephone || '', email: v.email || '', siret: v.siret || '', tvaIntra: v.tvaIntra || '', rcs: v.rcs || '' },
+    { nom: v.nom || '', adresse: Array.isArray(v.adresse) ? v.adresse.join(', ') : v.adresse || '', telephone: v.telephone || '', email: v.email || '', siret: v.siret || '', tvaIntra: v.tvaIntra || '', rcs: v.rcs || '' },
     enregistrer,
     'entreprise',
     'Coordonnées de l’entreprise enregistrées',
-    (f) => ({ nom: f.nom.trim(), adresse: f.adresse.trim(), telephone: f.telephone.trim(), email: f.email.trim(), siret: f.siret.replace(/\s/g, '') || undefined, tvaIntra: f.tvaIntra.replace(/\s/g, '') || undefined, rcs: f.rcs.trim() || undefined }),
+    (f) => ({ nom: f.nom.trim(), adresse: f.adresse.replace(/\s*\n\s*/g, ', ').trim(), telephone: f.telephone.trim(), email: f.email.trim(), siret: f.siret.replace(/\s/g, '') || undefined, tvaIntra: f.tvaIntra.replace(/\s/g, '') || undefined, rcs: f.rcs.trim() || undefined }),
   );
   const m = (k) => (e) => sct.setF({ ...sct.f, [k]: e.currentTarget.value });
   return (
     <Section id="entreprise" titre="Entreprise" sous="Reprises en tête des factures. Les numéros légaux inconnus restent « à compléter »." icone="facture" change={sct.change} busy={sct.busy} onSave={sct.sauver} onReset={sct.reset} err={sct.err} peutModifier={peutModifier}>
       <div class="form-grid">
         <Input class="span-2" label="Raison sociale" value={sct.f.nom} disabled={!peutModifier} onInput={m('nom')} />
-        <div class="field span-2">
-          <label class="field__label" for="ent-adresse">
-            Adresse
-          </label>
-          <textarea id="ent-adresse" class="textarea" rows={3} value={sct.f.adresse} disabled={!peutModifier} onInput={m('adresse')} style="min-height:80px" />
-        </div>
+        <Input class="span-2" label="Adresse" value={sct.f.adresse} disabled={!peutModifier} onInput={m('adresse')} maxLength={200} help="Sur une ligne, telle qu’elle figure en tête des factures." />
         <Input label="Téléphone" type="tel" value={sct.f.telephone} disabled={!peutModifier} onInput={m('telephone')} />
         <Input label="E-mail" type="email" value={sct.f.email} disabled={!peutModifier} onInput={m('email')} />
         <Input label="SIRET" value={sct.f.siret} disabled={!peutModifier} onInput={m('siret')} placeholder="À compléter" />

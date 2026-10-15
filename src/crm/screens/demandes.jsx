@@ -5,7 +5,7 @@ import { crm, elements, invalider, useCrm } from '../lib/data.js';
 import { useFil, useSession } from '../lib/session.jsx';
 import { Link, navigate, origineNavigation, useQuery } from '../lib/router.jsx';
 import { Icon } from '../ui/icons.jsx';
-import { Avatar, Button, Chips, Empty, Erreur, Notice, PageHead, Pill, SkeletonRows, Statut, cx, useTitre } from '../ui/base.jsx';
+import { Avatar, Button, Chips, Empty, Erreur, Notice, PageHead, Pill, SkeletonRows, Statut, cx, useTitre, coupe } from '../ui/base.jsx';
 import { Input, Select, Textarea, erreurDe, lireNombre } from '../ui/form.jsx';
 import { Dialog, toast } from '../ui/overlay.jsx';
 import { ApercuCourriel } from '../ui/courriel.jsx';
@@ -192,7 +192,7 @@ function Detail({ id, depuisListe, retour, onChange }) {
           <dt>E-mail</dt>
           <dd>
             <a class="link link--ink" href={`mailto:${dm.email}`}>
-              {dm.email}
+              {coupe(dm.email)}
             </a>
           </dd>
           <dt>Téléphone</dt>

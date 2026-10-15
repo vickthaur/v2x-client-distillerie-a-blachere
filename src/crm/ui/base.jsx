@@ -195,6 +195,12 @@ export function Erreur({ erreur, onRetry, titre = 'Chargement impossible' }) {
   );
 }
 
+// Adresse e-mail coupable proprement en fin de ligne (avant « . » et « @ », après « @ »)
+export const coupe = (email) =>
+  String(email || '')
+    .split(/(?=[.@])|(?<=@)/)
+    .flatMap((m, i) => (i ? [<wbr key={i} />, m] : [m]));
+
 export function Notice({ ton, icone, titre, children, class: cls }) {
   const ic = icone || { warn: 'alerte', ok: 'ok', err: 'erreur', demo: 'etincelle' }[ton] || 'info';
   return (

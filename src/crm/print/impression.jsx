@@ -91,14 +91,22 @@ function Entete({ titre, sous, droite }) {
 const Demo = () => <p class="doc__demo">Document de démonstration (maquette V2X Studio) : données fictives, sans valeur comptable.</p>;
 
 // ---------- Facture ----------
+// Adresse de l'entreprise (une ligne côté API) découpée avant le code postal
+const lignesAdresse = (a) => (String(a || '').includes('\n') ? String(a).split('\n') : String(a || '').split(/,\s*(?=\d{5}\s)/)).filter(Boolean);
+
 function Facture({ id }) {
+  const s = useSession();
   const r = useCrm('commande', { id });
   const c = r.data?.commande || r.data;
   const ent = useEntreprise(r.data);
+  // fiche du compte (adresse de facturation, SIRET, TVA) quand le rôle peut la lire
+  const idCompte = r.data?.compte?.id || c?.compteId;
+  const rc = useCrm(idCompte && s.peut('comptes') ? 'compte' : null, { id: idCompte });
+  const ficheCompte = rc.data?.compte || rc.data;
   if (!c) return <Feuille titre="Facture" etat={r.error ? <ErreurDoc e={r.error} /> : <Chargement />} />;
   const f = c.facture;
   const pro = c.canal === 'pro';
-  const compte = r.data?.compte || c.compte || {};
+  const compte = { ...(r.data?.compte || c.compte || {}), ...(ficheCompte || {}) };
   const t = c.totaux || {};
   const st = factureStatut(f);
   const adresseFact = pro ? compte.adresseFacturation || c.livraison?.adresse : r.data?.client?.adresse || c.livraison?.adresse;
@@ -141,11 +149,9 @@ function Facture({ id }) {
           <section>
             <h2>Vendeur</h2>
             <p class="strong">{ent.nom}</p>
-            {String(ent.adresse || '')
-              .split('\n')
-              .map((l, i) => (
-                <p key={i}>{l}</p>
-              ))}
+            {lignesAdresse(ent.adresse).map((l, i) => (
+              <p key={i}>{l}</p>
+            ))}
             {ent.telephone && <p>Tél. {telephone(ent.telephone)}</p>}
             {ent.email && <p>{ent.email}</p>}
             <p>SIRET : {ent.siret || <em class="doc__acompleter">{A_COMPLETER}</em>}</p>

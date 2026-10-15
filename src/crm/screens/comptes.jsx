@@ -6,7 +6,7 @@ import { crm, crmUrl, elements, invalider, useCrm } from '../lib/data.js';
 import { useFil, useSession } from '../lib/session.jsx';
 import { Link, clicLigne, navigate, useQuery } from '../lib/router.jsx';
 import { Icon } from '../ui/icons.jsx';
-import { Avatar, Button, Card, Chips, Empty, Erreur, Notice, PageHead, Pagination, Pill, SearchInput, SkeletonPage, SkeletonRows, SortTh, Statut, TabPanel, Tabs, useTitre } from '../ui/base.jsx';
+import { Avatar, Button, Card, Chips, Empty, Erreur, Notice, PageHead, Pagination, Pill, SearchInput, SkeletonPage, SkeletonRows, SortTh, Statut, TabPanel, Tabs, useTitre, coupe } from '../ui/base.jsx';
 import { Input, Select, erreurDe, lireNombre } from '../ui/form.jsx';
 import { Dialog, Menu, MenuItem, MenuSep, confirmer, toast } from '../ui/overlay.jsx';
 import { Jauge } from '../charts/charts.jsx';
@@ -172,7 +172,7 @@ export function Comptes() {
                           {voitEncours && (
                             <td class="num">
                               {enc > 0 ? (
-                                <span class={retard ? 'encours encours--retard' : 'encours'} title={c.encoursMax ? `Plafond : ${euros(c.encoursMax)}` : undefined}>
+                                <span class={retard ? 'encours encours--retard' : 'encours'} title={c.encoursMax ? `Plafond : ${euros(c.encoursMax)}` : undefined}>
                                   {retard && <Icon name="alerte" size="xs" title={c.encoursMax && enc > c.encoursMax ? 'Encours au-delà du plafond' : 'Facture en retard'} />}
                                   {euros(enc)}
                                 </span>
@@ -256,7 +256,7 @@ function DialogNouveauCompte({ onClose }) {
       const c = d?.compte || d;
       invalider('comptes');
       toast(`Compte ${nomCompte(c)} créé`, {
-        detail: body.utilisateur ? `Invitation envoyée à ${body.utilisateur.email} (démonstration : rien ne part vraiment).` : undefined,
+        detail: body.utilisateur ? `Invitation envoyée à ${body.utilisateur.email} (démonstration : rien ne part vraiment).` : undefined,
         action: d?.lienDemo ? { label: 'Lien d’activation', href: d.lienDemo, target: '_blank' } : undefined,
         duree: d?.lienDemo ? 12000 : undefined,
       });
@@ -498,7 +498,7 @@ export function Compte({ id }) {
                 <dt>E-mail</dt>
                 <dd>
                   <a class="link link--ink" href={`mailto:${c.email}`}>
-                    {c.email}
+                    {coupe(c.email)}
                   </a>
                 </dd>
                 <dt>Téléphone</dt>

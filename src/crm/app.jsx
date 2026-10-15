@@ -3,11 +3,12 @@ import { useEffect, useMemo, useState } from 'preact/hooks';
 import { SessionCtx, useNotifications } from './lib/session.jsx';
 import { correspond, navigate, useLocation } from './lib/router.jsx';
 import { quandSessionExpire, session as sessionApi, viderCache, toutRecharger } from './lib/data.js';
-import { creerPeut, lireDroits, ROLES } from './lib/droits.js';
+import { creerPeut, lireDroits, roleNom, ROLES } from './lib/droits.js';
 import { ConfirmHost, Toaster, confirmer, toast } from './ui/overlay.jsx';
 import { Sidebar, Topbar, TabBar, Palette, Plus } from './shell.jsx';
 import { nomComplet } from './lib/format.js';
-import { Empty } from './ui/base.jsx';
+import { Button, Empty, PageHead, useTitre } from './ui/base.jsx';
+import { accessible, rubriqueDe } from './nav.js';
 
 import { Connexion, MotDePasse, Activer } from './screens/connexion.jsx';
 import { Tableau } from './screens/tableau.jsx';
@@ -69,6 +70,24 @@ function trouver(path) {
     if (p) return { Ecran, params: p, motif };
   }
   return null;
+}
+
+// Rubrique hors des droits du rôle : rien n'est demandé à l'API (elle refuserait de toute façon)
+function AccesReserve({ rubrique, role, ecriture }) {
+  useTitre(rubrique.nom);
+  return (
+    <div class="page">
+      <PageHead titre={rubrique.nom} />
+      <div class="card">
+        <Empty
+          icone="cadenas"
+          titre="Rubrique réservée"
+          texte={`Votre profil (${roleNom(role)}) ne permet pas ${ecriture ? 'de créer ici' : 'd’ouvrir cette rubrique'}. Changez de profil de démonstration pour la découvrir.`}
+          action={<Button href="/crm">Retour au tableau de bord</Button>}
+        />
+      </div>
+    </div>
+  );
 }
 
 function Introuvable() {
@@ -252,7 +271,10 @@ export function App() {
   }
 
   const route = trouver(loc.path);
-  const Ecran = route?.Ecran || Introuvable;
+  const rub = route ? rubriqueDe(loc.path) : null;
+  const creation = /\/nouvelle$/.test(loc.path);
+  const permis = !rub?.droit || (creation ? rub.droit.some((d) => valeur.peut(d, 'ecriture')) : accessible(rub, valeur.peut));
+  const Ecran = !route ? Introuvable : permis ? route.Ecran : () => <AccesReserve rubrique={rub} role={etat.moi?.role} ecriture={creation} />;
 
   return (
     <SessionCtx.Provider value={valeur}>

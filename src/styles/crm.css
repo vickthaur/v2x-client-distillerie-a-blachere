@@ -1327,6 +1327,10 @@ button.list__item { width: 100%; border-left: 0; border-right: 0; border-bottom:
 .grp-mob { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 16px 8px; border-top: 1px solid var(--line); font: 650 15px/1.3 var(--font); }
 section:first-child > .grp-mob { border-top: 0; }
 .grp-mob .grp__n { float: none; }
+@media (max-width: 760px) {
+  .stats-row > .stat:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .toolbar > .select--sm { flex: 1 1 calc(50% - 4px); min-width: 0; }
+}
 .tbl--produits td { padding-top: 10px; padding-bottom: 10px; }
 .tbl--produits .tbl__suite td { border-top: 0; }
 .tbl--produits tr:has(+ .tbl__suite) td:not(.prod-cell) { border-bottom-color: transparent; }

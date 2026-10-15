@@ -60,12 +60,12 @@ const dates = (s) => String(s).replace(ISO, (m) => dateCourte(m));
 export function detailsJournal(e) {
   let d = e.details;
   if (d === undefined || d === null || d === '') return null;
-  if (typeof d !== 'string') d = Object.entries(d).map(([k, v]) => `${CHAMPS[k] || k} : ${v}`).join(' · ');
+  if (typeof d !== 'string') d = Object.entries(d).map(([k, v]) => `${CHAMPS[k] || k} : ${v}`).join(' · ');
   if (e.action?.startsWith('seance.') && MOMENT[d]) return MOMENT[d];
   const table = STATUTS[e.cible?.type];
-  d = d.replace(/^Statut : ([a-z-]+)$/, (m, c) => `Statut : ${minuscule(table ? libelle(table, c) : c)}`);
-  d = d.replace(/^(Champs|Rubriques) : (.+)$/, (m, s, l) => `${s} : ${l.split(/,\s*/).map((c) => CHAMPS[c] || c).join(', ')}`);
-  d = d.replace(/^Source : ([a-z-]+)$/, (m, c) => `Source : ${minuscule(ABONNE_SOURCE[c] || c)}`);
+  d = d.replace(/^Statut\s*:\s*([a-z-]+)$/, (m, c) => `Statut : ${minuscule(table ? libelle(table, c) : c)}`);
+  d = d.replace(/^(Champs|Rubriques)\s*:\s*(.+)$/, (m, s, l) => `${s} : ${l.split(/,\s*/).map((c) => CHAMPS[c] || c).join(', ')}`);
+  d = d.replace(/^Source\s*:\s*([a-z-]+)$/, (m, c) => `Source : ${minuscule(ABONNE_SOURCE[c] || c)}`);
   return typo(dates(d));
 }
 
@@ -90,7 +90,7 @@ function objetDe(e) {
   if (ACTIONS[e.action]?.sansObjet) return null;
   if (c.type === 'utilisateur' && e.par?.id && c.id === e.par.id) return null;
   let t = dates(c.libelle.replace(PREFIXE, ''));
-  if (c.type === 'campagne') t = `« ${t} »`;
+  if (c.type === 'campagne') t = `« ${t} »`;
   return { texte: typo(t), href: ACTIONS[e.action]?.sansLien ? null : lienCible(c) };
 }
 

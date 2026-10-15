@@ -220,7 +220,9 @@ export function Produits({ slug }) {
             {groupes.map(([g, produits]) => (
               <section key={g} aria-labelledby={`gm-${g}`}>
                 <h2 class="grp-mob" id={`gm-${g}`}>
-                  <Marque texte={GAMMES[g]?.nom || g} logo />
+                  <span>
+                    <Marque texte={GAMMES[g]?.nom || g} logo />
+                  </span>
                   <span class="grp__n">{pluriel(produits.length, 'produit', 'produits')}</span>
                 </h2>
                 <div class="prod-cards">

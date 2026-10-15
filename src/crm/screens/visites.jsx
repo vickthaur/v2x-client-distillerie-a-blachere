@@ -6,7 +6,7 @@ import { crm, crmUrl, elements, invalider, useCrm } from '../lib/data.js';
 import { useSession } from '../lib/session.jsx';
 import { navigate, useQuery } from '../lib/router.jsx';
 import { Icon } from '../ui/icons.jsx';
-import { Avatar, Button, Empty, Erreur, Notice, PageHead, Pill, Skeleton, Statut, cx, useTitre } from '../ui/base.jsx';
+import { Avatar, Button, Empty, Erreur, Notice, PageHead, Pill, Skeleton, Statut, cx, useTitre, coupe } from '../ui/base.jsx';
 import { Check, Input, Select, Stepper, Switch, Textarea, erreurDe } from '../ui/form.jsx';
 import { Dialog, Drawer, Menu, MenuItem, toast } from '../ui/overlay.jsx';
 import { Jauge, JaugeRonde } from '../charts/charts.jsx';
@@ -511,7 +511,7 @@ function DrawerSeance({ se, reservations, visee, inscrits, peutModifier, onClose
                       {x.telephone && x.email && ' · '}
                       {x.email && (
                         <a class="link link--ink" href={`mailto:${x.email}`}>
-                          {x.email}
+                          {coupe(x.email)}
                         </a>
                       )}
                     </div>
@@ -563,7 +563,7 @@ function DialogReservation({ init, seances, onClose, onFait }) {
   const maj = (k) => (e) => setF({ ...f, [k]: e.currentTarget.type === 'checkbox' ? e.currentTarget.checked : e.currentTarget.value });
   const envoyer = async () => {
     if (!f.nom.trim()) return setErr({ champ: 'nom', message: 'Indiquez le nom de la réservation.' });
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) return setErr({ champ: 'email', message: 'Indiquez l’e-mail : la confirmation et le rappel y sont envoyés.' });
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) return setErr({ champ: 'email', message: 'Indiquez l’e-mail : la confirmation et le rappel y sont envoyés.' });
     if (f.mineurs >= f.personnes) return setErr({ champ: 'mineurs', message: 'Au moins un adulte accompagne le groupe.' });
     setBusy(true);
     setErr(null);

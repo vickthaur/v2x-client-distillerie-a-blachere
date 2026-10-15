@@ -5,7 +5,7 @@ import { crm, crmUrl, elements, invalider, telecharger, useCrm } from '../lib/da
 import { useFil, useSession } from '../lib/session.jsx';
 import { Link, clicLigne, navigate, useQuery } from '../lib/router.jsx';
 import { Icon } from '../ui/icons.jsx';
-import { Avatar, Button, Card, Chips, Empty, Erreur, Notice, PageHead, Pagination, Pill, SearchInput, SkeletonPage, SkeletonRows, SortTh, Statut, useTitre } from '../ui/base.jsx';
+import { Avatar, Button, Card, Chips, Empty, Erreur, Notice, PageHead, Pagination, Pill, SearchInput, SkeletonPage, SkeletonRows, SortTh, Statut, useTitre, coupe } from '../ui/base.jsx';
 import { Check, Input, Switch, Textarea, erreurDe } from '../ui/form.jsx';
 import { Dialog, Menu, MenuItem, MenuSep, confirmer, toast } from '../ui/overlay.jsx';
 import { ABONNE_SOURCE, CLIENT_ORIGINE, COMMANDE, CANAL, MESSAGE, RESERVATION, SUJET } from '../lib/statuts.js';
@@ -463,7 +463,7 @@ export function Client({ id }) {
                 <li>
                   <Icon name="mail" size="s" />
                   <a class="link link--ink" href={`mailto:${c.email}`}>
-                    {c.email}
+                    {coupe(c.email)}
                   </a>
                 </li>
                 {c.telephone && (

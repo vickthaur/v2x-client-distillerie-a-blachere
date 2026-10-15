@@ -11,8 +11,8 @@ import { date, nomComplet, relatif } from '../lib/format.js';
 const ROLES_EQUIPE = ['direction', 'commercial', 'logistique', 'boutique'];
 
 function statutMembre(u) {
-  if (u.actif === false) return { label: 'Désactivé', ton: 'mute' };
-  if (u.invitation || u.statut === 'invite' || u.invite) return { label: 'Invitation envoyée', ton: 'info' };
+  if (u.actif === false || u.statut === 'desactive') return { label: 'Désactivé', ton: 'mute' };
+  if (u.statut === 'invitation' || u.invitation || u.invite) return { label: 'Invitation envoyée', ton: 'info' };
   return { label: 'Actif', ton: 'ok' };
 }
 
@@ -80,6 +80,11 @@ export function Equipe() {
                     <div class="membre__nom">
                       <span class="strong">{nomComplet(u)}</span>
                       {moi && <span class="tag tag--soft">vous</span>}
+                      {u.demo && !moi && (
+                        <span class="tag tag--soft" title="Profil d’une entrée de démonstration : changer son rôle change ce que montre cette entrée.">
+                          profil de démo
+                        </span>
+                      )}
                     </div>
                     <div class="small muted ellipsis">
                       {u.email}
@@ -88,7 +93,15 @@ export function Equipe() {
                   </div>
                   <div class="membre__role">
                     <span class="strong small">{roleNom(u.role)}</span>
-                    <span class="small muted">{u.derniereConnexion ? `connexion ${relatif(u.derniereConnexion)}` : u.createdAt ? `depuis le ${date(u.createdAt)}` : ''}</span>
+                    <span class="small muted">
+                      {u.statut === 'invitation' && u.invitationExpireLe
+                        ? `invitation valable jusqu’au ${date(u.invitationExpireLe)}`
+                        : u.derniereConnexion
+                          ? `connexion ${relatif(u.derniereConnexion)}`
+                          : u.createdAt
+                            ? `depuis le ${date(u.createdAt)}`
+                            : 'jamais connecté'}
+                    </span>
                   </div>
                   <Pill ton={st.ton}>{st.label}</Pill>
                   {peutModifier && !moi ? (
@@ -134,7 +147,7 @@ export function Equipe() {
 }
 
 function DialogInviterMembre({ onClose, onFait }) {
-  const [f, setF] = useState({ prenom: '', nom: '', email: '', role: 'boutique' });
+  const [f, setF] = useState({ prenom: '', nom: '', email: '', role: 'boutique', poste: '' });
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
   const maj = (k) => (e) => setF({ ...f, [k]: e.currentTarget.value });
@@ -142,8 +155,13 @@ function DialogInviterMembre({ onClose, onFait }) {
     setBusy(true);
     setErr(null);
     try {
-      await crm('membre', { method: 'POST', body: { prenom: f.prenom.trim(), nom: f.nom.trim(), email: f.email.trim(), role: f.role } });
-      toast(`Invitation envoyée à ${f.email.trim()}`, { detail: 'Le lien est valable 7 jours.', action: { label: 'Voir le courriel', href: '/crm/courriels' } });
+      const d = await crm('membre', { method: 'POST', body: { prenom: f.prenom.trim(), nom: f.nom.trim(), email: f.email.trim(), role: f.role, poste: f.poste.trim() || undefined } });
+      toast(`Invitation envoyée à ${f.email.trim()}`, {
+        detail: 'Démonstration : rien ne part vraiment. Le lien est valable 7 jours.',
+        action: d?.lienDemo ? { label: 'Lien d’activation', href: d.lienDemo, target: '_blank' } : { label: 'Voir le courriel', href: '/crm/courriels' },
+        duree: 12000,
+      });
+      invalider('courriels');
       onFait();
       onClose();
     } catch (e) {
@@ -172,7 +190,8 @@ function DialogInviterMembre({ onClose, onFait }) {
         <div class="form-grid">
           <Input label="Prénom" value={f.prenom} onInput={maj('prenom')} error={erreurDe(err, 'prenom')} />
           <Input label="Nom" value={f.nom} onInput={maj('nom')} error={erreurDe(err, 'nom')} />
-          <Input class="span-2" label="E-mail" type="email" value={f.email} onInput={maj('email')} error={erreurDe(err, 'email')} />
+          <Input label="E-mail" type="email" value={f.email} onInput={maj('email')} error={erreurDe(err, 'email')} />
+          <Input label="Poste" opt value={f.poste} onInput={maj('poste')} error={erreurDe(err, 'poste')} placeholder="Ex. : vendeuse en boutique" />
         </div>
         <Choices name="role" label="Rôle" value={f.role} onChange={(v) => setF({ ...f, role: v })} items={ROLES_EQUIPE.map((ro) => ({ value: ro, titre: roleNom(ro), desc: ROLES[ro].desc }))} />
         {err && !erreurDe(err, 'prenom', 'nom', 'email', 'role') && <Notice ton="err">{err.message}</Notice>}

@@ -203,10 +203,10 @@ export function NouvelleCommande() {
                   <Input label="Date souhaitée" opt type="date" min={aujourdHui()} value={pro.dateSouhaitee} onInput={(e) => setPro({ ...pro, dateSouhaitee: e.currentTarget.value })} error={erreurDe(err, 'dateSouhaitee')} />
                 </div>
                 <Textarea label="Commentaire du client" opt value={pro.commentaire} onInput={(e) => setPro({ ...pro, commentaire: e.currentTarget.value })} rows={2} style="min-height:64px" error={erreurDe(err, 'commentaire')} />
-                <Textarea label="Note interne" opt value={note} onInput={(e) => setNote(e.currentTarget.value)} rows={2} placeholder="Ex. : livraison avant 11 h" style="min-height:64px" />
+                <Textarea label="Note interne" opt value={note} onInput={(e) => setNote(e.currentTarget.value)} rows={2} placeholder="Ex. : livraison avant 11 h" style="min-height:64px" />
                 {cpt && (
                   <p class="small muted">
-                    Paiement selon les conditions du compte : <strong>{CONDITIONS[cpt.conditions] || cpt.conditions}</strong>. Prix de la grille {GRILLE[cpt.grille]?.label.replace('Grille ', '') || cpt.grille}
+                    Paiement selon les conditions du compte : <strong>{CONDITIONS[cpt.conditions] || cpt.conditions}</strong>. Prix de la grille {GRILLE[cpt.grille]?.label.replace('Grille ', '') || cpt.grille}
                     {cpt.remise ? `, remise de ${String(cpt.remise).replace('.', ',')} %` : ''}.
                   </p>
                 )}
@@ -242,7 +242,7 @@ export function NouvelleCommande() {
                 </div>
                 <Check label="Paiement déjà reçu" checked={paye} onChange={(e) => setPaye(e.currentTarget.checked)} />
                 <Check label="Le client accepte de recevoir la lettre d’information" checked={consentement} onChange={(e) => setConsentement(e.currentTarget.checked)} />
-                <Textarea label="Note interne" opt value={note} onInput={(e) => setNote(e.currentTarget.value)} rows={2} placeholder="Ex. : rappeler le client à la préparation" style="min-height:72px" />
+                <Textarea label="Note interne" opt value={note} onInput={(e) => setNote(e.currentTarget.value)} rows={2} placeholder="Ex. : rappeler le client à la préparation" style="min-height:72px" />
                 {alcool && <Check label="Le client a confirmé avoir 18 ans ou plus (la commande contient de l’alcool)." checked={age} onChange={(e) => setAge(e.currentTarget.checked)} boite />}
                 {erreurDe(err, 'ageConfirme') && <p class="field__err">{erreurDe(err, 'ageConfirme')}</p>}
               </div>
@@ -309,7 +309,7 @@ function ChoixClient({ client, setClient, choisi, setChoisi, err }) {
   }
   return (
     <div class="stack stack--s">
-      <SearchInput value={q} onChange={setQ} placeholder="Chercher un client existant (nom, e-mail, téléphone)" label="Chercher un client" />
+      <SearchInput value={q} onChange={setQ} placeholder="Rechercher un client existant" label="Rechercher un client existant (nom, e-mail, téléphone)" />
       {q.trim().length >= 2 && (
         <div class="suggestions" role="list">
           {res.loading && <p class="small muted" style="padding:8px 12px">Recherche…</p>}
@@ -397,7 +397,7 @@ function Catalogue({ catalogue, chargement, erreur, onAjouter, pro }) {
       {chargement && <p class="small muted">Chargement du catalogue…</p>}
       {!terme && catalogue.length > 0 && (
         <div class="rapide">
-          <span class="small muted">Les plus vendus :</span>
+          <span class="small muted">Les plus vendus :</span>
           {catalogue
             .flatMap((p) => p.variantes.filter((v) => v.stock > 0).map((v) => ({ p, v })))
             .sort((a, b) => (b.v.vendus30 || 0) - (a.v.vendus30 || 0))

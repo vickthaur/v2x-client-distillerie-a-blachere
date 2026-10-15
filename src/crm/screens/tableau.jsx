@@ -143,7 +143,7 @@ function Kpis({ d }) {
         <p class="kpi__value">{euros(d.panierMoyen30)}</p>
         <div class="kpi__foot">
           <span class="kpi__cmp">
-            Aujourd’hui : {eurosRond(ca.jour)} · cette semaine : {eurosRond(ca.semaine)}
+            CA du jour : {eurosRond(ca.jour)} · depuis lundi : {eurosRond(ca.semaine)}
           </span>
         </div>
       </div>
@@ -167,7 +167,7 @@ function Repartition({ enLigne, pro }) {
   const p = total ? enLigne / total : 0;
   return (
     <div class="repart">
-      <div class="repart__barre" role="img" aria-label={`Chiffre d’affaires : ${eurosRond(enLigne)} particuliers, ${eurosRond(pro)} pro`}>
+      <div class="repart__barre" role="img" aria-label={`Chiffre d’affaires : ${eurosRond(enLigne)} particuliers, ${eurosRond(pro)} pro`}>
         {enLigne > 0 && <span style={{ width: `${p * 100}%`, background: COULEURS.enLigne }} />}
         {pro > 0 && <span style={{ width: `${(1 - p) * 100}%`, background: COULEURS.pro }} />}
       </div>
@@ -195,12 +195,12 @@ function CarteVentes({ ventes, ca = {}, ht }) {
     { cle: 'pro', label: 'Pro', couleur: COULEURS.pro },
   ];
   return (
-    <Card titre="Ventes des 30 derniers jours" sous={`Montants ${ht} par jour : boutique en ligne et téléphone, commandes pro`} actions={<BasculeTableau actif={tableau} onChange={setTableau} />}>
+    <Card titre="Ventes des 30 derniers jours" sous={`Montants ${ht} par jour : boutique en ligne et téléphone, commandes pro`} actions={<BasculeTableau actif={tableau} onChange={setTableau} />}>
       <div class="chart-head">
         <Legende items={series.map((x) => ({ label: x.label, couleur: x.couleur, valeur: eurosRond(x.cle === 'enLigne' ? totEnLigne : totPro) }))} />
         <span class="small muted">
-          {Number.isFinite(ca.mois) ? `${mois(aujourdHui()).replace(/ \d{4}$/, '')} : ${eurosRond(ca.mois)}` : ''}
-          {Number.isFinite(ca.moisPrecedent) ? ` · mois dernier : ${eurosRond(ca.moisPrecedent)}` : ''}
+          {Number.isFinite(ca.mois) ? `${mois(aujourdHui()).replace(/ \d{4}$/, '')} : ${eurosRond(ca.mois)}` : ''}
+          {Number.isFinite(ca.moisPrecedent) ? ` · mois dernier : ${eurosRond(ca.moisPrecedent)}` : ''}
         </span>
       </div>
       {ventes.length === 0 ? (

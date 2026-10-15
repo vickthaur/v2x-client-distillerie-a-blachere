@@ -6,7 +6,7 @@ import { crm, elements, invalider, useCrm } from '../lib/data.js';
 import { useFil, useSession } from '../lib/session.jsx';
 import { Link, origineNavigation, useQuery } from '../lib/router.jsx';
 import { Icon } from '../ui/icons.jsx';
-import { Avatar, Button, Chips, Empty, Erreur, Notice, PageHead, SearchInput, SkeletonRows, Statut, cx, useTitre } from '../ui/base.jsx';
+import { Avatar, Button, Chips, Empty, Erreur, Notice, PageHead, SearchInput, SkeletonRows, Statut, cx, useTitre, coupe } from '../ui/base.jsx';
 import { Menu, MenuItem, MenuLabel, MenuSep, toast } from '../ui/overlay.jsx';
 import { Marque } from '../ui/marque.jsx';
 import { MESSAGE, SUJET } from '../lib/statuts.js';
@@ -196,7 +196,7 @@ function Lecture({ id, retour, onChange }) {
           <li>
             <Icon name="mail" size="s" />
             <a class="link link--ink" href={`mailto:${m.email}`}>
-              {m.email}
+              {coupe(m.email)}
             </a>
           </li>
           {m.telephone && (

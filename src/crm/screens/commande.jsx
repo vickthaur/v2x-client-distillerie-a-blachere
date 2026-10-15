@@ -5,7 +5,7 @@ import { crm, invalider, useCrm } from '../lib/data.js';
 import { useFil, useSession } from '../lib/session.jsx';
 import { Link } from '../lib/router.jsx';
 import { Icon } from '../ui/icons.jsx';
-import { Avatar, Button, Card, Empty, Erreur, Notice, PageHead, Pill, SkeletonPage, Statut, cx, useTitre } from '../ui/base.jsx';
+import { Avatar, Button, Card, Empty, Erreur, Notice, PageHead, Pill, SkeletonPage, Statut, cx, useTitre, coupe } from '../ui/base.jsx';
 import { Dialog, Menu, MenuItem, confirmer, toast } from '../ui/overlay.jsx';
 import { Input, Select, Textarea, erreurDe } from '../ui/form.jsx';
 import { Marque } from '../ui/marque.jsx';
@@ -594,7 +594,7 @@ function Contact({ contact }) {
         <li>
           <Icon name="mail" size="s" />
           <a class="link link--ink" href={`mailto:${contact.email}`}>
-            {contact.email}
+            {coupe(contact.email)}
           </a>
         </li>
       )}
