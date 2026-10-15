@@ -23,14 +23,15 @@ export function lienDe(type, id, extra = {}) {
     case 'reservation':
     case 'seance':
     case 'visite':
-      return extra.date ? `/crm/visites?semaine=${lundi(extra.date)}${id ? `&seance=${extra.seanceId || ''}` : ''}` : '/crm/visites';
+      if (extra.date) return `/crm/visites?semaine=${lundi(extra.date)}${extra.seanceId ? `&seance=${extra.seanceId}` : ''}`;
+      return id ? `/crm/visites/${id}` : '/crm/visites';
     case 'produit':
     case 'stock':
       return id ? `/crm/produits/${id}` : '/crm/produits';
     case 'campagne':
       return id ? `/crm/newsletter/campagnes/${id}` : '/crm/newsletter';
     case 'abonne':
-      return '/crm/newsletter';
+      return id ? `/crm/newsletter/${id}` : '/crm/newsletter';
     case 'promo':
       return '/crm/promos';
     case 'courriel':

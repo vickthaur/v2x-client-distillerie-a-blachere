@@ -48,6 +48,7 @@ const ROUTES = [
   ['/crm/messages/:id', Messages],
   ['/crm/newsletter', Newsletter],
   ['/crm/newsletter/campagnes/:id', Campagne],
+  ['/crm/newsletter/:id', Newsletter],
   ['/crm/promos', Promos],
   ['/crm/courriels', Courriels],
   ['/crm/courriels/:id', Courriels],

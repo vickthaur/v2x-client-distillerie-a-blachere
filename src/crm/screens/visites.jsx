@@ -2,9 +2,9 @@
 // séances avec jauge (inscrits / capacité), ouverture et fermeture, capacité, guide et notes ;
 // réservations de la séance (venue, absente, annulée), réservation manuelle, feuille d'émargement.
 import { useEffect, useMemo, useState } from 'preact/hooks';
-import { crm, elements, invalider, useCrm } from '../lib/data.js';
+import { crm, crmUrl, elements, invalider, useCrm } from '../lib/data.js';
 import { useSession } from '../lib/session.jsx';
-import { useQuery } from '../lib/router.jsx';
+import { navigate, useQuery } from '../lib/router.jsx';
 import { Icon } from '../ui/icons.jsx';
 import { Avatar, Button, Empty, Erreur, Notice, PageHead, Pill, Skeleton, Statut, cx, useTitre } from '../ui/base.jsx';
 import { Check, Input, Select, Stepper, Switch, Textarea, erreurDe } from '../ui/form.jsx';
@@ -12,17 +12,33 @@ import { Dialog, Drawer, Menu, MenuItem, toast } from '../ui/overlay.jsx';
 import { Jauge, JaugeRonde } from '../charts/charts.jsx';
 import { LANGUE, LANGUE_COURT, MOMENT, RESERVATION, RESERVATION_SOURCE } from '../lib/statuts.js';
 import { ajouterJours, aujourdHui, date, dateCourte, heure, jourCourt, jourDeSemaine, jourSemaine, lundi, nombre, nomComplet, pluriel, relatif, telephone } from '../lib/format.js';
-import { useCommerciaux } from './comptes.jsx';
+import { useMembres } from './comptes.jsx';
 
 const MOMENTS = ['matin', 'apres-midi'];
 const HEURES = { matin: '10:30', 'apres-midi': '15:00' };
 const actives = (rs) => rs.filter((x) => x.statut !== 'annulee');
 const personnes = (rs) => actives(rs).reduce((t, x) => t + (Number(x.personnes) || 0), 0);
 
-export function Visites() {
+export function Visites({ id }) {
   useTitre('Visites');
   const s = useSession();
   const [q, setQ] = useQuery();
+  // Lien direct (/crm/visites/<réservation ou séance>, depuis le journal, la recherche ou le site) :
+  // on retrouve la semaine et la séance, puis l'adresse devient celle de la semaine.
+  const lien = useCrm(id ? 'visites' : null, { du: ajouterJours(aujourdHui(), -60), au: ajouterJours(aujourdHui(), 59) });
+  useEffect(() => {
+    if (!id || (!lien.data && !lien.error)) return;
+    const rs = elements(lien.data?.reservations);
+    const ss = elements(lien.data?.seances);
+    const res = rs.find((x) => x.id === id || x.reference === id);
+    const se = ss.find((x) => x.id === (res ? res.seanceId : id));
+    const jour = res?.date || se?.date;
+    if (jour) navigate(`/crm/visites?semaine=${lundi(jour)}${se ? `&seance=${se.id}` : `&jour=${jour}`}${res ? `&resa=${res.id}` : ''}`, { replace: true });
+    else {
+      toast.info('Réservation introuvable', { detail: 'Elle a pu être supprimée, ou date de plus de deux mois.' });
+      navigate('/crm/visites', { replace: true });
+    }
+  }, [id, lien.data, lien.error]);
   const jourQ = q.get('jour');
   const semaine = q.get('semaine') || lundi(jourQ || aujourdHui());
   const seanceId = q.get('seance');
@@ -56,11 +72,18 @@ export function Visites() {
         titre="Visites"
         sous={`Semaine du ${dateCourte(semaine)} au ${date(ajouterJours(semaine, 5))}`}
         actions={
-          peutModifier && (
-            <Button variant="primary" icon="plus" onClick={() => setReserver({ date: jourMob, moment: 'matin' })}>
-              Réserver
-            </Button>
-          )
+          <>
+            {s.peut('exports') && (
+              <Button href={crmUrl('export', { type: 'reservations' })} target="_blank" download="" icon="telecharger" title="Toutes les réservations, au format CSV (tableur)">
+                <span class="hide-s">Exporter</span>
+              </Button>
+            )}
+            {peutModifier && (
+              <Button variant="primary" icon="plus" onClick={() => setReserver({ date: jourMob, moment: 'matin' })}>
+                Réserver
+              </Button>
+            )}
+          </>
         }
       />
       <div class="toolbar">
@@ -173,6 +196,7 @@ export function Visites() {
         <DrawerSeance
           se={choisie}
           reservations={resaDe(choisie.id)}
+          visee={q.get('resa')}
           inscrits={inscritsDe(choisie)}
           peutModifier={peutModifier}
           onClose={() => setQ({ seance: undefined })}
@@ -316,7 +340,7 @@ function CarteSeance({ se, inscrits, nbResa, actif, onOuvrir, large }) {
       </span>
       <Jauge valeur={inscrits} max={cap || 1} label="Remplissage" texte={`${inscrits} inscrits sur ${cap}`} />
       <span class="seance__bas small muted">
-        <span>{pluriel(nbResa, 'réservation', 'réservations')}</span>
+        <span>{nbResa ? pluriel(nbResa, 'réservation', 'réservations') : 'Aucune réservation'}</span>
         {se.guide?.nom || se.guideNom ? <span class="seance__guide">{(se.guide?.nom || se.guideNom).split(' ')[0]}</span> : null}
       </span>
     </button>
@@ -349,19 +373,22 @@ function AjoutSeance({ date: jour, moment, onFait }) {
   );
 }
 
-function DrawerSeance({ se, reservations, inscrits, peutModifier, onClose, onReserver, onChange, mutate }) {
+function DrawerSeance({ se, reservations, visee, inscrits, peutModifier, onClose, onReserver, onChange, mutate }) {
   const s = useSession();
-  const guides = useCommerciaux(false);
-  const equipe = useCrm(s.peut('equipe') ? 'equipe' : null, {});
-  const membres = elements(equipe.data, 'membres', 'equipe', 'utilisateurs').filter((u) => u.actif !== false && u.role !== 'pro');
+  const membres = useMembres();
   const [f, setF] = useState({ capacite: se.capacite, guideId: se.guideId || '', notes: se.notes || '', langue: se.langue || 'fr' });
   const [busy, setBusy] = useState(null);
   useEffect(() => setF({ capacite: se.capacite, guideId: se.guideId || '', notes: se.notes || '', langue: se.langue || 'fr' }), [se.id, se.capacite, se.guideId, se.notes, se.langue]);
+  useEffect(() => {
+    if (!visee) return;
+    const t = setTimeout(() => document.getElementById(`resa-${visee}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 250);
+    return () => clearTimeout(t);
+  }, [visee, se.id]);
   const cap = Number(se.capacite) || 0;
   const tri = [...reservations].sort((a, b) => (a.statut === 'annulee') - (b.statut === 'annulee') || String(a.nom).localeCompare(String(b.nom), 'fr'));
   const mineurs = actives(reservations).reduce((t, x) => t + (Number(x.mineurs) || 0), 0);
   const change = f.capacite !== se.capacite || (f.guideId || '') !== (se.guideId || '') || (f.notes || '') !== (se.notes || '') || f.langue !== (se.langue || 'fr');
-  const optionsGuides = membres.length ? membres : guides.length ? guides : se.guide ? [{ id: se.guideId, prenom: se.guide.nom, nom: '' }] : [];
+  const optionsGuides = membres.length ? membres : se.guide ? [{ id: se.guideId, prenom: se.guide.nom, nom: '' }] : [];
 
   const patchSeance = async (body, cle, message) => {
     setBusy(cle);
@@ -464,7 +491,7 @@ function DrawerSeance({ se, reservations, inscrits, peutModifier, onClose, onRes
           ) : (
             <ul class="resas">
               {tri.map((x) => (
-                <li key={x.id} class={cx('resa', x.statut === 'annulee' && 'is-annulee')}>
+                <li key={x.id} id={`resa-${x.id}`} class={cx('resa', x.statut === 'annulee' && 'is-annulee', x.id === visee && 'is-visee')} aria-current={x.id === visee ? 'true' : undefined}>
                   <Avatar nom={x.nom} cle={x.id} />
                   <div class="resa__main">
                     <div class="resa__top">

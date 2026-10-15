@@ -5,11 +5,11 @@ import { crm, crmUrl, elements, invalider, telecharger, useCrm } from '../lib/da
 import { useFil, useSession } from '../lib/session.jsx';
 import { Link, clicLigne, navigate, useQuery } from '../lib/router.jsx';
 import { Icon } from '../ui/icons.jsx';
-import { Avatar, Button, Card, Chips, Empty, Erreur, Notice, PageHead, Pagination, Pill, SearchInput, SkeletonPage, SkeletonRows, Statut, useTitre } from '../ui/base.jsx';
+import { Avatar, Button, Card, Chips, Empty, Erreur, Notice, PageHead, Pagination, Pill, SearchInput, SkeletonPage, SkeletonRows, SortTh, Statut, useTitre } from '../ui/base.jsx';
 import { Check, Input, Switch, Textarea, erreurDe } from '../ui/form.jsx';
 import { Dialog, Menu, MenuItem, MenuSep, confirmer, toast } from '../ui/overlay.jsx';
-import { CLIENT_ORIGINE, COMMANDE, CANAL } from '../lib/statuts.js';
-import { date, euros, nombre, pluriel, relatif, telephone } from '../lib/format.js';
+import { ABONNE_SOURCE, CLIENT_ORIGINE, COMMANDE, CANAL, MESSAGE, RESERVATION, SUJET } from '../lib/statuts.js';
+import { date, euros, heure, nombre, pluriel, relatif, telephone } from '../lib/format.js';
 import { formatAdresse } from './commande.jsx';
 
 const PAR = 25;
@@ -28,7 +28,9 @@ export function Clients() {
   const segment = q.get('segment') || 'tous';
   const recherche = q.get('q') || '';
   const page = Number(q.get('page')) || 1;
-  const r = useCrm('clients', { segment, q: recherche, page, par: PAR }, { garder: true });
+  const tri = q.get('tri') || 'nom';
+  const trier = (t) => setQ({ tri: t === 'nom' ? undefined : t, page: undefined });
+  const r = useCrm('clients', { segment, q: recherche, page, par: PAR, tri }, { garder: true });
   const d = r.data;
   const liste = elements(d, 'clients');
   const compteurs = d?.compteurs || d?.segments || {};
@@ -43,7 +45,7 @@ export function Clients() {
         actions={
           <>
             {s.peut('exports') && (
-              <Button href={crmUrl('export', { type: 'clients', segment, q: recherche })} target="_blank" download="" icon="telecharger">
+              <Button href={crmUrl('export', { type: 'clients' })} target="_blank" download="" icon="telecharger" title="Tous les clients, au format CSV (tableur)">
                 <span class="hide-s">Exporter</span>
               </Button>
             )}
@@ -58,6 +60,13 @@ export function Clients() {
       <Chips label="Segments" items={SEGMENTS.map((x) => ({ ...x, n: compteurs[x.id] }))} value={segment} onChange={(v) => setQ({ segment: v === 'tous' ? undefined : v, page: undefined })} />
       <div class="toolbar">
         <SearchInput class="toolbar__search" value={recherche} onChange={(v) => setQ({ q: v, page: undefined })} placeholder="Nom, e-mail, téléphone, ville…" label="Rechercher un client" />
+        <select class="select select--sm only-mob-inline" style="width:auto" aria-label="Trier" value={tri} onChange={(e) => trier(e.currentTarget.value)}>
+          <option value="nom">Par nom</option>
+          <option value="-total">Total dépensé</option>
+          <option value="-commandes">Nombre de commandes</option>
+          <option value="-derniere">Dernière commande</option>
+          <option value="-date">Plus récents</option>
+        </select>
       </div>
       {r.error && !d && <Erreur erreur={r.error} onRetry={r.reload} />}
       <div class={r.refreshing ? 'refreshing' : ''}>
@@ -79,11 +88,19 @@ export function Clients() {
                   <caption class="sr-only">Clients</caption>
                   <thead>
                     <tr>
-                      <th>Client</th>
+                      <SortTh id="nom" tri={tri} onTri={trier}>
+                        Client
+                      </SortTh>
                       <th>Ville</th>
-                      <th class="num">Commandes</th>
-                      <th class="num">Total dépensé</th>
-                      <th>Dernière commande</th>
+                      <SortTh id="commandes" tri={tri} onTri={trier} class="num">
+                        Commandes
+                      </SortTh>
+                      <SortTh id="total" tri={tri} onTri={trier} class="num">
+                        Total dépensé
+                      </SortTh>
+                      <SortTh id="derniere" tri={tri} onTri={trier}>
+                        Dernière commande
+                      </SortTh>
                       <th>Newsletter</th>
                       <th>Étiquettes</th>
                     </tr>
@@ -251,6 +268,10 @@ export function Client({ id }) {
   const total = tot.totalTTC ?? tot.total ?? commandes.reduce((t, x) => t + (x.statut !== 'annulee' && x.statut !== 'remboursee' ? x.totalTTC || x.totaux?.totalTTC || 0 : 0), 0);
   const nb = tot.commandes ?? commandes.length;
   const derniere = commandes[0];
+  const derniereDate = tot.derniereCommande || derniere?.date || derniere?.createdAt;
+  const reservations = elements(d?.reservations);
+  const messages = elements(d?.messages);
+  const abonnement = d?.abonnement;
 
   const patch = async (body, message) => {
     const avant = r.data;
@@ -320,9 +341,11 @@ export function Client({ id }) {
                       Nouvelle commande
                     </MenuItem>
                   )}
-                  <MenuItem icone="telecharger" fermer={fermer} onSelect={exporter} desc="Toutes ses données au format JSON (RGPD)">
-                    Exporter ses données
-                  </MenuItem>
+                  {peutModifier && (
+                    <MenuItem icone="telecharger" fermer={fermer} onSelect={exporter} desc="Toutes ses données au format JSON (RGPD)">
+                      Exporter ses données
+                    </MenuItem>
+                  )}
                   {peutModifier && (
                     <>
                       <MenuSep />
@@ -352,7 +375,7 @@ export function Client({ id }) {
         </div>
         <div class="stat">
           <span class="stat__k">Dernière commande</span>
-          <span class="stat__v stat__v--s">{derniere ? relatif(derniere.date || derniere.createdAt) : 'Aucune'}</span>
+          <span class="stat__v stat__v--s">{derniereDate ? relatif(derniereDate) : 'Aucune'}</span>
         </div>
       </div>
       <div class="cols cols--main">
@@ -385,6 +408,52 @@ export function Client({ id }) {
               </div>
             )}
           </Card>
+          {reservations.length > 0 && (
+            <Card titre="Visites de la distillerie" icone="calendrier" corps={false} sous={pluriel(reservations.length, 'réservation', 'réservations')}>
+              <div class="list">
+                {reservations.map((x) => (
+                  <Link key={x.id} class="list__item" href={`/crm/visites/${x.id}`}>
+                    <span class="list__ico">
+                      <Icon name="calendrier" size="s" />
+                    </span>
+                    <span class="list__main">
+                      <span class="list__title">
+                        {date(x.date)} · {heure(x.heure || (x.moment === 'matin' ? '10:30' : '15:00'))}
+                      </span>
+                      <span class="list__meta">
+                        {pluriel(x.personnes, 'personne', 'personnes')} · <span class="mono">{x.reference}</span>
+                      </span>
+                    </span>
+                    <span class="list__end">
+                      <Statut table={RESERVATION} valeur={x.statut} />
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </Card>
+          )}
+          {messages.length > 0 && (
+            <Card titre="Messages" icone="message" corps={false} sous={pluriel(messages.length, 'message', 'messages')}>
+              <div class="list">
+                {messages.map((x) => (
+                  <Link key={x.id} class="list__item" href={`/crm/messages/${x.id}`}>
+                    <span class="list__ico">
+                      <Icon name="message" size="s" />
+                    </span>
+                    <span class="list__main">
+                      <span class="list__title">{SUJET[x.sujet] || x.sujet || 'Message'}</span>
+                      <span class="list__meta">
+                        {date(x.dernierMessage || x.createdAt)} · <span class="mono">{x.reference}</span>
+                      </span>
+                    </span>
+                    <span class="list__end">
+                      <Statut table={MESSAGE} valeur={x.statut} />
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </Card>
+          )}
           <NotesClient c={c} patch={patch} peutModifier={peutModifier} />
         </div>
         <div class="stack">
@@ -421,21 +490,19 @@ export function Client({ id }) {
             </div>
           </Card>
           <Tags c={c} patch={patch} peutModifier={peutModifier} />
-          <Card titre="Données personnelles" icone="cadenas" class="card--paper">
+          {peutModifier && <Card titre="Données personnelles" icone="cadenas" class="card--paper">
             <div class="stack stack--s">
               <p class="small muted">Le client peut demander une copie de ses données ou leur effacement.</p>
               <div class="btn-row">
                 <Button size="sm" icon="telecharger" onClick={exporter}>
                   Exporter (JSON)
                 </Button>
-                {peutModifier && (
-                  <Button size="sm" variant="danger-soft" icon="corbeille" onClick={supprimer}>
-                    Supprimer
-                  </Button>
-                )}
+                <Button size="sm" variant="danger-soft" icon="corbeille" onClick={supprimer}>
+                  Supprimer
+                </Button>
               </div>
             </div>
-          </Card>
+          </Card>}
         </div>
       </div>
       {edition && (

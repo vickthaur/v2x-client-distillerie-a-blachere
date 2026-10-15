@@ -14,6 +14,8 @@ import { date, dateHeure, nomComplet, pluriel, relatif, telephone, typo } from '
 import { Marque } from '../ui/marque.jsx';
 import { useCommerciaux } from './comptes.jsx';
 
+const PLURIEL = { nouvelle: 'Nouvelles', 'en-cours': 'En cours', acceptee: 'Acceptées', refusee: 'Refusées' };
+
 const ORDRE = ['nouvelle', 'en-cours', 'acceptee', 'refusee'];
 const grilleDe = (activite) => (activite === 'caviste' || activite === 'epicerie' ? 'caviste' : activite === 'distributeur' ? 'distributeur' : 'chr');
 
@@ -34,7 +36,10 @@ export function Demandes({ id }) {
           <PageHead titre="Demandes pro" sous="Demandes d’ouverture de compte reçues par le site" />
           <Chips
             label="Statut"
-            items={[{ id: '', label: 'Toutes', n: compteurs.toutes ?? compteurs.total }, ...ORDRE.map((k) => ({ id: k, label: DEMANDE[k].label, n: compteurs[k] }))]}
+            items={[
+              { id: '', label: 'Toutes', n: compteurs.toutes ?? compteurs.total ?? (r.data ? ORDRE.reduce((t, k) => t + (compteurs[k] || 0), 0) : undefined) },
+              ...ORDRE.map((k) => ({ id: k, label: PLURIEL[k] || DEMANDE[k].label, n: ['nouvelle', 'en-cours'].includes(k) ? compteurs[k] : undefined })),
+            ]}
             value={statut}
             onChange={(v) => setQ({ statut: v || undefined })}
           />

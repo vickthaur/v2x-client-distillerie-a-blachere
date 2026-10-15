@@ -9,10 +9,11 @@ import { Icon } from '../ui/icons.jsx';
 import { Avatar, Button, Card, Empty, Erreur, Pill, Skeleton, useTitre } from '../ui/base.jsx';
 import { Marque } from '../ui/marque.jsx';
 import { Ruban } from '../ui/ruban.jsx';
+import { PhraseJournal, auteurDe, detailsJournal } from '../ui/journal.jsx';
 import { BarresEmpilees, BasculeTableau, Jauge, Legende, MiniCourbe } from '../charts/charts.jsx';
-import { COULEURS, lienCible } from '../lib/liens.js';
+import { COULEURS } from '../lib/liens.js';
 import { aujourdHui, date, dateCourte, dateLongue, ecartJours, euros, eurosCourt, eurosRond, heure, jourSemaine, lundi, mois, nombre, periode, pluriel, relatif, variation } from '../lib/format.js';
-import { ACTIONS, LANGUE_COURT, MOMENT } from '../lib/statuts.js';
+import { LANGUE_COURT, MOMENT } from '../lib/statuts.js';
 
 export function Tableau() {
   useTitre('Tableau de bord');
@@ -413,24 +414,16 @@ function Activite({ liste }) {
       ) : (
         <ol class="feed">
           {liste.slice(0, 8).map((e) => {
-            const href = lienCible(e.cible);
-            const qui = e.par?.nom || 'Système';
+            const qui = auteurDe(e);
+            const details = detailsJournal(e);
             return (
               <li key={e.id} class="feed__item">
-                {e.par?.id ? <Avatar nom={qui} cle={e.par.id} size="s" /> : <span class="feed__sys" aria-hidden="true"><Icon name={qui === 'Site' ? 'globe' : 'etincelle'} size="xs" /></span>}
+                {e.par?.id ? <Avatar nom={qui} cle={e.par.id} size="s" /> : <span class="feed__sys" aria-hidden="true"><Icon name={e.par?.nom === 'Site' ? 'globe' : 'etincelle'} size="xs" /></span>}
                 <div class="feed__txt">
                   <p>
-                    <span class="strong">{qui}</span> {phraseAction(e)}{' '}
-                    {e.cible?.libelle &&
-                      (href ? (
-                        <Link class="link link--ink" href={href}>
-                          {e.cible.libelle}
-                        </Link>
-                      ) : (
-                        <span class="strong">{e.cible.libelle}</span>
-                      ))}
+                    <PhraseJournal e={e} role={false} encre />
                   </p>
-                  {e.details && typeof e.details === 'string' && <p class="small muted ellipsis">{e.details}</p>}
+                  {details && <p class="small muted ellipsis">{details}</p>}
                   <time class="small muted" dateTime={e.date} title={date(e.date)}>
                     {relatif(e.date)}
                   </time>
@@ -442,14 +435,6 @@ function Activite({ liste }) {
       )}
     </Card>
   );
-}
-
-// Action du journal en phrase : code du serveur (« commande.statut ») traduit, sinon tel quel
-export function phraseAction(e) {
-  const a = String(e.action || '');
-  if (ACTIONS[a]) return ACTIONS[a].verbe;
-  if (/\s/.test(a) || !/[.:_]/.test(a)) return a.charAt(0).toLowerCase() + a.slice(1);
-  return a.replace(/[._:]/g, ' ');
 }
 
 // ---------- Octobre Rose ----------

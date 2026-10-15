@@ -127,7 +127,7 @@ export function Commandes() {
     } else await lancer();
   };
 
-  const exporter = crmUrl('export', { type: 'commandes', statut, canal, du, au, q: recherche });
+  const exporter = crmUrl('export', { type: 'commandes' });
   const tout = liste.length > 0 && liste.every((c) => sel.has(c.id));
   const basculer = (id) => {
     const n = new Set(sel);
@@ -144,7 +144,7 @@ export function Commandes() {
         actions={
           <>
             {s.peut('exports') && (
-              <Button href={exporter} icon="telecharger" target="_blank" download="">
+              <Button href={exporter} icon="telecharger" target="_blank" download="" title="Toutes les commandes, au format CSV (tableur)">
                 <span class="hide-s">Exporter</span>
               </Button>
             )}

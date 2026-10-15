@@ -6,7 +6,7 @@ import { crm, crmUrl, elements, invalider, useCrm } from '../lib/data.js';
 import { useFil, useSession } from '../lib/session.jsx';
 import { Link, clicLigne, navigate, useQuery } from '../lib/router.jsx';
 import { Icon } from '../ui/icons.jsx';
-import { Avatar, Button, Card, Chips, Empty, Erreur, Notice, PageHead, Pagination, Pill, SearchInput, SkeletonPage, SkeletonRows, Statut, TabPanel, Tabs, useTitre } from '../ui/base.jsx';
+import { Avatar, Button, Card, Chips, Empty, Erreur, Notice, PageHead, Pagination, Pill, SearchInput, SkeletonPage, SkeletonRows, SortTh, Statut, TabPanel, Tabs, useTitre } from '../ui/base.jsx';
 import { Input, Select, erreurDe, lireNombre } from '../ui/form.jsx';
 import { Dialog, Menu, MenuItem, MenuSep, confirmer, toast } from '../ui/overlay.jsx';
 import { Jauge } from '../charts/charts.jsx';
@@ -19,10 +19,15 @@ const PAR = 25;
 export const nomCompte = (c) => c?.enseigne || c?.raisonSociale || 'Compte';
 
 // Membres de l'équipe pouvant suivre un compte (liste de l'API si le profil y a accès)
+// Membres de l'équipe (tous les rôles les lisent, pour l'attribution : noms seulement hors direction)
+export function useMembres(actif = true) {
+  const r = useCrm(actif ? 'equipe' : null, {});
+  return elements(r.data, 'membres').filter((u) => u.actif !== false && u.role !== 'pro');
+}
+
 export function useCommerciaux(actif = true) {
   const s = useSession();
-  const r = useCrm(actif && s.peut('equipe') ? 'equipe' : null, {});
-  const membres = elements(r.data, 'membres', 'equipe', 'utilisateurs').filter((u) => u.actif !== false && ['commercial', 'direction'].includes(u.role));
+  const membres = useMembres(actif).filter((u) => ['commercial', 'direction'].includes(u.role));
   if (!membres.some((m) => m.id === s.moi.id) && ['commercial', 'direction'].includes(s.moi.role)) membres.push(s.moi);
   return membres;
 }
@@ -36,14 +41,17 @@ export function Comptes() {
   const recherche = q.get('q') || '';
   const commercial = q.get('commercial') || '';
   const page = Number(q.get('page')) || 1;
-  const encours = q.get('encours') || '';
-  const r = useCrm('comptes', { q: recherche, type, statut, commercial, page, par: PAR, encours }, { garder: true });
+  const tri = q.get('tri') || 'nom';
+  const r = useCrm('comptes', { q: recherche, type, statut, commercial, page, par: PAR, tri }, { garder: true });
   const d = r.data;
   const liste = elements(d, 'comptes');
   const [creer, setCreer] = useState(false);
   const peutModifier = s.peut('comptes', 'ecriture');
   const compteurs = d?.compteurs || {};
-  const commerciaux = [...new Map(liste.filter((c) => c.commercial?.id || c.commercialId).map((c) => [c.commercial?.id || c.commercialId, c.commercial?.nom || c.commercialNom])).entries()];
+  const equipe = useCommerciaux();
+  const commerciaux = equipe.length ? equipe.map((u) => [u.id, nomComplet(u)]) : [...new Map(liste.filter((c) => c.commercial?.id || c.commercialId).map((c) => [c.commercial?.id || c.commercialId, c.commercial?.nom || c.commercialNom])).entries()];
+  const voitEncours = liste.some((c) => c.encours !== undefined);
+  const trier = (t) => setQ({ tri: t === 'nom' ? undefined : t, page: undefined });
 
   return (
     <div class="page">
@@ -53,7 +61,7 @@ export function Comptes() {
         actions={
           <>
             {s.peut('exports') && (
-              <Button href={crmUrl('export', { type: 'comptes', q: recherche, statut })} target="_blank" download="" icon="telecharger">
+              <Button href={crmUrl('export', { type: 'comptes' })} target="_blank" download="" icon="telecharger" title="Tous les comptes pro, au format CSV (tableur)">
                 <span class="hide-s">Exporter</span>
               </Button>
             )}
@@ -95,12 +103,12 @@ export function Comptes() {
             ))}
           </select>
         )}
-        {encours && (
-          <button type="button" class="chip" aria-pressed="true" onClick={() => setQ({ encours: undefined })}>
-            Factures en retard
-            <Icon name="x" size="xs" />
-          </button>
-        )}
+        <select class="select select--sm only-mob-inline" style="width:auto" aria-label="Trier" value={tri} onChange={(e) => trier(e.currentTarget.value)}>
+          <option value="nom">Par nom</option>
+          <option value="-ca">CA 12 mois décroissant</option>
+          {voitEncours && <option value="-encours">Encours décroissant</option>}
+          <option value="-date">Plus récents</option>
+        </select>
       </div>
       {r.error && !d && <Erreur erreur={r.error} onRetry={r.reload} />}
       <div class={r.refreshing ? 'refreshing' : ''}>
@@ -122,12 +130,20 @@ export function Comptes() {
                   <caption class="sr-only">Comptes pro</caption>
                   <thead>
                     <tr>
-                      <th>Compte</th>
+                      <SortTh id="nom" tri={tri} onTri={trier}>
+                        Compte
+                      </SortTh>
                       <th>Type</th>
                       <th>Ville</th>
                       <th>Commercial</th>
-                      <th class="num">CA 12 mois HT</th>
-                      <th class="num">Encours</th>
+                      <SortTh id="ca" tri={tri} onTri={trier} class="num">
+                        CA 12 mois HT
+                      </SortTh>
+                      {voitEncours && (
+                        <SortTh id="encours" tri={tri} onTri={trier} class="num">
+                          Encours
+                        </SortTh>
+                      )}
                       <th>Statut</th>
                     </tr>
                   </thead>
@@ -135,7 +151,7 @@ export function Comptes() {
                     {liste.map((c) => {
                       const href = `/crm/comptes/${c.id}`;
                       const enc = Number(c.encours) || 0;
-                      const retard = c.enRetard || c.facturesEnRetard > 0;
+                      const retard = c.enRetard || c.facturesEnRetard > 0 || (c.encoursMax > 0 && enc > c.encoursMax);
                       return (
                         <tr key={c.id} data-href={href} onClick={clicLigne(href)}>
                           <td>
@@ -153,12 +169,18 @@ export function Comptes() {
                           <td>{c.ville || c.adresseFacturation?.ville || '—'}</td>
                           <td>{c.commercial?.nom || c.commercialNom || <span class="muted">—</span>}</td>
                           <td class="num strong">{eurosRond(c.ca12 ?? c.ca12Mois ?? 0)}</td>
-                          <td class="num">
-                            <span class={retard ? 'encours encours--retard' : 'encours'}>
-                              {retard && <Icon name="alerte" size="xs" title="Facture en retard" />}
-                              {euros(enc)}
-                            </span>
-                          </td>
+                          {voitEncours && (
+                            <td class="num">
+                              {enc > 0 ? (
+                                <span class={retard ? 'encours encours--retard' : 'encours'} title={c.encoursMax ? `Plafond : ${euros(c.encoursMax)}` : undefined}>
+                                  {retard && <Icon name="alerte" size="xs" title={c.encoursMax && enc > c.encoursMax ? 'Encours au-delà du plafond' : 'Facture en retard'} />}
+                                  {euros(enc)}
+                                </span>
+                              ) : (
+                                <span class="muted">—</span>
+                              )}
+                            </td>
+                          )}
                           <td>
                             <Statut table={COMPTE_STATUT} valeur={c.statut} />
                           </td>
@@ -184,7 +206,7 @@ export function Comptes() {
                   {(Number(c.encours) || 0) > 0 && (
                     <div class="mcard__meta">
                       <span>Encours</span>
-                      <span class={c.enRetard ? 'strong' : ''} style={c.enRetard ? 'color:var(--err)' : ''}>
+                      <span class={c.enRetard || (c.encoursMax > 0 && c.encours > c.encoursMax) ? 'strong' : ''} style={c.enRetard || (c.encoursMax > 0 && c.encours > c.encoursMax) ? 'color:var(--err)' : ''}>
                         {euros(c.encours)}
                       </span>
                     </div>
@@ -651,7 +673,7 @@ function DialogConditions({ c, commercial, onClose, patch }) {
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
   const maj = (k) => (e) => setF({ ...f, [k]: e.currentTarget.value });
-  const peutChoisir = s.peut('equipe') || commerciaux.length > 1;
+  const peutChoisir = commerciaux.length > 1;
   const envoyer = async () => {
     const remise = lireNombre(f.remise);
     if (Number.isNaN(remise) || remise < 0 || remise > 50) return setErr({ champ: 'remise', message: 'Remise entre 0 et 50 %.' });

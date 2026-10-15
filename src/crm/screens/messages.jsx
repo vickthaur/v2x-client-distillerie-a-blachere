@@ -11,14 +11,14 @@ import { Menu, MenuItem, MenuLabel, MenuSep, toast } from '../ui/overlay.jsx';
 import { Marque } from '../ui/marque.jsx';
 import { MESSAGE, SUJET } from '../lib/statuts.js';
 import { dateHeure, nomComplet, relatif, telephone, typo } from '../lib/format.js';
+import { useMembres } from './comptes.jsx';
 
 const ORDRE = ['nouveau', 'en-cours', 'traite', 'archive'];
 const PLURIELS = { nouveau: 'Nouveaux', 'en-cours': 'En cours', traite: 'Traités', archive: 'Archivés' };
 
 function useEquipe() {
   const s = useSession();
-  const r = useCrm(s.peut('equipe') ? 'equipe' : null, {});
-  const l = elements(r.data, 'membres', 'equipe', 'utilisateurs').filter((u) => u.actif !== false && u.role !== 'pro');
+  const l = useMembres();
   if (!l.some((u) => u.id === s.moi.id)) l.unshift(s.moi);
   return l;
 }
@@ -40,7 +40,10 @@ export function Messages({ id }) {
           <PageHead titre="Messages" sous="Formulaire de contact du site et messages de l’espace pro" />
           <Chips
             label="Statut"
-            items={[{ id: '', label: 'Tous', n: compteurs.tous ?? compteurs.total }, ...ORDRE.map((k) => ({ id: k, label: PLURIELS[k], n: compteurs[k] }))]}
+            items={[
+              { id: '', label: 'Tous', n: compteurs.tous ?? compteurs.total ?? (r.data ? ORDRE.reduce((t, k) => t + (compteurs[k] || 0), 0) : undefined) },
+              ...ORDRE.map((k) => ({ id: k, label: PLURIELS[k], n: ['nouveau', 'en-cours'].includes(k) ? compteurs[k] : undefined })),
+            ]}
             value={statut}
             onChange={(v) => setQ({ statut: v || undefined })}
           />
@@ -62,7 +65,7 @@ export function Messages({ id }) {
             <div class={cx('card inbox', r.refreshing && 'refreshing')}>
               {liste.map((m) => {
                 const dernier = (m.fil || [])[m.fil?.length - 1];
-                const apercu = m.apercu || dernier?.texte || m.message || '';
+                const apercu = m.extrait || m.apercu || dernier?.texte || m.message || '';
                 return (
                   <Link key={m.id} class={cx('inbox__item', m.lu === false && 'is-unread')} href={lien(m)} aria-current={m.id === id ? 'page' : undefined}>
                     <Avatar nom={m.nom} cle={m.email || m.id} />
@@ -79,10 +82,17 @@ export function Messages({ id }) {
                       <span class="inbox__subject">
                         <span class="tag tag--soft">{SUJET[m.sujet] || m.sujet}</span>
                         <span class="mono small muted">{m.reference}</span>
-                        {m.compteId && <Icon name="store" size="xs" title="Compte pro" />}
+                        {(m.compte || m.compteId) && <Icon name="store" size="xs" title="Compte pro" />}
+                        {m.nbMessages > 1 && <span class="small muted">· {m.nbMessages} messages</span>}
+                        {m.assigneA?.nom && (
+                          <span class="inbox__assigne small" title={`Attribué à ${m.assigneA.nom}`}>
+                            <Icon name="client" size="xs" />
+                            {m.assigneA.nom.split(' ')[0]}
+                          </span>
+                        )}
                       </span>
                       <span class="inbox__bottom">
-                        <span class="inbox__preview">{apercu}</span>
+                        <span class="inbox__preview">{typo(apercu)}</span>
                         <Statut table={MESSAGE} valeur={m.statut} />
                       </span>
                     </span>
@@ -197,20 +207,28 @@ function Lecture({ id, retour, onChange }) {
               </a>
             </li>
           )}
-          {m.clientId && (
+          {(m.client?.id || m.clientId) && (
             <li>
               <Icon name="client" size="s" />
-              <Link class="link" href={`/crm/clients/${m.clientId}`}>
-                Fiche client
-              </Link>
+              {s.peut('clients') ? (
+                <Link class="link" href={`/crm/clients/${m.client?.id || m.clientId}`}>
+                  Fiche client
+                </Link>
+              ) : (
+                <span>Client connu</span>
+              )}
             </li>
           )}
-          {m.compteId && (
+          {(m.compte?.id || m.compteId) && (
             <li>
               <Icon name="store" size="s" />
-              <Link class="link" href={`/crm/comptes/${m.compteId}`}>
-                {m.compte?.enseigne || 'Compte pro'}
-              </Link>
+              {s.peut('comptes') ? (
+                <Link class="link" href={`/crm/comptes/${m.compte?.id || m.compteId}`}>
+                  {m.compte?.enseigne || m.compte?.nom || 'Compte pro'}
+                </Link>
+              ) : (
+                <span>{m.compte?.enseigne || m.compte?.nom || 'Compte pro'}</span>
+              )}
             </li>
           )}
         </ul>

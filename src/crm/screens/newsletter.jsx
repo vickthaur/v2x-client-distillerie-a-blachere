@@ -24,18 +24,45 @@ function lireSources(ps) {
   return l.sort((a, b) => ordre.indexOf(a[0]) - ordre.indexOf(b[0])).map(([k, n], i) => ({ cle: k, label: ABONNE_SOURCE[k] || k, valeur: Number(n) || 0, couleur: COULEURS.serie[i % COULEURS.serie.length] }));
 }
 function lireEvolution(ev) {
-  return elements(ev).map((p) => ({ cle: p.mois || p.date || p.jour, valeur: Number(p.inscrits ?? p.total ?? p.n ?? p.valeur ?? 0) }));
+  return elements(ev).map((p) => ({ cle: p.mois || p.date || p.jour, valeur: Number(p.inscrits ?? p.total ?? p.n ?? p.valeur ?? 0), nouveaux: p.nouveaux }));
 }
 const etiquetteMois = (cle) => (/^\d{4}-\d{2}$/.test(cle) ? `${cle}-01` : cle);
 
-export function Newsletter() {
+export function Newsletter({ id }) {
   useTitre('Newsletter');
   const s = useSession();
   const [q, setQ] = useQuery();
   const onglet = q.get('onglet') || 'abonnes';
   const recherche = q.get('q') || '';
+  const statut = q.get('statut') || '';
   const page = Number(q.get('page')) || 1;
-  const r = useCrm('newsletter', { q: recherche, page, par: PAR }, { garder: true });
+  const r = useCrm('newsletter', { q: recherche, statut, page, par: PAR }, { garder: true });
+  // Lien direct vers un abonné (/crm/newsletter/<id>, depuis le journal ou le site) : l'API n'a pas
+  // de fiche abonné, on le cherche dans la liste puis on filtre sur son adresse.
+  useEffect(() => {
+    if (!id) return;
+    if (id === 'campagnes') return navigate('/crm/newsletter?onglet=campagnes', { replace: true });
+    let fini = false;
+    (async () => {
+      try {
+        for (let p = 1, pages = 1; p <= pages && !fini; p++) {
+          const d = await crm('newsletter', { query: { page: p, par: 100 } });
+          const a = elements(d?.liste).find((x) => x.id === id);
+          if (a) return navigate(`/crm/newsletter?q=${encodeURIComponent(a.email)}&abonne=${a.id}`, { replace: true });
+          pages = d?.liste?.pages || 1;
+        }
+        if (!fini) {
+          toast.info('Abonné introuvable', { detail: 'Il a pu être supprimé (RGPD).' });
+          navigate('/crm/newsletter', { replace: true });
+        }
+      } catch (e) {
+        if (!fini) navigate('/crm/newsletter', { replace: true });
+      }
+    })();
+    return () => {
+      fini = true;
+    };
+  }, [id]);
   const d = r.data;
   const peutModifier = s.peut('newsletter', 'ecriture');
   const campagnes = elements(d?.campagnes, 'campagnes');
@@ -83,22 +110,30 @@ export function Newsletter() {
       )}
       {d && (
         <TabPanel id={onglet}>
-          {onglet === 'abonnes' ? <Abonnes d={d} recherche={recherche} page={page} setQ={setQ} r={r} peutModifier={peutModifier} /> : <ListeCampagnes campagnes={campagnes} peutModifier={peutModifier} />}
+          {onglet === 'abonnes' ? <Abonnes d={d} recherche={recherche} statut={statut} vise={q.get('abonne')} page={page} setQ={setQ} r={r} peutModifier={peutModifier} /> : <ListeCampagnes campagnes={campagnes} peutModifier={peutModifier} />}
         </TabPanel>
       )}
     </div>
   );
 }
 
-function Abonnes({ d, recherche, page, setQ, r, peutModifier }) {
+function Abonnes({ d, recherche, statut, vise, page, setQ, r, peutModifier }) {
   const ab = d.abonnes || {};
   const sources = lireSources(ab.parSource);
   const evolution = lireEvolution(ab.evolution);
   const [tableau, setTableau] = useState(false);
   const listeD = d.liste || {};
   const liste = elements(listeD, 'abonnes');
-  const desinscrits = Math.max(0, (ab.total ?? 0) - (ab.inscrits ?? 0));
-  const gain = evolution.length >= 2 ? evolution[evolution.length - 1].valeur - evolution[Math.max(0, evolution.length - 2)].valeur : null;
+  const desinscrits = ab.desinscrits ?? Math.max(0, (ab.total ?? 0) - (ab.inscrits ?? 0));
+  const dernier = evolution[evolution.length - 1];
+  const nouveaux = dernier?.nouveaux ?? (evolution.length >= 2 ? dernier.valeur - evolution[evolution.length - 2].valeur : null);
+  const totalSources = sources.reduce((t, x) => t + x.valeur, 0);
+  useEffect(() => {
+    if (!vise || !liste.length) return;
+    const t = setTimeout(() => [...document.querySelectorAll('.is-visee')].find((e) => e.offsetParent)?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 200);
+    return () => clearTimeout(t);
+  }, [vise, liste.length]);
+  const premiere = sources.length ? [...sources].sort((a, b) => b.valeur - a.valeur)[0] : null;
 
   const desinscrire = async (a) => {
     r.mutate((x) => (x ? { ...x, liste: { ...x.liste, elements: elements(x.liste, 'abonnes').map((y) => (y.id === a.id ? { ...y, statut: 'desinscrit' } : y)) } } : x));
@@ -132,7 +167,11 @@ function Abonnes({ d, recherche, page, setQ, r, peutModifier }) {
         <div class="stat">
           <span class="stat__k">Abonnés inscrits</span>
           <span class="stat__v">{nombre(ab.inscrits ?? 0)}</span>
-          {gain !== null && <span class="stat__s">{gain >= 0 ? `+${nombre(gain)}` : `−${nombre(-gain)}`} sur la dernière période</span>}
+          {nouveaux !== null && dernier && (
+            <span class="stat__s">
+              {nouveaux >= 0 ? `+${nombre(nouveaux)}` : `−${nombre(-nouveaux)}`} {/^\d{4}-\d{2}$/.test(dernier.cle) ? `en ${mois(etiquetteMois(dernier.cle)).replace(/ \d{4}$/, '')}` : 'sur la dernière période'}
+            </span>
+          )}
         </div>
         <div class="stat">
           <span class="stat__k">Désinscrits</span>
@@ -141,7 +180,8 @@ function Abonnes({ d, recherche, page, setQ, r, peutModifier }) {
         </div>
         <div class="stat">
           <span class="stat__k">Première source</span>
-          <span class="stat__v stat__v--s">{sources.length ? [...sources].sort((a, b) => b.valeur - a.valeur)[0].label : '—'}</span>
+          <span class="stat__v stat__v--s">{premiere ? premiere.label : '—'}</span>
+          {premiere && totalSources > 0 && <span class="stat__s">{pluriel(premiere.valeur, 'abonné', 'abonnés')} · {Math.round((premiere.valeur / totalSources) * 100)} % des inscrits</span>}
         </div>
       </div>
       <div class="cols cols--main">
@@ -188,9 +228,22 @@ function Abonnes({ d, recherche, page, setQ, r, peutModifier }) {
           )}
         </Card>
       </div>
-      <Card titre="Abonnés" corps={false} actions={<SearchInput value={recherche} onChange={(v) => setQ({ q: v, page: undefined })} placeholder="Rechercher une adresse" label="Rechercher un abonné" class="card-search" />}>
+      <Card
+        titre="Abonnés"
+        corps={false}
+        actions={
+          <div class="card-filtres">
+            <select class="select select--sm" aria-label="Statut" value={statut} onChange={(e) => setQ({ statut: e.currentTarget.value || undefined, page: undefined, abonne: undefined })}>
+              <option value="">Tous les statuts</option>
+              <option value="inscrit">Inscrits</option>
+              <option value="desinscrit">Désinscrits</option>
+            </select>
+            <SearchInput value={recherche} onChange={(v) => setQ({ q: v, page: undefined, abonne: undefined })} placeholder="Rechercher une adresse" label="Rechercher un abonné" class="card-search" />
+          </div>
+        }
+      >
         {liste.length === 0 ? (
-          <Empty petit icone="mail" titre={recherche ? 'Aucun abonné trouvé' : 'Aucun abonné'} />
+          <Empty petit icone="mail" titre={recherche || statut ? 'Aucun abonné trouvé' : 'Aucun abonné'} />
         ) : (
           <div class={r.refreshing ? 'refreshing' : ''}>
             <div class="tbl-wrap only-desk">
@@ -209,7 +262,7 @@ function Abonnes({ d, recherche, page, setQ, r, peutModifier }) {
                 </thead>
                 <tbody>
                   {liste.map((a) => (
-                    <tr key={a.id}>
+                    <tr key={a.id} class={a.id === vise ? 'is-visee' : undefined}>
                       <td>
                         <span class="strong">{a.email}</span>
                         {a.prenom && <span class="tbl__sub">{a.prenom}</span>}
@@ -230,7 +283,7 @@ function Abonnes({ d, recherche, page, setQ, r, peutModifier }) {
             </div>
             <div class="list only-mob">
               {liste.map((a) => (
-                <div class="list__item" key={a.id}>
+                <div class={cx('list__item', a.id === vise && 'is-visee')} key={a.id}>
                   <span class="list__main">
                     <span class="list__title">{a.email}</span>
                     <span class="list__meta">

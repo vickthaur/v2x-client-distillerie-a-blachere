@@ -1,13 +1,11 @@
 // Journal : qui a fait quoi, quand (équipe, site, système), avec filtres.
 import { elements, useCrm } from '../lib/data.js';
-import { Link, useQuery } from '../lib/router.jsx';
+import { useQuery } from '../lib/router.jsx';
 import { Icon } from '../ui/icons.jsx';
 import { Avatar, Button, Empty, Erreur, PageHead, Pagination, SkeletonRows, cx, useTitre } from '../ui/base.jsx';
-import { lienCible } from '../lib/liens.js';
-import { roleNom } from '../lib/droits.js';
 import { ACTIONS } from '../lib/statuts.js';
 import { dateHeure, heure, jourSemaine, isoJour, aujourdHui, ajouterJours } from '../lib/format.js';
-import { phraseAction } from './tableau.jsx';
+import { PhraseJournal, auteurDe, detailsJournal } from '../ui/journal.jsx';
 
 const PAR = 50;
 
@@ -33,7 +31,7 @@ export function Journal() {
   const titreJour = (j) => (j === aujourdHui() ? 'Aujourd’hui' : j === ajouterJours(aujourdHui(), -1) ? 'Hier' : jourSemaine(j));
 
   return (
-    <div class="page page--narrow">
+    <div class="page page--journal">
       <PageHead titre="Journal" sous="Toutes les actions de l’équipe, du site et du système, des plus récentes aux plus anciennes." />
       <div class="toolbar">
         <select class="select select--sm" style="width:auto;max-width:100%" aria-label="Action" value={action} onChange={(e) => setQ({ action: e.currentTarget.value, page: undefined })}>
@@ -78,8 +76,8 @@ export function Journal() {
             <h2 class="journal__jour">{titreJour(g.jour)}</h2>
             <ol class="journal">
               {g.items.map((e) => {
-                const href = lienCible(e.cible);
-                const qui = e.par?.nom || 'Système';
+                const qui = auteurDe(e);
+                const details = detailsJournal(e);
                 return (
                   <li key={e.id} class="journal__item">
                     <time class="journal__heure tnum" dateTime={e.date} title={dateHeure(e.date)}>
@@ -89,23 +87,14 @@ export function Journal() {
                       <Avatar nom={qui} cle={e.par.id} size="s" />
                     ) : (
                       <span class="feed__sys" aria-hidden="true">
-                        <Icon name={qui === 'Site' ? 'globe' : 'etincelle'} size="xs" />
+                        <Icon name={e.par?.nom === 'Site' ? 'globe' : 'etincelle'} size="xs" />
                       </span>
                     )}
                     <div class="journal__txt">
                       <p>
-                        <span class="strong">{qui}</span>
-                        {e.par?.role && <span class="small muted"> ({roleNom(e.par.role).toLowerCase()})</span>} {phraseAction(e)}{' '}
-                        {e.cible?.libelle &&
-                          (href ? (
-                            <Link class="link" href={href}>
-                              {e.cible.libelle}
-                            </Link>
-                          ) : (
-                            <span class="strong">{e.cible.libelle}</span>
-                          ))}
+                        <PhraseJournal e={e} />
                       </p>
-                      {e.details && <p class="small muted">{typeof e.details === 'string' ? e.details : Object.entries(e.details).map(([k, v]) => `${k} : ${v}`).join(' · ')}</p>}
+                      {details && <p class="small muted">{details}</p>}
                     </div>
                   </li>
                 );

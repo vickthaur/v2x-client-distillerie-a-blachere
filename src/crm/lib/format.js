@@ -151,9 +151,14 @@ export function relatif(v, maintenant = Date.now()) {
   return date(d);
 }
 
-// Initiales « HG »
+// Initiales (« HG ») : premier et dernier mot significatif (sans « de », « la », « d’ »…)
+const PARTICULES = new Set(['de', 'du', 'des', 'la', 'le', 'les', 'et', 'en', 'au', 'aux', 'sur', 'sous', '&']);
 export function initiales(nom = '') {
-  const p = String(nom).trim().split(/[\s-]+/).filter(Boolean);
+  const p = String(nom)
+    .trim()
+    .split(/[\s-]+/)
+    .map((m) => m.replace(/^[dl][’']/i, '').replace(/^[^\p{L}\p{N}]+/u, ''))
+    .filter((m) => m && !PARTICULES.has(m.toLowerCase()));
   return ((p[0]?.[0] || '') + (p.length > 1 ? p[p.length - 1][0] : '')).toUpperCase() || '?';
 }
 // Teinte stable (1 à 6) pour un avatar
