@@ -232,6 +232,79 @@ for (const vp of ['bureau', 'mobile']) {
   }
 }
 
+// ---------- 1 bis. Sous l'en-tête : pas de double marge ; fiches et boutique (QUAL-6, UX-1, UX-2) ----------
+// body porte la marge de l'en-tête fixe : le premier texte de la page (titre, surtitre, fil
+// d'Ariane) commence juste dessous, sans seconde marge de la hauteur de l'en-tête.
+{
+  const premierTexte = () => {
+    const hd = document.querySelector('.hd__main')?.getBoundingClientRect();
+    const main = document.querySelector('main');
+    const first = [...(main?.querySelectorAll('h1, .crumbs, .kicker') || [])].find((e) => e.getBoundingClientRect().height > 0);
+    const h1 = main?.querySelector('h1')?.getBoundingClientRect();
+    return { header: Math.round(hd?.bottom || 0), premier: first ? Math.round(first.getBoundingClientRect().top) : null, h1: h1 ? Math.round(h1.top) : null };
+  };
+  const pages = PAGES.filter(([name, path, , hero]) => !hero && !['/'].includes(path));
+  for (const vp of ['bureau', 'mobile']) {
+    const ctx = await context(vp, 'majeur');
+    const max = vp === 'bureau' ? 160 : 110;
+    const ecarts = [];
+    for (const [, path] of pages) {
+      const { page } = await open(ctx, path, { wait: 1200, label: `${vp} ${path} marge` });
+      const m = await page.evaluate(premierTexte);
+      ecarts.push({ path, ...m, ecart: m.premier === null ? null : m.premier - m.header });
+      await page.close();
+    }
+    const trop = ecarts.filter((e) => e.ecart === null || e.ecart > max);
+    check(`${vp} : sous l’en-tête, pas de double marge (premier texte à ${max} px au plus de l’en-tête, ${ecarts.length} pages)`, !trop.length, (trop.length ? trop : ecarts.slice(0, 4)).map((e) => `${e.path} ${e.ecart} px (h1 à ${e.h1})`).join(' ; '));
+    await ctx.close();
+  }
+  // Fiche au téléphone : plateau à 56 % de l'écran au plus, nom et prix remontés ; au bureau, h1 haut.
+  const ctxm = await context('mobile', 'sirops');
+  const { page: fm } = await open(ctxm, '/boutique/pac-citron', { wait: 2500, label: 'fiche téléphone' });
+  const f = await fm.evaluate(() => ({ h1: Math.round(document.querySelector('.pp__name').getBoundingClientRect().top), stage: Math.round(document.querySelector('.pp__stage').getBoundingClientRect().height), vh: innerHeight, prix: Math.round(document.querySelector('.pp__price').getBoundingClientRect().top) }));
+  check('Fiche au téléphone : plateau à 56 svh au plus, nom du produit à 620 px au plus', f.stage <= Math.ceil(f.vh * 0.56) + 1 && f.h1 <= 620, `plateau ${f.stage} px pour ${f.vh} px, h1 à ${f.h1} px, prix à ${f.prix} px`);
+  // Barre d'achat collante : absente tant que le bouton est à l'écran, présente quand il est passé
+  // sous l'en-tête, effacée au pied de page ; son bouton ajoute au panier (tiroir ouvert).
+  const etatBarre = () => fm.evaluate(() => {
+    const b = document.querySelector('#pp-bar');
+    const r = b?.getBoundingClientRect();
+    return { on: !!b?.classList.contains('is-on'), inert: !!b?.inert, visible: !!r && r.top < innerHeight - 10 && getComputedStyle(b).visibility === 'visible' };
+  });
+  const avant = await etatBarre();
+  await fm.evaluate(() => {
+    const row = document.querySelector('#buy .pp__row').getBoundingClientRect();
+    scrollTo(0, scrollY + row.bottom + 60);
+  });
+  // la barre suit le défilement à l'image près (requestAnimationFrame) : jusqu'à 8 s sous charge
+  await fm.waitForFunction(() => document.querySelector('#pp-bar')?.classList.contains('is-on'), null, { timeout: 8000 }).catch(() => {});
+  await fm.waitForTimeout(600);
+  const pendant = await etatBarre();
+  await shot(fm, 'mobile-46-fiche-barre-achat', false);
+  await fm.click('#pp-bar-add');
+  await fm.waitForTimeout(800);
+  const ajout = await fm.evaluate(() => ({ tiroir: document.querySelector('#cart').open, lignes: [...document.querySelectorAll('#cart-list .line')].map((l) => l.dataset.slug) }));
+  // tiroir refermé à la souris : le bouton de la barre reprend le focus, sans contour (au clavier,
+  // la barre resterait tant que le focus y est)
+  await fm.click('#cart-close');
+  await fm.waitForTimeout(500);
+  await fm.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
+  await fm.waitForFunction(() => !document.querySelector('#pp-bar')?.classList.contains('is-on'), null, { timeout: 8000 }).catch(() => {});
+  await fm.waitForTimeout(300);
+  const pied = await etatBarre();
+  check('Fiche : barre d’achat collante quand le bouton sort de l’écran, effacée au pied de page', !avant.on && avant.inert && pendant.on && pendant.visible && !pendant.inert && !pied.on, JSON.stringify({ avant, pendant, pied }));
+  check('Barre d’achat : son bouton ajoute le produit au panier', ajout.tiroir && ajout.lignes.includes('pac-citron'), JSON.stringify(ajout));
+  await ctxm.close();
+  const ctxb = await context('bureau', 'majeur');
+  const { page: fb } = await open(ctxb, '/boutique/pac-citron', { wait: 2000, label: 'fiche bureau' });
+  const fbm = await fb.evaluate(() => Math.round(document.querySelector('.pp__name').getBoundingClientRect().top));
+  check('Fiche au bureau : nom du produit à 260 px au plus', fbm <= 260, `h1 à ${fbm} px`);
+  await fb.close();
+  const { page: bo } = await open(ctxb, '/boutique', { wait: 2000, label: 'boutique bureau' });
+  const bom = await bo.evaluate(() => ({ h1: Math.round(document.querySelector('h1').getBoundingClientRect().top), carte: Math.round(document.querySelector('#shop-grid .card')?.getBoundingClientRect().top ?? -1), barre: Math.round(document.querySelector('.shop__bar').getBoundingClientRect().height) }));
+  check('Boutique au bureau : en-tête compact, premiers produits à 420 px au plus', bom.carte > 0 && bom.carte <= 420, `h1 à ${bom.h1} px, première carte à ${bom.carte} px, rangée rayons-recherche-tri de ${bom.barre} px`);
+  await ctxb.close();
+}
+
 // ---------- 2. Dix tailles d'écran : largeur, campagne 3D, bouteilles entières ----------
 {
   const pages = [

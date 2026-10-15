@@ -1,23 +1,41 @@
 /* Boutique : en-tête, rayons, barre d'outils, filtres à filets fins, grille sur fonds neutres,
    panneau de filtres (téléphone). Les cartes produit sont dans base.css. */
 
-.shop-page { padding-top: var(--header-h); background: var(--paper); }
+/* body porte déjà la marge de l'en-tête fixe : la page n'en rajoute pas (QUAL-6). */
+.shop-page { background: var(--paper); }
 
-/* ---------- En-tête ---------- */
-.shop-hero { padding: clamp(36px, 5vw, 72px) 0 clamp(18px, 2.4vw, 28px); }
-.shop-hero__in { display: grid; gap: clamp(20px, 3vw, 36px); }
-.shop-hero__text { display: grid; gap: 14px; max-width: 760px; }
-.shop-hero h1 { font: 780 clamp(2.6rem, 5.4vw, 4.8rem)/0.95 var(--font); letter-spacing: -0.045em; }
-.shop-hero .lead { max-width: 60ch; }
+/* ---------- En-tête compact (UX-2) : titre et introduction d'une ligne ---------- */
+.shop-hero { padding: clamp(16px, 1.6vw, 24px) 0 clamp(8px, 1vw, 14px); }
+.shop-hero__in { display: grid; gap: 8px; }
+.shop-hero__row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px clamp(18px, 2.4vw, 36px); }
+.shop-hero h1 { font: 780 clamp(2rem, 1.2rem + 2vw, 2.4rem)/1 var(--font); font-stretch: 102%; letter-spacing: -0.035em; }
+.shop-hero__lead { flex: 1 1 32rem; min-width: 0; font-size: 1rem; line-height: 1.5; color: var(--ink-2); }
 
-/* ---------- Barre d'outils ---------- */
-.shop__bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 18px 0 14px; }
+/* ---------- Rayons, recherche et tri sur une rangée ----------
+   Au bureau, une grille : les rayons (leur filet s'arrête devant la recherche) et les outils
+   (recherche, tri) sur une rangée, puis le compteur et les filtres actifs. Quand la place manque
+   (onglet « Spiritueux · vérifier mon âge », écrans de 1 024 à ~1 400 px), la recherche et le tri
+   passent sur la rangée du compteur (classe is-serre, posée par src/pages/boutique.js). Tablette
+   et téléphone : une colonne. */
+.shop__bar { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'cats tools' 'status status'; align-items: end; column-gap: clamp(16px, 2vw, 28px); }
+.shop__bar.is-serre { grid-template-areas: 'cats cats' 'status tools'; }
+.shop__cats { grid-area: cats; flex-wrap: nowrap; min-width: 0; }
+.shop__cats .cat { flex: none; }
+.shop__tools { grid-area: tools; display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding-bottom: 3px; }
+.shop__bar.is-serre .shop__tools { align-self: center; padding: 10px 0; }
+.shop__tools .shop-search { flex: none; width: 250px; min-width: 0; }
+/* au bureau, le texte d'exemple « Citron, menthe, grenadine… » tient entier dans les 250 px */
+.shop__tools .shop-search input { min-height: 44px; border: 1px solid var(--line-2); border-radius: 999px; padding: 0 12px 0 40px; background: #fff; font-size: 0.94rem; }
+.shop__tools .shop-search input:hover { border-color: rgba(21, 19, 15, 0.42); }
+.shop__tools .shop-search input:focus { border-color: var(--ink); }
+.shop__tools .shop-search svg { left: 14px; width: 18px; height: 18px; }
 .sort { display: flex; align-items: center; gap: 10px; font-size: 0.86rem; font-weight: 600; color: var(--ink-3); }
 .sort select { min-height: 44px; padding: 0 34px 0 14px; border: 1px solid var(--line-2); border-radius: 999px; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%2315130f' stroke-width='1.8'/%3E%3C/svg%3E") no-repeat right 12px center / 16px; appearance: none; font: 600 0.92rem var(--font); color: var(--ink); }
 .shop__filters-btn { display: none; }
 .shop__filters-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
 .shop__filters-n { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: #fff; color: var(--ink); font-size: 0.72rem; font-weight: 800; }
-.shop__status { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; min-height: 44px; padding-bottom: 18px; scroll-margin-top: calc(var(--header-h) + 12px); }
+.shop__status { grid-area: status; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; min-height: 34px; padding: 10px 0 12px; scroll-margin-top: calc(var(--main-h) + 12px); }
+.shop__bar.is-serre .shop__status { align-self: center; padding-block: 10px; }
 .shop__count { font-size: 0.92rem; color: var(--ink-2); }
 .shop__count strong { color: var(--ink); }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -69,7 +87,7 @@
 /* ---------- Grille ---------- */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(214px, 1fr)); gap: clamp(28px, 2.6vw, 40px) clamp(14px, 1.6vw, 24px); }
 .shop-group + .shop-group { margin-top: 64px; }
-.shop-group__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 20px; margin-bottom: 22px; padding-bottom: 12px; border-bottom: 1px solid var(--ink); }
+.shop-group__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 20px; margin-bottom: 18px; padding-bottom: 10px; border-bottom: 1px solid var(--ink); }
 .shop-group__title { font: 760 1.5rem/1.1 var(--font); letter-spacing: -0.02em; }
 .shop-group__title > span:not([class]) { margin-left: 8px; font: 600 0.84rem/1 var(--font); letter-spacing: 0; color: var(--ink-3); }
 .shop-group .evin { margin: 0; font-size: 0.78rem; color: var(--ink-2); }
@@ -95,12 +113,20 @@
   .shop__layout { grid-template-columns: 1fr; }
   .shop__side { display: none; }
   .shop__filters-btn { display: inline-flex; }
+  /* une colonne : rayons (défilants), outils, compteur */
+  .shop__bar, .shop__bar.is-serre { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'cats' 'tools' 'status'; }
+  .shop__cats { overflow-x: auto; margin-inline: calc(-1 * var(--gutter)); padding-inline: var(--gutter); scrollbar-width: none; }
+  .shop__cats::-webkit-scrollbar { display: none; }
+  .shop__tools, .shop__bar.is-serre .shop__tools { justify-content: stretch; padding: 12px 0 0; }
+  .shop__tools .shop-search { flex: 1 1 auto; width: auto; }
+  /* 16 px au téléphone et à la tablette : pas de zoom automatique d'iOS sur le champ */
+  .shop__tools .shop-search input { font-size: 1rem; }
 }
 @media (max-width: 640px) {
   .cats { flex-wrap: nowrap; overflow-x: auto; margin-inline: calc(-1 * var(--gutter)); padding-inline: var(--gutter); scrollbar-width: none; }
   .cat { flex: none; }
-  .shop__bar { gap: 10px; }
-  .shop-search { flex-basis: 100%; }
+  .shop__tools, .shop__bar.is-serre .shop__tools { flex-wrap: wrap; padding-top: 10px; }
+  .shop-search, .shop__tools .shop-search { flex: 1 1 100%; max-width: none; }
   .sort { flex: 1; }
   .sort span { display: none; }
   .sort select { width: 100%; }

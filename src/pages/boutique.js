@@ -43,7 +43,26 @@ function renderTiles() {
         ? `<a class="cat" href="/boutique?univers=spiritueux" data-tile="spiritueux">Spiritueux 18+<span class="cat__n">${spiritsCount}</span></a>`
         : `<button type="button" class="cat cat--locked" data-verify>${icons.lock}Spiritueux 18+<span class="cat__n">vérifier mon âge</span></button>`;
   $('#shop-tiles').innerHTML = all + html + spirits;
+  ajusterBarre();
 }
+
+// ---------- Rangée des rayons et des outils (UX-2) ----------
+// Au bureau, rayons, recherche et tri tiennent sur une rangée quand la place le permet ; sinon la
+// recherche et le tri passent sur la rangée du compteur (is-serre). Les rayons ne vont jamais à la
+// ligne.
+function ajusterBarre() {
+  const bar = $('#shop-bar');
+  const tiles = $$('#shop-tiles > *');
+  if (!bar || !tiles.length) return;
+  if (!matchMedia('(min-width: 1024px)').matches) return bar.classList.remove('is-serre');
+  const dernier = tiles[tiles.length - 1];
+  const rayons = dernier.getBoundingClientRect().right + (parseFloat(getComputedStyle(dernier).marginRight) || 0) - tiles[0].getBoundingClientRect().left;
+  const outils = $('.shop__tools', bar).getBoundingClientRect().width;
+  const ecart = parseFloat(getComputedStyle(bar).columnGap) || 0;
+  bar.classList.toggle('is-serre', rayons + ecart + outils > bar.clientWidth + 0.5);
+}
+if ('ResizeObserver' in window) new ResizeObserver(() => ajusterBarre()).observe($('#shop-bar'));
+document.fonts?.ready.then(ajusterBarre);
 
 // ---------- Formulaire de filtres ----------
 const opt = (type, name, value, label, n, checked, extra = '') =>

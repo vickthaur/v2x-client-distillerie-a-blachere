@@ -260,6 +260,7 @@ function render() {
       : ''
   }`;
   bindBuy();
+  bindBar();
   mountViewer();
   renderRelated();
 }
@@ -272,6 +273,95 @@ function syncStock() {
   const off = indisponible(etat);
   btn.disabled = off;
   btn.innerHTML = off ? `${icons.bag}${esc(etat === 'rupture' ? 'En rupture de stock' : 'Indisponible')}` : `${icons.bag}Ajouter au panier`;
+  syncBar();
+}
+
+// ---------- Barre d'achat collante (UX-1) ----------
+// Quand le bouton d'ajout est passé sous l'en-tête (on descend lire la fiche), une barre rappelle le
+// produit, la contenance choisie, son prix, et garde le bouton d'ajout à portée de pouce. Elle
+// s'efface quand le bouton revient à l'écran et quand le pied de page arrive (mentions et pastilles
+// dégagées). Hors de l'écran, elle est inerte : ni focus ni lecture.
+const bar = document.createElement('div');
+bar.className = 'pp-bar';
+bar.id = 'pp-bar';
+bar.setAttribute('role', 'region');
+bar.setAttribute('aria-label', 'Achat rapide');
+bar.inert = true;
+$('#contenu')?.append(bar);
+let barWanted = false;
+
+function barHTML() {
+  return `<div class="pp-bar__in wrap">
+    <span class="pp-bar__img" aria-hidden="true">${thumbHTML(p)}</span>
+    <p class="pp-bar__txt"><span class="pp-bar__name" data-wordmark>${esc(p.nom).replace(/®/g, '<sup>®</sup>')}</span><span class="pp-bar__meta" id="pp-bar-meta"></span></p>
+    <button type="button" class="btn btn--primary pp-bar__add" id="pp-bar-add">${icons.bag}<span class="pp-bar__label"></span></button>
+  </div>${p.alcool ? `<p class="pp-bar__evin wrap">${esc(EVIN)}</p>` : ''}`;
+}
+
+// Contenu de la barre : contenance, prix, quantité et état du bouton suivent le formulaire.
+function syncBar() {
+  const btn = $('#pp-bar-add', bar);
+  const main = $('.pp__add');
+  if (!btn || !main) return;
+  const c = p.contenances[selected];
+  $('#pp-bar-meta', bar).textContent = [c?.volume, c?.prix != null ? euro(c.prix) : null, qty > 1 ? `${qty} bouteilles` : null].filter(Boolean).join(' · ');
+  btn.disabled = main.disabled;
+  $('.pp-bar__label', btn).innerHTML = main.disabled ? esc(main.textContent.trim()) : 'Ajouter<span class="pp-bar__long"> au panier</span>';
+  if (main.disabled) btn.removeAttribute('aria-label');
+  else btn.setAttribute('aria-label', `Ajouter au panier : ${p.nom}${c ? `, ${c.volume}` : ''}${qty > 1 ? `, ${qty} bouteilles` : ''}`);
+}
+
+function showBar(on) {
+  barWanted = on;
+  if (on === bar.classList.contains('is-on')) return;
+  // le focus clavier est dans la barre : elle reste jusqu'à ce qu'il en sorte (après un clic de
+  // souris, le bouton garde le focus sans contour : la barre s'efface quand même)
+  if (!on && bar.contains(document.activeElement) && document.activeElement.matches(':focus-visible')) return;
+  bar.classList.toggle('is-on', on);
+  bar.inert = !on;
+  document.body.classList.toggle('pp-bar-on', on);
+  if (on) document.body.style.setProperty('--pp-bar-h', `${bar.offsetHeight}px`);
+}
+bar.addEventListener('focusout', () => setTimeout(() => !bar.contains(document.activeElement) && showBar(barWanted)));
+bar.addEventListener('click', (e) => {
+  if (e.target.closest('#pp-bar-add')) $('.pp__add')?.click();
+});
+
+// Position du bouton d'ajout et du pied de page, lue au défilement (une fois par image) : un saut
+// (lien d'ancre, défilement rapide) qui passe d'un coup au-delà du bouton est vu aussi.
+let barSuivi = null;
+function bindBar() {
+  if (barSuivi) {
+    removeEventListener('scroll', barSuivi);
+    removeEventListener('resize', barSuivi);
+    barSuivi = null;
+  }
+  const row = $('#buy .pp__row');
+  if (!row || !p.enLigne || $('#buy').hidden) {
+    bar.replaceChildren();
+    return showBar(false);
+  }
+  bar.innerHTML = barHTML();
+  syncBar();
+  const ft = $('.ft');
+  let attente = false;
+  const mesure = () => {
+    attente = false;
+    if (!row.isConnected) return;
+    // hauteur de l'en-tête collé (64 px au téléphone, 76 px au bureau) : sous lui, le bouton est caché
+    const head = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--main-h')) || 64;
+    const passe = row.getBoundingClientRect().bottom < head;
+    const pied = !!ft && ft.getBoundingClientRect().top < innerHeight;
+    showBar(passe && !pied);
+  };
+  barSuivi = () => {
+    if (attente) return;
+    attente = true;
+    requestAnimationFrame(mesure);
+  };
+  addEventListener('scroll', barSuivi, { passive: true });
+  addEventListener('resize', barSuivi, { passive: true });
+  mesure();
 }
 
 function bindBuy() {
@@ -288,6 +378,7 @@ function bindBuy() {
   const setQty = (n) => {
     qty = Math.min(99, Math.max(1, Number.isFinite(n) ? Math.round(n) : 1));
     input.value = qty;
+    syncBar();
   };
   $$('[data-step]', form).forEach((b) => b.addEventListener('click', () => setQty(qty + Number(b.dataset.step))));
   input.addEventListener('change', () => setQty(parseInt(input.value, 10)));
@@ -350,6 +441,13 @@ function renderRelated() {
 function show() {
   viewer?.dispose();
   viewer = null;
+  if (barSuivi) {
+    removeEventListener('scroll', barSuivi);
+    removeEventListener('resize', barSuivi);
+    barSuivi = null;
+  }
+  bar.replaceChildren();
+  showBar(false);
   if (!p) return notFound();
   if (p.alcool && site.age !== 'majeur') return lockedView();
   render();
