@@ -2,6 +2,8 @@
 // options envoyées (privé, sans suffixe, écrasement, ifMatch, type JSON), lecture sans cache, ETag,
 // conflit (412 → ConflitStockage), création seule, liste paginée avec ETag, suppression simple ou
 // conditionnelle (ménage) ; mutation atomique.
+// Comme en production, la lecture du contenu (réseau de diffusion) rend un ETag différent de celui de
+// l'API : seul l'ETag de head (API) est accepté par ifMatch. Le pilote doit donc prendre celui-là.
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { createServer } from 'node:http';
@@ -23,6 +25,8 @@ const json = (res, status, corps) => {
   res.end(JSON.stringify(corps));
 };
 const urlBlob = (p) => `https://${MAGASIN}.private.blob.vercel-storage.com/${p}`;
+// ETag rendu par le réseau de diffusion à la lecture : pas celui de l'API (vu en production)
+const etagDiffusion = (etag) => `W/${etag.replace(/"$/, '-cdn"')}`;
 
 before(async () => {
   serveur = createServer(async (req, res) => {
@@ -41,6 +45,14 @@ before(async () => {
       const etag = `"${createHash('md5').update(corps).digest('hex')}"`;
       blobs.set(p, { contenu: corps, etag, majLe: new Date() });
       return json(res, 200, { url: urlBlob(p), downloadUrl: `${urlBlob(p)}?download=1`, pathname: p, contentType: req.headers['x-content-type'], contentDisposition: 'inline', etag });
+    }
+    // métadonnées (head : GET /?url=…)
+    if (req.method === 'GET' && url.pathname === '/' && url.searchParams.has('url')) {
+      const u = url.searchParams.get('url');
+      const p = u.startsWith('http') ? new URL(u).pathname.slice(1) : u;
+      const b = blobs.get(p);
+      if (!b) return json(res, 404, { error: { code: 'not_found', message: 'The requested blob does not exist' } });
+      return json(res, 200, { url: urlBlob(p), downloadUrl: `${urlBlob(p)}?download=1`, pathname: p, size: Buffer.byteLength(b.contenu), uploadedAt: b.majLe.toISOString(), contentType: 'application/json', contentDisposition: 'inline', cacheControl: 'public, max-age=0', etag: b.etag });
     }
     // liste paginée (2 par page)
     if (req.method === 'GET' && url.pathname === '/') {
@@ -80,7 +92,7 @@ before(async () => {
       requetes.push({ methode: 'GET', url: opts.path, magasin: true, autorisation: opts.headers.authorization || opts.headers.Authorization });
       const b = blobs.get(decodeURIComponent(u.pathname.slice(1)));
       if (!b) return { statusCode: 404, data: '' };
-      return { statusCode: 200, data: b.contenu, responseOptions: { headers: { 'content-type': 'application/json', etag: b.etag, 'content-length': String(Buffer.byteLength(b.contenu)), 'last-modified': b.majLe.toUTCString() } } };
+      return { statusCode: 200, data: b.contenu, responseOptions: { headers: { 'content-type': 'application/json', etag: etagDiffusion(b.etag), 'content-length': String(Buffer.byteLength(b.contenu)), 'last-modified': b.majLe.toUTCString() } } };
     })
     .persist();
   setGlobalDispatcher(agent);
@@ -108,7 +120,10 @@ describe('pilote Vercel Blob (SDK réel, fausse API)', () => {
     assert.equal(put.entetes['x-content-type'], 'application/json');
     await assert.rejects(p.ecrire(ch, '{"n":1}', { creation: true }), ConflitStockage);
     const lu = await p.lire(ch);
-    assert.deepEqual(lu, { contenu: '{"n":1}', etag: e1 });
+    assert.deepEqual(lu, { contenu: '{"n":1}', etag: e1 }, "l'ETag lu est celui de l'API (head), pas celui de la diffusion");
+    const iHead = requetes.findLastIndex((r) => r.methode === 'GET' && !r.magasin && /[?&]url=/.test(r.url));
+    const iGet = requetes.findLastIndex((r) => r.magasin);
+    assert.ok(iHead >= 0 && iHead < iGet, 'head (API) avant la lecture du contenu');
     const lecture = requetes.filter((r) => r.magasin).at(-1);
     assert.match(lecture.url, /[?&]cache=0/, 'lecture sans cache (useCache: false)');
     assert.equal(lecture.autorisation, `Bearer vercel_blob_rw_${MAGASIN}_secret`, 'magasin privé : lecture authentifiée');
@@ -132,6 +147,19 @@ describe('pilote Vercel Blob (SDK réel, fausse API)', () => {
     await p.supprimer('demos/bbbbbbbbbbbbbbbb.json');
     assert.equal(requetes.filter((r) => r.url === '/delete').at(-1).entetes['x-if-match'], undefined);
     assert.equal(await p.lire('demos/bbbbbbbbbbbbbbbb.json'), null);
+  });
+
+  test("ETag de la diffusion refusé par ifMatch : la mutation passe avec celui de l'API", async () => {
+    const p = piloteBlob();
+    const ch = 'demos/ffffffffffffffff.json';
+    const { etag } = await p.ecrire(ch, '{"n":1}', { creation: true });
+    await assert.rejects(p.ecrire(ch, '{"n":2}', { ifMatch: etagDiffusion(etag) }), ConflitStockage, "la fausse API refuse l'ETag de diffusion, comme en production");
+    const bacs = creerBacs(p);
+    const id = 'gggggggggggggggg';
+    await bacs.creer({ v: 1, id, createdAt: '2026-10-15T08:30:00Z', updatedAt: '2026-10-15T08:30:00Z', compteur: 0, journal: [], courriels: [], mouvements: [] });
+    const r = await bacs.muter(id, (doc) => (doc.compteur += 1));
+    assert.equal(r.resultat, 1);
+    assert.equal((await bacs.lire(id)).doc.compteur, 1);
   });
 
   test('mutations simultanées : aucune mise à jour perdue', async () => {

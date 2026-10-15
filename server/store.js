@@ -175,11 +175,24 @@ export function piloteBlob() {
   return {
     nom: 'blob',
     async lire(chemin) {
-      const { get } = await charger();
-      const res = await get(controlerChemin(chemin), { access: 'private', useCache: false });
+      const { head, get, BlobNotFoundError } = await charger();
+      controlerChemin(chemin);
+      // ETag pris à l'API (head), comme dans l'exemple de la documentation Vercel : c'est celui que
+      // put compare (ifMatch). Celui de la réponse de lecture (get) passe par le réseau de diffusion
+      // et n'est pas le même : en production, toutes les écritures conditionnelles étaient refusées.
+      // head avant get : si le document change entre les deux, l'écriture conditionnelle échoue et la
+      // mutation reprend sur le document frais (jamais d'écrasement d'une version plus récente).
+      let meta;
+      try {
+        meta = await head(chemin);
+      } catch (e) {
+        if (e instanceof BlobNotFoundError) return null;
+        throw e;
+      }
+      const res = await get(chemin, { access: 'private', useCache: false });
       if (!res || res.statusCode !== 200 || !res.stream) return null;
       const contenu = await new Response(res.stream).text();
-      return { contenu, etag: res.blob.etag };
+      return { contenu, etag: meta.etag };
     },
     async ecrire(chemin, contenu, { ifMatch, creation = false } = {}) {
       const { put, BlobPreconditionFailedError } = await charger();
