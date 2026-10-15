@@ -558,6 +558,12 @@ export class Stage {
     this.state.scroll = v;
   }
 
+  // Image fixe (mouvement réduit, recette) : redessiner après un changement que la signature ne voit
+  // pas (texture arrivée après coup, comme le dos d'une étiquette).
+  redraw() {
+    this.stillSig = null;
+  }
+
   dispose() {
     this.disposed = true;
     this.ro?.disconnect();

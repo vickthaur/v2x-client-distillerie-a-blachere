@@ -13,7 +13,7 @@ import { initSite, addToCart } from '../app/site.js';
 import { cardHTML } from '../app/cards.js';
 import { bySlug, products, visibleProducts, recettes, FAMILLES, EVIN, MINEURS, euro, DISPO_BOUTIQUE, formatsAilleursTexte } from '../data/products.js';
 import { infos } from '../data/site.js';
-import { $, $$, esc, calm, hasWebGL } from '../lib/dom.js';
+import { $, $$, esc, calm, hasWebGL, idle, sobre, whenVisible } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
 import { thumbHTML, upgradeThumbs } from '../lib/thumbs.js';
 import { photoOf } from '../lib/photos.js';
@@ -205,7 +205,7 @@ function render() {
       <canvas class="pp__canvas" id="viewer" tabindex="0" aria-label="Bouteille ${esc(p.nom)} en 3D : faites-la tourner en la faisant glisser, ou avec les flèches gauche et droite"></canvas>
       <div class="pp__stage-ui">
         <p class="pp__hint">${icons.rotate}<span>Glissez pour faire tourner</span></p>
-        <div class="pp__sides" role="group" aria-label="Voir la bouteille">
+        <div class="pp__sides" role="group" aria-label="Voir la bouteille" hidden>
           <button type="button" data-side="0">Face</button><button type="button" data-side="1">Dos</button>
         </div>
       </div>
@@ -389,38 +389,73 @@ function bindBuy() {
       if (indisponible(etatDe(c))) return;
       addToCart(p.slug, c?.id ?? null, qty, { open: true });
     });
-  $$('[data-side]').forEach((b) => b.addEventListener('click', () => viewer?.setAngle(Number(b.dataset.side) ? Math.PI : 0)));
+  // Face / dos : le dos de l'étiquette n'est téléchargé qu'au premier clic sur « Dos » (PERF-2).
+  $$('[data-side]').forEach((b) => {
+    const dos = b.dataset.side === '1';
+    if (dos) b.addEventListener('pointerdown', () => viewer?.chargerDos());
+    b.addEventListener('click', async () => {
+      const v = viewer;
+      if (!v) return;
+      if (dos && !v.dosCharge) {
+        b.setAttribute('aria-busy', 'true');
+        await v.chargerDos();
+        b.removeAttribute('aria-busy');
+      }
+      if (v === viewer) v.setAngle(dos ? Math.PI : 0);
+    });
+  });
 }
 
+// 3D sobre (PERF-2, PERF-4) : l'affiche (photo de face, dans le rendu de la fiche) d'abord, et
+// elle suffit en mouvement réduit, en économie de données, en 2G et sans WebGL ; sinon la
+// visionneuse est chargée quand le plateau approche de l'écran, au premier moment libre du
+// navigateur, comme les campagnes (src/lib/campagne.js), sans le dos de l'étiquette (bouton « Dos »).
+// L'index des photos (29 Ko) n'est lu que pour les flacons « à plat » (millésimes, coffret).
 async function mountViewer() {
   const stage = $('#stage');
-  const photo = await photoOf(p.slug);
   const source = $('#source');
-  // Carafe et étui (millésimes, coffret) : la photo, telle quelle, sans 3D tournante.
-  if (photo?.plat && photo.photo) {
-    $('#poster').innerHTML = `<img class="thumb pp__flat" src="${photo.photo}" alt="${esc(p.nom)}" />`;
-    stage.classList.add('is-static', 'is-flat');
-    source.textContent = 'Photo du produit.';
-    source.hidden = false;
-    return;
-  }
-  source.textContent = photo ? (photo.etiquette ? 'Bouteille 3D tirée de la photo du produit, avec son étiquette d’origine.' : 'Bouteille 3D tirée de la photo du produit.') : 'Bouteille dessinée en code, en attendant la photo du produit.';
-  source.hidden = false;
-  if (!photo?.etiquetteDos) $('.pp__sides')?.setAttribute('hidden', '');
-  if (!hasWebGL()) {
+  const canvas = $('#viewer');
+  const still = (texte) => {
     stage.classList.add('is-static');
-    return;
+    canvas.hidden = true;
+    // sans la 3D, l'affiche est la seule image du produit : elle porte son nom
+    $('#poster img')?.setAttribute('alt', p.nom);
+    source.textContent = texte;
+    source.hidden = false;
+  };
+  // Carafe et étui (millésimes, coffret) : la photo, telle quelle, sans 3D tournante.
+  if (p.plat) {
+    const photo = await photoOf(p.slug);
+    if (!stage.isConnected) return;
+    if (photo?.photo) {
+      $('#poster').innerHTML = `<img class="thumb pp__flat" src="${photo.photo}" alt="${esc(p.nom)}" />`;
+      stage.classList.add('is-flat');
+      return still('Photo du produit.');
+    }
   }
+  if (sobre() || !hasWebGL()) return still('Photo du produit.');
+  await whenVisible(stage);
+  await idle();
+  if (!stage.isConnected) return;
+  let v = null;
   try {
     const { BottleViewer } = await import('../three/viewer.js');
+    if (!stage.isConnected) return;
     // Spiritueux : présentation sobre (ni décor, ni rotation automatique).
-    viewer = new BottleViewer($('#viewer'), p, { calm: calm() || p.alcool, target: () => $('#stage').getBoundingClientRect() });
-    await viewer.ready;
+    v = viewer = new BottleViewer(canvas, p, { calm: calm() || p.alcool, dos: false, target: () => stage.getBoundingClientRect() });
+    await v.ready;
+    if (v !== viewer) return;
     stage.classList.add('is-live');
-    if (import.meta.env.DEV || new URLSearchParams(location.search).has('test')) window.__viewer = viewer;
+    $('.pp__sides', stage).hidden = !v.dosDisponible;
+    source.textContent = v.kind === 'photo' ? (v.labelSource === 'etiquette' ? 'Bouteille 3D tirée de la photo du produit, avec son étiquette d’origine.' : 'Bouteille 3D tirée de la photo du produit.') : 'Bouteille dessinée en code, en attendant la photo du produit.';
+    source.hidden = false;
+    if (import.meta.env.DEV || new URLSearchParams(location.search).has('test')) window.__viewer = v;
   } catch (err) {
+    if (v && v !== viewer) return;
     console.warn('3D indisponible, photo affichée.', err);
-    stage.classList.add('is-static');
+    viewer?.dispose();
+    viewer = null;
+    still('Photo du produit.');
   }
 }
 

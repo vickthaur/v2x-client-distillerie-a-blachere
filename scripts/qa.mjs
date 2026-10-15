@@ -305,6 +305,44 @@ for (const vp of ['bureau', 'mobile']) {
   await ctxb.close();
 }
 
+// ---------- 1 ter. 3D sobre sur les fiches (PERF-2, PERF-4) ----------
+// Mouvement réduit : l'affiche seule (ni three.js ni index des photos). Sinon la visionneuse, sans
+// le dos de l'étiquette tant qu'on n'a pas cliqué sur « Dos ».
+{
+  const fiche = '/boutique/sirop-couleur-provence-grenadine';
+  const suivre = (page) => {
+    const urls = [];
+    page.on('request', (r) => urls.push(r.url()));
+    return urls;
+  };
+  const ctxr = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, reducedMotion: 'reduce', locale: 'fr-FR' });
+  await ctxr.addInitScript(() => sessionStorage.setItem('blachere-age', 'sirops'));
+  const pr = await ctxr.newPage();
+  pr.on('pageerror', (e) => consoleErrors.push(`mouvement réduit ${fiche} : ${e.message}`));
+  const ur = suivre(pr);
+  await pr.goto(`${BASE}${fiche}?test`, { waitUntil: 'networkidle' });
+  await pr.waitForTimeout(2500);
+  const sr = await pr.evaluate(() => ({ statique: document.querySelector('#stage').classList.contains('is-static'), alt: document.querySelector('#poster img')?.alt || '', canvas: document.querySelector('#viewer')?.hidden }));
+  const lourds = ur.filter((u) => /\/assets\/(three|viewer|stage)-|\/bouteilles\/index\.json|etiquette/.test(u)).map((u) => u.replace(BASE, ''));
+  check('Fiche en mouvement réduit : l’affiche seule (ni three.js, ni index des photos, ni étiquettes)', sr.statique && sr.alt.length > 3 && sr.canvas && !lourds.length, `${JSON.stringify(sr)} ${lourds.join(', ')}`);
+  await ctxr.close();
+  const ctxw = await context('bureau', 'sirops');
+  const pw = await ctxw.newPage();
+  pw.on('pageerror', (e) => consoleErrors.push(`3D ${fiche} : ${e.message}`));
+  const uw = suivre(pw);
+  await pw.goto(`${BASE}${fiche}?test`, { waitUntil: 'networkidle' });
+  const live = await pw.waitForFunction(() => document.querySelector('#stage')?.classList.contains('is-live'), null, { timeout: 120000 }).then(() => true, () => false);
+  await pw.waitForTimeout(800);
+  const dosAvant = uw.filter((u) => /etiquette-dos/.test(u)).length;
+  const bouton = await pw.evaluate(() => !document.querySelector('.pp__sides')?.hidden);
+  if (bouton) await pw.click('.pp__sides [data-side="1"]');
+  await pw.waitForTimeout(2500);
+  const dosApres = uw.filter((u) => /etiquette-dos/.test(u)).length;
+  check('Fiche avec WebGL : visionneuse 3D, dos de l’étiquette chargé seulement au clic sur « Dos »', live && bouton && dosAvant === 0 && dosApres === 1, `3D ${live}, bouton ${bouton}, dos avant ${dosAvant}, après ${dosApres}`);
+  await shot(pw, 'bureau-47-fiche-dos', false);
+  await ctxw.close();
+}
+
 // ---------- 2. Dix tailles d'écran : largeur, campagne 3D, bouteilles entières ----------
 {
   const pages = [

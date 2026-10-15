@@ -27,6 +27,22 @@ export function sobre() {
 // Premier moment libre du navigateur (après le chargement de la page), sans attendre plus de « max » ms.
 export const idle = (max = 1500) => new Promise((r) => (typeof requestIdleCallback === 'function' ? requestIdleCallback(() => r(), { timeout: max }) : setTimeout(r, 200)));
 
+// Résolue quand l'élément approche de l'écran (marge : 200 px au-dessus et au-dessous).
+export function whenVisible(el, rootMargin = '200px 0px') {
+  return new Promise((resolve) => {
+    if (!el || !('IntersectionObserver' in window)) return resolve();
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        io.disconnect();
+        resolve();
+      },
+      { rootMargin },
+    );
+    io.observe(el);
+  });
+}
+
 export function debounce(fn, ms = 150) {
   let t;
   return (...a) => {

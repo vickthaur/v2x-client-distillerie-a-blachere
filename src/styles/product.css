@@ -12,8 +12,10 @@
 /* ---------- Plateau ---------- */
 .pp__stage { position: sticky; top: calc(var(--main-h) + 18px); width: 100%; aspect-ratio: 4 / 5; max-height: calc(100svh - var(--main-h) - 36px); overflow: hidden; border-radius: var(--r-l); background: radial-gradient(120% 90% at 50% 38%, #f4f1eb 0%, #e8e3da 62%, #ddd6ca 100%); isolation: isolate; }
 .pp[data-alcool='1'] .pp__stage { background: radial-gradient(120% 90% at 50% 38%, #efebe4 0%, #e1dbd0 62%, #d3cbbd 100%); }
-.pp__poster { position: absolute; inset: 7% 0 6%; display: grid; place-items: center; transition: opacity 0.6s; }
-.pp__poster .thumb { width: auto; height: 100%; max-width: 100%; object-fit: contain; filter: drop-shadow(0 26px 22px rgba(21, 19, 15, 0.22)); }
+/* Affiche (photo de face) : la bouteille entière dans le cadre, à peu près à la taille de la bouteille
+   3D qui la remplace en fondu ; seule sans WebGL, en mouvement réduit, en économie de données. */
+.pp__poster { position: absolute; inset: 7% 0 6%; transition: opacity 0.6s; }
+.pp__poster .thumb { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: contain; filter: drop-shadow(0 26px 22px rgba(21, 19, 15, 0.22)); }
 .pp__poster .thumb--wait { background: transparent; }
 .pp__stage.is-flat .pp__poster { inset: 10% 8% 8%; }
 .pp__flat { filter: drop-shadow(0 30px 26px rgba(21, 19, 15, 0.28)) !important; }
@@ -21,8 +23,11 @@
 .pp__canvas.is-dragging { cursor: grabbing; }
 .pp__stage.is-live .pp__canvas { opacity: 1; }
 .pp__stage.is-live .pp__poster { opacity: 0; }
-.pp__stage-ui { position: absolute; left: 16px; right: 16px; bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 8px; pointer-events: none; }
+/* consigne et boutons face / dos : seulement quand la 3D est là (l'affiche ne tourne pas) */
+.pp__stage-ui { position: absolute; left: 16px; right: 16px; bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 8px; pointer-events: none; opacity: 0; visibility: hidden; transition: opacity 0.6s, visibility 0s linear 0.6s; }
+.pp__stage.is-live .pp__stage-ui { opacity: 1; visibility: visible; transition: opacity 0.6s; }
 .pp__stage.is-static .pp__stage-ui { display: none; }
+.pp__sides button[aria-busy='true'] { cursor: progress; }
 .pp__hint { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; background: rgba(255, 255, 255, 0.82); color: var(--ink); font-size: 0.8rem; font-weight: 600; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
 .pp__hint svg { width: 16px; height: 16px; }
 .pp__sides { display: inline-flex; padding: 3px; border-radius: 999px; background: rgba(255, 255, 255, 0.82); pointer-events: auto; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }

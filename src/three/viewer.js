@@ -27,8 +27,11 @@ export class BottleViewer {
       onUpdate: (t, dt) => this.tick(t, dt),
     });
     this.ready = this.stage.ready.then(() => {
-      this.kind = this.stage.slots[0]?.bottle?.userData.kind;
-      this.labelSource = this.stage.slots[0]?.bottle?.userData.labelSource || null;
+      const d = this.stage.slots[0]?.bottle?.userData || {};
+      this.kind = d.kind;
+      this.labelSource = d.labelSource || null;
+      // contre-étiquette connue : le bouton « Dos » la charge à la demande (chargerDos)
+      this.dosDisponible = !!d.dosEtiquette;
       return this;
     });
     this.bind();
@@ -87,6 +90,14 @@ export class BottleViewer {
   setAngle(a) {
     this.angle = a;
     this.velocity = 0;
+  }
+
+  // Dos de l'étiquette (dos: false à la création) : chargé une fois, au premier clic sur « Dos ».
+  chargerDos() {
+    this.dosCharge ||= Promise.resolve(this.stage.slots[0]?.bottle?.userData.ajouterDos?.())
+      .catch(() => {})
+      .then(() => this.stage.redraw());
+    return this.dosCharge;
   }
 
   bounds() {

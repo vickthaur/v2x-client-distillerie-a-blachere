@@ -258,8 +258,10 @@ function loadLabelBack(url, anisotropy) {
 export async function createPhotoBottle(product, entry, { lite = false, anisotropy = 8, dos = true } = {}) {
   if (entry.plat && entry.photo) return createFlatPhoto(product, entry, { anisotropy });
   const { profil, front, back, label: labelTex, body } = await loadAssets(product.slug, entry, anisotropy);
-  const labelBack = dos && entry.etiquetteDos && profil.etiquetteDos ? await loadLabelBack(entry.etiquetteDos, anisotropy) : null;
-  const label = labelTex && profil.etiquette ? { texture: labelTex, ...profil.etiquette, dos: labelBack && profil.etiquetteDos ? { texture: labelBack, ...profil.etiquetteDos } : null } : null;
+  // contre-étiquette connue (sirops) : chargée tout de suite (dos: true) ou à la demande (ajouterDos)
+  const aDos = !!(entry.etiquetteDos && profil.etiquetteDos && labelTex && profil.etiquette);
+  const labelBack = dos && aDos ? await loadLabelBack(entry.etiquetteDos, anisotropy) : null;
+  const label = labelTex && profil.etiquette ? { texture: labelTex, ...profil.etiquette, dos: labelBack ? { texture: labelBack, ...profil.etiquetteDos } : null } : null;
   const H = BOTTLE_HEIGHT;
   const pts = profil.points.map(([r, y]) => new THREE.Vector2(Math.max(r * H, 0.0005), (y - 0.5) * H));
   pts.unshift(new THREE.Vector2(0, -0.5 * H));
@@ -292,13 +294,33 @@ export async function createPhotoBottle(product, entry, { lite = false, anisotro
   geo.computeVertexNormals();
 
   const background = profil.couleurFond || null;
-  const mesh = new THREE.Mesh(geo, photoMaterial(front, back, { lite, background, label, body }));
+  // matériaux de la bouteille et de son reflet au sol : la contre-étiquette leur est ajoutée ensemble
+  const materials = [];
+  const keep = (m) => (materials.push(m), m);
+  const mesh = new THREE.Mesh(geo, keep(photoMaterial(front, back, { lite, background, label, body })));
   mesh.userData.part = 'photo';
-  mesh.userData.makeReflection = (fade) => photoMaterial(front, back, { fade, label, body });
+  mesh.userData.makeReflection = (fade) => keep(photoMaterial(front, back, { fade, label, body }));
   const group = new THREE.Group();
   group.add(mesh);
   let rmax = 0;
   for (const [r] of profil.points) rmax = Math.max(rmax, r);
+  // Dos de l'étiquette ajouté après coup (visionneuse des fiches, premier clic sur « Dos ») : la
+  // bouteille reste en place, ses matériaux sont recompilés avec la contre-étiquette (~180 Ko).
+  let ajout = null;
+  const ajouterDos = () =>
+    (ajout ||= (async () => {
+      if (!label || label.dos) return;
+      const tex = await loadLabelBack(entry.etiquetteDos, anisotropy);
+      if (!tex || label.dos) return;
+      label.dos = { texture: tex, ...profil.etiquetteDos };
+      for (const m of materials) {
+        const u = m.userData.uniforms;
+        u.labelBackMap.value = tex;
+        u.labelBack.value.set(label.dos.bas ?? 0, label.dos.haut ?? 0, label.dos.angle ?? 1);
+        m.defines = { ...m.defines, PHOTO_LABEL_BACK: '' };
+        m.needsUpdate = true;
+      }
+    })());
   group.userData = {
     slug: product.slug,
     kind: 'photo',
@@ -309,6 +331,8 @@ export async function createPhotoBottle(product, entry, { lite = false, anisotro
     cloudy: !!product.bottle.cloudy,
     bottom: -H / 2,
     labelSource: label ? 'etiquette' : 'photo',
+    dosEtiquette: aDos,
+    ajouterDos: aDos ? ajouterDos : null,
   };
   return group;
 }
