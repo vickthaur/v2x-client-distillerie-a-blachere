@@ -170,7 +170,7 @@ describe('commandes', () => {
     let c = (await n.get('crm', 'commande', { id })).json;
     assert.deepEqual(c.transitions.map((t) => t.statut), ['en-preparation', 'annulee']);
     assert.equal(c.totaux.totalTTC, 41.7);
-    assert.equal(c.client.email, 'anne.essai@example.com');
+    assert.equal(c.client.email, 'anne.essai@essai.test');
     const p = await n.patch('crm', 'commande', { statut: 'en-preparation' }, { query: { id } });
     assert.equal(p.json.statut, 'en-preparation');
     const sansSuivi = await n.patch('crm', 'commande', { statut: 'expediee' }, { query: { id } });
@@ -305,22 +305,22 @@ describe('clients, comptes, demandes', () => {
   test('RGPD : export des données, puis suppression qui anonymise les commandes', async () => {
     await n.post('site', 'commande', commandePublique({ newsletter: true }));
     const doc = await docDe(n);
-    const k = doc.clients.find((x) => x.email === 'anne.essai@example.com');
+    const k = doc.clients.find((x) => x.email === 'anne.essai@essai.test');
     const ex = await n.get('crm', 'client-export', { id: k.id });
     assert.equal(ex.status, 200);
     assert.match(ex.headers.get('content-disposition'), /attachment/);
-    assert.equal(ex.json.client.email, 'anne.essai@example.com');
+    assert.equal(ex.json.client.email, 'anne.essai@essai.test');
     assert.equal(ex.json.commandes.length, 1);
     const s = await n.delete('crm', 'client', {}, { query: { id: k.id } });
     assert.deepEqual(s.json, { ok: true, commandesAnonymisees: 1 });
     const apres = await docDe(n);
     assert.equal(apres.clients.find((x) => x.id === k.id), undefined);
-    assert.equal(apres.abonnes.find((a) => a.email === 'anne.essai@example.com'), undefined);
+    assert.equal(apres.abonnes.find((a) => a.email === 'anne.essai@essai.test'), undefined);
     const c = apres.commandes.find((x) => x.anonymise);
     const vue = commandeComplete(c, index(apres));
     assert.equal(vue.contact.nom, 'Client supprimé');
     assert.equal(vue.livraison.adresse, undefined);
-    assert.ok(!JSON.stringify(apres).includes('anne.essai@example.com'));
+    assert.ok(!JSON.stringify(apres).includes('anne.essai@essai.test'));
     assert.equal((await n.get('crm', 'client', { id: k.id })).status, 404);
   });
 
@@ -741,13 +741,13 @@ describe('retours du CRM', () => {
   });
 
   test('fiche d’un abonné : abonné, client de même e-mail, courriels reçus ; droits', async () => {
-    await n.post('site', 'commande', commandePublique({ newsletter: true, client: { prenom: 'Iris', nom: 'Abonnée', email: 'iris.abonnee@example.org', telephone: '06 39 98 11 22' } }));
+    await n.post('site', 'commande', commandePublique({ newsletter: true, client: { prenom: 'Iris', nom: 'Abonnée', email: 'iris.abonnee@essai.test', telephone: '06 39 98 11 22' } }));
     const doc = await docDe(n);
-    const a = doc.abonnes.find((x) => x.email === 'iris.abonnee@example.org');
+    const a = doc.abonnes.find((x) => x.email === 'iris.abonnee@essai.test');
     const f = await n.get('crm', 'abonne', { id: a.id });
     assert.equal(f.status, 200, f.texte);
     assert.equal(f.json.id, a.id);
-    assert.equal(f.json.email, 'iris.abonnee@example.org');
+    assert.equal(f.json.email, 'iris.abonnee@essai.test');
     assert.equal(f.json.statut, 'inscrit');
     assert.equal(f.json.source, 'commande');
     assert.equal(f.json.client.nom, 'Iris Abonnée');

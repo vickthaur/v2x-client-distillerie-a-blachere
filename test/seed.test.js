@@ -1,7 +1,7 @@
 // Jeu de démonstration : déterministe, < 400 Ko, cohérent, fictif, sans perte au compactage.
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { MAINTENANT } from './aide.js';
+import { DOMAINE_ESSAI, MAINTENANT } from './aide.js';
 import { commandeComplete, index } from '../server/modele.js';
 import { genererDemo } from '../server/seed.js';
 import { enRetard, etatStock, jourDeVisite, numero } from '../server/regles.js';
@@ -183,6 +183,41 @@ describe('jeu de démonstration', () => {
       assert.ok(c.contact.nom && c.contact.email);
       assert.ok(c.updatedAt >= c.createdAt);
       if (c.livraison.mode !== 'retrait') assert.ok(c.livraison.adresse?.cp, c.numero);
+    }
+  });
+});
+
+// Propriétés dont dépendent les autres tests, vérifiées sur plusieurs tirages fixes du jeu (les
+// tests créent des démos d'identifiant aléatoire). soqjdzqg7qnneves : claire.vidal@example.org y est
+// déjà abonnée (cause d'un échec aléatoire du parcours, adresse de visiteur hors domaine réservé) ;
+// pz33h77eq37kdhdw : deux grosses factures du Café des Platanes (1 905 € d'encours avant plafond).
+describe('jeu de démonstration, quel que soit le tirage', () => {
+  const TIRAGES = ['abcdefghijklmnop', 'soqjdzqg7qnneves', 'pz33h77eq37kdhdw', 'v5karjmw6bhfu6ts', 'vpavgfeptowccflm', 'mz2qk7wybd4xn3pe', 'h6tc3ar5ueiq2jlo', 'xw4nsg7fpbk2dzyr'];
+  const docs = TIRAGES.map((id) => [id, gen(MAINTENANT, id)]);
+
+  test('aucune adresse dans le domaine réservé aux visiteurs des tests', () => {
+    for (const [id, d] of docs) {
+      const emails = [
+        ...[...d.utilisateurs, ...d.clients, ...d.comptes, ...d.abonnes, ...d.reservations, ...d.messages, ...d.demandes].map((x) => x.email),
+        ...d.commandes.map((c) => c.contact?.email).filter(Boolean),
+        ...d.courriels.map((c) => c.a),
+      ];
+      assert.ok(emails.length > 300, id);
+      for (const e of emails) assert.ok(!e.endsWith(`@${DOMAINE_ESSAI}`), `${id} : ${e}`);
+    }
+  });
+
+  test('Café des Platanes : deux factures à régler au plus, encours ≤ 40 % de l’autorisé, jamais en retard', () => {
+    const aujourdhui = jourParis(new Date(MAINTENANT));
+    for (const [id, d] of docs) {
+      const idx = index(d);
+      const k = d.comptes.find((x) => x.enseigne === 'Café des Platanes');
+      const aRegler = d.commandes.filter((c) => c.compteId === k.id && c.facture?.statut === 'a-regler').map((c) => commandeComplete(c, idx));
+      assert.ok(aRegler.length <= 2, `${id} : ${aRegler.length} factures à régler`);
+      const encours = aRegler.reduce((s, c) => s + Math.round(c.totaux.totalTTC * 100), 0);
+      assert.ok(encours <= 0.4 * k.encoursMax * 100, `${id} : encours ${encours / 100} €`);
+      assert.ok(aRegler.every((c) => !enRetard(c.facture, aujourdhui)), id);
+      for (const c of d.commandes.filter((x) => x.compteId === k.id && x.facture?.statut === 'payee')) assert.ok(c.facture.payeeLe >= c.facture.date && c.facture.payeeLe < aujourdhui, `${id} : ${c.numero}`);
     }
   });
 });
