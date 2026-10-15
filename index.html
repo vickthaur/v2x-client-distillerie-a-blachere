@@ -49,11 +49,16 @@
               <a class="btn btn--light" href="/boutique">Acheter en ligne</a>
               <a class="btn btn--ghost-light" href="#marques">Découvrir nos marques</a>
             </div>
+            <div class="hero__op" id="hero-op" hidden></div>
           </div>
           <div class="hero__stage" id="hero-stage" aria-hidden="true"></div>
           <ul class="hero__tags" id="hero-tags" aria-label="Prix de la boutique"></ul>
         </div>
       </section>
+
+      <!-- Opération du moment (Octobre Rose : 1 € reversé par bouteille de PAC Citron), affichée pendant
+           sa période par src/lib/operation.js, retirée ensuite -->
+      <section class="op-band" id="octobre-rose" hidden></section>
 
       <!-- 2. Nos marques -->
       <section class="section marques" id="marques" aria-labelledby="marques-title">

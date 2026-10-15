@@ -1,0 +1,90 @@
+/* Opérations du moment (Octobre Rose) : bandeau semé de rubans, pastille du héros, encart de fiche,
+   ligne du panier. Rose soutenu pour les textes blancs (contraste AA), rose pâle pour le fond. */
+.op-band {
+  --op-fond: #fdf0f6;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding-block: clamp(56px, 7vw, 104px) clamp(40px, 5vw, 72px);
+  background: var(--op-fond);
+}
+.op-band__semis { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+.op-band__seme { position: absolute; left: var(--x); top: var(--y); width: calc(clamp(30px, 3.4vw, 46px) * var(--s)); transform: translate(-50%, -50%) rotate(var(--r)); }
+.op-band__ruban { display: block; width: 100%; height: auto; }
+.op-band__panel {
+  --wm-pac: url('/marques/pac.svg');
+  --mq-pac: #feed01;
+  display: grid;
+  grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.5fr) minmax(0, 0.92fr);
+  align-items: center;
+  gap: clamp(22px, 3vw, 52px);
+  padding: clamp(26px, 3.6vw, 52px) clamp(24px, 4vw, 60px);
+  border-radius: var(--r-l);
+  background: linear-gradient(118deg, #cf3087 0%, #c2177f 52%, #a8106a 100%);
+  color: #fff;
+  box-shadow: 0 34px 80px -34px rgba(150, 14, 92, 0.6);
+}
+.op-band__date { display: grid; gap: 14px; margin: 0; }
+.op-band__nom { display: inline-flex; align-items: center; gap: 10px; font: 650 0.76rem/1.2 var(--font); letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255, 255, 255, 0.9); }
+.op-band__ruban-nom { width: 18px; height: 27px; flex: none; }
+.op-band__jours { font: 820 clamp(2.1rem, 3.5vw, 3.35rem)/0.94 var(--font); font-stretch: 68%; letter-spacing: -0.005em; }
+.op-band__jours sup { font-size: 0.5em; vertical-align: 0.75em; margin-left: 0.04em; }
+.op-band__l2 { display: block; }
+.op-band__message { display: grid; gap: 22px; justify-items: start; }
+.op-band__titre { font: 740 clamp(1.45rem, 2.35vw, 2.25rem)/1.1 var(--font); font-stretch: 100%; letter-spacing: -0.026em; text-wrap: balance; }
+.op-band__titre .wm--pac { vertical-align: -0.48em; }
+.op-band__ctas { display: flex; flex-wrap: wrap; gap: 12px; }
+/* Bouton blanc : la marque reprend ses couleurs pour fond clair. */
+.op-band__ctas .btn--light { --wm-pac: url('/marques/pac-clair.svg'); --mq-pac: #ad1270; }
+.op-band__benef { display: grid; gap: 6px; margin: 0; padding-left: clamp(20px, 2.4vw, 36px); border-left: 1px solid rgba(255, 255, 255, 0.34); }
+.op-band__benef-k { font: 650 0.72rem/1.2 var(--font); letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255, 255, 255, 0.82); }
+.op-band__benef strong { font: 780 clamp(1.08rem, 1.4vw, 1.3rem)/1.16 var(--font); letter-spacing: 0.01em; text-transform: uppercase; }
+.op-band__benef strong span { display: block; }
+.op-band__benef strong span + span { font-weight: 560; text-transform: none; letter-spacing: 0; }
+.op-band__benef span:last-child { font-size: 0.98rem; color: rgba(255, 255, 255, 0.92); }
+.op-band__fine { max-width: 76ch; margin: 18px auto 0; font-size: 0.86rem; line-height: 1.5; text-align: center; color: var(--ink-2); }
+@media (max-width: 960px) {
+  .op-band__panel { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); }
+  .op-band__benef { grid-column: 1 / -1; padding: 18px 0 0; border-left: 0; border-top: 1px solid rgba(255, 255, 255, 0.34); }
+}
+@media (max-width: 620px) {
+  .op-band__panel { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .op-band__l2 { display: inline; }
+  .op-band__fine { text-align: left; }
+}
+
+/* Pastille du héros de l'accueil */
+.op-pill {
+  display: inline-flex; align-items: center; gap: 10px; justify-self: start; max-width: 100%;
+  padding: 8px 16px 8px 10px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.14); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  color: #fff; font: 500 0.9rem/1.3 var(--font); text-decoration: none;
+  transition: background-color 0.2s var(--ease), transform 0.2s var(--ease);
+}
+.op-pill strong { font-weight: 700; }
+.op-pill:hover { background: rgba(255, 255, 255, 0.24); transform: translateY(-1px); }
+.op-pill:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.op-pill__ruban { width: 16px; height: 24px; flex: none; }
+
+/* Encart de fiche produit */
+.op-note {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: start;
+  margin-top: 16px; padding: 14px 16px; border-radius: var(--r-s);
+  background: #fdf0f6; border: 1px solid #f4c4dc; color: var(--ink);
+  font-size: 0.93rem; line-height: 1.5;
+}
+.op-note__ruban { width: 20px; height: 30px; margin-top: 2px; }
+.op-note__titre { font: 700 0.74rem/1.3 var(--font); letter-spacing: 0.14em; text-transform: uppercase; color: #a3105f; margin-bottom: 4px; }
+.op-note__fine { margin-top: 6px; font-size: 0.8rem; color: var(--ink-2); }
+
+/* Ligne du panier et de la commande */
+.op-cart {
+  display: flex; gap: 10px; align-items: flex-start; margin-top: 12px; padding: 10px 12px; border-radius: var(--r-s);
+  background: #fdf0f6; border: 1px solid #f4c4dc; font-size: 0.88rem; line-height: 1.45; color: var(--ink);
+}
+.op-cart__ruban { width: 14px; height: 21px; flex: none; margin-top: 1px; }
+.op-cart strong { color: #a3105f; }
+
+@media (prefers-reduced-motion: reduce) {
+  .op-pill { transition: none; }
+}

@@ -4,13 +4,18 @@
 import '../styles/base.css';
 import '../styles/home.css';
 import '../styles/brand.css';
+import '../styles/operation.css';
 import { initSite } from '../app/site.js';
 import { mountBrandHero, priceCardHTML, compositionHTML, recipesHTML, piecesHTML, pressHTML, ailleursHTML, bindAdd, bySlug, reveal } from '../app/brand.js';
 import textes from '../data/site/textes.json';
 import { $, esc } from '../lib/dom.js';
+import { monterBandeau } from '../lib/operation.js';
 
 const site = initSite();
 const p = bySlug['pac-citron'];
+
+// Opération du moment (Octobre Rose) : bandeau sous le héros pendant sa période.
+monterBandeau($('#octobre-rose'), { titreId: 'pac-op-titre' });
 
 $('#bhero-price').innerHTML = priceCardHTML(p);
 
