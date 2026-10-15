@@ -11,7 +11,11 @@
 //   - les totaux du panier, la case « 18 ans », l'acceptation des CGV, le parcours de commande ;
 //   - qu'une personne mineure ne voit aucun alcool (texte, libellés, liens, recettes) ;
 //   - les logotypes PAC et Fun Blue dans les titres, la police de marque dans le texte ;
-//   - la page 404 (statut 404), noindex, robots.txt.
+//   - la page 404 (statut 404), noindex, robots.txt ;
+//   - deuxième vague : pas de double marge sous l'en-tête, barre d'achat des fiches, 3D sobre des
+//     fiches, mode revue, méga-menus au clavier et fenêtres modales, focus du panier, prix au litre,
+//     frais de port, erreurs par champ, balises, cache des images, feuille de la pastille, pause des
+//     animations, impression.
 //
 //   npm run build && node scripts/qa.mjs [--sortie <dossier>] [--port 4173] [--rapide]
 //
@@ -345,6 +349,68 @@ for (const vp of ['bureau', 'mobile']) {
   check('Fiche avec WebGL : visionneuse 3D, dos de l’étiquette chargé seulement au clic sur « Dos »', live && bouton && dosAvant === 0 && dosApres === 1, `3D ${live}, bouton ${bouton}, dos avant ${dosAvant}, après ${dosApres}`);
   await shot(pw, 'bureau-47-fiche-dos', false);
   await ctxw.close();
+}
+
+// ---------- 1 quater. Pause de l'animation (A11Y-7) ----------
+// Campagnes et bouteille des fiches de sirop : bouton « Mettre l'animation en pause » (bascule à nom
+// fixe, état dans aria-pressed) ; en pause, l'image ne bouge plus ; le choix suit le visiteur d'une
+// page à l'autre ; aucun bouton sur les fiches de spiritueux (pas de rotation automatique).
+{
+  const ctx = await context('bureau', 'majeur');
+  // en temps réel (sans ?test) : deux images de la campagne prises à 1,5 s d'écart
+  const page = await ctx.newPage();
+  page.on('pageerror', (e) => consoleErrors.push(`pause /pac-citron : ${e.message}`));
+  await page.goto(`${BASE}/pac-citron`, { waitUntil: 'networkidle' });
+  await page.waitForSelector('.bhero .anim-pause', { timeout: 150000 }).catch(() => {});
+  await page.waitForTimeout(1500);
+  const zone = await page.evaluate(() => {
+    const r = document.querySelector('#bhero-stage').getBoundingClientRect();
+    return { x: Math.round(r.x), y: Math.round(r.y), width: Math.round(r.width), height: Math.round(r.height) };
+  });
+  const image = () => page.screenshot({ clip: zone, timeout: 120000 });
+  const b0 = await page.evaluate(() => {
+    const b = document.querySelector('.bhero .anim-pause');
+    return b ? { nom: b.textContent.trim(), pressed: b.getAttribute('aria-pressed') } : null;
+  });
+  const i1 = await image();
+  await page.waitForTimeout(1500);
+  const bouge = !i1.equals(await image());
+  if (b0) await page.click('.bhero .anim-pause');
+  // la scène se fige après les dernières images en cours (lentes sous charge, jusqu'à 10 s) : deux
+  // images identiques de suite, puis la même encore 1,5 s plus tard
+  let i3 = await image();
+  let stable = false;
+  for (let k = 0; k < 10 && !stable; k++) {
+    await page.waitForTimeout(1000);
+    const suivante = await image();
+    stable = suivante.equals(i3);
+    i3 = suivante;
+  }
+  await page.waitForTimeout(1500);
+  const fige = stable && i3.equals(await image());
+  const etat = await page.evaluate(() => ({ pressed: document.querySelector('.bhero .anim-pause')?.getAttribute('aria-pressed'), paused: window.__hero?.paused, garde: localStorage.getItem('blachere-animation') }));
+  check('Campagne : bouton « Mettre l’animation en pause » ; l’image bouge, puis se fige', b0?.nom === 'Mettre l’animation en pause' && b0.pressed === 'false' && bouge && fige && etat.pressed === 'true' && etat.paused === true && etat.garde === 'pause', JSON.stringify({ b0, bouge, fige, etat }));
+  await shot(page, 'bureau-49-campagne-en-pause', false);
+  await page.close();
+  const { page: acc } = await open(ctx, '/', { wait: 800, label: 'pause accueil', hero: true });
+  const a = await acc.evaluate(() => ({ pressed: document.querySelector('.hero .anim-pause')?.getAttribute('aria-pressed'), paused: window.__hero?.paused }));
+  if (a.pressed) await acc.click('.hero .anim-pause');
+  await acc.waitForTimeout(300);
+  const r = await acc.evaluate(() => ({ pressed: document.querySelector('.hero .anim-pause')?.getAttribute('aria-pressed'), paused: window.__hero?.paused, garde: localStorage.getItem('blachere-animation') }));
+  await acc.close();
+  check('Pause gardée d’une page à l’autre ; second appui : l’animation reprend', a.pressed === 'true' && a.paused === true && r.pressed === 'false' && r.paused === false && r.garde === null, JSON.stringify({ a, r }));
+  const vue = async (path) => {
+    const { page: f } = await open(ctx, path, { wait: 800, label: `pause ${path}` });
+    await f.waitForFunction(() => document.querySelector('#stage')?.classList.contains('is-live'), null, { timeout: 120000 }).catch(() => {});
+    await f.waitForTimeout(500);
+    const v = await f.evaluate(() => ({ live: document.querySelector('#stage').classList.contains('is-live'), bouton: !!document.querySelector('#stage .anim-pause') }));
+    await f.close();
+    return v;
+  };
+  const sirop = await vue('/boutique/pac-citron');
+  const spiritueux = await vue('/boutique/pastis-marra');
+  check('Fiches : bouton de pause sur la bouteille qui tourne (sirop), aucun sur les spiritueux (pas de rotation)', sirop.live && sirop.bouton && spiritueux.live && !spiritueux.bouton, JSON.stringify({ sirop, spiritueux }));
+  await ctx.close();
 }
 
 // ---------- 2. Dix tailles d'écran : largeur, campagne 3D, bouteilles entières ----------
@@ -862,6 +928,47 @@ for (const vp of ['bureau', 'mobile']) {
   const dossiers = ['bouteilles', 'archives', 'archives-tailles', 'rendus', 'recettes', 'lieux', 'logos', 'marques'];
   const valeur = regle?.headers.find((x) => x.key === 'Cache-Control')?.value;
   check('vercel.json : images statiques en cache un jour (revalidées en arrière-plan une semaine)', !!regle && dossiers.every((d) => new RegExp(`^${regle.source.replace(/\(\.\*\)/g, '.*')}$`).test(`/${d}/x.webp`)) && valeur === 'public, max-age=86400, stale-while-revalidate=604800', `${regle?.source} → ${valeur}`);
+}
+
+// ---------- 10 ter. Impression (QUAL-7) ----------
+// Fiche imprimée : l'en-tête une fois, ni outils ni lettre d'information ni bouton d'achat, la photo
+// de la bouteille, les accordéons ouverts (refermés après), aucun texte blanc, la pastille et la
+// ligne « Maquette non officielle » à la fin ; 5 pages A4 au lieu de 6 incomplètes ; recettes en
+// 13 pages au lieu de 45.
+{
+  const ctx = await context('bureau', 'sirops');
+  const imprimer = async (path) => {
+    const { page } = await open(ctx, path, { wait: 2000, label: `impression ${path}` });
+    await page.evaluate(() => Promise.all([...document.images].map((i) => ((i.loading = 'eager'), i.decode().catch(() => {})))));
+    await page.emulateMedia({ media: 'print' });
+    await page.evaluate(() => dispatchEvent(new Event('beforeprint')));
+    const v = await page.evaluate(() => {
+      const vu = (s) => [...document.querySelectorAll(s)].some((e) => e.getClientRects().length > 0 && getComputedStyle(e).visibility !== 'hidden');
+      return {
+        entete: getComputedStyle(document.querySelector('.hd')).position,
+        outils: vu('.hd__tools'),
+        lettre: vu('.ft__news'),
+        achat: vu('.pp__row'),
+        photo: !!document.querySelector('.pp__poster') && getComputedStyle(document.querySelector('.pp__poster')).opacity === '1' && vu('.pp__poster img'),
+        fermes: document.querySelectorAll('main details:not([open])').length,
+        pastille: document.querySelector('.v2x') ? getComputedStyle(document.querySelector('.v2x')).position : 'absente',
+        legal: vu('.ft__legal'),
+        blanc: [...document.querySelectorAll('body *')].filter((e) => e.getClientRects().length && getComputedStyle(e).color === 'rgb(255, 255, 255)' && [...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())).length,
+      };
+    });
+    const pdf = await page.pdf({ format: 'A4', preferCSSPageSize: true });
+    v.pages = (pdf.toString('latin1').match(/\/Type\s*\/Page[^s]/g) || []).length;
+    await page.evaluate(() => dispatchEvent(new Event('afterprint')));
+    await page.emulateMedia({ media: 'screen' });
+    v.refermes = await page.evaluate(() => document.querySelectorAll('main details:not([open])').length);
+    await page.close();
+    return v;
+  };
+  const f = await imprimer('/boutique/pac-citron');
+  check('Impression de la fiche : en-tête une fois, ni outils ni lettre ni achat, photo, accordéons ouverts, pastille et mentions à la fin, 6 pages au plus', f.entete === 'static' && !f.outils && !f.lettre && !f.achat && f.photo && f.fermes === 0 && f.refermes > 0 && f.pastille === 'static' && f.legal && f.blanc === 0 && f.pages <= 6, JSON.stringify(f));
+  const rec = await imprimer('/recettes');
+  check('Impression des recettes : 16 pages au plus (45 auparavant), aucun texte blanc', rec.pages <= 16 && rec.blanc === 0 && rec.legal, JSON.stringify(rec));
+  await ctx.close();
 }
 
 check('Aucune erreur dans la console', consoleErrors.length === 0, consoleErrors.slice(0, 8).join(' | '));

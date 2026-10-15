@@ -7,7 +7,8 @@ const TEST = typeof location !== 'undefined' && new URLSearchParams(location.sea
 
 export class BottleViewer {
   // dos : false → le dos de l'étiquette n'est pas téléchargé (voir Stage) ; vrai par défaut.
-  constructor(canvas, product, { calm = false, colors = null, target = null, dos = true } = {}) {
+  // pause : rotation automatique arrêtée dès le départ (choix gardé, src/lib/pause.js).
+  constructor(canvas, product, { calm = false, colors = null, target = null, dos = true, pause = false } = {}) {
     this.canvas = canvas;
     this.product = product;
     this.calm = calm;
@@ -23,6 +24,7 @@ export class BottleViewer {
       sway: false,
       interactive: false,
       dos,
+      pause,
       spot: [0, -0.2, -6.5, 6],
       onUpdate: (t, dt) => this.tick(t, dt),
     });
@@ -43,9 +45,9 @@ export class BottleViewer {
     if (!this.dragging) {
       this.angle += this.velocity * dt;
       this.velocity *= Math.pow(0.04, dt);
-      // rotation automatique très lente (sauf spiritueux et mouvement réduit)
+      // rotation automatique très lente (sauf spiritueux, mouvement réduit et pause)
       // (pas en recette : la bouteille reste de face)
-      if (!this.calm && !TEST && Math.abs(this.velocity) < 0.05) this.angle += dt * 0.12;
+      if (!this.calm && !this.stage.paused && !TEST && Math.abs(this.velocity) < 0.05) this.angle += dt * 0.12;
     }
     slot.angle = this.angle;
   }
@@ -98,6 +100,16 @@ export class BottleViewer {
       .catch(() => {})
       .then(() => this.stage.redraw());
     return this.dosCharge;
+  }
+
+  // Bouton « Mettre l'animation en pause » (src/lib/pause.js) : arrête la rotation automatique ; la
+  // bouteille se tourne toujours à la main.
+  get paused() {
+    return this.stage.paused;
+  }
+
+  pause(on) {
+    this.stage.pause(on);
   }
 
   bounds() {

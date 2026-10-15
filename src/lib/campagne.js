@@ -7,6 +7,7 @@
 //   moment libre du navigateur ; elle remplace l'affiche en fondu une fois sa première image dessinée.
 import { clamp, hasWebGL, idle, sobre, whenVisible } from './dom.js';
 import { faceURL } from './thumbs.js';
+import { boutonPause, pauseVoulue } from './pause.js';
 
 const TEST = typeof location !== 'undefined' && new URLSearchParams(location.search).has('test');
 
@@ -27,10 +28,13 @@ export async function monterCampagne({ hero, stage, canvas, scene, products }) {
   await idle();
   try {
     const { HeroScene } = await import('../three/hero.js');
-    const s = new HeroScene(canvas, { scene, products, target: () => stage.getBoundingClientRect() });
+    const s = new HeroScene(canvas, { scene, products, target: () => stage.getBoundingClientRect(), pause: pauseVoulue() });
     window.__hero = s;
     await s.shown;
     hero.classList.add('is-live');
+    // « Mettre l'animation en pause » (A11Y-7) : dans la case du cadre des bouteilles, en bas à droite
+    // (le cadre lui-même est masqué aux lecteurs d'écran : le bouton est placé à côté, voir home.css)
+    stage.after(boutonPause(s, { clair: scene === 'provence' }));
     // défilement : les éléments montent et les bouteilles tournent un peu, au rythme de la page
     const onScroll = () => s.setScroll(clamp(scrollY / Math.max(hero.offsetHeight, 1), 0, 1));
     addEventListener('scroll', onScroll, { passive: true });

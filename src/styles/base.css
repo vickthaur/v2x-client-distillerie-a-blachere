@@ -4,6 +4,7 @@
    couleur de marque contrôlés (fuchsia PAC, bleus Fun Blue) réservés aux chapitres de marque.
    Les noms PAC et Fun Blue s'écrivent avec leur logo ou dans leur écriture (section « Marques »). */
 @import '../fonts.css';
+@import './print.css';
 
 :root {
   --ink: #15130f;
@@ -523,6 +524,18 @@ dialog::backdrop { background: rgba(21, 19, 15, 0.46); -webkit-backdrop-filter: 
 /* ---------- Message ---------- */
 .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); z-index: 150; max-width: calc(100vw - 32px); padding: 14px 22px; border-radius: 999px; background: var(--ink); color: #fff; font-weight: 600; font-size: 0.92rem; box-shadow: var(--shadow-2); transform: translate(-50%, 140%); opacity: 0; transition: transform 0.45s var(--ease), opacity 0.3s; pointer-events: none; }
 .toast.is-on { transform: translate(-50%, 0); opacity: 1; }
+
+/* ---------- Pause des animations 3D (A11Y-7, src/lib/pause.js) ----------
+   Bouton rond posé sur la scène : verre fumé sur les campagnes de couleur, blanc sur les fonds clairs.
+   L'icône montre le prochain geste : pause, ou lecture une fois l'animation arrêtée. */
+.anim-pause { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 1px solid rgba(255, 255, 255, 0.26); border-radius: 50%; background: rgba(20, 16, 22, 0.3); color: #fff; cursor: pointer; -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%); transition: background-color 0.2s; animation: anim-pause-in 0.6s var(--ease) both; }
+.anim-pause:hover { background: rgba(20, 16, 22, 0.5); }
+.anim-pause--clair { border-color: var(--line-2); background: rgba(255, 255, 255, 0.82); color: var(--ink); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.anim-pause--clair:hover { background: #fff; }
+.anim-pause svg { width: 16px; height: 16px; fill: currentColor; }
+.anim-pause[aria-pressed='true'] svg:first-of-type, .anim-pause:not([aria-pressed='true']) svg:last-of-type { display: none; }
+@media (pointer: coarse) { .anim-pause { width: 44px; height: 44px; } }
+@keyframes anim-pause-in { from { opacity: 0; } }
 
 /* ---------- Blocs communs ---------- */
 .lockbox { display: grid; justify-items: center; gap: 14px; max-width: 560px; margin-inline: auto; padding: clamp(28px, 5vw, 48px); border-radius: var(--r-l); background: #fff; color: var(--ink); text-align: center; box-shadow: var(--shadow-1); }

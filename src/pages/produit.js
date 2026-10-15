@@ -13,6 +13,7 @@ import { initSite, addToCart } from '../app/site.js';
 import { cardHTML } from '../app/cards.js';
 import { bySlug, products, visibleProducts, recettes, FAMILLES, EVIN, MINEURS, euro, DISPO_BOUTIQUE, formatsAilleursTexte, prixAuLitreTexte, prixAuLitreHTML } from '../data/products.js';
 import { devis, devisLocal } from '../lib/livraison.js';
+import { boutonPause, pauseVoulue } from '../lib/pause.js';
 import { infos } from '../data/site.js';
 import { $, $$, esc, calm, hasWebGL, idle, sobre, whenVisible } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
@@ -517,10 +518,13 @@ async function mountViewer() {
     const { BottleViewer } = await import('../three/viewer.js');
     if (!stage.isConnected) return;
     // Spiritueux : présentation sobre (ni décor, ni rotation automatique).
-    v = viewer = new BottleViewer(canvas, p, { calm: calm() || p.alcool, dos: false, target: () => stage.getBoundingClientRect() });
+    v = viewer = new BottleViewer(canvas, p, { calm: calm() || p.alcool, dos: false, pause: pauseVoulue(), target: () => stage.getBoundingClientRect() });
     await v.ready;
     if (v !== viewer) return;
     stage.classList.add('is-live');
+    // rotation automatique (sirops) : bouton « Mettre l'animation en pause » en haut à droite (A11Y-7)
+    // (avant « Face / Dos » dans l'ordre du clavier, comme à l'écran)
+    if (!v.calm) $('.pp__stage-ui', stage).before(boutonPause(v, { clair: true }));
     $('.pp__sides', stage).hidden = !v.dosDisponible;
     source.textContent = v.kind === 'photo' ? (v.labelSource === 'etiquette' ? 'Bouteille 3D tirée de la photo du produit, avec son étiquette d’origine.' : 'Bouteille 3D tirée de la photo du produit.') : 'Bouteille dessinée en code, en attendant la photo du produit.';
     source.hidden = false;

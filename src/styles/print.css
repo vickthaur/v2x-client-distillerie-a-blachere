@@ -1,0 +1,68 @@
+/* Impression (QUAL-7). Importée en tête de base.css, donc avant les feuilles des pages : les règles
+   qui doivent l'emporter portent !important. La page imprimée garde le contenu (nom, prix,
+   contenances, description, ingrédients, valeurs nutritionnelles, recettes, adresses, horaires,
+   mentions Évin et ligne « Maquette non officielle » du pied de page) et laisse ce qui ne sert qu'à
+   l'écran : menus, recherche, panier, filtres, boutons d'achat, lettre d'information, scènes 3D.
+   Les accordéons fermés s'impriment ouverts (src/app/site.js, beforeprint) ; les logotypes PAC et
+   Fun Blue redeviennent du texte (base.css, A11Y-11).
+   L'espace pro (.pro-page) garde sa propre feuille d'impression (factures, src/styles/pro.css). */
+@media print {
+  @page { margin: 14mm 12mm 16mm; }
+
+  /* Encre noire sur papier blanc : les aplats ne s'impriment pas (le texte blanc disparaîtrait). */
+  body:not(.pro-page) *, body:not(.pro-page) *::before, body:not(.pro-page) *::after { color: #000 !important; background: transparent !important; box-shadow: none !important; text-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; transition: none !important; animation: none !important; }
+  body:not(.pro-page) { padding-top: 0 !important; background: #fff !important; font-size: 10.5pt; line-height: 1.45; }
+
+  /* Ce qui ne sert qu'à l'écran */
+  body:not(.pro-page) :is(.skip, .hd__util, .nav, .hd__tools, .mega, .menu, .search, .drawer, .gate, .toast, .demo-bar, .revue-tag, canvas, .anim-pause, .pp-bar, .pp__stage-ui, .pp__row, .shop__side, .shop__tools, .co-actions, .card__add, .hero__ctas, .bhero__ctas, .hero__tag-add, .bprice .btn, .ft__news, .ft__social, .ft__cols > .ft__col:not(.ft__contact), .ft__contact > a, .ft__brand .logo, .ft__links, .arrow-link) { display: none !important; }
+
+  /* En-tête : le logo seul, une fois, en haut de la première page (plus d'en-tête fixe répété). */
+  body:not(.pro-page) .hd { position: static !important; transform: none !important; }
+  body:not(.pro-page) .hd__main { height: auto !important; border: 0 !important; }
+  body:not(.pro-page) .hd__main-in { padding-block: 0 6mm !important; }
+  body:not(.pro-page) .logo__img--light { display: none !important; }
+  body:not(.pro-page) .logo__img--ink { opacity: 1 !important; }
+
+  /* Rien d'invisible à l'impression : apparitions au défilement, affiches des campagnes et des fiches
+     (la 3D ne s'imprime pas : la photo de la bouteille la remplace). */
+  body:not(.pro-page) [data-reveal] { opacity: 1 !important; transform: none !important; }
+  body:not(.pro-page) :is(.hero, .bhero) { min-height: 0 !important; }
+  body:not(.pro-page) :is(.hero__in, .bhero__in) { min-height: 0 !important; padding-top: 0 !important; padding-bottom: 6mm !important; }
+  body:not(.pro-page) :is(.hero.is-live .poster, .bhero.is-live .poster, .pp__stage.is-live .pp__poster) { opacity: 1 !important; visibility: visible !important; }
+  body:not(.pro-page) :is(.hero__stage, .bhero__stage) { min-height: 70mm !important; }
+
+  /* Fiche produit : la photo à gauche, les informations à droite, sur la première page. */
+  body:not(.pro-page) .crumbs { padding-block: 0 4mm !important; }
+  body:not(.pro-page) .pp { grid-template-columns: 56mm minmax(0, 1fr) !important; gap: 8mm !important; padding-bottom: 6mm !important; }
+  body:not(.pro-page) .pp__stage { position: relative !important; top: 0 !important; width: auto !important; height: 100mm !important; max-height: none !important; aspect-ratio: auto !important; margin-inline: 0 !important; border-radius: 0 !important; }
+  body:not(.pro-page) .pp__poster .thumb { filter: none !important; }
+  body:not(.pro-page) .pp__acc summary svg { display: none !important; }
+  /* recettes du produit en vignettes ; « Vous aimerez aussi » ne s'imprime pas (navigation) */
+  body:not(.pro-page) .pp-recipes { padding-bottom: 4mm !important; }
+  body:not(.pro-page) .pp-recipes__list { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 5mm !important; }
+  body:not(.pro-page) .rcard__img { aspect-ratio: 4 / 3; max-height: 30mm; }
+  body:not(.pro-page) .related { display: none !important; }
+
+  /* Liens vers d'autres sites : l'adresse après le texte. */
+  body:not(.pro-page) main a[href^='http']:not(:has(img))::after { content: ' (' attr(href) ')'; font-size: 0.85em; word-break: break-all; }
+
+  /* Pas de bloc coupé en deux, pas de titre seul en bas de page. */
+  body:not(.pro-page) :is(h1, h2, h3, .kicker) { break-after: avoid; }
+  body:not(.pro-page) :is(img, figure, .card, .rcard, .rec, .piece, .pp__acc, .pp__facts > div, tr) { break-inside: avoid; }
+  body:not(.pro-page) img { max-width: 100% !important; }
+
+  /* Recettes : la photo petite, à côté de la recette (47 pages auparavant). */
+  body:not(.pro-page) .rec-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 5mm !important; }
+  body:not(.pro-page) .rec { padding-block: 5mm !important; }
+  body:not(.pro-page) .rec__in { grid-template-columns: 40mm minmax(0, 1fr) !important; gap: 6mm !important; }
+  body:not(.pro-page) .rec__img { position: static !important; }
+
+  /* La pastille « Maquette non officielle » s'imprime une fois, à la fin, au lieu de flotter sur
+     chaque page. */
+  body:not(.pro-page) .v2x { position: static !important; margin: 4mm 0 0 !important; }
+
+  /* Pied de page : coordonnées, horaires et mentions seulement. */
+  body:not(.pro-page) .ft { margin-top: 8mm; border-top: 1px solid #000; }
+  body:not(.pro-page) .ft__in { padding-block: 4mm !important; }
+  body:not(.pro-page) .ft__legal { font-size: 8.5pt; }
+}

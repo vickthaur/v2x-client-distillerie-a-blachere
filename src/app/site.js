@@ -641,6 +641,23 @@ export function reveal(root = document) {
 }
 
 // ---------- Démarrage ----------
+// Impression (QUAL-7, src/styles/print.css) : les accordéons fermés (ingrédients, valeurs
+// nutritionnelles, questions) s'impriment ouverts, puis se referment.
+function bindPrint() {
+  addEventListener('beforeprint', () =>
+    $$('details:not([open])').forEach((d) => {
+      d.dataset.imprime = '';
+      d.open = true;
+    }),
+  );
+  addEventListener('afterprint', () =>
+    $$('details[data-imprime]').forEach((d) => {
+      d.open = false;
+      delete d.dataset.imprime;
+    }),
+  );
+}
+
 export function initSite({ askAge = true } = {}) {
   document.documentElement.dataset.age = age || 'inconnu';
   // PAC et Fun Blue : logotypes dans les titres, police et couleur de marque dans le texte
@@ -652,6 +669,7 @@ export function initSite({ askAge = true } = {}) {
   bindGate();
   bindCart();
   bindNewsletter();
+  bindPrint();
   // Démo active dans ce navigateur : pastille d'accès au CRM et à l'espace pro (en bas à droite).
   mountDemoBar({ toast });
   $$('[data-year]').forEach((el) => (el.textContent = new Date().getFullYear()));
