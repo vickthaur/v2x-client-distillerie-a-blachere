@@ -264,8 +264,8 @@ function bindHeader() {
     }
   });
   // langues et compte : maquette
-  $$('[data-lang]').forEach((b) => b.addEventListener('click', () => toast(`Version ${b.dataset.lang === 'en' ? 'anglaise' : 'allemande'} : à venir (maquette).`)));
-  $$('[data-account]').forEach((b) => b.addEventListener('click', () => toast('Espace client : prévu pour la mise en ligne (maquette).')));
+  $$('[data-lang]').forEach((b) => b.addEventListener('click', () => toast(`Version ${b.dataset.lang === 'en' ? 'anglaise' : 'allemande'}\u00a0: à venir (maquette).`)));
+  $$('[data-account]').forEach((b) => b.addEventListener('click', () => toast('Espace client\u00a0: prévu pour la mise en ligne (maquette).')));
   $$('[data-cart-open]').forEach((b) => b.addEventListener('click', openCart));
 }
 
