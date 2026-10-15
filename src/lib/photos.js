@@ -5,9 +5,11 @@ let bottles = null;
 let places = null;
 let labels = null;
 
+// Index servis avec un cache d'un jour (vercel.json, en-têtes des images et des index) : lus
+// normalement, sans revalidation forcée à chaque page.
 async function fetchJSON(url) {
   try {
-    const res = await fetch(url, { cache: 'no-cache' });
+    const res = await fetch(url);
     if (!res.ok || !(res.headers.get('content-type') || '').includes('json')) return null;
     return await res.json();
   } catch {

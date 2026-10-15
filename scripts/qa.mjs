@@ -830,6 +830,40 @@ for (const vp of ['bureau', 'mobile']) {
   await ctx.close();
 }
 
+// ---------- 10 bis. Balises, cache des images, feuille de la pastille (SEO-3, PERF-5, PERF-8, PERF-9) ----------
+{
+  const ctx = await context('bureau', 'sirops');
+  const vues = {};
+  for (const path of ['/boutique', '/boutique/pac-citron', '/panier']) {
+    const { page } = await open(ctx, path, { wait: 1500, label: `balises ${path}` });
+    vues[path] = await page.evaluate(() => {
+      const css = performance.getEntriesByType('resource').find((e) => /proposition\.css/.test(e.name));
+      return {
+        canonical: document.querySelector('link[rel="canonical"]')?.getAttribute('href') || '',
+        ogUrl: document.querySelector('meta[property="og:url"]')?.content || '',
+        ogDescription: (document.querySelector('meta[property="og:description"]')?.content || '').length,
+        robots: document.querySelector('meta[name="robots"]')?.content || '',
+        archivo: !!document.querySelector('link[rel="preload"][as="font"]'),
+        feuille: css?.renderBlockingStatus || 'inconnu',
+        media: document.querySelector('link[href*="/v2x/proposition.css"]')?.media || '',
+        pastille: !!document.querySelector('.v2x .v2x-pastille'),
+      };
+    });
+    await page.close();
+  }
+  const attendu = { '/boutique': '/boutique', '/boutique/pac-citron': '/boutique/pac-citron', '/panier': '/panier' };
+  const mauvaises = Object.entries(vues).filter(([path, v]) => !v.canonical.endsWith(attendu[path]) || !v.ogUrl.endsWith(attendu[path]) || v.ogDescription < 40 || !/noindex/.test(v.robots) || !v.archivo);
+  check('Boutique, fiche et panier : canonical, og:url, og:description, noindex gardé, Archivo préchargée', !mauvaises.length, JSON.stringify(mauvaises.length ? mauvaises : vues['/boutique/pac-citron']));
+  const pastilles = Object.entries(vues).filter(([, v]) => v.feuille !== 'non-blocking' || v.media !== 'all' || !v.pastille);
+  check('Feuille de la pastille V2X sans blocage du rendu, pastille insérée une fois la feuille chargée', !pastilles.length, JSON.stringify(pastilles.length ? pastilles : vues['/boutique']));
+  await ctx.close();
+  const vercel = JSON.parse(readFileSync(join(root, 'vercel.json'), 'utf8'));
+  const regle = (vercel.headers || []).find((h) => /bouteilles/.test(h.source));
+  const dossiers = ['bouteilles', 'archives', 'archives-tailles', 'rendus', 'recettes', 'lieux', 'logos', 'marques'];
+  const valeur = regle?.headers.find((x) => x.key === 'Cache-Control')?.value;
+  check('vercel.json : images statiques en cache un jour (revalidées en arrière-plan une semaine)', !!regle && dossiers.every((d) => new RegExp(`^${regle.source.replace(/\(\.\*\)/g, '.*')}$`).test(`/${d}/x.webp`)) && valeur === 'public, max-age=86400, stale-while-revalidate=604800', `${regle?.source} → ${valeur}`);
+}
+
 check('Aucune erreur dans la console', consoleErrors.length === 0, consoleErrors.slice(0, 8).join(' | '));
 
 await browser.close();

@@ -80,8 +80,41 @@ function rich(text) {
   return html;
 }
 
+// ---------- Balises de la fiche (SEO-3) ----------
+// Tant que les fiches ne sont pas pré-rendues, une seule page sert les 63 adresses : l'adresse
+// canonique (/boutique/<fiche>), og:url, le titre et la description sont posés ici. Fiche de
+// spiritueux encore verrouillée : rien du produit (ni nom ni description) dans les balises.
+const SITE = 'https://v2x-client-distillerie-a-blachere.vercel.app';
+function balise(sel, creer) {
+  let el = document.head.querySelector(sel);
+  if (!el) {
+    el = creer();
+    document.head.append(el);
+  }
+  return el;
+}
+const meta = (attr, nom) =>
+  balise(`meta[${attr}="${nom}"]`, () => {
+    const m = document.createElement('meta');
+    m.setAttribute(attr, nom);
+    return m;
+  });
+function balises({ titre, description = null, canonique = true }) {
+  const url = `${SITE}/boutique/${encodeURIComponent(slug)}`;
+  if (canonique) balise('link[rel="canonical"]', () => Object.assign(document.createElement('link'), { rel: 'canonical' })).href = url;
+  else document.head.querySelector('link[rel="canonical"]')?.remove();
+  meta('property', 'og:url').content = url;
+  meta('property', 'og:title').content = titre;
+  if (description) {
+    const d = description.length > 155 ? `${description.slice(0, 154).replace(/\s+\S*$/, '')}…` : description;
+    meta('name', 'description').content = d;
+    meta('property', 'og:description').content = d;
+  }
+}
+
 function notFound() {
   document.title = 'Produit introuvable · Distillerie A. Blachère';
+  balises({ titre: document.title, canonique: false });
   root.innerHTML = `<section class="wrap product-msg">
     <p class="kicker">Boutique</p>
     <h1 class="h-section">Ce produit est introuvable.</h1>
@@ -93,6 +126,7 @@ function notFound() {
 // Porte d'âge propre à la fiche : aucun élément du produit dans la page.
 function lockedView() {
   document.title = 'Produit réservé aux personnes majeures · Distillerie A. Blachère';
+  balises({ titre: document.title, description: 'Spiritueux de la Distillerie A. Blachère, réservé aux personnes majeures.' });
   const minor = site.age === 'mineur';
   root.innerHTML = `<section class="wrap product-msg product-msg--locked">
     <span class="product-msg__icon">${icons.lock}</span>
@@ -176,6 +210,10 @@ function livraisonHTML() {
 
 function render() {
   document.title = `${p.nom} · Boutique · Distillerie A. Blachère`;
+  // accroche courte (« La liqueur de Camargue ! ») : complétée par le type et la maison
+  const signature = `${p.type || p.nom}, Distillerie A. Blachère, Châteauneuf-du-Pape.`;
+  const a = accroche();
+  balises({ titre: document.title, description: a ? (a.length < 80 ? `${a} ${signature}` : a) : signature });
   const majeur = site.majeur;
   const notes = p.notes.filter((n) => (!n.alcool || majeur) && !/^Sa fiche/.test(n.t));
   const recs = recettes.filter((r) => r.produits?.includes(p.slug) && (!r.alcool || majeur));

@@ -105,6 +105,17 @@
     });
   }
 
+  // Feuille du calque chargée sans bloquer le rendu (media="print" dans le <head>) : elle passe en
+  // media="all" une fois chargée, et la pastille n'est insérée qu'à ce moment (jamais sans style).
+  function quandStyle(fn) {
+    const l = document.querySelector('link[href*="/v2x/proposition.css"]');
+    if (!l) return fn();
+    const pret = () => { l.media = 'all'; fn(); };
+    if (l.sheet) return pret();
+    l.addEventListener('load', pret, { once: true });
+    l.addEventListener('error', fn, { once: true });
+  }
+
   signaler();
-  calque();
+  quandStyle(calque);
 })();
