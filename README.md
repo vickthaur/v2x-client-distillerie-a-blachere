@@ -190,11 +190,12 @@ Labo de réglage (développement seulement, non versionné) : `labo.html?scene=d
 
 ## Partage et icônes
 
-- **Aperçu des liens** (iMessage, WhatsApp, réseaux) : `public/og-v3.jpg` (1200 × 630), les vraies
-  bouteilles détourées de PAC Citron et de Fun Blue sur le dégradé fuchsia et bleu de l'accueil, le
-  logo blanc et les logotypes des deux marques ; composée en HTML avec les polices du site puis
-  capturée (Chromium, ×2, réduite en JPEG). `og.jpg` en est une copie, pour les anciens liens. Le nom
-  versionné force les messageries à reprendre l'image : en changer à chaque nouvelle image.
+- **Aperçu des liens** (iMessage, WhatsApp, réseaux) : `public/og-v4.jpg` (1200 × 630), capture du
+  haut de l'accueil tel qu'il est en ligne (bouteilles en 3D, citrons, menthe, glaçons), prise en
+  mode recette (`?test`, image 3D fixe) à 1440 × 756 px ×2 puis réduite, sans la pastille V2X ni la
+  pastille d'opération du moment (l'aperçu doit rester valable après l'opération). `og.jpg` en est
+  une copie, pour les anciens liens. Le nom versionné force les messageries à reprendre l'image :
+  en changer à chaque nouvelle capture.
 - **Favicon** : l'écu au « B » du blason de la distillerie, seul (le blason complet, avec ses herbes
   et son citron, est illisible à 16 px) : `favicon.svg` (tracé d'origine extrait de
   `logos/blason.svg`), `favicon.ico` (16, 32, 48 px), `apple-touch-icon.png` et icônes 192 / 512 px
