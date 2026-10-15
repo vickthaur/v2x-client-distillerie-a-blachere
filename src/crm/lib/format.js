@@ -167,6 +167,11 @@ export function ton(cle = '') {
   for (const c of String(cle)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   return (h % 6) + 1;
 }
+// SIRET « 953 136 837 86859 » (insécables)
+export const siret = (s) => {
+  const d = String(s || '').replace(/\D/g, '');
+  return d.length === 14 ? `${d.slice(0, 3)}\u00a0${d.slice(3, 6)}\u00a0${d.slice(6, 9)}\u00a0${d.slice(9)}` : String(s || '');
+};
 export const nomComplet = (u) => (u ? [u.prenom, u.nom].filter(Boolean).join(' ') || u.email || '' : '');
 
 // Typographie française d'un texte saisi (affichage) : insécables avant « : » et « ; ! ? »,

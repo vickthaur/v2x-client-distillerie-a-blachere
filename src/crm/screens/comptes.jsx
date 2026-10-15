@@ -11,7 +11,7 @@ import { Input, Select, erreurDe, lireNombre } from '../ui/form.jsx';
 import { Dialog, Menu, MenuItem, MenuSep, confirmer, toast } from '../ui/overlay.jsx';
 import { Jauge } from '../charts/charts.jsx';
 import { COMMANDE, COMPTE_ORIGINE, COMPTE_STATUT, COMPTE_TYPE, COMPTE_TYPE_COURT, CONDITIONS, FACTURE, GRILLE, LICENCE } from '../lib/statuts.js';
-import { date, euros, eurosRond, nombre, nomComplet, pluriel, relatif, telephone } from '../lib/format.js';
+import { date, euros, eurosRond, nombre, nomComplet, pluriel, relatif, siret, telephone } from '../lib/format.js';
 import { factureStatut, formatAdresse } from './commande.jsx';
 import { NotesClient, Tags } from './clients.jsx';
 
@@ -487,7 +487,7 @@ export function Compte({ id }) {
                 <dt>Type</dt>
                 <dd>{COMPTE_TYPE[c.type] || c.type}</dd>
                 <dt>SIRET</dt>
-                <dd class="mono">{c.siret ? c.siret.replace(/(\d{3})(\d{3})(\d{3})(\d{5})/, '$1 $2 $3 $4') : '—'}</dd>
+                <dd class="mono">{c.siret ? siret(c.siret) : '—'}</dd>
                 <dt>TVA intracom.</dt>
                 <dd class="mono">{c.tvaIntra || '—'}</dd>
                 <dt>Licence</dt>

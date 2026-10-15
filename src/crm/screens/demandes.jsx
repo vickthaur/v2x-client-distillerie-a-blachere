@@ -10,7 +10,7 @@ import { Input, Select, Textarea, erreurDe, lireNombre } from '../ui/form.jsx';
 import { Dialog, toast } from '../ui/overlay.jsx';
 import { ApercuCourriel } from '../ui/courriel.jsx';
 import { COMPTE_TYPE, CONDITIONS, DEMANDE, GRILLE, LICENCE } from '../lib/statuts.js';
-import { date, dateHeure, nomComplet, pluriel, relatif, telephone, typo } from '../lib/format.js';
+import { date, dateHeure, nomComplet, pluriel, relatif, siret, telephone, typo } from '../lib/format.js';
 import { Marque } from '../ui/marque.jsx';
 import { useCommerciaux } from './comptes.jsx';
 
@@ -186,7 +186,7 @@ function Detail({ id, depuisListe, retour, onChange }) {
           <dt>Ville</dt>
           <dd>{dm.ville || '—'}</dd>
           <dt>SIRET</dt>
-          <dd class="mono">{dm.siret ? dm.siret.replace(/(\d{3})(\d{3})(\d{3})(\d{5})/, '$1 $2 $3 $4') : 'Non communiqué'}</dd>
+          <dd class="mono">{dm.siret ? siret(dm.siret) : 'Non communiqué'}</dd>
           <dt>Contact</dt>
           <dd>{dm.nom}</dd>
           <dt>E-mail</dt>

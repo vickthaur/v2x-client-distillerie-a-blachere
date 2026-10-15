@@ -7,7 +7,7 @@ import { useSession } from '../lib/session.jsx';
 import { Icon } from '../ui/icons.jsx';
 import { Marque } from '../ui/marque.jsx';
 import { CANAL, COMMANDE, CONDITIONS, LANGUE, LIVRAISON, MOMENT, PAIEMENT_MODE, RESERVATION } from '../lib/statuts.js';
-import { ajouterJours, aujourdHui, date, dateHeure, euros, heure, jourSemaine, nombre, pluriel, taux, telephone } from '../lib/format.js';
+import { ajouterJours, aujourdHui, date, dateHeure, euros, heure, jourSemaine, nombre, pluriel, siret, taux, telephone } from '../lib/format.js';
 import { factureStatut, formatAdresse } from '../screens/commande.jsx';
 
 const ENTREPRISE_DEFAUT = {
@@ -114,7 +114,11 @@ function Facture({ id }) {
   if (!f) {
     return (
       <Feuille titre="Facture">
-        <p class="print__etat">Pas encore de facture pour la commande {c.numero} : elle est émise à l’expédition pour les commandes pro.</p>
+        <p class="print__etat">
+          {s.peut('factures')
+            ? `Pas encore de facture pour la commande ${c.numero} : elle est émise à l’expédition pour les commandes pro.`
+            : `Votre profil ne permet pas d’ouvrir les factures (commande ${c.numero}).`}
+        </p>
       </Feuille>
     );
   }
@@ -154,7 +158,7 @@ function Facture({ id }) {
             ))}
             {ent.telephone && <p>Tél. {telephone(ent.telephone)}</p>}
             {ent.email && <p>{ent.email}</p>}
-            <p>SIRET : {ent.siret || <em class="doc__acompleter">{A_COMPLETER}</em>}</p>
+            <p>SIRET : {ent.siret ? siret(ent.siret) : <em class="doc__acompleter">{A_COMPLETER}</em>}</p>
             <p>TVA intracommunautaire : {ent.tvaIntra || <em class="doc__acompleter">{A_COMPLETER}</em>}</p>
             <p>RCS : {ent.rcs || <em class="doc__acompleter">{A_COMPLETER}</em>}</p>
           </section>
@@ -166,7 +170,7 @@ function Facture({ id }) {
               <p key={i}>{l}</p>
             ))}
             {c.contact?.email && <p>{c.contact.email}</p>}
-            {pro && compte.siret && <p>SIRET : {compte.siret}</p>}
+            {pro && compte.siret && <p>SIRET : {siret(compte.siret)}</p>}
             {pro && compte.tvaIntra && <p>TVA : {compte.tvaIntra}</p>}
             {c.referenceClient && <p>Votre référence : {c.referenceClient}</p>}
           </section>
