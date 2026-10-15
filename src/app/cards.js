@@ -1,5 +1,5 @@
 // Cartes produit (boutique, « Vous aimerez aussi », aperçu de la boutique en page d'accueil).
-import { EVIN, products, minPrice, euro, DISPO_BOUTIQUE, surtitre } from '../data/products.js';
+import { EVIN, products, minPrice, euro, DISPO_BOUTIQUE, surtitre, prixAuLitreHTML } from '../data/products.js';
 import { esc, plural } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
 import { thumbHTML } from '../lib/thumbs.js';
@@ -9,6 +9,8 @@ import { noteRevue } from '../lib/revue.js';
 export function cardHTML(p, { tag = 'li' } = {}) {
   const price = minPrice(p);
   const c = p.contenances[0];
+  // prix au litre du prix affiché (« dès … » : la contenance la moins chère), sauf en 1 L (UX-5)
+  const unite = price !== null ? prixAuLitreHTML(p.contenances.find((k) => k.prix === price)) : '';
   // contenance inconnue (produits vendus à la boutique seulement) : une note du mode revue
   const volumes = p.contenances.map((k) => k.volume).join(' · ');
   const op = operationAffichee();
@@ -23,11 +25,11 @@ export function cardHTML(p, { tag = 'li' } = {}) {
     <div class="card__body">
       <p class="card__gamme">${esc(surtitre(p))}</p>
       <h3 class="card__name"><a href="/boutique/${p.slug}">${esc(p.nom)}</a></h3>
-      <p class="card__meta">${volumes ? esc(p.alcool && p.degre ? `${volumes} · ${p.degre} % vol.` : volumes) : noteRevue(p.enLigne ? 'Contenance à confirmer' : 'Contenance et degré à confirmer')}</p>
+      <p class="card__meta">${volumes ? esc(p.alcool && p.degre ? `${volumes} · ${p.degre}\u202f% vol.` : volumes) : noteRevue(p.enLigne ? 'Contenance à confirmer' : 'Contenance et degré à confirmer')}</p>
       ${
         p.enLigne
           ? `<div class="card__row">
-        ${price !== null ? `<p class="card__price">${p.contenances.length > 1 ? 'dès ' : ''}${euro(price)}</p>` : '<p class="card__price card__price--none">Prix en boutique</p>'}
+        ${price !== null ? `<p class="card__price">${p.contenances.length > 1 ? 'dès ' : ''}${euro(price)}${unite ? `<span class="card__unit">${unite}</span>` : ''}</p>` : '<p class="card__price card__price--none">Prix en boutique</p>'}
         <button type="button" class="card__add" data-add="${p.slug}" data-v="${c?.id ?? ''}" aria-label="Ajouter ${esc(p.nom)}${c ? ` (${esc(c.volume)})` : ''} au panier">${icons.plus}<span>Ajouter</span></button>
       </div>`
           : `<p class="card__dispo">${icons.store}<span>${esc(DISPO_BOUTIQUE)}</span></p>`

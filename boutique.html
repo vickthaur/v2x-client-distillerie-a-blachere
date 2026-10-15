@@ -60,8 +60,8 @@
             </button>
           </div>
           <div class="shop__status">
-            <p class="shop__count" id="shop-count" role="status" aria-live="polite"></p>
-            <div class="chips" id="shop-chips" aria-label="Filtres actifs"></div>
+            <p class="shop__count" id="shop-count" role="status" aria-live="polite" tabindex="-1"></p>
+            <div class="chips" id="shop-chips" role="group" aria-label="Filtres actifs"></div>
           </div>
         </div>
 
@@ -70,7 +70,7 @@
             <form class="filters" id="filters" novalidate></form>
           </aside>
           <div class="shop__results">
-            <div class="shop-groups" id="shop-grid" aria-label="Produits"></div>
+            <div class="shop-groups" id="shop-grid" role="group" aria-label="Produits"></div>
             <div class="empty" id="shop-empty" hidden>
               <p class="empty__title">Aucun produit ne correspond à ces filtres.</p>
               <p>Essayez une autre recherche, ou retirez un filtre.</p>

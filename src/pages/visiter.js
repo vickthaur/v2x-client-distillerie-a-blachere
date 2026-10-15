@@ -15,6 +15,7 @@ import { icons } from '../lib/icons.js';
 import { api } from '../lib/api.js';
 import { mountDemoBar } from '../lib/demo.js';
 import { noteRevue, selonRevue } from '../lib/revue.js';
+import { erreursParChamp } from '../lib/formulaire.js';
 
 const site = initSite();
 const reservables = formules.filter((f) => f.reservable);
@@ -235,6 +236,8 @@ function syncMoments() {
 function choisir(d, { focus = false } = {}) {
   dateInput.value = d;
   dateInput.classList.remove('is-invalid');
+  dateInput.removeAttribute('aria-invalid');
+  $('#err-date').textContent = '';
   $('#booking-alt').hidden = true;
   if (moisDe(d) !== vue) voir(moisDe(d));
   else renderCal(focus ? d : null);
@@ -251,61 +254,25 @@ dateInput.addEventListener('change', () => {
 form.elements.personnes.addEventListener('input', syncMoments);
 voir(vue);
 
+// Une erreur par champ (A11Y-10) : nom du champ → message, écrit sous le champ (src/lib/formulaire.js).
 function check() {
   const d = Object.fromEntries(new FormData(form));
-  const errs = [];
-  const bad = new Set();
-  if (!d.formule) errs.push('Choisissez une formule.');
-  if (!d.date) {
-    errs.push('Choisissez une date.');
-    bad.add('date');
-  } else if (d.date < min || d.date > saison.fin) {
-    errs.push('Cette date est hors de la saison des visites.');
-    bad.add('date');
-  } else if (new Date(`${d.date}T12:00:00`).getDay() === 0) {
-    errs.push('Les visites sont fermées le dimanche\u00a0: choisissez un autre jour.');
-    bad.add('date');
-  } else if (etatJour(d.date) === 'ferme') {
-    errs.push('La distillerie ne fait pas de visite ce jour-là\u00a0: choisissez un autre jour.');
-    bad.add('date');
-  }
+  const e = new Map();
+  if (!d.formule) e.set('formule', 'Choisissez une formule.');
+  if (!d.date) e.set('date', 'Choisissez une date.');
+  else if (d.date < min || d.date > saison.fin) e.set('date', 'Cette date est hors de la saison des visites.');
+  else if (new Date(`${d.date}T12:00:00`).getDay() === 0) e.set('date', 'Les visites sont fermées le dimanche\u00a0: choisissez un autre jour.');
+  else if (etatJour(d.date) === 'ferme') e.set('date', 'La distillerie ne fait pas de visite ce jour-là\u00a0: choisissez un autre jour.');
   const n = Number(d.personnes);
   const m = Number(d.mineurs || 0);
-  if (!Number.isInteger(n) || n < 1 || n > saison.groupeMax) {
-    errs.push(`Le groupe compte de 1 à ${saison.groupeMax} personnes.`);
-    bad.add('personnes');
-  }
-  if (!Number.isInteger(m) || m < 0 || m >= n) {
-    errs.push('Au moins un adulte accompagne le groupe\u00a0: les mineurs sont comptés dans le nombre de personnes.');
-    bad.add('mineurs');
-  }
-  if (!d.moment) {
-    errs.push('Ce jour est complet\u00a0: choisissez un autre jour.');
-    bad.add('date');
-  }
-  if (!d.nom?.trim()) {
-    errs.push('Indiquez votre nom.');
-    bad.add('nom');
-  }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email || '')) {
-    errs.push('Indiquez une adresse e-mail valide.');
-    bad.add('email');
-  }
-  if (d.tel && !/^[+\d][\d\s.-]{8,}$/.test(d.tel)) {
-    errs.push('Ce numéro de téléphone ne semble pas valide.');
-    bad.add('tel');
-  }
-  if (!d.rgpd) {
-    errs.push('Cochez la case d’accord pour que la distillerie puisse vous répondre.');
-    bad.add('rgpd');
-  }
-  $$('input, select, textarea', form).forEach((el) => {
-    const on = bad.has(el.name);
-    el.classList.toggle('is-invalid', on);
-    if (on) el.setAttribute('aria-invalid', 'true');
-    else el.removeAttribute('aria-invalid');
-  });
-  return { d, errs };
+  if (!Number.isInteger(n) || n < 1 || n > saison.groupeMax) e.set('personnes', `Le groupe compte de 1 à ${saison.groupeMax}\u00a0personnes.`);
+  if (!Number.isInteger(m) || m < 0 || m >= n) e.set('mineurs', 'Au moins un adulte accompagne le groupe\u00a0: les mineurs sont comptés dans le nombre de personnes.');
+  if (!d.moment && !e.has('date')) e.set('moment', 'Ce jour est complet\u00a0: choisissez un autre jour.');
+  if (!d.nom?.trim()) e.set('nom', 'Indiquez votre nom.');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email || '')) e.set('email', 'Indiquez une adresse e-mail valide (ex. prenom@exemple.fr).');
+  if (d.tel && !/^[+\d][\d\s.-]{8,}$/.test(d.tel)) e.set('tel', 'Ce numéro de téléphone ne semble pas valide.');
+  if (!d.rgpd) e.set('rgpd', 'Cochez la case d’accord pour que la distillerie puisse vous répondre.');
+  return { d, e };
 }
 
 // Autres disponibilités (séance complète) : boutons qui choisissent le jour et le moment.
@@ -352,17 +319,14 @@ function autresSeances(date, moment, n) {
   return out;
 }
 
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const { d, errs } = check();
+form.addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const { d, e } = check();
   const msg = $('#booking-err');
   $('#booking-alt').hidden = true;
-  if (errs.length) {
-    msg.className = 'form-msg err';
-    msg.textContent = errs.join(' ');
-    form.querySelector('.is-invalid')?.focus();
-    return;
-  }
+  msg.className = 'form-msg err';
+  erreursParChamp(form, e, { resume: msg });
+  if (e.size) return;
   const n = Number(d.personnes);
   const j = jours.get(d.date);
   if (j && restantes(j, d.moment) < n) {
@@ -404,11 +368,8 @@ form.addEventListener('submit', async (e) => {
       voir(moisDe(d.date));
       return alternatives(x.data?.disponibilites || autresSeances(d.date, d.moment, n), 'Autres séances disponibles\u00a0:');
     }
-    const champ = { telephone: 'tel', date: 'date', personnes: 'personnes', mineurs: 'mineurs', email: 'email', nom: 'nom', rgpd: 'rgpd' }[String(x?.champ || '').split('.').pop()];
-    if (champ) {
-      form.elements[champ]?.classList.add('is-invalid');
-      form.elements[champ]?.focus();
-    }
+    const champ = { telephone: 'tel', date: 'date', moment: 'moment', personnes: 'personnes', mineurs: 'mineurs', email: 'email', nom: 'nom', rgpd: 'rgpd' }[String(x?.champ || '').split('.').pop()];
+    if (champ) erreursParChamp(form, { [champ]: x.message });
     return;
   }
   const date = jourFr(r?.date || d.date, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });

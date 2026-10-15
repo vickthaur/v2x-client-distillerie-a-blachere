@@ -5,7 +5,7 @@
 // - première visite : la date de naissance est demandée ; les sirops restent accessibles sans répondre ;
 // - moins de 18 ans : les spiritueux sont retirés de toutes les pages pour la session ;
 // - 18 ans ou plus : réponse gardée dans le navigateur (clé blachere-age).
-import { bySlug, products, euro, EVIN, MINEURS, DISPO_BOUTIQUE, surtitre } from '../data/products.js';
+import { bySlug, products, euro, EVIN, MINEURS, DISPO_BOUTIQUE, surtitre, prixAuLitreHTML } from '../data/products.js';
 import { readAge, saveAge, resetAge, ageFrom } from '../lib/age.js';
 import { cart } from '../lib/cart.js';
 import { $, $$, esc, calm, plural, fold } from '../lib/dom.js';
@@ -14,6 +14,7 @@ import { thumbHTML, renderHTML, upgradeThumbs } from '../lib/thumbs.js';
 import { watchBrands } from '../lib/marques.js';
 import { api } from '../lib/api.js';
 import { mountDemoBar, loadDemoPrices } from '../lib/demo.js';
+import { devis, devisLocal } from '../lib/livraison.js';
 import { operationAffichee, lignePanierHTML } from '../lib/operation.js';
 // Mode revue (?revue) sur toutes les pages : notes de la maquette masquées par défaut (QUAL-8).
 import '../lib/revue.js';
@@ -450,14 +451,16 @@ function openCart() {
   if (!d.open) d.showModal();
 }
 
+// Contenance, prix et prix au litre d'une ligne (UX-5).
+const lineMeta = (l) => [l.contenance?.volume ? esc(l.contenance.volume) : 'Contenance à confirmer', l.prix !== null ? euro(l.prix) : 'Prix en boutique', l.prix !== null ? prixAuLitreHTML({ ...l.contenance, prix: l.prix }) : ''].filter(Boolean).join(' · ');
+
 function lineHTML(l, { compact = false } = {}) {
   const p = l.product;
-  const meta = [l.contenance?.volume || 'Contenance à confirmer', l.prix !== null ? euro(l.prix) : 'Prix en boutique'].join(' · ');
   return `<li class="line" data-slug="${p.slug}" data-v="${l.v ?? ''}">
     <a class="line__img" href="/boutique/${p.slug}" style="--c:${p.light}" tabindex="-1" aria-hidden="true">${thumbHTML(p)}</a>
     <span>
       <a class="line__name" href="/boutique/${p.slug}">${esc(p.nom)}</a>
-      <span class="line__meta">${esc(meta)}</span>
+      <span class="line__meta" data-meta>${lineMeta(l)}</span>
       ${p.alcool && !compact ? `<span class="line__meta">${esc(EVIN)}</span>` : ''}
     </span>
     <span class="qty" role="group" aria-label="Quantité de ${esc(p.nom)}">
@@ -468,22 +471,63 @@ function lineHTML(l, { compact = false } = {}) {
   </li>`;
 }
 
+// Livraison au panier (UX-4) : retrait gratuit, livraison dès … en point relais, franco et reste à
+// atteindre ; barème de démonstration tout de suite, confirmé par la route de la démo.
+const lignesDevis = (t) => t.lines.filter((l) => l.prix !== null).map((l) => ({ slug: l.product.slug, varianteId: String(l.v), qte: l.qty }));
+const devisDuPanier = (t) => devisLocal({ bouteilles: t.count, articlesTTC: t.subtotal });
+function livraisonTexte(d) {
+  if (!d.relais && !d.colissimo) return 'Retrait gratuit à la distillerie, ou livraison offerte pour ce panier\u00a0: vous choisissez à l’étape suivante.';
+  return `Retrait gratuit à la distillerie, ou livraison dès ${euro(Math.min(d.relais, d.colissimo))} en point relais\u00a0: vous choisissez à l’étape suivante. Livraison offerte dès ${euro(d.francoTTC)} d’achats${d.francoRestantTTC > 0 ? `, plus que ${euro(d.francoRestantTTC)}` : ''}.`;
+}
+export function affinerLivraison(root, t = cart.totals()) {
+  const el = root && $('[data-livraison]', root);
+  const lignes = lignesDevis(t);
+  if (!el || !lignes.length) return;
+  devis(lignes, devisDuPanier(t)).then((d) => el.isConnected && (el.textContent = livraisonTexte(d)));
+}
+
 export function totalsHTML(t, { mode = 'panier' } = {}) {
   const rows = [`<div class="totals__row"><span>Sous-total${t.unpriced ? ' (prix connus)' : ''}</span><strong data-subtotal>${euro(t.subtotal)}</strong></div>`];
   if (t.unpriced)
     rows.push(`<p class="totals__note">+ ${plural(t.unpriced, 'article')} au prix de la boutique : le montant vous est confirmé par la distillerie.</p>`);
-  if (mode === 'panier') rows.push('<p class="totals__note">Retrait à la distillerie ou livraison : vous choisissez à l’étape suivante. Les frais de livraison sont calculés avec la distillerie.</p>');
+  if (mode === 'panier') rows.push(`<p class="totals__note" data-livraison>${livraisonTexte(devisDuPanier(t))}</p>`);
   return `<div class="totals">${rows.join('')}</div>`;
 }
 
+// Panier latéral. Quand seules les quantités changent, la liste n'est pas réécrite : le focus reste
+// sur le bouton « + » ou « − » et la nouvelle quantité est lue (aria-live). Quand une ligne
+// disparaît, le focus passe à la ligne suivante (ou au message « panier vide ») ; jamais perdu (A11Y-6).
 function renderDrawer() {
   const list = $('#cart-list');
   const foot = $('#cart-foot');
   if (!list) return;
   const t = cart.totals();
-  list.innerHTML = t.lines.length
-    ? t.lines.map((l) => lineHTML(l)).join('')
-    : `<li class="drawer__empty"><p>Votre panier est vide.</p><a class="oval" href="/boutique">Voir la boutique</a></li>`;
+  const lis = $$('.line', list);
+  const memes = t.lines.length && lis.length === t.lines.length && t.lines.every((l, i) => lis[i].dataset.slug === l.product.slug && lis[i].dataset.v === String(l.v ?? ''));
+  if (memes) {
+    t.lines.forEach((l, i) => {
+      const out = $('output', lis[i]);
+      if (out.textContent !== String(l.qty)) out.textContent = l.qty;
+      const meta = $('[data-meta]', lis[i]);
+      const html = lineMeta(l);
+      if (meta && meta.innerHTML !== html) meta.innerHTML = html;
+    });
+  } else {
+    const actif = list.contains(document.activeElement) ? document.activeElement : null;
+    const ancienne = actif?.closest('.line');
+    const repere = ancienne ? { slug: ancienne.dataset.slug, v: ancienne.dataset.v, q: actif.dataset.q || '-1', rang: lis.indexOf(ancienne) } : null;
+    list.innerHTML = t.lines.length
+      ? t.lines.map((l) => lineHTML(l)).join('')
+      : `<li class="drawer__empty"><p tabindex="-1">Votre panier est vide.</p><a class="oval" href="/boutique">Voir la boutique</a></li>`;
+    if (repere) {
+      const nouvelles = $$('.line', list);
+      const meme = nouvelles.find((li) => li.dataset.slug === repere.slug && li.dataset.v === repere.v);
+      const voisine = nouvelles[Math.min(Math.max(repere.rang, 0), nouvelles.length - 1)];
+      const cible = meme ? $(`[data-q="${repere.q}"]`, meme) : voisine ? $(`[data-q="${repere.q}"]`, voisine) : $('.drawer__empty p', list);
+      cible?.focus();
+    }
+    upgradeThumbs(list);
+  }
   // Opération du moment (Octobre Rose) : don correspondant aux bouteilles concernées du panier.
   const op = operationAffichee();
   foot.innerHTML = t.lines.length
@@ -493,7 +537,7 @@ function renderDrawer() {
        ${t.alcohol ? `<p class="evin">${esc(EVIN)} ${esc(MINEURS)}</p>` : ''}`
     : '';
   foot.hidden = !t.lines.length;
-  upgradeThumbs(list);
+  affinerLivraison(foot, t);
 }
 
 function bindCart() {

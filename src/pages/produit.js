@@ -11,7 +11,8 @@ import '../styles/product.css';
 import '../styles/operation.css';
 import { initSite, addToCart } from '../app/site.js';
 import { cardHTML } from '../app/cards.js';
-import { bySlug, products, visibleProducts, recettes, FAMILLES, EVIN, MINEURS, euro, DISPO_BOUTIQUE, formatsAilleursTexte } from '../data/products.js';
+import { bySlug, products, visibleProducts, recettes, FAMILLES, EVIN, MINEURS, euro, DISPO_BOUTIQUE, formatsAilleursTexte, prixAuLitreTexte, prixAuLitreHTML } from '../data/products.js';
+import { devis, devisLocal } from '../lib/livraison.js';
 import { infos } from '../data/site.js';
 import { $, $$, esc, calm, hasWebGL, idle, sobre, whenVisible } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
@@ -112,7 +113,9 @@ function priceHTML() {
   const c = p.contenances[selected];
   const etat = etatDe(c);
   const stock = etat && etat !== 'disponible' ? `<span class="pp__stock pp__stock--${etat}">${esc(ETATS[etat])}${etat === 'stock-bas' ? ' · dernières bouteilles' : etat === 'rupture' ? ' · réassort à venir' : ''}</span>` : '';
-  if (c?.prix != null) return `<p class="pp__price"><strong>${euro(c.prix)}</strong><span>TTC · ${esc(c.volume)}</span>${stock}</p>`;
+  // prix au litre à côté du prix, sauf en 1 L (UX-5)
+  const unite = prixAuLitreTexte(c);
+  if (c?.prix != null) return `<p class="pp__price"><strong>${euro(c.prix)}</strong><span>TTC · ${esc(c.volume)}</span>${unite ? `<span class="pp__unit">soit ${unite}</span>` : ''}${stock}</p>`;
   return `<p class="pp__price pp__price--none"><strong>Prix en boutique</strong><span>Ce prix n’est pas affiché en ligne : la distillerie vous le donne au magasin ou par téléphone (${infos.magasin.tel}).</span></p>`;
 }
 
@@ -181,8 +184,8 @@ function render() {
   const facts = [
     ['Gamme', p.gammeNom],
     ['Arôme', famille(p)],
-    ['Contenance', p.contenances.map((c) => (c.prix != null ? `${c.volume} (${euro(c.prix)})` : c.volume)).join(' · ') || null, 'Sur demande à la boutique', 'À confirmer'],
-    p.alcool ? ['Degré d’alcool', p.degre ? `${String(p.degre).replace('.', ',')} % vol.` : null, 'Sur demande à la boutique', 'À confirmer avec la distillerie'] : ['Alcool', 'Sans alcool'],
+    ['Contenance', p.contenances.map((c) => c.volume).join(' · ') || null, 'Sur demande à la boutique', 'À confirmer'],
+    p.alcool ? ['Degré d’alcool', p.degre ? `${String(p.degre).replace('.', ',')}\u202f% vol.` : null, 'Sur demande à la boutique', 'À confirmer avec la distillerie'] : ['Alcool', 'Sans alcool'],
     p.reference ? ['Référence', p.reference] : null,
   ].filter((f) => f && (f[1] || f[2]));
   const volumes =
@@ -190,7 +193,7 @@ function render() {
       ? `<fieldset class="pp__volumes"><legend>Contenance</legend><div class="pp__vols">${p.contenances
           .map(
             (c, i) =>
-              `<label class="vol${indisponible(etatDe(c)) ? ' is-off' : ''}"><input type="radio" name="volume" value="${i}"${i === selected ? ' checked' : ''} /><span class="vol__in"><span class="vol__name">${esc(c.volume)}</span>${c.prix != null ? `<span class="vol__price">${euro(c.prix)}${indisponible(etatDe(c)) ? ` · ${esc(ETATS[etatDe(c)].toLowerCase())}` : ''}</span>` : ''}</span></label>`,
+              `<label class="vol${indisponible(etatDe(c)) ? ' is-off' : ''}"><input type="radio" name="volume" value="${i}"${i === selected ? ' checked' : ''} /><span class="vol__in"><span class="vol__name">${esc(c.volume)}</span>${c.prix != null ? `<span class="vol__price">${euro(c.prix)}${indisponible(etatDe(c)) ? ` · ${esc(ETATS[etatDe(c)].toLowerCase())}` : ''}</span>` : ''}${prixAuLitreHTML(c) ? `<span class="vol__unit">${prixAuLitreHTML(c)}</span>` : ''}</span></label>`,
           )
           .join('')}</div></fieldset>`
       : p.contenances.length
@@ -215,7 +218,7 @@ function render() {
     <div class="pp__info">
       <p class="pp__gamme"><span>${esc(p.gammeNom)}</span>${p.bestSeller ? ' <span class="badge badge--best">Meilleure vente</span>' : ''}${concerne(operation, p.slug) ? ` <span class="badge badge--rose">${esc(operation.nom)}</span>` : ''}${p.alcool ? ' <span class="badge badge--age">18+</span>' : ''}</p>
       <h1 class="pp__name">${esc(p.nom).replace(/®/g, '<sup>®</sup>')}</h1>
-      <p class="pp__type">${esc(p.type)}${p.alcool && p.degre ? ` · ${String(p.degre).replace('.', ',')} % vol.` : ''}</p>
+      <p class="pp__type">${esc(p.type)}${p.alcool && p.degre ? ` · ${String(p.degre).replace('.', ',')}\u202f% vol.` : ''}</p>
       ${lead ? `<p class="pp__lead">${esc(lead)}</p>` : ''}
       ${p.enLigne ? '' : boutiqueHTML()}
       <form class="pp__buy" id="buy" novalidate${p.enLigne ? '' : ' hidden'}>
@@ -229,6 +232,7 @@ function render() {
           </span>
           <button type="submit" class="btn btn--primary pp__add">${icons.bag}Ajouter au panier</button>
         </div>
+        <p class="pp__ship" id="pp-ship">${icons.truck}<span id="pp-ship-txt"></span></p>
       </form>
       ${concerne(operation, p.slug) ? encartFicheHTML(operation) : ''}
       ${ailleurs ? `<p class="pp__ailleurs">${esc(ailleurs)} — voir <a href="/ou-trouver">Où trouver nos produits</a></p>` : ''}
@@ -277,6 +281,35 @@ function syncStock() {
   syncBar();
 }
 
+// ---------- Frais de livraison dès la fiche (UX-4) ----------
+// Pour la contenance et la quantité choisies : Colissimo en point relais et à domicile, franco,
+// retrait gratuit. Le barème de démonstration s'affiche tout de suite ; la route de la démo (barème
+// réglable dans le CRM) le confirme ou le corrige.
+let shipTimer = 0;
+let shipToken = 0;
+function syncShip() {
+  const box = $('#pp-ship');
+  const out = $('#pp-ship-txt');
+  if (!box || !out) return;
+  const c = p.contenances[selected];
+  box.hidden = !c || c.prix == null;
+  if (box.hidden) return;
+  const articlesTTC = Math.round(c.prix * qty * 100) / 100;
+  const local = devisLocal({ bouteilles: qty, articlesTTC });
+  const note = noteRevue(' Barème de démonstration (docs/crm-espace-pro.md, § 5), réglable dans le CRM\u00a0: à remplacer par celui de la distillerie.');
+  const ecrire = (d) => {
+    const n = qty === 1 ? 'd’une bouteille' : `de ${qty}\u00a0bouteilles`;
+    out.innerHTML =
+      d.relais || d.colissimo
+        ? `Livraison ${n}\u00a0: <strong>${euro(d.relais)}</strong> en point relais, ${euro(d.colissimo)} à domicile, offerte dès ${euro(d.francoTTC)} d’achats. Retrait gratuit à la distillerie.${note}`
+        : `Livraison ${n} offerte. Retrait gratuit à la distillerie.${note}`;
+  };
+  ecrire(local);
+  const t = ++shipToken;
+  clearTimeout(shipTimer);
+  shipTimer = setTimeout(() => devis([{ slug: p.slug, varianteId: String(c.id), qte: qty }], local).then((d) => t === shipToken && out.isConnected && ecrire(d)), 250);
+}
+
 // ---------- Barre d'achat collante (UX-1) ----------
 // Quand le bouton d'ajout est passé sous l'en-tête (on descend lire la fiche), une barre rappelle le
 // produit, la contenance choisie, son prix, et garde le bouton d'ajout à portée de pouce. Elle
@@ -305,7 +338,7 @@ function syncBar() {
   const main = $('.pp__add');
   if (!btn || !main) return;
   const c = p.contenances[selected];
-  $('#pp-bar-meta', bar).textContent = [c?.volume, c?.prix != null ? euro(c.prix) : null, qty > 1 ? `${qty} bouteilles` : null].filter(Boolean).join(' · ');
+  $('#pp-bar-meta', bar).innerHTML = [c?.volume ? esc(c.volume) : null, c?.prix != null ? euro(c.prix) : null, prixAuLitreHTML(c) || null, qty > 1 ? `${qty}\u00a0bouteilles` : null].filter(Boolean).join(' · ');
   btn.disabled = main.disabled;
   $('.pp-bar__label', btn).innerHTML = main.disabled ? esc(main.textContent.trim()) : 'Ajouter<span class="pp-bar__long"> au panier</span>';
   if (main.disabled) btn.removeAttribute('aria-label');
@@ -372,14 +405,17 @@ function bindBuy() {
       selected = Number(e.target.value);
       $('#price').innerHTML = priceHTML();
       syncStock();
+      syncShip();
     }
   });
   syncStock();
+  syncShip();
   const input = $('#qty');
   const setQty = (n) => {
     qty = Math.min(99, Math.max(1, Number.isFinite(n) ? Math.round(n) : 1));
     input.value = qty;
     syncBar();
+    syncShip();
   };
   $$('[data-step]', form).forEach((b) => b.addEventListener('click', () => setQty(qty + Number(b.dataset.step))));
   input.addEventListener('change', () => setQty(parseInt(input.value, 10)));
@@ -509,8 +545,11 @@ demoCatalogue().then((d) => {
     label.classList.toggle('is-off', indisponible(etat));
     const price = $('.vol__price', label);
     if (price && c?.prix != null) price.textContent = `${euro(c.prix)}${indisponible(etat) ? ` · ${ETATS[etat].toLowerCase()}` : ''}`;
+    const unit = $('.vol__unit', label);
+    if (unit) unit.innerHTML = prixAuLitreHTML(c);
   });
   syncStock();
+  syncShip();
   renderRelated();
 });
 // Spiritueux sans âge vérifié : on pose la question tout de suite.

@@ -85,7 +85,8 @@ export const FAMILLES = [
 // etiquette: pac | funblue | provence | maison ; bouteille : silhouette (src/data/shapes.js)
 // phrase   : phrase d'accroche (citation de la fiche officielle quand elle existe)
 // notes    : faits à afficher sur la fiche : t, la forme publique ; revue, la forme sourcée (site
-//            officiel, page Histoire, presse citée), montrée en mode revue (?revue) à la place de t
+//            officiel, page Histoire, presse citée), montrée en mode revue (?revue) à la place de t ;
+//            insécables (\u00a0) avant les deux-points et dans les guillemets
 // garnish  : éléments 3D autour de la bouteille (héros et fiche)
 // habillage: univers d'un spiritueux (comtat | camargue | ventoux | marcs | maison), sinon celui de la gamme
 const P = {
@@ -101,10 +102,10 @@ const P = {
     garnish: ['lemonSlice', 'lemon', 'ice'],
     phrase: '100 % naturel au jus de citron, sans colorant ni conservateur',
     notes: [
-      { t: 'Depuis plus de 60 ans, un « sirop à base de sucre et de citron, sans colorants ».', revue: 'Lancé en 1960 selon la page Histoire de la maison (marque déposée en 1962) : « sirop à base de sucre et de citron, sans colorants ».' },
-      { t: 'Son nom, Louis Guiot le compose « de chaque première lettre du prénom de ses enfants : Pierre, Annick, Christian et Colette ».', revue: 'Louis Guiot le compose « de chaque première lettre du prénom de ses enfants : Pierre, Annick, Christian et Colette » (page Histoire).' },
-      { t: 'Toujours fabriqué dans le Vaucluse par la Distillerie A. Blachère.', revue: '« Toujours fabriqué dans le Vaucluse par la Distillerie A. Blachère », dit sa fiche.' },
-      { t: 'Pour ses 60 ans, en 2023 : quatre étiquettes collector, trois de C215 et une de Claude Viallat.' },
+      { t: 'Depuis plus de 60 ans, un «\u00a0sirop à base de sucre et de citron, sans colorants\u00a0».', revue: 'Lancé en 1960 selon la page Histoire de la maison (marque déposée en 1962)\u00a0: «\u00a0sirop à base de sucre et de citron, sans colorants\u00a0».' },
+      { t: 'Son nom, Louis Guiot le compose «\u00a0de chaque première lettre du prénom de ses enfants\u00a0: Pierre, Annick, Christian et Colette\u00a0».', revue: 'Louis Guiot le compose «\u00a0de chaque première lettre du prénom de ses enfants\u00a0: Pierre, Annick, Christian et Colette\u00a0» (page Histoire).' },
+      { t: 'Toujours fabriqué dans le Vaucluse par la Distillerie A. Blachère.', revue: '«\u00a0Toujours fabriqué dans le Vaucluse par la Distillerie A. Blachère\u00a0», dit sa fiche.' },
+      { t: 'Pour ses 60 ans, en 2023\u00a0: quatre étiquettes collector, trois de C215 et une de Claude Viallat.' },
     ],
     conseil: '1 volume de sirop pour 8 à 10 volumes d’eau plate ou gazeuse.',
   },
@@ -119,8 +120,8 @@ const P = {
     garnish: ['mint', 'ice', 'mint'],
     phrase: 'Sirop de menthe goût chlorophylle',
     notes: [
-      { t: 'Créé en 1995, il succède à la menthe bleue « Aurélie », fabriquée depuis les années 1960.' },
-      { t: 'Sa fiche le présente comme « le sirop de menthe bleu le plus populaire en Provence ».' },
+      { t: 'Créé en 1995, il succède à la menthe bleue «\u00a0Aurélie\u00a0», fabriquée depuis les années 1960.' },
+      { t: 'Sa fiche le présente comme «\u00a0le sirop de menthe bleu le plus populaire en Provence\u00a0».' },
     ],
     conseil: '1 volume de sirop pour 8 à 10 volumes d’eau.',
   },
@@ -132,8 +133,8 @@ const P = {
     liquide: '#f2ede1',
     trouble: true,
     notes: [
-      { t: 'Sa fiche évoque « des notes d’amande grillée et de fleur d’oranger ».' },
-      { t: 'À essayer aussi : la Mauresque, pastis et sirop d’orgeat.', revue: 'Sa fiche suggère aussi la Mauresque : pastis et sirop d’orgeat.', alcool: true },
+      { t: 'Sa fiche évoque «\u00a0des notes d’amande grillée et de fleur d’oranger\u00a0».' },
+      { t: 'À essayer aussi\u00a0: la Mauresque, pastis et sirop d’orgeat.', revue: 'Sa fiche suggère aussi la Mauresque\u00a0: pastis et sirop d’orgeat.', alcool: true },
     ],
   },
   'sirop-couleur-provence-grenadine': {
@@ -142,7 +143,7 @@ const P = {
     famille: 'fruits-rouges',
     liquide: '#b3121d',
     notes: [
-      { t: 'À essayer : le Shirley Temple.', revue: 'Idée de la fiche : le Shirley Temple.' },
+      { t: 'À essayer\u00a0: le Shirley Temple.', revue: 'Idée de la fiche\u00a0: le Shirley Temple.' },
       { t: 'Et aussi le Monaco (grenadine et bière), la Tomate (grenadine et pastis) et le Tequila Sunrise.', alcool: true },
     ],
     conseil: '1 volume de sirop pour 8 à 10 volumes d’eau.',
@@ -189,7 +190,7 @@ const P = {
     liquide: '#7a4a2a',
     phrase: 'La version non alcoolisée de la crème de châtaigne de la maison',
     phraseAlcool: true,
-    notes: [{ t: 'À essayer : une vinaigrette au vinaigre balsamique, avec un peu de sirop et d’huile d’olive.', revue: 'Idée de la fiche : une vinaigrette au vinaigre balsamique, avec un peu de sirop et d’huile d’olive.' }],
+    notes: [{ t: 'À essayer\u00a0: une vinaigrette au vinaigre balsamique, avec un peu de sirop et d’huile d’olive.', revue: 'Idée de la fiche\u00a0: une vinaigrette au vinaigre balsamique, avec un peu de sirop et d’huile d’olive.' }],
   },
   'sirop-fraise-barbe-a-papa': { nom: 'Sirop fraise barbe à papa', lignes: ['Fraise', 'barbe à papa'], famille: 'fruits-rouges', liquide: '#f28bb3' },
   'sucre-de-canne': {
@@ -198,7 +199,7 @@ const P = {
     type: 'Sirop de sucre de canne',
     famille: 'gourmands',
     liquide: '#f4eedb',
-    notes: [{ t: 'Sa fiche le destine aux cocktails : mojito, caïpirinha, ti-punch.', alcool: true }],
+    notes: [{ t: 'Sa fiche le destine aux cocktails\u00a0: mojito, caïpirinha, ti-punch.', alcool: true }],
   },
   'sirop-menthe': { nom: 'Sirop de menthe', lignes: ['Menthe', ''], famille: 'menthe', liquide: '#1f9a52' },
   'sirop-fraise': { nom: 'Sirop de fraise', lignes: ['Fraise', ''], famille: 'fruits-rouges', liquide: '#de2f4a' },
@@ -241,7 +242,7 @@ const P = {
     bouteille: 'pastis',
     bouchon: '#8a1c2b',
     habillage: 'camargue',
-    notes: [{ t: '« Un des derniers pastis fabriqué à l’ancienne », né de l’amour de Jean-Claude Blachère pour la Camargue.', revue: 'Selon la page Histoire, « un des derniers pastis fabriqué à l’ancienne », né de l’amour de Jean-Claude Blachère pour la Camargue.' }],
+    notes: [{ t: '«\u00a0Un des derniers pastis fabriqué à l’ancienne\u00a0», né de l’amour de Jean-Claude Blachère pour la Camargue.', revue: 'Selon la page Histoire, «\u00a0un des derniers pastis fabriqué à l’ancienne\u00a0», né de l’amour de Jean-Claude Blachère pour la Camargue.' }],
   },
   'aperitif-lou-gardian': {
     nom: 'Lou Gardian®',
@@ -252,7 +253,7 @@ const P = {
     bouteille: 'liqueur',
     bouchon: '#6d1b2a',
     habillage: 'camargue',
-    notes: [{ t: '« Un doux mélange de vin et de pêche ».', revue: 'La page Histoire le décrit comme « un doux mélange de vin et de pêche ».' }],
+    notes: [{ t: '«\u00a0Un doux mélange de vin et de pêche\u00a0».', revue: 'La page Histoire le décrit comme «\u00a0un doux mélange de vin et de pêche\u00a0».' }],
   },
   'aperitif-a-l-olive-bronzini': {
     nom: 'Apéritif à l’olive « Bronzini® »',
@@ -273,7 +274,7 @@ const P = {
     bouchon: '#8a5a32',
     bouchage: 'cork',
     habillage: 'camargue',
-    notes: [{ t: 'La première bouteille sérigraphiée de la maison, « à base de thym et de romarin de l’arrière-pays ».', revue: 'Selon la page Histoire, la première bouteille sérigraphiée de la maison, « à base de thym et de romarin de l’arrière-pays ».' }],
+    notes: [{ t: 'La première bouteille sérigraphiée de la maison, «\u00a0à base de thym et de romarin de l’arrière-pays\u00a0».', revue: 'Selon la page Histoire, la première bouteille sérigraphiée de la maison, «\u00a0à base de thym et de romarin de l’arrière-pays\u00a0».' }],
   },
   'la-camarguaise-luxe': {
     nom: 'La Camarguaise® Luxe',
@@ -435,7 +436,26 @@ function palette(liquide) {
 }
 
 const THEME_GAMME = Object.fromEntries(GAMMES.map((g) => [g.id, g.theme]));
-export const euro = (n) => `${n.toFixed(2).replace('.', ',')} €`;
+// Prix à la française : virgule décimale, espace fine insécable avant « € » (le prix ne se coupe
+// jamais en fin de ligne, QUAL-10).
+export const euro = (n) => `${n.toFixed(2).replace('.', ',')}\u202f€`;
+
+// Prix au litre (directive 98/6/CE, arrêté du 16 novembre 1999) : il accompagne le prix d'un produit
+// vendu au volume, sauf s'il lui est identique (1 L). null pour 1 L, un coffret ou un volume inconnu.
+export function prixAuLitre(c) {
+  if (!c || c.prix === null || c.prix === undefined || !c.ml || c.ml === 1000) return null;
+  return Math.round(((c.prix * 1000) / c.ml) * 100) / 100;
+}
+export const prixAuLitreTexte = (c) => {
+  const v = prixAuLitre(c);
+  return v === null ? '' : `${euro(v)} le litre`;
+};
+// En abrégé (« 45,29 €/L ») sur les cartes et les lignes du panier ; « le litre » pour les lecteurs
+// d'écran.
+export const prixAuLitreHTML = (c) => {
+  const v = prixAuLitre(c);
+  return v === null ? '' : `${euro(v)}<span aria-hidden="true">/L</span><span class="sr-only"> le litre</span>`;
+};
 
 // Formats vus seulement en grande surface ou chez des revendeurs (complément de la recherche) :
 // jamais vendus en ligne, mentionnés sur la fiche.

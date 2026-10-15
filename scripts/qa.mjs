@@ -522,6 +522,25 @@ for (const vp of ['bureau', 'mobile']) {
   const fin = await mm.evaluate(() => ({ open: document.querySelector('#menu').open, focus: document.activeElement?.id }));
   check('Menu du téléphone : fenêtre modale, le focus y reste (40 tabulations), Échap rend le focus au bouton', m.open && m.modal && m.focus === 'menu-close' && !hors.length && !fin.open && fin.focus === 'menu-open', JSON.stringify({ m, hors: hors.slice(0, 5), fin }));
   await ctxm.close();
+  // Panier latéral : après « + », le focus reste sur le bouton et la quantité change ; après « − »
+  // qui retire une ligne, il passe à la ligne voisine (A11Y-6).
+  const ctxp = await context('bureau', 'sirops');
+  await ctxp.addInitScript(() => localStorage.setItem('blachere-panier', JSON.stringify({ v: 3, items: [{ slug: 'pac-citron', v: '1000', qty: 2 }, { slug: 'fun-blue', v: '1000', qty: 1 }] })));
+  const { page: pp } = await open(ctxp, '/boutique', { wait: 1500, label: 'focus panier latéral' });
+  await pp.click('#cart-open');
+  await pp.waitForTimeout(600);
+  await pp.focus('#cart-list .line[data-slug="pac-citron"] [data-q="1"]');
+  await pp.keyboard.press('Enter');
+  await pp.waitForFunction(() => document.querySelector('#cart-list .line[data-slug="pac-citron"] output')?.textContent === '3', null, { timeout: 5000 }).catch(() => {});
+  const plus = await pp.evaluate(() => ({ q: document.activeElement?.dataset.q, ligne: document.activeElement?.closest('.line')?.dataset.slug, qte: document.querySelector('#cart-list .line[data-slug="pac-citron"] output')?.textContent }));
+  await pp.focus('#cart-list .line[data-slug="fun-blue"] [data-q="-1"]');
+  await pp.keyboard.press('Enter');
+  await pp.waitForFunction(() => document.querySelectorAll('#cart-list .line').length === 1, null, { timeout: 5000 }).catch(() => {});
+  const moins = await pp.evaluate(() => ({ q: document.activeElement?.dataset.q, ligne: document.activeElement?.closest('.line')?.dataset.slug, lignes: document.querySelectorAll('#cart-list .line').length, livraison: document.querySelector('#cart-foot [data-livraison]')?.textContent || '' }));
+  check('Panier latéral : le focus reste sur « + », passe à la ligne voisine quand une ligne disparaît', plus.q === '1' && plus.ligne === 'pac-citron' && plus.qte === '3' && moins.ligne === 'pac-citron' && moins.q === '-1' && moins.lignes === 1, JSON.stringify({ plus, moins }));
+  check('Panier latéral : retrait gratuit et frais de livraison annoncés (franco)', /Retrait gratuit/.test(moins.livraison) && /offerte dès 120,00\s€/.test(moins.livraison), moins.livraison);
+  await shot(pp, 'bureau-49-panier-lateral-focus', false);
+  await ctxp.close();
 }
 
 // ---------- 5. Boutique : compteurs, adresse, variantes ----------
@@ -579,7 +598,32 @@ for (const vp of ['bureau', 'mobile']) {
   await pv.waitForTimeout(300);
   const p1 = await pv.evaluate(() => document.querySelector('.pp__price strong')?.textContent.replace(/\s+/g, ' ').trim());
   check('Variantes : le prix suit la contenance choisie', p0 === euroQA(prix('la-camarguaise', '700')) && p1 === euroQA(prix('la-camarguaise', '1500')), `${p0} → ${p1}`);
+  // Prix au litre (UX-5) : à côté du prix de la fiche et de chaque contenance, sauf en 1 L
+  const litre = (slug, id, ml) => euroQA(Math.round(((prix(slug, id) * 1000) / ml) * 100) / 100);
+  const u = await pv.evaluate(() => ({ prix: document.querySelector('.pp__unit')?.textContent.replace(/\s+/g, ' ').trim(), vols: [...document.querySelectorAll('.vol__unit')].map((e) => e.textContent.replace(/\s+/g, ' ').trim()) }));
+  check('Fiche : prix au litre de la contenance choisie et de chaque contenance', u.prix === `soit ${litre('la-camarguaise', '1500', 1500)} le litre` && u.vols.includes(`${litre('la-camarguaise', '700', 700)}/L le litre`), JSON.stringify(u));
+  // Frais de port dès la fiche (UX-4) : barème de démonstration (1 bouteille : 7,90 € en point relais, 9,90 € à domicile)
+  await pv.click('.vol:nth-child(1) .vol__in');
+  await pv.waitForTimeout(900);
+  const port1 = await pv.evaluate(() => document.querySelector('#pp-ship')?.textContent.replace(/\s+/g, ' ').trim() || '');
+  await pv.click('[data-step="1"]');
+  await pv.click('[data-step="1"]');
+  await pv.waitForTimeout(900);
+  const port3 = await pv.evaluate(() => document.querySelector('#pp-ship')?.textContent.replace(/\s+/g, ' ').trim() || '');
+  check('Fiche : frais de livraison visibles, suivant la quantité (barème de démonstration)', /7,90 € en point relais, 9,90 € à domicile/.test(port1) && /Retrait gratuit/.test(port1) && /3 bouteilles : 12,90 € en point relais, 14,90 € à domicile/.test(port3), `${port1} | ${port3}`);
   await shot(pv, 'bureau-35-fiche-variantes', false);
+  // Cartes : prix au litre sous le prix (La Camarguaise, 70 cl), aucun pour un litre (PAC Citron)
+  {
+    const { page: pc } = await open(ctx, '/boutique', { wait: 1800, label: 'prix au litre cartes' });
+    const c = await pc.evaluate(() => ({
+      camarguaise: document.querySelector('.card[data-slug="la-camarguaise"] .card__unit')?.textContent.replace(/\s+/g, ' ').trim(),
+      pac: document.querySelector('.card[data-slug="pac-citron"] .card__unit')?.textContent || null,
+      n: document.querySelectorAll('.card__unit').length,
+    }));
+    const attendu = `${euroQA(Math.round(((prix('la-camarguaise', '700') * 1000) / 700) * 100) / 100)}/L le litre`;
+    check('Cartes : prix au litre sous le prix (sauf en 1 L)', c.camarguaise === attendu && c.pac === null && c.n > 20, JSON.stringify(c));
+    await pc.close();
+  }
   await ctx.close();
   const ctxm = await context('mobile', 'sirops');
   const { page: pm } = await open(ctxm, '/boutique', { wait: 1500, label: 'boutique mobile' });
@@ -664,7 +708,11 @@ for (const vp of ['bureau', 'mobile']) {
   const { page } = await open(ctx, '/visiter', { wait: 1500, label: 'visiter' });
   await page.click('#booking button[type="submit"]');
   await page.waitForTimeout(300);
-  check('Réservation : erreurs affichées si le formulaire est vide', await page.evaluate(() => document.querySelector('#booking-err').textContent.length > 10));
+  check('Réservation : une erreur sous chaque champ à corriger, reliée au champ, et un résumé', await page.evaluate(() => {
+    const inv = [...document.querySelectorAll('#booking [aria-invalid="true"]')];
+    const relies = inv.filter((el) => (el.getAttribute('aria-describedby') || '').split(/\s+/).some((id) => (document.getElementById(id)?.textContent || '').trim().length > 3));
+    return document.querySelector('#booking-err').textContent.length > 10 && inv.length >= 3 && relies.length === inv.length;
+  }));
   const day = await page.evaluate(() => {
     const d = new Date(document.querySelector('[name="date"]').min);
     while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1);
@@ -690,7 +738,11 @@ for (const vp of ['bureau', 'mobile']) {
   await pro.check('#pro-form [name="rgpd"]');
   await pro.click('#pro-form button[type="submit"]');
   await pro.waitForTimeout(300);
-  check('Espace pro : SIRET invalide refusé', await pro.evaluate(() => /14 chiffres/.test(document.querySelector('#pro-msg').textContent)));
+  check('Espace pro : SIRET invalide refusé, erreur sous le champ (aria-invalid, aria-describedby)', await pro.evaluate(() => {
+    const champ = document.querySelector('#pro-form [name="siret"]');
+    const err = document.getElementById('err-pro-siret');
+    return /14\s+chiffres/.test(err?.textContent || '') && champ.getAttribute('aria-invalid') === 'true' && (champ.getAttribute('aria-describedby') || '').split(' ').includes('err-pro-siret') && document.querySelector('#pro-msg').textContent.length > 5;
+  }));
   await pro.fill('#pro-form [name="siret"]', '');
   await pro.click('#pro-form button[type="submit"]');
   await pro.waitForTimeout(300);

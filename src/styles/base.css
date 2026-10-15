@@ -421,6 +421,12 @@ body[data-hero] .hd[data-state='top']:not(.has-mega) .logo__img--light { opacity
 .field input:focus-visible, .field select:focus-visible, .field textarea:focus-visible, .dob input:focus-visible { outline-offset: 2px; box-shadow: 0 0 0 4px var(--focus-halo); }
 .is-invalid, .field .is-invalid { border-color: var(--err) !important; box-shadow: 0 0 0 3px rgba(179, 38, 30, 0.1) !important; }
 .field small, .form-fine { font-size: 0.82rem; color: var(--ink-3); }
+/* Erreurs une par champ, reliées par aria-describedby (src/lib/formulaire.js, A11Y-10) ; champs
+   obligatoires marqués d'un astérisque expliqué en tête du formulaire. */
+.field__err, .field small.field__err { display: block; font-size: 0.84rem; font-weight: 600; line-height: 1.4; color: var(--err); }
+.field__err:empty { display: none; }
+.req { color: var(--err); font-weight: 700; }
+.form-note { font-size: 0.86rem; line-height: 1.45; color: var(--ink-2); }
 .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 16px; }
 .form-msg { padding: 14px 16px; border-radius: 10px; background: #edf6ef; color: var(--ok); font-weight: 600; }
 .form-msg.is-error { background: #fbecea; color: var(--err); }
@@ -461,6 +467,8 @@ body[data-hero] .hd[data-state='top']:not(.has-mega) .logo__img--light { opacity
 .card__row { position: relative; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; }
 .card__price { font: 700 1.06rem/1 var(--font); letter-spacing: -0.01em; white-space: nowrap; }
 .card__price--none { font-size: 0.88rem; font-weight: 560; color: var(--ink-2); }
+/* prix au litre (UX-5) sous le prix */
+.card__unit { display: block; margin-top: 4px; font: 500 0.74rem/1.2 var(--font); letter-spacing: 0; color: var(--ink-3); font-variant-numeric: tabular-nums; }
 .card__add { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 16px; border: 1px solid var(--line-2); border-radius: 999px; background: #fff; color: var(--ink); font: 650 0.86rem/1 var(--font); transition: background 0.2s, color 0.2s, border-color 0.2s; }
 .card__add svg { flex: none; width: 16px; height: 16px; }
 .card__add:hover { background: var(--ink); border-color: var(--ink); color: #fff; }

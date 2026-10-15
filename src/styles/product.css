@@ -52,12 +52,14 @@
 .vol__in { display: grid; gap: 2px; min-width: 104px; padding: 10px 16px; border: 1px solid var(--line-2); border-radius: 10px; background: #fff; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; }
 .vol__name { font: 650 0.94rem/1.2 var(--font); }
 .vol__price { font-size: 0.84rem; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.vol__unit { font-size: 0.74rem; color: var(--ink-3); font-variant-numeric: tabular-nums; }
 .vol input:checked + .vol__in { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
 .vol input:focus-visible + .vol__in { outline: 2px solid var(--ink); outline-offset: 2px; }
 .pp__one { font-weight: 650; }
 .pp__price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
 .pp__price strong { font: 760 2rem/1 var(--font); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
 .pp__price > span { font-size: 0.86rem; color: var(--ink-3); }
+.pp__price .pp__unit { color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .pp__price--none strong { font-size: 1.3rem; }
 .pp__price--none > span { flex-basis: 100%; }
 .pp__row { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -67,6 +69,10 @@
 .qty--big button { width: 46px; }
 .qty--big input { width: 48px; font-size: 1rem; }
 .pp__muted { color: var(--ink-3); }
+/* frais de livraison pour la contenance et la quantité choisies (UX-4) */
+.pp__ship { display: flex; align-items: flex-start; gap: 10px; margin-top: -2px; font-size: 0.88rem; line-height: 1.5; color: var(--ink-2); }
+.pp__ship > svg { flex: none; width: 20px; height: 20px; margin-top: 1px; color: var(--ink); }
+.pp__ship strong { color: var(--ink); font-weight: 680; }
 .pp__ailleurs { font-size: 0.9rem; color: var(--ink-2); }
 .pp__ailleurs a { color: var(--ink); }
 .pp__dispo { display: grid; gap: 8px; padding: 18px 20px; border: 1px solid var(--line-2); border-radius: var(--r); }

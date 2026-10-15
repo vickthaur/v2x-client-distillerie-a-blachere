@@ -8,8 +8,8 @@ import '../styles/base.css';
 import '../styles/shop.css';
 import '../styles/checkout.css';
 import '../styles/operation.css';
-import { initSite, totalsHTML } from '../app/site.js';
-import { EVIN, MINEURS } from '../data/products.js';
+import { initSite, totalsHTML, affinerLivraison } from '../app/site.js';
+import { EVIN, MINEURS, prixAuLitreHTML } from '../data/products.js';
 import { infos } from '../data/site.js';
 import { api } from '../lib/api.js';
 import { cart } from '../lib/cart.js';
@@ -20,12 +20,13 @@ import { operationAffichee, lignePanierHTML, donPour, ruban, euros as eurosOp } 
 import { OPERATIONS } from '../data/operation.js';
 import { readJSON, writeJSON, remove } from '../lib/store.js';
 import { thumbHTML, upgradeThumbs } from '../lib/thumbs.js';
+import { erreursParChamp } from '../lib/formulaire.js';
 
 const site = initSite();
 const NB = ' ';
 const NNB = ' ';
-// Montants : espace insécable avant l'euro (« 14,90 € »).
-const euro = (n) => `${Number(n || 0).toFixed(2).replace('.', ',')}${NB}€`;
+// Montants : espace fine insécable avant l'euro (« 14,90 € »), comme partout sur le site.
+const euro = (n) => `${Number(n || 0).toFixed(2).replace('.', ',')}${NNB}€`;
 const STEPS = [
   { id: 'panier', label: 'Panier', title: 'Votre panier' },
   { id: 'coordonnees', label: 'Coordonnées', title: 'Vos coordonnées' },
@@ -191,7 +192,7 @@ function lineHTML(l, editable) {
     <a class="co-line__img" href="/boutique/${p.slug}" style="--c:${p.light}" tabindex="-1" aria-hidden="true">${thumbHTML(p)}</a>
     <div class="co-line__info">
       <a class="co-line__name" href="/boutique/${p.slug}">${esc(p.nom)}</a>
-      <span class="co-line__meta">${esc(l.contenance?.volume || 'Contenance à confirmer')} · ${l.prix !== null ? `${euro(l.prix)} l’unité` : 'Prix en boutique'}</span>
+      <span class="co-line__meta">${esc(l.contenance?.volume || 'Contenance à confirmer')} · ${l.prix !== null ? `${euro(l.prix)} l’unité${prixAuLitreHTML({ ...l.contenance, prix: l.prix }) ? ` · ${prixAuLitreHTML({ ...l.contenance, prix: l.prix })}` : ''}` : 'Prix en boutique'}</span>
       ${etat ? `<span class="co-line__stock co-line__stock--${l.etat}">${esc(etat)}${l.etat === 'stock-bas' ? '' : `${NB}: retirez cet article pour commander`}</span>` : ''}
       ${p.alcool ? `<span class="co-line__evin">${esc(EVIN)}</span>` : ''}
     </div>
@@ -254,14 +255,18 @@ function sideHTML() {
   </div>`;
 }
 
+// Champ : libellé (astérisque si obligatoire), aide et message d'erreur reliés au champ par
+// aria-describedby ; une erreur par champ (A11Y-10).
+const NOTE_OBLIGATOIRES = '<p class="form-note">Les champs marqués d’un astérisque (*) sont obligatoires.</p>';
+const etoile = '<span class="req" aria-hidden="true"> *</span>';
 const field = (name, label, value = '', attrs = '', hint = '') =>
-  `<label class="field"><span>${label}</span><input name="${name}" value="${esc(value)}" ${attrs} />${hint ? `<small class="field__hint">${hint}</small>` : ''}<small class="field__err" data-err="${name}"></small></label>`;
+  `<label class="field"><span>${label}${/\brequired\b/.test(attrs) ? etoile : ''}</span><input name="${name}" value="${esc(value)}" ${attrs} aria-describedby="${hint ? `co-aide-${name} ` : ''}co-err-${name}" />${hint ? `<small class="field__hint" id="co-aide-${name}">${hint}</small>` : ''}<small class="field__err" id="co-err-${name}" data-err="${name}"></small></label>`;
 
 const VIEWS = {
   panier() {
     const t = cart.totals();
     if (!t.lines.length)
-      return `<div class="co-empty"><p class="co-empty__title">Votre panier est vide.</p><p>${site.majeur ? 'Les sirops et les spiritueux de la maison vous attendent dans la boutique.' : 'PAC Citron, Fun Blue et une trentaine de sirops vous attendent dans la boutique.'}</p><a class="btn btn--primary" href="/boutique">Voir la boutique</a></div>`;
+      return `<div class="co-empty"><p class="co-empty__title" tabindex="-1">Votre panier est vide.</p><p>${site.majeur ? 'Les sirops et les spiritueux de la maison vous attendent dans la boutique.' : 'PAC Citron, Fun Blue et une trentaine de sirops vous attendent dans la boutique.'}</p><a class="btn btn--primary" href="/boutique">Voir la boutique</a></div>`;
     const stop = blocked(t);
     return `<ul class="co-lines">${t.lines.map((l) => lineHTML(l, true)).join('')}</ul>
       <div class="co-sum">${totalsHTML(t)}${donHTML(t.lines)}${t.alcohol ? `<p class="evin">${esc(EVIN)} ${esc(MINEURS)}</p>` : ''}</div>
@@ -273,11 +278,12 @@ const VIEWS = {
     const c = order.coord || {};
     const alcohol = cart.totals().alcohol;
     return `<form class="co-form" id="co-form" novalidate>
+      ${NOTE_OBLIGATOIRES}
       <div class="form-row">${field('prenom', 'Prénom', c.prenom, 'autocomplete="given-name" required')}${field('nom', 'Nom', c.nom, 'autocomplete="family-name" required')}</div>
       <div class="form-row">${field('email', 'E-mail', c.email, 'type="email" autocomplete="email" required inputmode="email"')}${field('tel', 'Téléphone', c.tel, 'type="tel" autocomplete="tel" required inputmode="tel"', 'Pour vous prévenir quand la commande est prête.')}</div>
       ${
         alcohol
-          ? `<div class="co-age"><label class="check"><input type="checkbox" name="majeur" value="1"${c.majeur ? ' checked' : ''} required /><span><strong>J’ai 18 ans ou plus.</strong> Votre panier contient de l’alcool\u00a0: la vente d’alcool est interdite aux mineurs de moins de 18 ans.</span></label><small class="field__err" data-err="majeur"></small><p class="evin">${esc(EVIN)}</p></div>`
+          ? `<div class="co-age"><label class="check"><input type="checkbox" name="majeur" value="1"${c.majeur ? ' checked' : ''} required aria-describedby="co-err-majeur" /><span><strong>J’ai 18 ans ou plus.</strong>${etoile} Votre panier contient de l’alcool\u00a0: la vente d’alcool est interdite aux mineurs de moins de 18 ans.</span></label><small class="field__err" id="co-err-majeur" data-err="majeur"></small><p class="evin">${esc(EVIN)}</p></div>`
           : ''
       }
       <label class="check co-news"><input type="checkbox" name="newsletter" value="1"${c.newsletter ? ' checked' : ''} /><span>Je souhaite recevoir la lettre de la distillerie (facultatif).</span></label>
@@ -298,33 +304,34 @@ const VIEWS = {
       </label>`;
     };
     return `<form class="co-form" id="co-form" novalidate>
-      <fieldset class="modes" id="modes">
-        <legend class="sr-only">Mode de remise</legend>
+      ${NOTE_OBLIGATOIRES}
+      <fieldset class="modes" id="modes" aria-describedby="co-err-mode">
+        <legend class="sr-only">Mode de remise (obligatoire)</legend>
         <label class="mode">
-          <input type="radio" name="mode" value="retrait"${order.mode === 'retrait' ? ' checked' : ''} />
+          <input type="radio" name="mode" value="retrait"${order.mode === 'retrait' ? ' checked' : ''} required />
           <span class="mode__card">${icons.store}<span><strong>Retrait à la distillerie</strong><span>${esc(infos.adresseLigne)}</span><span>Horaires de retrait\u00a0: ${esc(infos.retrait)}, du lundi au samedi</span></span><b class="mode__price">Gratuit</b></span>
         </label>
         <label class="mode">
           <input type="radio" name="mode" value="livraison"${order.mode === 'livraison' ? ' checked' : ''} />
           <span class="mode__card">${icons.truck}<span><strong>Livraison en France métropolitaine</strong><span>Colissimo, à domicile ou en point relais. Expédiée sous 3 jours ouvrés au plus après le règlement.</span><span id="co-franco" class="co-franco"></span></span><b class="mode__price" id="co-des"></b></span>
         </label>
-        <small class="field__err" data-err="mode"></small>
+        <small class="field__err" id="co-err-mode" data-err="mode"></small>
       </fieldset>
       <div class="co-sub" data-for="retrait" ${order.mode === 'retrait' ? '' : 'hidden'}>
         ${field('date', 'Jour de retrait', r.date || premierJourRetrait(), `type="date" min="${tomorrow()}" max="${maxRetrait()}" required`, `Du lundi au samedi, dans les 30 prochains jours (horaires de retrait${NB}: ${esc(infos.retrait)}).`)}
       </div>
       <div class="co-sub" data-for="livraison" ${order.mode === 'livraison' ? '' : 'hidden'}>
-        <fieldset class="modes modes--sub">
-          <legend class="co-sub__legend">Transporteur</legend>
+        <fieldset class="modes modes--sub" aria-describedby="co-err-transport">
+          <legend class="co-sub__legend">Transporteur${etoile}</legend>
           ${transport('colissimo')}
           ${transport('relais')}
-          <small class="field__err" data-err="transport"></small>
+          <small class="field__err" id="co-err-transport" data-err="transport"></small>
         </fieldset>
         <p class="co-quote-err" id="co-quote-err" role="alert" hidden></p>
         <p class="co-sub__note" data-relais ${tr === 'relais' ? '' : 'hidden'}>Point relais${NB}: dans la démonstration, le colis part vers le point relais le plus proche de l’adresse ci-dessous${NNB}; sur le site en ligne, vous le choisirez sur une carte.</p>
-        ${field('adresse', 'Adresse', l.adresse, 'autocomplete="address-line1"')}
+        ${field('adresse', 'Adresse', l.adresse, 'autocomplete="address-line1" required')}
         ${field('complement', 'Complément (facultatif)', l.complement, 'autocomplete="address-line2"')}
-        <div class="form-row">${field('cp', 'Code postal', l.cp, 'autocomplete="postal-code" inputmode="numeric" maxlength="5"')}${field('ville', 'Ville', l.ville, 'autocomplete="address-level2"')}</div>
+        <div class="form-row">${field('cp', 'Code postal', l.cp, 'autocomplete="postal-code" inputmode="numeric" maxlength="5" required')}${field('ville', 'Ville', l.ville, 'autocomplete="address-level2" required')}</div>
       </div>
       <p class="form-msg" role="alert" id="co-msg"></p>
       <div class="co-actions"><button type="button" class="btn btn--ghost" data-prev>Retour</button><button type="submit" class="btn btn--primary">Continuer</button></div>
@@ -363,7 +370,7 @@ const VIEWS = {
         <label class="mode"><input type="radio" name="paiement" value="paypal"${pay === 'paypal' ? ' checked' : ''} /><span class="mode__card">${icons.card}<span><strong>PayPal</strong><span>Simulation</span></span></span></label>
         <label class="mode"><input type="radio" name="paiement" value="virement"${pay === 'virement' ? ' checked' : ''} /><span class="mode__card">${icons.card}<span><strong>Virement bancaire</strong><span>Simulation\u00a0: les coordonnées bancaires seraient envoyées par e-mail\u202f; la commande est préparée à réception du virement</span></span></span></label>
       </fieldset>
-      <label class="check co-cgv"><input type="checkbox" name="cgv" required /><span>J’ai lu et j’accepte les <a class="link" href="/conditions-de-vente" target="_blank" rel="noopener">conditions générales de vente</a>.</span></label>
+      <div class="co-cgv"><label class="check"><input type="checkbox" name="cgv" required aria-describedby="co-err-cgv" /><span>J’ai lu et j’accepte les <a class="link" href="/conditions-de-vente" target="_blank" rel="noopener">conditions générales de vente<span class="sr-only"> (nouvel onglet)</span></a>.${etoile}</span></label><small class="field__err" id="co-err-cgv" data-err="cgv"></small></div>
       <p class="form-msg" role="alert" id="co-msg"></p>
       <div class="co-actions"><button type="button" class="btn btn--ghost" data-prev>Retour</button><button type="submit" class="btn btn--primary" id="pay">${payLabel()}</button></div>
     </form>`;
@@ -404,52 +411,64 @@ function promoHTML() {
     return `<div class="co-promo co-promo--on"><p>${icons.check}<span>Code <strong>${esc(order.promo.code)}</strong> appliqué${order.promo.libelle && order.promo.libelle !== order.promo.code ? ` · ${esc(order.promo.libelle)}` : ''}</span></p><button type="button" class="link" data-promo-off>Retirer le code</button></div>`;
   return `<form class="co-promo" id="co-promo" novalidate>
     <label class="field"><span>Code promo</span>
-      <span class="co-promo__row"><input name="code" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="30" placeholder="Ex. BIENVENUE10" /><button type="submit" class="btn btn--ghost">Appliquer</button></span>
-      <small class="field__err" data-err="code"></small>
+      <span class="co-promo__row"><input name="code" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="30" placeholder="Ex. BIENVENUE10" aria-describedby="co-err-code" /><button type="submit" class="btn btn--ghost">Appliquer</button></span>
+      <small class="field__err" id="co-err-code" data-err="code"></small>
     </label>
   </form>`;
 }
 
+// Erreurs d'une étape : une par champ, sous le champ, et un résumé (src/lib/formulaire.js).
 function showErrors(form, bad) {
-  $$('.is-invalid', form).forEach((el) => {
-    el.classList.remove('is-invalid');
-    el.removeAttribute('aria-invalid');
-  });
-  $$('[data-err]', form).forEach((el) => (el.textContent = ''));
-  bad.forEach(([name, msg]) => {
-    const el = form.elements[name];
-    const target = el instanceof RadioNodeList ? null : el;
-    if (target) {
-      target.classList.add('is-invalid');
-      target.setAttribute('aria-invalid', 'true');
-    }
-    const err = $(`[data-err="${name}"]`, form);
-    if (err) err.textContent = msg;
-  });
-  const msg = $('#co-msg', form);
-  if (msg) msg.textContent = bad.length ? 'Merci de corriger les champs signalés.' : '';
-  if (bad.length) {
-    const first = form.elements[bad[0][0]];
-    (first instanceof RadioNodeList ? first[0] : first)?.focus();
-  }
+  erreursParChamp(form, new Map(bad), { resume: $('#co-msg', form) });
 }
 
 function render(focus = false) {
   const meta = STEPS.find((s) => s.id === step);
+  // Panier : le focus d'un bouton « + », « − » ou « Supprimer » est retrouvé après le rendu (même
+  // ligne, ou la ligne suivante si celle-ci a disparu), jamais perdu (A11Y-6).
+  const main = $('#co-main');
+  const actif = !focus && main.contains(document.activeElement) ? document.activeElement : null;
+  const ligne = actif?.closest('.co-line');
+  const lignes = $$('.co-line', main);
+  const repere = ligne ? { slug: ligne.dataset.slug, v: ligne.dataset.v, sel: actif.matches('[data-del]') ? '[data-del]' : `[data-q="${actif.dataset.q || '-1'}"]`, rang: lignes.indexOf(ligne) } : null;
   $('#co-title').textContent = meta.title;
   document.title = `${meta.title} · Distillerie A. Blachère`;
   $('#steps').innerHTML = stepsHTML();
   $('#steps').hidden = step === 'panier' && !cart.items.length;
-  $('#co-main').innerHTML = VIEWS[step]();
+  main.innerHTML = VIEWS[step]();
   $('#co-side').innerHTML = step === 'panier' || step === 'confirmation' ? '' : sideHTML();
   $('#co-side').hidden = step === 'panier' || step === 'confirmation';
   document.body.dataset.step = step;
   bindStep();
-  upgradeThumbs($('#co-main'));
+  upgradeThumbs(main);
+  if (step === 'panier') affinerLivraison(main);
+  if (repere) {
+    const nouvelles = $$('.co-line', main);
+    const meme = nouvelles.find((li) => li.dataset.slug === repere.slug && li.dataset.v === repere.v);
+    const voisine = nouvelles[Math.min(Math.max(repere.rang, 0), nouvelles.length - 1)];
+    const cible = meme ? $(repere.sel, meme) : voisine ? $(repere.sel, voisine) : $('.co-empty__title', main);
+    cible?.focus();
+    if (meme) annonce(`Quantité de ${meme.querySelector('.co-line__name')?.textContent || 'l’article'}\u00a0: ${$('output', meme)?.textContent || ''}.`);
+    else annonce(nouvelles.length ? 'Article retiré du panier.' : 'Votre panier est vide.');
+  }
   if (focus) {
-    $('#co-main').focus({ preventScroll: true });
+    main.focus({ preventScroll: true });
     scrollTo({ top: 0, behavior: 'smooth' });
   }
+}
+
+// Message lu par les lecteurs d'écran (quantité changée, article retiré).
+function annonce(texte) {
+  let el = $('#co-annonce');
+  if (!el) {
+    el = document.createElement('p');
+    el.id = 'co-annonce';
+    el.className = 'sr-only';
+    el.setAttribute('role', 'status');
+    $('#contenu').append(el);
+  }
+  el.textContent = '';
+  requestAnimationFrame(() => (el.textContent = texte));
 }
 
 // Totaux et libellé du paiement mis à jour sans reconstruire l'étape (le focus reste).
@@ -663,11 +682,12 @@ async function submitOrder(e) {
   if (block) return go(block);
   // Conditions générales de vente acceptées (et majorité certifiée si la commande contient de l'alcool)
   if (!form.elements.cgv?.checked) {
+    erreursParChamp(form, { cgv: 'Cochez cette case pour accepter les conditions générales de vente.' });
     const msg = $('#co-msg', form);
     if (msg) msg.textContent = 'Merci de lire et d’accepter les conditions générales de vente.';
-    form.elements.cgv?.focus();
     return;
   }
+  erreursParChamp(form, {}, { focus: false });
   const t = cart.totals();
   const btn = $('#pay');
   btn.disabled = true;
