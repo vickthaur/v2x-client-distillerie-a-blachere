@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { pro, useDonnees } from '../donnees.js';
 import { navigate } from '../router.js';
-import { dateLongue, dateMois, heure, SUJETS, NB } from '../format.js';
+import { dateLongue, dateMois, heure, pluriel, SUJETS, NB } from '../format.js';
 import { Chargement, Erreur, Icone, Pastille, TitreVue, Vide } from '../ui.jsx';
 
 const STATUTS = {
@@ -13,15 +13,27 @@ const STATUTS = {
   archive: { libelle: 'Archivé', ton: 'muet' },
 };
 
+// Liste : résumés paginés de l'API ({ id, reference, sujet, statut, extrait, dernierMessage,
+// nbMessages, createdAt }) ; la conversation choisie est lue à part (GET pro?r=message&id=…).
+const liste = (x) => (Array.isArray(x) ? x : x?.elements || x?.messages || []);
+const avecListe = (x, list) => (Array.isArray(x) ? list : { ...(x || {}), elements: list });
+const dateFil = (m) => String(m.dernierMessage || derniere(m)?.date || m.createdAt || '');
+// Résumé d'une conversation complète (réponse d'un POST) pour la liste.
+const resume = (m) => ({ ...m, dernierMessage: m.dernierMessage || derniere(m)?.date, nbMessages: m.nbMessages ?? m.fil?.length });
+
 export function Messages({ route, session, site }) {
   const { data, error, loading, reload, setData } = useDonnees('messages');
-  const fils = (Array.isArray(data) ? data : data?.messages || data?.elements || []).slice().sort((a, b) => String(derniere(b)?.date || b.createdAt).localeCompare(String(derniere(a)?.date || a.createdAt)));
+  const fils = liste(data)
+    .slice()
+    .sort((a, b) => dateFil(b).localeCompare(dateFil(a)));
   const nouveau = route.query.has('nouveau');
   const large = useLarge();
   // Sur ordinateur, la conversation la plus récente s'ouvre d'elle-même ; sur téléphone, la liste d'abord.
   const selId = route.query.get('fil') || (large && !nouveau ? fils[0]?.id : null);
   const sel = fils.find((m) => m.id === selId);
+  const detail = useDonnees('message', selId ? { id: selId } : null, { skip: !selId || nouveau });
   const ouvrir = (id) => navigate(`/espace-pro/messages?fil=${encodeURIComponent(id)}`);
+  const majListe = (m) => setData((x) => avecListe(x, [resume(m), ...liste(x).filter((y) => y.id !== m.id)]));
   return (
     <>
       <TitreVue
@@ -51,21 +63,30 @@ export function Messages({ route, session, site }) {
                 {fils.map((m) => {
                   const d = derniere(m);
                   const s = STATUTS[m.statut] || STATUTS.nouveau;
-                  const repondu = d?.de === 'equipe';
+                  const n = m.nbMessages ?? m.fil?.length ?? 0;
                   return (
                     <li key={m.id}>
                       <a class={`msg-item${m.id === selId ? ' is-on' : ''}`} href={`/espace-pro/messages?fil=${encodeURIComponent(m.id)}`} aria-current={m.id === selId ? 'true' : undefined}>
                         <span class="msg-item__top">
                           <strong>{m.objet || SUJETS[m.sujet] || 'Message'}</strong>
-                          <span class="msg-item__date">{dateMois(d?.date || m.createdAt)}</span>
+                          <span class="msg-item__date">{dateMois(dateFil(m))}</span>
                         </span>
                         <span class="msg-item__txt">
-                          {repondu ? `${d.par?.nom?.split(' ')[0] || 'La distillerie'}${NB}: ` : `Vous${NB}: `}
-                          {d?.texte}
+                          {d ? (
+                            <>
+                              {d.de === 'equipe' ? `${prenom(d.nom) || 'La distillerie'}${NB}: ` : `Vous${NB}: `}
+                              {d.texte}
+                            </>
+                          ) : (
+                            m.extrait
+                          )}
                         </span>
                         <span class="msg-item__meta">
                           {m.reference && <span>{m.reference}</span>}
-                          {repondu ? <Pastille ton="ok" petit>Réponse reçue</Pastille> : <Pastille ton={s.ton} petit>{s.libelle}</Pastille>}
+                          {n > 1 && <span>{pluriel(n, 'message')}</span>}
+                          <Pastille ton={s.ton} petit>
+                            {s.libelle}
+                          </Pastille>
                         </span>
                       </a>
                     </li>
@@ -86,16 +107,26 @@ export function Messages({ route, session, site }) {
                 route={route}
                 site={site}
                 onEnvoye={(m) => {
-                  setData((x) => {
-                    const list = Array.isArray(x) ? x : x?.messages || x?.elements || [];
-                    const next = [m, ...list.filter((y) => y.id !== m.id)];
-                    return Array.isArray(x) ? next : { ...(x || {}), messages: next };
-                  });
-                  ouvrir(m.id);
+                  if (m?.id) {
+                    majListe(m);
+                    ouvrir(m.id);
+                  } else {
+                    reload();
+                    navigate('/espace-pro/messages');
+                  }
                 }}
               />
             ) : sel ? (
-              <Fil m={sel} session={session} site={site} onMaj={(m) => setData((x) => majListe(x, m))} reload={reload} />
+              <Fil
+                m={sel}
+                detail={detail}
+                session={session}
+                site={site}
+                onMaj={(m) => {
+                  detail.setData(m);
+                  majListe(m);
+                }}
+              />
             ) : (
               fils.length > 0 && (
                 <div class="msg-empty">
@@ -112,6 +143,7 @@ export function Messages({ route, session, site }) {
 }
 
 const derniere = (m) => (m.fil || [])[m.fil?.length - 1] || null;
+const prenom = (nom) => (nom && nom !== 'Distillerie A. Blachère' ? String(nom).split(' ')[0] : null);
 
 function useLarge() {
   const mq = typeof matchMedia === 'function' ? matchMedia('(min-width: 761px)') : null;
@@ -125,20 +157,17 @@ function useLarge() {
   return large;
 }
 
-function majListe(x, m) {
-  const list = Array.isArray(x) ? x : x?.messages || x?.elements || [];
-  const next = list.map((y) => (y.id === m.id ? { ...y, ...m } : y));
-  return Array.isArray(x) ? next : { ...(x || {}), messages: next };
-}
-
-function Fil({ m, session, site, onMaj, reload }) {
+function Fil({ m, detail, session, site, onMaj }) {
   const fin = useRef(null);
   const [texte, setTexte] = useState('');
   const [err, setErr] = useState(null);
   const [occupe, setOccupe] = useState(false);
+  // La conversation complète : celle lue à part, sinon celle de la liste si elle a déjà son fil.
+  const plein = detail.data?.id === m.id ? detail.data : m.fil ? m : null;
+  const fil = plein?.fil || [];
   useEffect(() => {
     fin.current?.scrollIntoView?.({ block: 'nearest' });
-  }, [m.id, (m.fil || []).length]);
+  }, [m.id, fil.length]);
   const repondre = async (e) => {
     e.preventDefault();
     const t = texte.trim();
@@ -149,7 +178,7 @@ function Fil({ m, session, site, onMaj, reload }) {
       const r = await pro('message', { method: 'POST', body: { id: m.id, texte: t } });
       const maj = r?.message || r;
       if (maj?.id === m.id && Array.isArray(maj.fil)) onMaj(maj);
-      else reload();
+      else detail.reload();
       setTexte('');
       site?.toast('Message envoyé');
     } catch (x) {
@@ -158,6 +187,7 @@ function Fil({ m, session, site, onMaj, reload }) {
       setOccupe(false);
     }
   };
+  const moiNom = [session.utilisateur.prenom, session.utilisateur.nom].filter(Boolean).join(' ');
   return (
     <section class="msg-thread" aria-labelledby="msg-t">
       <header class="msg-thread__head">
@@ -174,22 +204,33 @@ function Fil({ m, session, site, onMaj, reload }) {
           </p>
         </div>
       </header>
-      <ol class="msg-bubbles" aria-label="Messages de la conversation">
-        {(m.fil || []).map((x, i) => {
-          const moi = x.de !== 'equipe';
-          return (
-            <li key={i} class={`bubble${moi ? ' bubble--moi' : ''}`}>
-              <p class="bubble__who">
-                {moi ? x.par?.nom || [session.utilisateur.prenom, session.utilisateur.nom].join(' ') : `${x.par?.nom || 'La distillerie'} · Distillerie A. Blachère`}
-                <span>
-                  {dateMois(x.date)} à {heure(x.date)}
-                </span>
-              </p>
-              <p class="bubble__txt">{x.texte}</p>
-            </li>
-          );
-        })}
-      </ol>
+      {!plein && detail.loading ? (
+        <div class="msg-bubbles">
+          <Chargement lignes={3} texte="Chargement de la conversation…" />
+        </div>
+      ) : !plein && detail.error ? (
+        <div class="msg-bubbles">
+          <Erreur erreur={detail.error} reessayer={detail.reload} />
+        </div>
+      ) : (
+        <ol class="msg-bubbles" aria-label="Messages de la conversation">
+          {fil.map((x, i) => {
+            const moi = x.de !== 'equipe';
+            const equipe = x.nom && x.nom !== 'Distillerie A. Blachère' ? `${x.nom} · Distillerie A. Blachère` : 'Distillerie A. Blachère';
+            return (
+              <li key={i} class={`bubble${moi ? ' bubble--moi' : ''}`}>
+                <p class="bubble__who">
+                  {moi ? x.nom || x.par?.nom || moiNom : equipe}
+                  <span>
+                    {dateMois(x.date)} à {heure(x.date)}
+                  </span>
+                </p>
+                <p class="bubble__txt">{x.texte}</p>
+              </li>
+            );
+          })}
+        </ol>
+      )}
       <div ref={fin} />
       <form class="msg-reply" onSubmit={repondre} onInput={() => err && setErr(null)} noValidate>
         <label class="sr-only" for="msg-reply">

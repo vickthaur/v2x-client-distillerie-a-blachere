@@ -122,13 +122,17 @@ function Liste() {
 }
 
 // ---------- Facture A4 ----------
-// Coordonnées de la distillerie : paramètres de la démo s'ils sont fournis, sinon les mentions du site.
+// Coordonnées de la distillerie : l'émetteur rendu par api/pro (paramètres de la démo, modifiables dans
+// le CRM), sinon les mentions du site.
 const mentions = textes.mentions?.texte || [];
 const SIRET = (mentions.find((l) => /^SIRET/.test(l)) || '').replace(/^SIRET\s*:\s*/, '') || null;
+// « Raison sociale : SARL DISTILLERIE A. BLACHERE au capital de 165 493 EUROS »
+const CAPITAL = ((mentions.find((l) => /^Raison sociale/i.test(l)) || '').match(/capital de ([\d\s\u00a0\u202f]+?)\s*EUROS?/i)?.[1] || '').trim().replace(/\s+/g, NB) || null;
 
 function Facture({ id, session }) {
   const cmd = useDonnees('commande', { id });
   const cpt = useDonnees('compte');
+  const fac = useDonnees('factures');
   const c = cmd.data?.commande || cmd.data;
   if (cmd.loading && !cmd.data)
     return (
@@ -150,8 +154,8 @@ function Facture({ id, session }) {
       </>
     );
   const f = c.facture;
-  const compte = cpt.data?.compte || cpt.data || session.compte || {};
-  const ent = cmd.data?.entreprise || c.entreprise || {};
+  const compte = { ...(fac.data?.client || {}), ...(cpt.data?.compte || cpt.data || session.compte || {}) };
+  const ent = fac.data?.emetteur || cmd.data?.entreprise || c.entreprise || {};
   const t = c.totaux || {};
   const late = f.statut !== 'payee' && enRetard(f);
   const alcool = (c.lignes || []).some((l) => l.alcool);
@@ -179,7 +183,7 @@ function Facture({ id, session }) {
             <p>
               <strong>{ent.nom || 'Distillerie A. Blachère'}</strong>
               <br />
-              {(ent.adresse ? [ent.adresse] : infos.adresse).map((l, i) => (
+              {(ent.adresse ? String(ent.adresse).split(/,\s*/).map((l) => l.charAt(0).toUpperCase() + l.slice(1)) : infos.adresse).map((l, i) => (
                 <span key={i}>
                   {l}
                   <br />
@@ -343,7 +347,7 @@ function Facture({ id, session }) {
             En cas de retard de paiement, pénalités au taux de <Afc /> (au moins trois fois le taux d’intérêt légal) et indemnité forfaitaire pour frais de recouvrement de 40{NB}€ (articles L.{NB}441-10 et D.{NB}441-5 du Code de commerce).
           </p>
           <p>
-            {(ent.raisonSociale || 'SARL Distillerie A. Blachère')} · capital social <Afc /> · SIRET {ent.siret || SIRET || <Afc />} · RCS {ent.rcs || <Afc />} · TVA intracommunautaire {ent.tvaIntra || <Afc />}.
+            {(ent.raisonSociale || 'SARL Distillerie A. Blachère')} · capital social {ent.capital || (CAPITAL ? `${CAPITAL}${NB}€` : <Afc />)} · SIRET {ent.siret || SIRET || <Afc />} · RCS {ent.rcs || <Afc />} · TVA intracommunautaire {ent.tvaIntra || <Afc />}.
           </p>
           {alcool && <p class="inv__evin">{EVIN}</p>}
         </footer>

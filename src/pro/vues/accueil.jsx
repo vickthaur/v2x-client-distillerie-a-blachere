@@ -4,7 +4,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { pro, useDonnees } from '../donnees.js';
 import { panier, usePanier } from '../panier.js';
 import { navigate } from '../router.js';
-import { eur, dateLongue, dateJour, statut, pluriel, typo, CONDITIONS, NB, NNB } from '../format.js';
+import { eur, dateLongue, dateJour, statut, pluriel, typo, volume, CONDITIONS, NB, NNB } from '../format.js';
 import { Chargement, Erreur, Icone, Jauge, Montant, NomProduit, Packshot, Pastille, TitreVue, Vide } from '../ui.jsx';
 import { totalHT, totalTTC, dateDe, enRetard, joursRetard, recommander, devisLignes } from '../commun.js';
 
@@ -26,7 +26,6 @@ export function Accueil({ session, site }) {
 function Tableau({ data, site }) {
   const compte = data.compte || {};
   const enCours = data.commandesEnCours || [];
-  const factures = data.facturesARegler || [];
   return (
     <div class="pro-dash">
       <div class="pro-dash__main">
@@ -65,42 +64,7 @@ function Tableau({ data, site }) {
             <p class="pro-muted">Aucune commande en cours de préparation ou de livraison.</p>
           )}
         </section>
-        <section class="pro-card" aria-labelledby="dash-factures">
-          <div class="pro-card__head">
-            <h2 class="pro-h2" id="dash-factures">
-              Factures à régler
-            </h2>
-            <a class="pro-more" href="/espace-pro/factures">
-              Toutes les factures <Icone n="arrow" />
-            </a>
-          </div>
-          {factures.length ? (
-            <ul class="pro-list">
-              {factures.map((f) => {
-                const retard = enRetard(f);
-                return (
-                  <li key={f.numero}>
-                    <a class={`pro-list__row${retard ? ' is-late' : ''}`} href={`/espace-pro/factures/${f.commandeId || f.id}`}>
-                      <span class="pro-list__main">
-                        <strong>{f.numero}</strong>
-                        <span class="pro-list__sub">
-                          Échéance le {dateLongue(f.echeance)}
-                          {retard ? ` · en retard de ${pluriel(joursRetard(f), 'jour')}` : ''}
-                        </span>
-                      </span>
-                      <Pastille ton={retard ? 'err' : 'warn'}>{retard ? 'En retard' : 'À régler'}</Pastille>
-                      <span class="pro-list__amount">
-                        <Montant v={f.montantTTC ?? f.totalTTC ?? totalTTC(f)} /> <small>TTC</small>
-                      </span>
-                    </a>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : (
-            <p class="pro-muted">Aucune facture à régler. Merci{NNB}!</p>
-          )}
-        </section>
+        <CarteFactures resume={data.facturesARegler} />
       </div>
       <aside class="pro-dash__side" aria-label="Votre compte">
         <CarteEncours data={data} compte={compte} />
@@ -167,7 +131,8 @@ function CarteCommande({ compte }) {
 function CarteDerniere({ commande, site }) {
   const [occupe, setOccupe] = useState(false);
   if (!commande) return null;
-  const n = commande.lignes?.length ?? commande.articles;
+  // Détail : nombre de lignes ; résumé de l'API : nombre de bouteilles (« articles »).
+  const quantite = commande.lignes?.length ? pluriel(commande.lignes.length, 'ligne') : commande.articles ? pluriel(commande.articles, 'bouteille') : '';
   const go = async () => {
     setOccupe(true);
     try {
@@ -189,7 +154,7 @@ function CarteDerniere({ commande, site }) {
           </h2>
           <p class="pro-muted">
             {dateLongue(dateDe(commande))}
-            {n ? ` · ${pluriel(n, 'ligne')}` : ''} · <Montant v={totalHT(commande)} />{NB}HT · <span>{statut(commande.statut).libelle.toLowerCase()}</span>
+            {quantite ? ` · ${quantite}` : ''} · <Montant v={totalHT(commande)} />{NB}HT · <span>{statut(commande.statut).libelle.toLowerCase()}</span>
           </p>
         </div>
         <div class="pro-again__actions">
@@ -202,6 +167,75 @@ function CarteDerniere({ commande, site }) {
           </a>
         </div>
       </div>
+    </section>
+  );
+}
+
+// Factures à régler : résumé de l'accueil ({ nombre, totalTTC, enRetard, prochaineEcheance }), puis
+// les factures elles-mêmes (GET pro?r=factures) quand il y en a.
+function CarteFactures({ resume }) {
+  const liste = Array.isArray(resume) ? resume : null;
+  const nombre = liste ? liste.length : resume?.nombre || 0;
+  const fac = useDonnees('factures', null, { skip: !nombre || !!liste });
+  const items = liste || (fac.data?.factures || []).filter((f) => f.statut !== 'payee').slice(0, 4);
+  return (
+    <section class="pro-card" aria-labelledby="dash-factures">
+      <div class="pro-card__head">
+        <h2 class="pro-h2" id="dash-factures">
+          Factures à régler
+        </h2>
+        <a class="pro-more" href="/espace-pro/factures">
+          Toutes les factures <Icone n="arrow" />
+        </a>
+      </div>
+      {!nombre ? (
+        <p class="pro-muted">Aucune facture à régler. Merci{NNB}!</p>
+      ) : (
+        <>
+          {!liste && (
+            <p class="pro-muted">
+              {pluriel(nombre, 'facture')} · <Montant v={resume.totalTTC} />
+              {NB}TTC
+              {resume.enRetard ? (
+                <>
+                  {' · '}
+                  <strong class="pro-late">dont {pluriel(resume.enRetard, 'en retard', 'en retard')}</strong>
+                </>
+              ) : null}
+              {resume.prochaineEcheance ? ` · prochaine échéance le ${dateLongue(resume.prochaineEcheance)}` : ''}
+            </p>
+          )}
+          {fac.loading && !fac.data && !liste ? (
+            <Chargement lignes={2} />
+          ) : fac.error ? (
+            <Erreur erreur={fac.error} reessayer={fac.reload} />
+          ) : (
+            <ul class="pro-list">
+              {items.map((f) => {
+                const retard = enRetard(f);
+                return (
+                  <li key={f.numero}>
+                    <a class={`pro-list__row${retard ? ' is-late' : ''}`} href={`/espace-pro/factures/${f.commandeId || f.id}`}>
+                      <span class="pro-list__main">
+                        <strong>{f.numero}</strong>
+                        <span class="pro-list__sub">
+                          Échéance le {dateLongue(f.echeance)}
+                          {retard ? ` · en retard de ${pluriel(joursRetard(f), 'jour')}` : ''}
+                          {f.commandeNumero ? ` · commande ${f.commandeNumero}` : ''}
+                        </span>
+                      </span>
+                      <Pastille ton={retard ? 'err' : 'warn'}>{retard ? 'En retard' : 'À régler'}</Pastille>
+                      <span class="pro-list__amount">
+                        <Montant v={f.montantTTC ?? f.totalTTC ?? totalTTC(f)} /> <small>TTC</small>
+                      </span>
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </>
+      )}
     </section>
   );
 }
@@ -250,7 +284,7 @@ function CarteCommercial({ commercial }) {
         </span>
         <div>
           <p class="pro-rep__nom">{commercial.nom}</p>
-          {commercial.zone && <p class="pro-muted">{commercial.zone}</p>}
+          {(commercial.poste || commercial.zone) && <p class="pro-muted">{commercial.poste || commercial.zone}</p>}
         </div>
       </div>
       <div class="pro-rep__actions">
@@ -276,9 +310,10 @@ function CarteCommercial({ commercial }) {
   );
 }
 
-// Suggestions : produits à essayer, ajoutés par carton.
+// Suggestions de l'API ({ slug, varianteId, nom, volume, photo, colisage, prixHT, raison }) : produits à
+// recommander, ajoutés par carton.
 function Suggestions({ items, site }) {
-  const list = (items || []).filter((s) => s && s.slug).slice(0, 3);
+  const list = (items || []).filter((s) => s && s.slug).slice(0, 4);
   if (!list.length) return null;
   return (
     <section class="pro-card" aria-labelledby="dash-sugg">
@@ -287,18 +322,19 @@ function Suggestions({ items, site }) {
       </h2>
       <ul class="pro-sugg">
         {list.map((s) => {
-          const v = s.variante || s.variantes?.[0] || {};
+          const v = s.varianteId != null ? { id: s.varianteId, volume: s.volume, colisage: s.colisage, prixHT: s.prixHT } : s.variante || s.variantes?.[0] || {};
           const colisage = v.colisage || 1;
           return (
-            <li key={s.slug} class="pro-sugg__item">
+            <li key={`${s.slug}|${v.id}`} class="pro-sugg__item">
               <Packshot slug={s.slug} photo={s.photo} taille="s" />
               <div class="pro-sugg__txt">
                 <p class="pro-sugg__nom">
                   <NomProduit nom={s.nom} />
                 </p>
                 <p class="pro-muted">
-                  {[v.volume, v.prixHT != null ? `${eur(v.prixHT)} HT` : null].filter(Boolean).join(' · ')}
+                  {[v.volume ? volume(v.id, v.volume) : null, v.prixHT != null ? `${eur(v.prixHT)}${NB}HT` : null, colisage > 1 ? `carton de ${colisage}` : null].filter(Boolean).join(' · ')}
                 </p>
+                {s.raison && <p class="pro-sugg__why">{s.raison}</p>}
               </div>
               {v.id != null && (
                 <button

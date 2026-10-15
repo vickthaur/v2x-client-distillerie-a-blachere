@@ -1,13 +1,16 @@
 // Mise en forme française (montants, dates, statuts) pour l'espace pro.
-// Montants : « 1 240,00 € » (espace fine insécable entre les milliers, espace insécable avant €).
+// Montants : « 1 240,00 € » (espace insécable entre les milliers et avant €).
 
 export const NB = ' '; // espace insécable (avant « : », dans « » et avant €)
 export const NNB = ' '; // espace fine insécable (avant « ; ! ? »)
 
+// Milliers séparés par une espace insécable : l'espace fine d'Intl, très étroite dans Archivo (et
+// resserrée par l'interlettrage des gros chiffres), ne se voit plus (« 1337,30 € »).
+const milliers = (s) => s.replace(/\u202f/g, NB);
 const money = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' });
-export const eur = (n) => money.format(Number.isFinite(Number(n)) ? Number(n) : 0);
+export const eur = (n) => milliers(money.format(Number.isFinite(Number(n)) ? Number(n) : 0));
 const num = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 1 });
-export const nombre = (n) => num.format(Number(n) || 0);
+export const nombre = (n) => milliers(num.format(Number(n) || 0));
 export const pourcent = (n) => `${num.format(Number(n) || 0)}${NB}%`;
 
 // Un jour « AAAA-MM-JJ » ou une date ISO → Date (à midi pour un jour : pas de décalage horaire).
@@ -94,9 +97,10 @@ export const ETATS = {
 
 export const SUJETS = { commande: 'Commande', visite: 'Visite', pro: 'Compte professionnel', presse: 'Presse', autre: 'Autre' };
 
-// Contenance lisible depuis un identifiant de variante (« 1000 » → « 1 L », « 700 » → « 70 cl »).
+// Contenance lisible depuis un identifiant de variante (« 1000 » → « 1 L », « 700 » → « 70 cl ») ou
+// depuis le libellé des données (« 70 cl », espace rendue insécable).
 export function volume(id, texte) {
-  if (texte) return texte;
+  if (texte) return String(texte).replace(/(\d) (cl|ml|L)\b/g, `$1${NB}$2`);
   const n = Number(id);
   if (!Number.isFinite(n)) return id === 'coffrets' ? 'Coffret' : String(id || '');
   return n >= 1000 ? `${String(n / 1000).replace('.', ',')}${NB}L` : `${n / 10}${NB}cl`;
