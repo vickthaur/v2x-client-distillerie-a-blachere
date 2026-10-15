@@ -9,7 +9,7 @@ import { Avatar, Button, Chips, Empty, Erreur, Notice, PageHead, Pill, SkeletonR
 import { Input, Select, Textarea, erreurDe, lireNombre } from '../ui/form.jsx';
 import { Dialog, toast } from '../ui/overlay.jsx';
 import { ApercuCourriel } from '../ui/courriel.jsx';
-import { COMPTE_TYPE, CONDITIONS, DEMANDE, GRILLE } from '../lib/statuts.js';
+import { COMPTE_TYPE, CONDITIONS, DEMANDE, GRILLE, LICENCE } from '../lib/statuts.js';
 import { date, dateHeure, nomComplet, pluriel, relatif, telephone, typo } from '../lib/format.js';
 import { Marque } from '../ui/marque.jsx';
 import { useCommerciaux } from './comptes.jsx';
@@ -251,23 +251,52 @@ function Detail({ id, depuisListe, retour, onChange }) {
 function DialogAccepter({ dm, onClose, onFait }) {
   const s = useSession();
   const commerciaux = useCommerciaux();
-  const [f, setF] = useState({ grille: grilleDe(dm.activite), remise: '0', conditions: '30j-fdm', commercialId: s.moi.role === 'commercial' ? s.moi.id : commerciaux.find((u) => u.role === 'commercial')?.id || '', encoursMax: '1500' });
+  const [f, setF] = useState({
+    grille: grilleDe(dm.activite),
+    remise: '0',
+    conditions: '30j-fdm',
+    commercialId: s.moi.role === 'commercial' ? s.moi.id : commerciaux.find((u) => u.role === 'commercial')?.id || '',
+    encoursMax: '1500',
+    licence: 'aucune',
+    ligne1: '',
+    cp: '',
+    ville: dm.ville || '',
+  });
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
   const [res, setRes] = useState(null);
+  const [courriel, setCourriel] = useState(null);
   const maj = (k) => (e) => setF({ ...f, [k]: e.currentTarget.value });
   useEffect(() => {
     if (!f.commercialId && commerciaux.length) setF((x) => ({ ...x, commercialId: commerciaux.find((u) => u.role === 'commercial')?.id || commerciaux[0].id }));
   }, [commerciaux.length]);
   const envoyer = async () => {
     const remise = lireNombre(f.remise);
-    if (Number.isNaN(remise) || remise < 0 || remise > 50) return setErr({ champ: 'remise', message: 'Remise entre 0 et 50 %.' });
+    if (Number.isNaN(remise) || remise < 0 || remise > 30) return setErr({ champ: 'remise', message: 'Remise entre 0 et 30 %.' });
+    const encoursMax = lireNombre(f.encoursMax);
+    if (encoursMax === null || Number.isNaN(encoursMax) || encoursMax < 0) return setErr({ champ: 'encoursMax', message: 'Indiquez l’encours autorisé (0 si paiement à la commande).' });
+    const adresse = f.ligne1.trim() ? { nom: dm.societe, ligne1: f.ligne1.trim(), cp: f.cp.trim(), ville: f.ville.trim(), pays: 'France' } : undefined;
+    if (adresse && (!/^\d{5}$/.test(adresse.cp) || !adresse.ville)) return setErr({ champ: 'cp', message: 'Code postal (5 chiffres) et ville de l’adresse.' });
     setBusy(true);
     setErr(null);
     try {
-      const d = await crm('demande-accepter', { method: 'POST', query: { id: dm.id }, body: { grille: f.grille, remise: remise || 0, conditions: f.conditions, commercialId: f.commercialId || undefined, encoursMax: lireNombre(f.encoursMax) || 0 } });
+      const d = await crm('demande-accepter', {
+        method: 'POST',
+        query: { id: dm.id },
+        body: { grille: f.grille, remise: remise || 0, conditions: f.conditions, commercialId: f.commercialId || undefined, encoursMax, licence: f.licence, adresse },
+      });
       setRes(d || {});
       onFait();
+      invalider('comptes', 'tableau', 'notifications', 'courriels');
+      // Aperçu du courriel d'invitation, tel que rangé dans la boîte d'envoi de la démo
+      const email = d?.utilisateur?.email || dm.email;
+      try {
+        const l = await crm('courriels', { query: { q: email } });
+        const dernier = elements(l)[0];
+        if (dernier) setCourriel(await crm('courriel', { query: { id: dernier.id } }));
+      } catch {
+        // aperçu facultatif
+      }
     } catch (e) {
       setErr(e);
     } finally {
@@ -322,16 +351,26 @@ function DialogAccepter({ dm, onClose, onFait }) {
               </div>
             </div>
           </div>
-          {res.courriel ? (
-            <ApercuCourriel courriel={res.courriel} compact />
+          {res.lienDemo && (
+            <Notice ton="demo" titre="Démonstration">
+              Aucun courriel ne part vraiment : ouvrez le lien d’activation pour choisir le mot de passe de {u.prenom || dm.nom} et découvrir son espace pro.
+              <div class="btn-row" style="margin-top:10px">
+                <Button size="sm" href={res.lienDemo} target="_blank" rel="noopener" icon="externe">
+                  Ouvrir le lien d’activation
+                </Button>
+              </div>
+            </Notice>
+          )}
+          {courriel || res.courriel ? (
+            <ApercuCourriel courriel={courriel || res.courriel} compact />
           ) : (
-            <Notice ton="demo">
-              Démonstration : le courriel d’invitation est rangé dans{' '}
+            <p class="small muted">
+              Le courriel d’invitation est rangé dans{' '}
               <Link class="link" href="/crm/courriels" onClick={onClose}>
                 Courriels envoyés
               </Link>
               .
-            </Notice>
+            </p>
           )}
         </div>
       </Dialog>
@@ -358,9 +397,18 @@ function DialogAccepter({ dm, onClose, onFait }) {
       <div class="form">
         <div class="form-grid">
           <Select label="Grille tarifaire" value={f.grille} onChange={maj('grille')} options={Object.entries(GRILLE).map(([value, g]) => ({ value, label: `${g.label} (coef. ${String(g.coef).replace('.', ',')})` }))} />
-          <Input label="Remise supplémentaire" inputMode="decimal" suffixe="%" value={f.remise} onInput={maj('remise')} error={erreurDe(err, 'remise')} />
+          <Input label="Remise supplémentaire" inputMode="decimal" suffixe="%" value={f.remise} onInput={maj('remise')} error={erreurDe(err, 'remise')} help="30 % au plus" />
           <Select label="Conditions de paiement" value={f.conditions} onChange={maj('conditions')} options={Object.entries(CONDITIONS).map(([value, label]) => ({ value, label }))} />
-          <Input label="Encours maximal" inputMode="decimal" suffixe="€" value={f.encoursMax} onInput={maj('encoursMax')} error={erreurDe(err, 'encoursMax')} />
+          <Input label="Encours autorisé" inputMode="decimal" suffixe="€" value={f.encoursMax} onInput={maj('encoursMax')} error={erreurDe(err, 'encoursMax')} />
+          <Select
+            class="span-2"
+            label="Licence de débit de boissons"
+            value={f.licence}
+            onChange={maj('licence')}
+            options={Object.entries(LICENCE).map(([value, label]) => ({ value, label }))}
+            help={f.licence === 'aucune' ? 'Sans licence renseignée, le compte ne voit pas les produits alcoolisés.' : 'Le compte peut commander les spiritueux et liqueurs.'}
+            error={erreurDe(err, 'licence')}
+          />
           <Select
             class="span-2"
             label="Commercial"
@@ -370,12 +418,23 @@ function DialogAccepter({ dm, onClose, onFait }) {
             error={erreurDe(err, 'commercialId')}
           />
         </div>
+        <fieldset class="fieldset">
+          <legend class="field__label">
+            Adresse de livraison et de facturation <span class="field__opt">facultatif</span>
+          </legend>
+          <div class="form-grid">
+            <Input class="span-2" label="Adresse" value={f.ligne1} onInput={maj('ligne1')} autoComplete="off" error={erreurDe(err, 'ligne1', 'adresse')} placeholder="Numéro et rue" />
+            <Input label="Code postal" inputMode="numeric" value={f.cp} onInput={maj('cp')} autoComplete="off" error={erreurDe(err, 'cp')} />
+            <Input label="Ville" value={f.ville} onInput={maj('ville')} autoComplete="off" error={erreurDe(err, 'ville')} />
+          </div>
+          <p class="small muted">Sinon, le client la complète dans son espace pro.</p>
+        </fieldset>
         <div class="card card--inset">
           <div class="card__body--tight small">
             <strong>{dm.nom}</strong> ({dm.email}) recevra un lien pour choisir son mot de passe, valable 7 jours.
           </div>
         </div>
-        {err && !erreurDe(err, 'remise', 'encoursMax', 'commercialId') && <Notice ton="err">{err.message}</Notice>}
+        {err && !erreurDe(err, 'remise', 'encoursMax', 'commercialId', 'licence', 'ligne1', 'adresse', 'cp', 'ville') && <Notice ton="err">{err.message}</Notice>}
       </div>
     </Dialog>
   );

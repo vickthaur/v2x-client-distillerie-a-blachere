@@ -255,7 +255,11 @@ function DialogNouveauCompte({ onClose }) {
       const d = await crm('compte', { method: 'POST', body });
       const c = d?.compte || d;
       invalider('comptes');
-      toast(`Compte ${nomCompte(c)} créé`, { detail: body.utilisateur ? `Invitation envoyée à ${body.utilisateur.email}.` : undefined });
+      toast(`Compte ${nomCompte(c)} créé`, {
+        detail: body.utilisateur ? `Invitation envoyée à ${body.utilisateur.email} (démonstration : rien ne part vraiment).` : undefined,
+        action: d?.lienDemo ? { label: 'Lien d’activation', href: d.lienDemo, target: '_blank' } : undefined,
+        duree: d?.lienDemo ? 12000 : undefined,
+      });
       onClose();
       if (c?.id) navigate(`/crm/comptes/${c.id}`);
     } catch (e) {
@@ -319,7 +323,7 @@ function ChampsConditions({ f, maj, err, commerciaux, lectureCommercial }) {
   return (
     <div class="form-grid">
       <Select label="Grille tarifaire" value={f.grille} onChange={maj('grille')} options={Object.entries(GRILLE).map(([value, g]) => ({ value, label: `${g.label} (coef. ${String(g.coef).replace('.', ',')})` }))} help="Prix HT = prix public HT × coefficient" />
-      <Input label="Remise supplémentaire" inputMode="decimal" suffixe="%" value={f.remise} onInput={maj('remise')} error={erreurDe(err, 'remise')} />
+      <Input label="Remise supplémentaire" inputMode="decimal" suffixe="%" value={f.remise} onInput={maj('remise')} error={erreurDe(err, 'remise')} help="30 % au plus" />
       <Select label="Conditions de paiement" value={f.conditions} onChange={maj('conditions')} options={Object.entries(CONDITIONS).map(([value, label]) => ({ value, label }))} />
       <Input label="Franco de port" inputMode="decimal" suffixe="€ HT" value={f.francoHT} onInput={maj('francoHT')} error={erreurDe(err, 'francoHT')} />
       <Input label="Encours maximal" inputMode="decimal" suffixe="€" value={f.encoursMax} onInput={maj('encoursMax')} error={erreurDe(err, 'encoursMax')} help="Factures non réglées + commande en cours" />
@@ -585,13 +589,24 @@ export function Compte({ id }) {
                         <tr key={f.numero}>
                           <td>
                             <span class="strong mono">{f.numero}</span>
-                            {f.commande && <span class="tbl__sub mono">{f.commande.numero || f.commande}</span>}
+                            {(f.commandeNumero || f.commande) && (
+                              <span class="tbl__sub">
+                                {f.commandeId || f.commande?.id ? (
+                                  <Link class="link link--ink mono" href={`/crm/commandes/${f.commandeId || f.commande.id}`}>
+                                    {f.commandeNumero || f.commande.numero || f.commande}
+                                  </Link>
+                                ) : (
+                                  <span class="mono">{f.commandeNumero || f.commande.numero || f.commande}</span>
+                                )}
+                              </span>
+                            )}
                           </td>
                           <td>{date(f.date)}</td>
                           <td style={st === 'en-retard' ? 'color:var(--err);font-weight:600' : ''}>{date(f.echeance)}</td>
                           <td class="num strong">{euros(f.montantTTC ?? f.totalTTC)}</td>
                           <td>
                             <Statut table={FACTURE} valeur={st} />
+                            {f.statut === 'payee' && f.payeeLe && <span class="tbl__sub">le {date(f.payeeLe)}</span>}
                           </td>
                           <td class="w-actions">
                             {(f.commandeId || f.commande?.id) && (
@@ -621,8 +636,18 @@ export function Compte({ id }) {
                       <span class="list__meta">{u.email}</span>
                     </span>
                     <span class="list__end">
-                      {u.invitation || u.invite || u.statut === 'invite' ? <Pill ton="info">Invitation envoyée</Pill> : u.actif === false ? <Pill>Désactivé</Pill> : <Pill ton="ok">Actif</Pill>}
-                      {u.derniereConnexion && <span class="small muted">connecté {relatif(u.derniereConnexion)}</span>}
+                      {u.statut === 'invitation' || u.invitation || u.invite ? (
+                        <Pill ton="info">Invitation envoyée</Pill>
+                      ) : u.statut === 'desactive' || u.actif === false ? (
+                        <Pill>Désactivé</Pill>
+                      ) : (
+                        <Pill ton="ok">Actif</Pill>
+                      )}
+                      {u.statut === 'invitation' && u.invitationExpireLe ? (
+                        <span class="small muted">valable jusqu’au {date(u.invitationExpireLe)}</span>
+                      ) : (
+                        u.derniereConnexion && <span class="small muted">connecté {relatif(u.derniereConnexion)}</span>
+                      )}
                     </span>
                   </div>
                 ))}
@@ -676,7 +701,7 @@ function DialogConditions({ c, commercial, onClose, patch }) {
   const peutChoisir = commerciaux.length > 1;
   const envoyer = async () => {
     const remise = lireNombre(f.remise);
-    if (Number.isNaN(remise) || remise < 0 || remise > 50) return setErr({ champ: 'remise', message: 'Remise entre 0 et 50 %.' });
+    if (Number.isNaN(remise) || remise < 0 || remise > 30) return setErr({ champ: 'remise', message: 'Remise entre 0 et 30 %.' });
     setBusy(true);
     setErr(null);
     try {
@@ -723,8 +748,13 @@ function DialogInviter({ compte, onClose, onFait }) {
     setBusy(true);
     setErr(null);
     try {
-      await crm('compte-utilisateur', { method: 'POST', body: { compteId: compte.id, prenom: f.prenom.trim(), nom: f.nom.trim(), email: f.email.trim() } });
-      toast(`Invitation envoyée à ${f.email.trim()}`, { detail: 'Voir le courriel dans « Courriels envoyés ».', action: { label: 'Voir', href: '/crm/courriels' } });
+      const d = await crm('compte-utilisateur', { method: 'POST', body: { compteId: compte.id, prenom: f.prenom.trim(), nom: f.nom.trim(), email: f.email.trim() } });
+      toast(`Invitation envoyée à ${f.email.trim()}`, {
+        detail: 'Démonstration : le courriel est rangé dans « Courriels envoyés ».',
+        action: d?.lienDemo ? { label: 'Lien d’activation', href: d.lienDemo, target: '_blank' } : { label: 'Voir', href: '/crm/courriels' },
+        duree: 12000,
+      });
+      invalider('courriels');
       onFait?.();
       onClose();
     } catch (e) {

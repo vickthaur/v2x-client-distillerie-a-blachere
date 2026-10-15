@@ -246,8 +246,8 @@ export function Produits({ slug }) {
           p={mouvement.p}
           v={mouvement.v}
           onClose={() => setMouvement(null)}
-          onFait={(stockNouveau) => {
-            if (stockNouveau !== undefined) majVariante(mouvement.p.slug, mouvement.v.id, { stock: stockNouveau, etat: undefined });
+          onFait={(stockNouveau, etat) => {
+            if (stockNouveau !== undefined) majVariante(mouvement.p.slug, mouvement.v.id, { stock: stockNouveau, etat });
             r.reload({ silencieux: true });
             invalider('mouvements', 'tableau');
           }}
@@ -286,7 +286,7 @@ function LigneVariante({ p, v, premiere, n, edition, onEditer, onAnnuler, onEnre
       val.prixProHT = lireNombre(f.prixProHT);
       val.colisage = lireNombre(f.colisage);
     }
-    if (peutPrix || peutStock) val.seuil = lireNombre(f.seuil);
+    if (peutPrix) val.seuil = lireNombre(f.seuil);
     for (const [k, x] of Object.entries(val)) {
       if (x === null || Number.isNaN(x) || x < 0) return setErr(`Valeur invalide : ${{ prixTTC: 'prix TTC', prixProHT: 'prix pro HT', seuil: 'seuil', colisage: 'colisage' }[k]}.`);
     }
@@ -336,7 +336,7 @@ function LigneVariante({ p, v, premiere, n, edition, onEditer, onAnnuler, onEnre
           {etat !== 'disponible' && <Statut table={STOCK} valeur={etat} />}
         </span>
       </td>
-      <td class="num">{edition ? champ('seuil', 'Seuil', '', !(peutPrix || peutStock)) : nombre(v.seuil)}</td>
+      <td class="num">{edition ? champ('seuil', 'Seuil', '', !peutPrix) : nombre(v.seuil)}</td>
       <td class="num">{edition ? champ('colisage', 'Colisage', '', !peutPrix) : nombre(v.colisage)}</td>
       <td class="num">{nombre(v.vendus30 ?? v.vendus ?? 0)}</td>
       <td class="w-actions">
@@ -359,7 +359,7 @@ function LigneVariante({ p, v, premiere, n, edition, onEditer, onAnnuler, onEnre
             {peutStock && (
               <Button size="sm" variant="ghost" icon="mouvements" onClick={onMouvement} aria-label={`Mouvement de stock : ${p.nom} ${v.volume}`} title="Mouvement de stock" />
             )}
-            {(peutPrix || peutStock) && <Button size="sm" variant="ghost" icon="crayon" onClick={onEditer} aria-label={`Modifier ${p.nom} ${v.volume}`} title="Modifier" />}
+            {peutPrix && <Button size="sm" variant="ghost" icon="crayon" onClick={onEditer} aria-label={`Modifier ${p.nom} ${v.volume}`} title="Modifier" />}
           </div>
         )}
       </td>
@@ -406,9 +406,11 @@ function CarteProduit({ p, peutPrix, peutStock, onActif, onMouvement, onEditer }
                     Mouvement
                   </Button>
                 )}
-                <Button size="sm" variant="ghost" icon="crayon" onClick={() => onEditer(v)}>
-                  Modifier
-                </Button>
+                {peutPrix && (
+                  <Button size="sm" variant="ghost" icon="crayon" onClick={() => onEditer(v)}>
+                    Modifier
+                  </Button>
+                )}
               </div>
             )}
           </div>
@@ -429,8 +431,8 @@ function DialogVariante({ p, v, peutPrix, peutStock, onClose, onEnregistrer }) {
       val.prixTTC = lireNombre(f.prixTTC);
       val.prixProHT = lireNombre(f.prixProHT);
       val.colisage = lireNombre(f.colisage);
+      val.seuil = lireNombre(f.seuil);
     }
-    val.seuil = lireNombre(f.seuil);
     if (Object.values(val).some((x) => x === null || Number.isNaN(x) || x < 0)) return setErr({ message: 'Vérifiez les valeurs saisies (nombres positifs).' });
     setBusy(true);
     try {
@@ -460,7 +462,7 @@ function DialogVariante({ p, v, peutPrix, peutStock, onClose, onEnregistrer }) {
         <div class="form-grid">
           <Input label="Prix public" suffixe="€ TTC" inputMode="decimal" value={f.prixTTC} onInput={maj('prixTTC')} disabled={!peutPrix} error={erreurDe(err, 'prixTTC')} />
           <Input label="Prix pro de base" suffixe="€ HT" inputMode="decimal" value={f.prixProHT} onInput={maj('prixProHT')} disabled={!peutPrix} error={erreurDe(err, 'prixProHT')} />
-          <Input label="Seuil d’alerte" inputMode="numeric" value={f.seuil} onInput={maj('seuil')} disabled={!(peutPrix || peutStock)} error={erreurDe(err, 'seuil')} />
+          <Input label="Seuil d’alerte" inputMode="numeric" value={f.seuil} onInput={maj('seuil')} disabled={!peutPrix} error={erreurDe(err, 'seuil')} />
           <Input label="Colisage (bouteilles par carton)" inputMode="numeric" value={f.colisage} onInput={maj('colisage')} disabled={!peutPrix} error={erreurDe(err, 'colisage')} />
         </div>
         {err && !erreurDe(err, 'prixTTC', 'prixProHT', 'seuil', 'colisage') && <Notice ton="err">{err.message}</Notice>}
@@ -489,7 +491,10 @@ function DialogMouvement({ p, v, onClose, onFait }) {
     if (delta === null || (motif !== 'inventaire' && delta === 0)) return setErr({ champ: 'delta', message: motif === 'inventaire' ? 'Saisissez la quantité comptée.' : 'Saisissez une quantité.' });
     if (apres < 0) return setErr({ champ: 'delta', message: 'Le stock ne peut pas devenir négatif.' });
     if (motif === 'inventaire' && delta === 0) {
+      // aucun écart : rien à enregistrer (l'API refuse un mouvement nul)
       toast('Inventaire conforme', { detail: `${nombre(actuel)} bouteilles, aucun écart.` });
+      onClose();
+      return;
     }
     setBusy(true);
     setErr(null);
@@ -497,7 +502,7 @@ function DialogMouvement({ p, v, onClose, onFait }) {
       const d = await crm('stock', { method: 'POST', body: { slug: p.slug, varianteId: v.id, delta, motif, note: note.trim() || undefined } });
       const stockNouveau = d?.stock ?? d?.variante?.stock ?? apres;
       toast(`${p.nom} ${v.volume} : ${MOTIF_STOCK[motif].label.toLowerCase()} enregistrée`, { detail: `Stock ${nombre(actuel)} → ${nombre(stockNouveau)}` });
-      onFait(stockNouveau);
+      onFait(stockNouveau, d?.etat);
       onClose();
     } catch (e) {
       setErr(e);

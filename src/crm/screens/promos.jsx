@@ -16,9 +16,12 @@ export function valeurPromo(p) {
   if (p.type === 'montant') return `−${eurosSimple(p.valeur)}`;
   return 'Livraison offerte';
 }
+const ETATS = { actif: { label: 'Actif', ton: 'ok' }, 'a-venir': { label: 'Programmé', ton: 'info' }, expire: { label: 'Expiré', ton: 'mute' }, epuise: { label: 'Épuisé', ton: 'warn' } };
 function etatPromo(p) {
   const j = aujourdHui();
   if (!p.actif) return { label: 'Désactivé', ton: 'mute' };
+  // état calculé par le serveur (sauf juste après une réactivation optimiste)
+  if (ETATS[p.etat]) return ETATS[p.etat];
   if (p.fin && p.fin.slice(0, 10) < j) return { label: 'Expiré', ton: 'mute' };
   if (p.debut && p.debut.slice(0, 10) > j) return { label: 'Programmé', ton: 'info' };
   if (p.limite && p.utilisations >= p.limite) return { label: 'Épuisé', ton: 'warn' };

@@ -195,12 +195,15 @@ export function Erreur({ erreur, onRetry, titre = 'Chargement impossible' }) {
   );
 }
 
-export function Notice({ ton, icone, children, class: cls }) {
+export function Notice({ ton, icone, titre, children, class: cls }) {
   const ic = icone || { warn: 'alerte', ok: 'ok', err: 'erreur', demo: 'etincelle' }[ton] || 'info';
   return (
-    <div class={cx('notice', ton && `notice--${ton}`, cls)}>
+    <div class={cx('notice', ton && `notice--${ton}`, cls)} role={ton === 'err' ? 'alert' : undefined}>
       <Icon name={ic} />
-      <div class="grow">{children}</div>
+      <div class="grow">
+        {titre && <strong class="notice__titre">{titre}</strong>}
+        {children}
+      </div>
     </div>
   );
 }

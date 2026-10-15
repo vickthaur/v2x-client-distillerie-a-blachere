@@ -486,6 +486,12 @@ export function Client({ id }) {
           <Card titre="Newsletter" icone="mail">
             <div class="stack stack--s">
               <Switch label={c.newsletter ? 'Inscrit à la lettre d’information' : 'Non inscrit'} checked={!!c.newsletter} disabled={!peutModifier} onChange={(e) => patch({ newsletter: e.currentTarget.checked }, e.currentTarget.checked ? 'Client inscrit à la newsletter' : 'Client désinscrit de la newsletter')} />
+              {abonnement?.inscritLe && (
+                <p class="small">
+                  {abonnement.statut === 'desinscrit' && abonnement.desinscritLe ? `Désinscrit le ${date(abonnement.desinscritLe)}` : `Inscrit le ${date(abonnement.inscritLe)}`}
+                  {abonnement.source ? ` · ${ABONNE_SOURCE[abonnement.source] || abonnement.source}` : ''}
+                </p>
+              )}
               <p class="small muted">Consentement explicite exigé (RGPD) : ne cochez qu’à la demande du client.</p>
             </div>
           </Card>

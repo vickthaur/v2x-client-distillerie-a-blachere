@@ -474,7 +474,7 @@ function ToastItem({ t, retirer }) {
       </div>
       {t.action &&
         (t.action.href ? (
-          <Link class="toast__act" href={t.action.href} onClick={() => retirer(t.id)}>
+          <Link class="toast__act" href={t.action.href} target={t.action.target} rel={t.action.target ? 'noopener' : undefined} onClick={() => retirer(t.id)}>
             {t.action.label}
           </Link>
         ) : (

@@ -161,20 +161,17 @@ export const STOCK = {
 };
 
 export const COURRIEL_TYPE = {
-  commande: 'Confirmation de commande',
+  commande: 'Commande',
   expedition: 'Expédition',
   retrait: 'Prête au retrait',
   facture: 'Facture',
-  invitation: 'Invitation',
-  reinitialisation: 'Mot de passe',
   reservation: 'Réservation de visite',
   reponse: 'Réponse à un message',
   'demande-pro': 'Demande pro',
-  campagne: 'Campagne',
+  invitation: 'Invitation',
+  reinitialisation: 'Mot de passe',
   bienvenue: 'Bienvenue',
-  annulation: 'Annulation',
-  remboursement: 'Remboursement',
-  preparation: 'En préparation',
+  campagne: 'Campagne',
 };
 
 export const GAMMES = {

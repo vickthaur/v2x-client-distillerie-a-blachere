@@ -563,7 +563,8 @@ function DialogReservation({ init, seances, onClose, onFait }) {
   const maj = (k) => (e) => setF({ ...f, [k]: e.currentTarget.type === 'checkbox' ? e.currentTarget.checked : e.currentTarget.value });
   const envoyer = async () => {
     if (!f.nom.trim()) return setErr({ champ: 'nom', message: 'Indiquez le nom de la réservation.' });
-    if (f.mineurs > f.personnes) return setErr({ champ: 'mineurs', message: 'Les mineurs sont comptés dans les personnes.' });
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) return setErr({ champ: 'email', message: 'Indiquez l’e-mail : la confirmation et le rappel y sont envoyés.' });
+    if (f.mineurs >= f.personnes) return setErr({ champ: 'mineurs', message: 'Au moins un adulte accompagne le groupe.' });
     setBusy(true);
     setErr(null);
     try {
@@ -577,7 +578,7 @@ function DialogReservation({ init, seances, onClose, onFait }) {
           mineurs: f.mineurs,
           langue: f.langue,
           nom: f.nom.trim(),
-          email: f.email.trim() || undefined,
+          email: f.email.trim(),
           telephone: f.telephone.trim() || undefined,
           message: f.message.trim() || undefined,
           newsletter: f.newsletter,
@@ -585,7 +586,7 @@ function DialogReservation({ init, seances, onClose, onFait }) {
         },
       });
       const res = d?.reservation || d;
-      toast(`Réservation ${res?.reference || ''} enregistrée`, { detail: `${jourSemaine(f.date)}, ${heure(se?.heure || HEURES[f.moment])} · ${pluriel(f.personnes, 'personne', 'personnes')}${f.email.trim() ? ' · confirmation envoyée' : ''}` });
+      toast(`Réservation ${res?.reference || ''} enregistrée`, { detail: `${jourSemaine(f.date)}, ${heure(se?.heure || HEURES[f.moment])} · ${pluriel(f.personnes, 'personne', 'personnes')} · confirmation envoyée` });
       onFait();
       onClose();
     } catch (e) {
@@ -624,15 +625,15 @@ function DialogReservation({ init, seances, onClose, onFait }) {
         <div class="form-grid">
           <div class="field">
             <span class="field__label">Personnes</span>
-            <Stepper value={f.personnes} min={1} max={25} onChange={(v) => setF({ ...f, personnes: v, mineurs: Math.min(f.mineurs, v) })} label="Nombre de personnes" />
+            <Stepper value={f.personnes} min={1} max={25} onChange={(v) => setF({ ...f, personnes: v, mineurs: Math.min(f.mineurs, v - 1) })} label="Nombre de personnes" />
           </div>
           <div class="field">
             <span class="field__label">Dont mineurs</span>
-            <Stepper value={f.mineurs} min={0} max={f.personnes} onChange={(v) => setF({ ...f, mineurs: v })} label="Nombre de mineurs" />
+            <Stepper value={f.mineurs} min={0} max={Math.max(0, f.personnes - 1)} onChange={(v) => setF({ ...f, mineurs: v })} label="Nombre de mineurs" />
             {erreurDe(err, 'mineurs') && <p class="field__err">{erreurDe(err, 'mineurs')}</p>}
           </div>
           <Input class="span-2" label="Nom" value={f.nom} onInput={maj('nom')} error={erreurDe(err, 'nom')} autoComplete="off" />
-          <Input label="E-mail" opt type="email" value={f.email} onInput={maj('email')} error={erreurDe(err, 'email')} help="Pour envoyer la confirmation." autoComplete="off" />
+          <Input label="E-mail" type="email" value={f.email} onInput={maj('email')} error={erreurDe(err, 'email')} help="Confirmation et rappel la veille." autoComplete="off" />
           <Input label="Téléphone" opt type="tel" value={f.telephone} onInput={maj('telephone')} error={erreurDe(err, 'telephone')} autoComplete="off" />
           <Select label="Langue" value={f.langue} onChange={maj('langue')} options={Object.entries(LANGUE).map(([value, label]) => ({ value, label }))} />
           <Textarea class="span-2" label="Message" opt value={f.message} onInput={maj('message')} rows={2} style="min-height:64px" />
@@ -641,7 +642,27 @@ function DialogReservation({ init, seances, onClose, onFait }) {
         {err && !erreurDe(err, 'nom', 'email', 'telephone', 'date', 'moment', 'mineurs') && (
           <Notice ton="err">
             {err.message}
-            {Array.isArray(err.data?.disponibilites) && err.data.disponibilites.length > 0 && <span> Autres créneaux ce jour : {err.data.disponibilites.map((x) => `${MOMENT[x.moment] || x.moment} (${x.restantes} places)`).join(', ')}.</span>}
+            {Array.isArray(err.data?.disponibilites) && err.data.disponibilites.length > 0 && (
+              <>
+                <span class="block small" style="margin-top:6px">Places disponibles :</span>
+                <span class="chips" style="margin:6px 0 0">
+                  {err.data.disponibilites.map((x) => (
+                    <button
+                      key={`${x.date}-${x.moment}`}
+                      type="button"
+                      class="chip"
+                      onClick={() => {
+                        setF({ ...f, date: x.date, moment: x.moment });
+                        setErr(null);
+                      }}
+                    >
+                      {x.date === f.date ? MOMENT[x.moment] : jourCourt(x.date)} · {heure(x.heure || HEURES[x.moment])}
+                      <span class="chip__n">{pluriel(x.restantes, 'place', 'places')}</span>
+                    </button>
+                  ))}
+                </span>
+              </>
+            )}
           </Notice>
         )}
       </div>

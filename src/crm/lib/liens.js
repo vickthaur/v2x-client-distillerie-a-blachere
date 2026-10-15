@@ -11,6 +11,7 @@ export function lienDe(type, id, extra = {}) {
   if (!type) return null;
   switch (type) {
     case 'commande':
+    case 'facture':
       return id ? `/crm/commandes/${id}` : '/crm/commandes';
     case 'client':
       return id ? `/crm/clients/${id}` : '/crm/clients';

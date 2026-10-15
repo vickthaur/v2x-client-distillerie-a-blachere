@@ -350,7 +350,10 @@ function ListeCampagnes({ campagnes, peutModifier }) {
                 </span>
               </>
             ) : (
-              <span>Brouillon modifié {relatif(c.updatedAt || c.createdAt)}</span>
+              <>
+                <span>Brouillon modifié {relatif(c.updatedAt || c.createdAt)}</span>
+                {c.destinatairesPrevus !== undefined && <span>{pluriel(c.destinatairesPrevus, 'destinataire prévu', 'destinataires prévus')}</span>}
+              </>
             )}
           </div>
         </Link>
@@ -407,6 +410,8 @@ export function Campagne({ id }) {
   const verifier = () => {
     if (f.objet.trim().length < 3) return { champ: 'objet', message: 'Donnez un objet à la lettre.' };
     if (f.introduction.trim().length < 3) return { champ: 'introduction', message: 'Écrivez une introduction.' };
+    if (f.corps.trim().length < 3) return { champ: 'corps', message: 'Écrivez le texte de la lettre.' };
+    if (f.boutonLibelle.trim() && f.boutonUrl.trim() && !/^(\/(?!\/)\S*|https:\/\/\S+)$/.test(f.boutonUrl.trim())) return { champ: 'url', message: 'Adresse du site (/boutique) ou lien complet en https://.' };
     return null;
   };
   const enregistrer = async ({ silencieux = false } = {}) => {
@@ -437,7 +442,7 @@ export function Campagne({ id }) {
   const envoyer = async () => {
     const e = verifier();
     if (e) return setErr(e);
-    const nb = segments[f.segment];
+    const nb = segments[f.segment] ?? (campagne && campagne.segment === f.segment ? campagne.destinatairesPrevus : undefined);
     const ok = await confirmer({
       titre: 'Envoyer la campagne ?',
       message: `« ${f.objet.trim()} » partira vers le segment ${SEGMENT[f.segment].label.toLowerCase()}${nb ? ` (${pluriel(nb, 'destinataire', 'destinataires')})` : ''}. Démonstration : aucun courriel ne part réellement, un exemplaire est rangé dans les courriels envoyés.`,
@@ -546,7 +551,7 @@ export function Campagne({ id }) {
               <Textarea label="Corps" value={f.corps} onInput={maj('corps')} disabled={lecture} rows={8} error={erreurDe(err, 'corps')} help="Une ligne vide sépare les paragraphes." placeholder="Les nouveautés, la recette du mois, les dates de visite…" />
               <div class="form-grid">
                 <Input label="Bouton" opt value={f.boutonLibelle} onInput={maj('boutonLibelle')} disabled={lecture} placeholder="Découvrir" maxLength={40} />
-                <Input label="Lien du bouton" opt type="url" value={f.boutonUrl} onInput={maj('boutonUrl')} disabled={lecture} placeholder="https://…" error={erreurDe(err, 'bouton', 'url')} />
+                <Input label="Lien du bouton" opt inputMode="url" value={f.boutonUrl} onInput={maj('boutonUrl')} disabled={lecture} placeholder="/boutique ou https://…" error={erreurDe(err, 'bouton', 'url')} autoComplete="off" spellcheck={false} />
               </div>
             </div>
           </Card>
@@ -555,7 +560,10 @@ export function Campagne({ id }) {
               name="segment"
               value={f.segment}
               onChange={(v) => !lecture && setF({ ...f, segment: v })}
-              items={Object.entries(SEGMENT).map(([k, x]) => ({ value: k, titre: x.court, desc: `${x.label}${segments[k] !== undefined ? ` · ${pluriel(segments[k], 'adresse', 'adresses')}` : ''}` }))}
+              items={Object.entries(SEGMENT).map(([k, x]) => {
+                const n = segments[k] ?? (campagne?.segment === k ? campagne.destinatairesPrevus : undefined);
+                return { value: k, titre: x.court, desc: `${x.label}${n !== undefined ? ` · ${pluriel(n, 'adresse', 'adresses')}` : ''}` };
+              })}
             />
             {err && !erreurDe(err, 'objet', 'introduction', 'corps', 'bouton', 'url') && (
               <Notice ton="err" class="mt">

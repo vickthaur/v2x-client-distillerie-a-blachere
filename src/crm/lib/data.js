@@ -2,6 +2,7 @@
 // cache par clé, rechargement silencieux quand la démo change (sondage des notifications) et
 // mises à jour optimistes.
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
+import { dateLongue } from './format.js';
 import { api, apiUrl, ApiError } from '../../lib/api.js';
 
 export { ApiError, apiUrl };
@@ -17,6 +18,8 @@ export async function crm(r, options = {}) {
     return await api('crm', r, options);
   } catch (e) {
     if (e instanceof ApiError && e.status === 401) surExpiration?.(e);
+    // dates ISO des messages du serveur (« le 2026-10-16 ») écrites à la française
+    if (e instanceof ApiError && /\d{4}-\d{2}-\d{2}/.test(e.message)) e.message = e.message.replace(/\b(\d{4}-\d{2}-\d{2})\b/g, (m) => dateLongue(m));
     throw e;
   }
 }

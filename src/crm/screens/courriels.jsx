@@ -2,41 +2,42 @@
 // courriel, tel que le destinataire l'aurait reçu.
 import { useEffect, useRef } from 'preact/hooks';
 import { elements, useCrm } from '../lib/data.js';
-import { useFil } from '../lib/session.jsx';
+import { useFil, useSession } from '../lib/session.jsx';
+import { accessible, rubriqueDe } from '../nav.js';
 import { Link, origineNavigation, useQuery } from '../lib/router.jsx';
 import { Icon } from '../ui/icons.jsx';
-import { Empty, Erreur, Notice, PageHead, Pagination, SkeletonRows, cx, useTitre } from '../ui/base.jsx';
+import { Empty, Erreur, Notice, PageHead, Pagination, SearchInput, SkeletonRows, cx, useTitre } from '../ui/base.jsx';
 import { ApercuCourriel } from '../ui/courriel.jsx';
 import { lienDe } from '../lib/liens.js';
 import { COURRIEL_TYPE } from '../lib/statuts.js';
 import { relatif } from '../lib/format.js';
 
 const PAR = 30;
+const LIES = { commande: 'Voir la commande', facture: 'Voir la commande facturée', compte: 'Voir le compte pro', reservation: 'Voir la réservation', message: 'Voir le message', demande: 'Voir la demande pro', abonne: 'Voir l’abonné', campagne: 'Voir la campagne', client: 'Voir la fiche client' };
 const ICONES = { commande: 'commandes', expedition: 'camion', retrait: 'store', facture: 'facture', invitation: 'user-plus', reinitialisation: 'cle', reservation: 'calendrier', reponse: 'repondre', 'demande-pro': 'briefcase', campagne: 'send', bienvenue: 'etincelle' };
 
 export function Courriels({ id }) {
   useTitre('Courriels envoyés');
   const [q, setQ] = useQuery();
   const type = q.get('type') || '';
+  const recherche = q.get('q') || '';
   const page = Number(q.get('page')) || 1;
-  const r = useCrm('courriels', { type, page, par: PAR }, { garder: true });
+  const r = useCrm('courriels', { type, q: recherche, page, par: PAR }, { garder: true });
   const liste = elements(r.data, 'courriels');
-  const types = [...new Set(liste.map((c) => c.type))];
   return (
     <div class={cx('page page--wide split-page', id && 'has-detail')}>
       <div class="split split--large">
         <section class="split__list" aria-label="Courriels envoyés">
           <PageHead titre="Courriels envoyés" sous="Tout ce que le CRM et le site auraient envoyé : rien ne part vraiment." />
           <div class="toolbar">
+            <SearchInput class="toolbar__search" value={recherche} onChange={(v) => setQ({ q: v, page: undefined })} placeholder="Destinataire, objet…" label="Rechercher un courriel" />
             <select class="select select--sm" style="width:auto" aria-label="Type de courriel" value={type} onChange={(e) => setQ({ type: e.currentTarget.value, page: undefined })}>
               <option value="">Tous les types</option>
-              {Object.entries(COURRIEL_TYPE)
-                .filter(([k]) => types.includes(k) || k === type || !r.data)
-                .map(([k, v]) => (
-                  <option key={k} value={k}>
-                    {v}
-                  </option>
-                ))}
+              {Object.entries(COURRIEL_TYPE).map(([k, v]) => (
+                <option key={k} value={k}>
+                  {v}
+                </option>
+              ))}
             </select>
           </div>
           {r.error && !r.data && <Erreur erreur={r.error} onRetry={r.reload} />}
@@ -90,6 +91,7 @@ export function Courriels({ id }) {
 }
 
 function Apercu({ id, depuisListe }) {
+  const s = useSession();
   const besoin = !depuisListe?.contenu;
   const r = useCrm(besoin ? 'courriel' : null, { id });
   const c = besoin ? r.data?.courriel || r.data : depuisListe;
@@ -100,7 +102,9 @@ function Apercu({ id, depuisListe }) {
   }, [id, !!c]);
   if (besoin && r.error) return <Erreur erreur={r.error} onRetry={r.reload} />;
   if (!c) return <div class="card"><SkeletonRows n={6} cols={2} /></div>;
-  const lie = c.lie ? lienDe(c.lie.type, c.lie.id) : null;
+  const lie = c.lie && LIES[c.lie.type] ? lienDe(c.lie.type, c.lie.id) : null;
+  const rub = lie ? rubriqueDe(lie) : null;
+  const voit = rub?.droit ? accessible(rub, s.peut) : !!lie;
   return (
     <div class="detail stack stack--s">
       <Link class="page__back detail__retour" href={`/crm/courriels${location.search}`}>
@@ -110,13 +114,12 @@ function Apercu({ id, depuisListe }) {
       <h2 class="sr-only" tabIndex={-1} ref={ref}>
         {c.objet}
       </h2>
-      {lie && (
-        <Notice icone="lien">
-          Lié à{' '}
+      {lie && voit && (
+        <p class="small">
           <Link class="link" href={lie}>
-            {c.lie.libelle || `${c.lie.type} ${c.lie.id}`}
+            <Icon name="lien" size="xs" /> {LIES[c.lie.type]}
           </Link>
-        </Notice>
+        </p>
       )}
       <ApercuCourriel courriel={c} />
     </div>
