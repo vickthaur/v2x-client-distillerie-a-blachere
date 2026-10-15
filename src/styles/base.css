@@ -290,7 +290,9 @@ body[data-hero] .hd[data-state='top']:not(.has-mega) .logo__img--light { opacity
 .menu.is-open { transform: none; visibility: visible; transition: transform 0.5s var(--ease); }
 .menu__in { display: flex; flex-direction: column; height: 100%; overflow-y: auto; overscroll-behavior: contain; }
 .menu__top { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; min-height: 68px; padding: 10px var(--gutter); background: var(--paper); border-bottom: 1px solid var(--line); }
-.menu__body { display: grid; gap: 30px; padding: 26px var(--gutter) 32px; }
+/* colonne bornée à l'écran : sans minmax(0, …), le carrousel des marques élargissait tout le menu
+   (chevrons et pastille 18+ poussés hors de l'écran) */
+.menu__body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 30px; padding: 26px var(--gutter) 32px; }
 .menu__h { margin-bottom: 12px; font: 650 0.74rem/1.2 var(--font); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); }
 .menu__brands { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(200px, 1fr); gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter); margin-inline: calc(-1 * var(--gutter)); padding-inline: var(--gutter); scrollbar-width: none; }
 .menu__brands::-webkit-scrollbar { display: none; }
@@ -303,6 +305,7 @@ body[data-hero] .hd[data-state='top']:not(.has-mega) .logo__img--light { opacity
 .menu__list li + li { border-top: 1px solid var(--line); }
 .menu__list a { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0; font: 650 1.3rem/1.2 var(--font); letter-spacing: -0.015em; text-decoration: none; }
 .menu__list a::after { content: ''; width: 9px; height: 9px; border-top: 1.8px solid currentColor; border-right: 1.8px solid currentColor; transform: rotate(45deg); opacity: 0.5; }
+.menu__list a > .tag18 { margin-right: auto; }
 .menu__foot { display: grid; gap: 16px; margin-top: auto; padding: 18px var(--gutter) calc(22px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: #fff; }
 .menu__util { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 0.9rem; }
 .menu__util .hd__lang { margin: 0; padding: 0; border: 0; }
