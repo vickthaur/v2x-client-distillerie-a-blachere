@@ -1547,6 +1547,10 @@ html.impression, .impression body { background: #e9e5dd; }
 .print-barre .btn--primary { --b-bg: #fff; --b-ink: var(--ink); --b-line: #fff; --b-hover: #f0ece4; }
 .print__page { width: 210mm; max-width: calc(100vw - 24px); min-height: 297mm; margin: 24px auto 48px; padding: 16mm 15mm; background: #fff; box-shadow: 0 10px 40px rgba(21, 19, 15, 0.18); color: #000; }
 .print__etat { padding: 40px 0; text-align: center; color: var(--ink-3); }
+/* Filigrane : imprimé ou enregistré en PDF, un document de la démo ne peut pas passer pour une vraie
+   pièce de la distillerie (facture, bon de préparation, feuille d'émargement). */
+.print__page { position: relative; overflow: hidden; }
+.print__page::after { content: 'DÉMONSTRATION · MAQUETTE V2X'; position: absolute; inset: 0; display: grid; place-items: center; transform: rotate(-32deg); font: 800 24pt/1 var(--font); letter-spacing: 0.08em; white-space: nowrap; color: rgba(0, 0, 0, 0.07); pointer-events: none; }
 .doc { display: grid; gap: 7mm; font: 400 10pt/1.45 var(--font); color: #000; }
 .doc__entete { display: flex; justify-content: space-between; align-items: flex-start; gap: 10mm; padding-bottom: 5mm; border-bottom: 1.5pt solid #000; }
 .doc__logo { width: 52mm; height: auto; }
@@ -1609,6 +1613,8 @@ html.impression, .impression body { background: #e9e5dd; }
   .doc__table tr { break-inside: avoid; }
   .doc__mentions { break-inside: avoid; }
   .doc__net { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .print__page { overflow: visible; }
+  .print__page::after { position: fixed; }
   a { color: inherit; text-decoration: none; }
 }
 .rapide { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
