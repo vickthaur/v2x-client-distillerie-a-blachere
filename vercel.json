@@ -9,7 +9,7 @@
   "rewrites": [
     {
       "source": "/boutique/:slug",
-      "destination": "/produit.html"
+      "destination": "/produit"
     }
   ],
   "redirects": [
