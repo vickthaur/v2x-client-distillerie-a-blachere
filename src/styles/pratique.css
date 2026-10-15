@@ -25,7 +25,7 @@
 .form-grid > fieldset { min-width: 0; }
 .field__label { font: 600 0.86rem/1.3 var(--font); color: var(--ink); }
 legend.field__label { margin-bottom: 7px; padding: 0; }
-.field__hint { font-size: 0.8rem; line-height: 1.4; color: var(--ink-3); }
+.field__hint, .field > .field__hint { font: 400 0.8rem/1.4 var(--font); color: var(--ink-3); }
 .field__hint:empty { display: none; }
 .form-msg:empty { display: none; }
 .form-msg.err { background: #fbecea; color: var(--err); }
@@ -123,4 +123,47 @@ legend.field__label { margin-bottom: 7px; padding: 0; }
 .pro-list li { display: grid; align-content: start; gap: 4px; font-size: 0.9rem; line-height: 1.45; color: var(--ink-2); }
 .pro-list strong { font-weight: 650; color: var(--ink); }
 @media (max-width: 480px) { .pro-list { grid-template-columns: minmax(0, 1fr); } }
+.form-msg.info { background: var(--paper-2); color: var(--ink); }
+.login-opts { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 16px; }
+.login-forgot { padding: 6px 0; border: 0; background: none; font-size: 0.9rem; cursor: pointer; }
+.login-forgot-form { display: grid; gap: 16px; }
+.login-forgot-form__t { font-size: 0.94rem; line-height: 1.5; color: var(--ink-2); }
+.login-forgot-form__out { display: grid; gap: 8px; }
+.login-forgot-form__out:empty { display: none; }
+.login-forgot-form__actions { display: flex; flex-wrap: wrap; gap: 10px; }
+/* Entrée en démo : bloc pierre dans la carte de connexion */
+.pro-demo { display: grid; gap: 12px; padding: clamp(18px, 2vw, 24px); border: 1px solid var(--line); border-radius: var(--r); background: var(--paper-2); }
+.pro-demo__k { display: inline-flex; align-items: center; gap: 9px; font: 700 0.72rem/1 var(--font); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2); }
+.pro-demo__dot { width: 8px; height: 8px; border-radius: 50%; background: #f2d22e; box-shadow: 0 0 0 3px rgba(242, 210, 46, 0.3); }
+.pro-demo__t { font-size: 0.94rem; line-height: 1.5; color: var(--ink-2); }
+.pro-demo .btn { white-space: normal; text-align: center; line-height: 1.2; }
+.pro-demo__hint { font-size: 0.84rem; line-height: 1.6; color: var(--ink-3); }
+.pro-demo__hint .link { padding: 0; border: 0; background: none; font: inherit; font-weight: 650; color: var(--ink); cursor: pointer; overflow-wrap: anywhere; text-align: left; }
+.pro-demo__hint code { padding: 1px 6px; border: 1px solid var(--line); border-radius: 6px; background: #fff; color: var(--ink); font: 600 0.82rem/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.pro-demo__link { font-size: 0.88rem; line-height: 1.55; color: var(--ink-2); }
+.pro-demo__link .link { display: inline-block; margin-top: 4px; }
+/* Déjà connecté */
+.login-on { display: grid; gap: 16px; padding: 20px; border: 1px solid var(--line-2); border-radius: var(--r); background: var(--paper); }
+.login-on__who { display: flex; align-items: flex-start; gap: 12px; line-height: 1.5; }
+.login-on__icon { display: grid; place-items: center; flex: none; width: 36px; height: 36px; border-radius: 50%; background: #fff; border: 1px solid var(--line); }
+.login-on__icon svg { width: 18px; height: 18px; }
+.login-on__actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .faq__head { margin-top: clamp(48px, 6vw, 80px); }
+
+/* ---------- Contact ---------- */
+.contact-aside .h-section { font-size: clamp(1.6rem, 2.4vw, 2.2rem); }
+.contact-coord { display: grid; width: 100%; border-top: 1px solid var(--ink); }
+.contact-block { display: grid; gap: 6px; padding: 18px 0; border-bottom: 1px solid var(--line); font-size: 0.94rem; color: var(--ink-2); }
+.contact-block h3 { display: flex; align-items: center; gap: 10px; margin-bottom: 2px; font: 700 1rem/1.3 var(--font); color: var(--ink); }
+.contact-block h3 svg { flex: none; width: 18px; height: 18px; }
+.contact-block a { color: var(--ink); overflow-wrap: anywhere; }
+.contact-hours { display: grid; gap: 4px; }
+.contact-hours div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 16px; }
+.contact-hours dd { margin: 0; font-weight: 650; color: var(--ink); font-variant-numeric: tabular-nums; }
+.contact-links { display: grid; gap: 12px; width: 100%; padding: 22px 0 4px; }
+.contact-links a { font-size: 0.96rem; }
+.done__actions { display: flex; flex-wrap: wrap; gap: 10px; }
+@media (max-width: 560px) {
+  .done__actions { width: 100%; }
+  .done__actions > * { flex: 1 1 100%; white-space: normal; text-align: center; line-height: 1.25; padding-block: 12px; }
+}

@@ -23,22 +23,43 @@
         <div class="wrap split">
           <div class="form-card" id="login-card">
             <h2>Se connecter</h2>
-            <form id="pro-login" novalidate>
-              <div class="form-grid">
-                <label class="field full"><span class="field__label">Identifiant (e-mail)</span><input type="email" name="email" autocomplete="username" required /></label>
-                <label class="field full"><span class="field__label">Mot de passe</span><input type="password" name="mdp" autocomplete="current-password" required /></label>
-              </div>
-              <p class="form-msg" id="login-msg" role="alert"></p>
-              <button type="submit" class="btn btn--primary">Se connecter</button>
-            </form>
+            <div id="login-zone">
+              <form id="pro-login" novalidate>
+                <div class="form-grid">
+                  <label class="field full"><span class="field__label">Identifiant (e-mail)</span><input type="email" name="email" autocomplete="username" inputmode="email" required /></label>
+                  <label class="field full"><span class="field__label">Mot de passe</span><input type="password" name="mdp" autocomplete="current-password" required /></label>
+                  <div class="login-opts full">
+                    <label class="check"><input type="checkbox" name="rester" value="1" /><span>Rester connecté sur cet appareil</span></label>
+                    <button type="button" class="link login-forgot" id="forgot-open" aria-controls="pro-forgot" aria-expanded="false">Mot de passe oublié&#8239;?</button>
+                  </div>
+                </div>
+                <p class="form-msg" id="login-msg" role="alert"></p>
+                <button type="submit" class="btn btn--primary">Se connecter</button>
+              </form>
+              <form id="pro-forgot" class="login-forgot-form" novalidate hidden>
+                <p class="login-forgot-form__t">Indiquez l’adresse e-mail de votre compte&nbsp;: vous recevrez un lien pour choisir un nouveau mot de passe, valable une heure.</p>
+                <label class="field"><span class="field__label">E-mail</span><input type="email" name="email" autocomplete="username" inputmode="email" required /></label>
+                <div class="login-forgot-form__out" id="forgot-out" role="status" aria-live="polite"></div>
+                <div class="login-forgot-form__actions">
+                  <button type="submit" class="btn btn--primary">Recevoir le lien</button>
+                  <button type="button" class="btn btn--ghost" id="forgot-close">Retour à la connexion</button>
+                </div>
+              </form>
+            </div>
+            <div class="pro-demo" id="pro-demo">
+              <p class="pro-demo__k"><span class="pro-demo__dot" aria-hidden="true"></span>Démonstration</p>
+              <p class="pro-demo__t">Entrez en un clic dans le compte d’un café avignonnais fictif, le Café des Platanes&nbsp;: tarifs de démonstration, commande par cartons, factures, fiches techniques.</p>
+              <button type="button" class="btn btn--ink btn--block" id="pro-demo-go">Découvrir l’espace pro (démo)</button>
+              <p class="pro-demo__hint">Ou connectez-vous avec <button type="button" class="link" id="pro-demo-fill"><span>julien@cafe-des-platanes.example</span></button> et le mot de passe <code>Distillerie1835</code>.</p>
+            </div>
             <h3>Ce que vous y trouverez</h3>
             <ul class="pro-list">
-              <li><strong>Fiches techniques</strong><span>EAN, formats, colisage, à télécharger en PDF</span></li>
-              <li><strong>Médiathèque</strong><span>Logos, photos des bouteilles, éléments de PLV</span></li>
-              <li><strong>Recettes pour les cafés</strong><span>Le PAC à l’eau, le Blue Mojito</span></li>
-              <li><strong>Tarifs professionnels</strong><span>Et commande rapide</span></li>
+              <li><strong>Tarifs et commande</strong><span>Prix professionnels hors taxes, commande par cartons, franco de port</span></li>
+              <li><strong>Suivi et factures</strong><span>Commandes, livraisons, factures imprimables et échéances</span></li>
+              <li><strong>Fiches techniques</strong><span>Ingrédients, valeurs nutritionnelles, formats et colisage, à imprimer</span></li>
+              <li><strong>Médiathèque</strong><span>Logos et photos des bouteilles à télécharger</span></li>
             </ul>
-            <p class="note">Contenus à fournir par la distillerie. Le site actuel exporte déjà ses fiches produits en PDF.</p>
+            <p class="note">Démonstration&nbsp;: comptes, tarifs professionnels, colisages et stocks sont fictifs&#8239;; les fiches reprennent le catalogue officiel. EAN et éléments de PLV à fournir par la distillerie.</p>
           </div>
           <div class="form-card" id="pro-card">
             <h2>Demander un compte ou un référencement</h2>
@@ -48,10 +69,10 @@
                 <label class="field"><span class="field__label">Activité</span>
                   <select name="activite" required>
                     <option value="">Choisir…</option>
-                    <option>Café, hôtel, restaurant</option>
-                    <option>Caviste, épicerie fine</option>
-                    <option>Grande distribution, centrale d’achat</option>
-                    <option>Autre</option>
+                    <option value="chr">Café, hôtel, restaurant</option>
+                    <option value="caviste">Caviste, épicerie fine</option>
+                    <option value="distributeur">Grande distribution, centrale d’achat</option>
+                    <option value="autre">Autre</option>
                   </select>
                 </label>
                 <label class="field"><span class="field__label">SIRET</span><input type="text" name="siret" inputmode="numeric" placeholder="14 chiffres" /><span class="field__hint">Facultatif</span></label>
@@ -64,7 +85,7 @@
               </div>
               <p class="form-msg" id="pro-msg" role="alert"></p>
               <button type="submit" class="btn btn--primary">Envoyer la demande</button>
-              <p class="mock-note"><strong>Maquette :</strong> les formulaires vérifient la saisie mais n’envoient rien.</p>
+              <p class="mock-note"><strong>Démonstration&nbsp;:</strong> votre demande est enregistrée dans un espace de démonstration privé, visible seulement depuis ce navigateur&#8239;; rien n’est transmis à la distillerie.</p>
             </form>
           </div>
         </div>
