@@ -5,18 +5,18 @@
   "type": "module",
   "description": "Distillerie A. Blachère : maquette de refonte (V2X Studio), vitrine 3D, boutique et visites",
   "scripts": {
-    "predev": "node scripts/photos.mjs",
+    "predev": "node scripts/photos.mjs && node scripts/server-catalogue.mjs",
     "dev": "vite",
     "photos": "node scripts/photos.mjs",
     "catalogue": "node scripts/import-catalogue.mjs",
     "import-site": "node scripts/import-site.mjs",
     "marques": "node scripts/marques.mjs",
-    "prebuild": "node scripts/photos.mjs",
+    "prebuild": "node scripts/photos.mjs && node scripts/server-catalogue.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "qa": "node scripts/qa.mjs",
     "test:photos": "node scripts/test-packshot.mjs",
-    "test": "node --test test/"
+    "test": "BLACHERE_STORE=memoire node --test 'test/*.test.js'"
   },
   "dependencies": {
     "@vercel/blob": "2.8.2",
