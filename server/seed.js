@@ -27,6 +27,7 @@ import {
   fraisLivraison,
   fraisPortPro,
   jourDeVisite,
+  libelleSeance,
   numero,
   PARAMETRES_DEFAUT,
   prixCompteHT,
@@ -1117,7 +1118,7 @@ export function genererDemo({ id, maintenant, hache, jetons }) {
     if (d.statut === 'refusee') evts.push({ date: d.traiteeLe, par: auteur(staff.commercial), action: 'demande.refus', cible: { type: 'demande', id: d.id, libelle: `Demande ${d.reference}` }, details: d.note });
   }
   for (const r of reservations.filter((x) => x.source === 'crm' || x.source === 'telephone')) {
-    evts.push({ date: r.createdAt, par: auteur(staff.boutique), action: 'reservation.creation', cible: { type: 'reservation', id: r.id, libelle: `Visite ${r.reference}` }, details: `${r.personnes} personne${r.personnes > 1 ? 's' : ''}, ${r.date}` });
+    evts.push({ date: r.createdAt, par: auteur(staff.boutique), action: 'reservation.creation', cible: { type: 'reservation', id: r.id, libelle: `Visite ${r.reference}` }, details: `${r.personnes} personne${r.personnes > 1 ? 's' : ''}, ${libelleSeance(r.date, r.moment, jourParis(r.createdAt))}` });
   }
   for (const cam of doc.campagnes) {
     const u = doc.utilisateurs.find((x) => x.id === cam.creePar);

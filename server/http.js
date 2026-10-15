@@ -302,7 +302,7 @@ export function paginer(liste, ctx, { parDefaut = 25, max = 100 } = {}) {
 
 // Tri ?tri=date|-date|total… : cles = { date: (x) => …, total: (x) => … }.
 export function trier(liste, tri, cles, parDefaut) {
-  const t = tri && cles[tri.replace(/^-/, '')] ? tri : parDefaut;
+  const t = tri && Object.hasOwn(cles, tri.replace(/^-/, '')) ? tri : parDefaut;
   const desc = t.startsWith('-');
   const cle = cles[t.replace(/^-/, '')];
   return [...liste].sort((a, b) => {

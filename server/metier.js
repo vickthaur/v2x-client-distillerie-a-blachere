@@ -19,8 +19,8 @@ import {
   fraisPortPro,
   jourDeVisite,
   LIBELLES_LIVRAISON,
-  LIBELLES_MOMENTS,
   LIBELLES_STATUTS,
+  libelleSeance,
   licenceAlcool,
   MOMENTS,
   placesRestantes,
@@ -30,7 +30,7 @@ import {
   versEuros,
 } from './regles.js';
 import { ajouterJours, instantParis, iso, jourParis } from './temps.js';
-import { euros, typo } from './typo.js';
+import { euros, jourEtMois, joursSemaine, typo } from './typo.js';
 
 // Adresses du CRM vers un élément (boutons « Voir dans le CRM »).
 export const LIENS_CRM = {
@@ -429,14 +429,15 @@ export function reserver(doc, m, donnees, { source, par }) {
   const p = doc.parametres.visites;
   const existante = seanceDe(doc, jour, moment);
   if (!existante && !jourDeVisite(jour, p)) {
-    throw erreur(400, 'La distillerie ne propose pas de visite ce jour-là (saison du 12 février au 31 décembre, fermé le dimanche).', { champ: 'date', code: 'ferme' });
+    const fermes = p.fermeLe.length ? `, fermé ${joursSemaine(p.fermeLe)}` : '';
+    throw erreur(400, `La distillerie ne propose pas de visite ce jour-là (saison du ${jourEtMois(p.saison.debut)} au ${jourEtMois(p.saison.fin)}${fermes}).`, { champ: 'date', code: 'ferme' });
   }
   const r0 = restantes(doc, jour, moment, date);
   const commencee = instantParis(jour, existante?.heure || p.horaires[moment]).getTime() <= date.getTime();
   if (commencee) throw erreur(400, 'Cette séance a déjà commencé : choisissez une autre date ou un autre moment.', { champ: 'moment', code: 'passe' });
   if (r0 < personnes) {
     const fermee = existante && (existante.statut || 'ouverte') === 'fermee';
-    throw erreur(409, fermee ? `Pas de visite le ${jour} ${LIBELLES_MOMENTS[moment]} : séance fermée.` : r0 ? `Plus que ${r0} place${r0 > 1 ? 's' : ''} pour cette séance.` : 'Cette séance est complète.', {
+    throw erreur(409, fermee ? `Pas de visite le ${libelleSeance(jour, moment, jourParis(date))} : séance fermée.` : r0 ? `Plus que ${r0} place${r0 > 1 ? 's' : ''} pour cette séance.` : 'Cette séance est complète.', {
       code: 'complet',
       restantes: r0,
       disponibilites: disponibilites(doc, jour, moment, personnes, date),
@@ -470,7 +471,7 @@ export function reserver(doc, m, donnees, { source, par }) {
     par,
     action: 'reservation.creation',
     cible: { type: 'reservation', id: r.id, libelle: `Visite ${r.reference}` },
-    details: typo(`${personnes} personne${personnes > 1 ? 's' : ''}, ${jour} ${LIBELLES_MOMENTS[moment]}`),
+    details: typo(`${personnes} personne${personnes > 1 ? 's' : ''}, ${libelleSeance(jour, moment, jourParis(date))}`),
   });
   deposerCourriel(doc, date, C.confirmationVisite(r, seanceComplete(s, doc.parametres)));
   if (donnees.newsletter) {

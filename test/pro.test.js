@@ -218,6 +218,9 @@ describe('factures, compte, adresses, messages', () => {
     assert.equal(r.json.telephone, '04 65 71 00 00');
     assert.notEqual(r.json.raisonSociale, 'Pirate');
     assert.equal((await n.patch('pro', 'compte', { raisonSociale: 'Pirate' })).status, 400);
+    // null ou '' efface le téléphone ; l'e-mail de facturation, obligatoire, ne s'efface pas
+    assert.equal((await n.patch('pro', 'compte', { telephone: null })).json.telephone, undefined);
+    assert.ok((await n.patch('pro', 'compte', { telephone: '04 65 71 00 00', email: '' })).json.email);
     const c = (await n.get('pro', 'compte')).json;
     assert.ok(c.utilisateurs.some((u) => u.statut === 'invitation'), 'Camille Morel invitée');
   });

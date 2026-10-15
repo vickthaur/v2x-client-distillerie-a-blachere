@@ -3,7 +3,7 @@
 // commercial, au centime, à chaque ligne).
 import { erreur } from './http.js';
 import { ajouterJours, annee2, finDeMois, jourSemaine } from './temps.js';
-import { euros } from './typo.js';
+import { dateCourte, euros } from './typo.js';
 
 // ---------- Centimes ----------
 
@@ -388,6 +388,10 @@ export function prochainNumero(doc, type, date) {
 export const MOMENTS = ['matin', 'apres-midi'];
 export const LIBELLES_MOMENTS = { matin: 'matin', 'apres-midi': 'après-midi' };
 
+// Séance d'un jour et d'un moment, pour les messages et le journal : « 12 novembre (après-midi) »
+// (l'année seulement si elle diffère de celle du jour de référence).
+export const libelleSeance = (jour, moment, reference) => `${dateCourte(jour, reference)} (${LIBELLES_MOMENTS[moment]})`;
+
 // Jour de visite : dans la saison (MM-JJ de début et de fin compris) et pas un jour de fermeture.
 export function jourDeVisite(jour, visites = PARAMETRES_DEFAUT.visites) {
   const mj = jour.slice(5);
@@ -410,8 +414,8 @@ export const placesRestantes = (seance, reservations) =>
 export function appliquerPromo(promo, { articlesTTC, aujourdhui }) {
   const refus = (message) => erreur(400, message, { champ: 'code', code: 'promo' });
   if (!promo || !promo.actif) throw refus('Ce code promo n’existe pas ou n’est plus actif.');
-  if (promo.debut && aujourdhui < promo.debut) throw refus('Ce code promo n’est pas encore valable.');
-  if (promo.fin && aujourdhui > promo.fin) throw refus('Ce code promo a expiré.');
+  if (promo.debut && aujourdhui < promo.debut) throw refus(`Ce code promo n’est valable qu’à partir du ${dateCourte(promo.debut, aujourdhui)}.`);
+  if (promo.fin && aujourdhui > promo.fin) throw refus(`Ce code promo a expiré le ${dateCourte(promo.fin, aujourdhui)}.`);
   if (promo.limite && promo.utilisations >= promo.limite) throw refus('Ce code promo a atteint son nombre d’utilisations.');
   if (versCentimes(articlesTTC) < versCentimes(promo.minimumTTC || 0)) throw refus(`Ce code s’applique dès ${euros(promo.minimumTTC)} d’achats.`);
   const articlesC = versCentimes(articlesTTC);
