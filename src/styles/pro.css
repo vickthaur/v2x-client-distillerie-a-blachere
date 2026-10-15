@@ -651,6 +651,12 @@
 }
 
 /* ---------- Impression : la feuille seule ---------- */
+/* Filigrane des factures (comme dans le CRM) : imprimée ou en PDF, une facture de la démo ne peut pas
+   passer pour une vraie pièce de la distillerie. */
+.sheet:has(.inv__table) { overflow: hidden; }
+.sheet:has(.inv__table)::after { content: 'DÉMONSTRATION · MAQUETTE V2X'; position: absolute; inset: 0; display: grid; place-items: center; transform: rotate(-32deg); font: 800 24pt/1 var(--font); letter-spacing: 0.08em; white-space: nowrap; color: rgba(0, 0, 0, 0.07); pointer-events: none; }
+@media (max-width: 640px) { .sheet:has(.inv__table)::after { font-size: 13pt; } }
+
 @media print {
   @page { size: A4; margin: 12mm; }
   html, body { background: #fff !important; }
@@ -663,4 +669,6 @@
   .inv__table tr, .fiche__nut tr { break-inside: avoid; }
   .fiche__shot { background: none; }
   .inv__due { background: none; border: 1px solid #000; }
+  .sheet:has(.inv__table) { overflow: visible; }
+  .sheet:has(.inv__table)::after { position: fixed; font-size: 24pt; }
 }
