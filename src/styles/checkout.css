@@ -128,7 +128,7 @@ body[data-step='panier'] .co { grid-template-columns: minmax(0, 1fr); }
 .co-done__recap { display: grid; width: 100%; margin: 4px 0; border-top: 1px solid var(--line); }
 .co-done__recap > div { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 0.94rem; }
 .co-done__recap dt { color: var(--ink-3); }
-.co-done__recap dd { margin: 0; color: var(--ink); font-variant-numeric: tabular-nums; }
+.co-done__recap dd { margin: 0; color: var(--ink); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .co-done__recap small { color: var(--ink-3); }
 .co-done .op-cart { width: 100%; margin: 0; }
 .co-done .btn { white-space: normal; text-align: center; line-height: 1.2; }

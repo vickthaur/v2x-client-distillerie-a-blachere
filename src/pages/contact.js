@@ -14,6 +14,7 @@ import { icons } from '../lib/icons.js';
 
 const site = initSite({ askAge: false });
 const NB = ' ';
+const NNB = ' ';
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const SUJETS = { commande: 'Une commande', visite: 'Une visite de la distillerie', pro: 'Un compte professionnel', presse: 'La presse', autre: 'Autre chose' };
 const HINTS = {
@@ -141,7 +142,7 @@ function done(d, r) {
       <div><dt>Sujet</dt><dd>${esc(SUJETS[d.sujet] || d.sujet)}</dd></div>
       <div><dt>Contact</dt><dd>${esc(d.nom.trim())} · ${esc(d.email.trim())}${d.tel?.trim() ? ` · ${esc(d.tel.trim())}` : ''}</dd></div>
     </dl>
-    <p class="mock-note"><strong>Démonstration${NB}:</strong> le message est enregistré dans un espace de démonstration privé, visible seulement depuis ce navigateur${' '}; rien n’est transmis à la distillerie. Il apparaît dans les messages du CRM de démonstration.</p>
+    <p class="mock-note"><strong>Démonstration${NB}:</strong> le message est enregistré dans un espace de démonstration privé, visible seulement depuis ce navigateur${NNB}; rien n’est transmis à la distillerie. Il apparaît dans les messages du CRM de démonstration.</p>
     <div class="done__actions">
       ${crm ? `<a class="btn btn--primary" href="${esc(crm)}">Voir le message dans le CRM (démo)</a>` : ''}
       <button type="button" class="btn btn--ghost" id="contact-again">Écrire un autre message</button>

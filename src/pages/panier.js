@@ -337,7 +337,7 @@ const VIEWS = {
       <ul class="co-lines">${t.lines.map((l) => lineHTML(l, false)).join('')}</ul>
       <div class="co-recap__grid">
         <div class="co-card co-card--flat"><h2 class="co-card__title">Vos coordonnées</h2><p>${esc(c.prenom)} ${esc(c.nom)}<br />${esc(c.email)}<br />${esc(c.tel)}</p><button type="button" class="link" data-goto="coordonnees">Modifier</button></div>
-        <div class="co-card co-card--flat"><h2 class="co-card__title">Remise</h2>${modeSummary()}<button type="button" class="link" data-goto="livraison">Modifier</button></div>
+        <div class="co-card co-card--flat"><h2 class="co-card__title">${order.mode === 'retrait' ? 'Retrait' : 'Livraison'}</h2>${modeSummary()}<button type="button" class="link" data-goto="livraison">Modifier</button></div>
       </div>
       ${promoHTML()}
       <div id="co-totals">${totalsFull(t)}</div>
@@ -381,7 +381,7 @@ const VIEWS = {
       <dl class="co-done__recap">
         <div><dt>Montant</dt><dd>${euro(d.totalTTC)}${d.remise ? ` <small>(code ${esc(d.code)}\u00a0: −${euro(d.remise)})</small>` : ''}</dd></div>
         <div><dt>Paiement</dt><dd>${pay}</dd></div>
-        <div><dt>Remise</dt><dd>${d.mode === 'retrait' ? `Retrait à la distillerie${d.date ? `, ${esc(frDate(d.date))}` : ''}` : `${esc(TRANSPORTS[d.transport]?.label || 'Livraison')} · ${d.livraison ? euro(d.livraison) : 'offerte'}`}</dd></div>
+        <div><dt>${d.mode === 'retrait' ? 'Retrait' : 'Livraison'}</dt><dd>${d.mode === 'retrait' ? `À la distillerie${d.date ? `, ${esc(frDate(d.date))}` : ''} · gratuit` : `${esc(TRANSPORTS[d.transport]?.label || 'Livraison')} · ${d.livraison ? euro(d.livraison) : 'offerte'}`}</dd></div>
       </dl>
       <p>${
         d.mode === 'retrait'
