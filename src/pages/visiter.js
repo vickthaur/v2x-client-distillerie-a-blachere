@@ -44,9 +44,9 @@ $('#infos').innerHTML = `
 const faq = [
   ['Faut-il réserver\u202f?', 'Pas pour passer à la boutique et goûter. La visite guidée de la distillerie, elle, se fait uniquement sur réservation.'],
   ['Combien de temps dure la visite guidée\u202f?', 'Une heure, dégustation comprise, par groupes de 25 personnes au plus. Le parcours passe par la zone de stockage, l’herboristerie, la salle d’étiquetage, le vieux chai et la production, visible derrière les vitres.'],
-  ['Peut-on venir avec des enfants\u202f?', 'Oui : les mineurs dégustent les sirops. Les alcools sont réservés aux personnes majeures.'],
+  ['Peut-on venir avec des enfants\u202f?', 'Oui\u00a0: les mineurs dégustent les sirops. Les alcools sont réservés aux personnes majeures.'],
   ['Est-ce ouvert le dimanche\u202f?', 'Les visites sont fermées le dimanche. La saison 2026 court du 12 février au 31 décembre.'],
-  ['Quel est le tarif\u202f?', 'La dégustation en boutique est gratuite. Le tarif de la visite guidée est à confirmer : les sources ne donnent pas toutes le même.'],
+  ['Quel est le tarif\u202f?', 'La dégustation en boutique est gratuite. Le tarif de la visite guidée est à confirmer\u00a0: les sources ne donnent pas toutes le même.'],
 ];
 $('#faq').innerHTML = faq.map(([q, a]) => `<details><summary>${esc(q)}${icons.chevron}</summary><p>${esc(a)}</p></details>`).join('');
 

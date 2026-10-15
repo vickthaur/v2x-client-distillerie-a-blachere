@@ -28,7 +28,7 @@ export function formulesHTML({ compact = false, choose = false } = {}) {
     .join('')}</ul>`;
 }
 
-export const saisonHTML = () => `<p class="saison">${icons.clock}<span><strong>Saison 2026 :</strong> ${esc(saison.texte.replace('Du ', 'du '))} · ${esc(saison.ferme.toLowerCase())}</span></p>`;
+export const saisonHTML = () => `<p class="saison">${icons.clock}<span><strong>Saison 2026\u00a0:</strong> ${esc(saison.texte.replace('Du ', 'du '))} · ${esc(saison.ferme.toLowerCase())}</span></p>`;
 
 // ---------- Message sanitaire ----------
 export const evinHTML = (extra = '') => `<p class="evin ${extra}">${esc(EVIN)} ${esc(MINEURS)}</p>`;
