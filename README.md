@@ -135,10 +135,18 @@ Labo de réglage (développement seulement, non versionné) : `labo.html?scene=d
   nutritionnelles, conseils, « le saviez-vous ? ») ; « Expédition et paiement » d'après les CGV ;
   formats vus seulement en grande surface (« Aussi en 70 cl en grande surface — voir Où trouver nos
   produits ») ; recettes liées.
-- **Commande** (maquette) : coordonnées (case « J'ai 18 ans ou plus » avec de l'alcool) → retrait ou
-  livraison (expédition sous 3 jours ouvrés au plus après le règlement, livraison sous 30 jours, frais
-  indiqués avant validation) → récapitulatif (rétractation de 14 jours, casse) → paiement simulé (CB,
-  Visa, Mastercard ; PayPal ; virement : les moyens des CGV) avec acceptation des CGV obligatoire.
+- **Commande** (démo) : coordonnées (case « J'ai 18 ans ou plus » avec de l'alcool) → retrait à la
+  distillerie (jour choisi, gratuit) ou livraison Colissimo à domicile ou en point relais (tarifs et
+  franco calculés par le serveur ; expédition sous 3 jours ouvrés au plus après le règlement) →
+  récapitulatif (code promo, rétractation de 14 jours, casse) → paiement simulé (CB, Visa, Mastercard ;
+  PayPal ; virement : les moyens des CGV) avec acceptation des CGV obligatoire → numéro de commande,
+  montant du serveur et lien vers la commande dans le CRM de démonstration. Pendant une démo, la
+  boutique, les fiches et le panier suivent les prix et les stocks de la démo (« Stock bas »,
+  « Rupture »).
+- **Espace professionnel** (`/espace-pro`, démo) : connexion, mot de passe oublié, demande de compte,
+  invitation ; catalogue aux tarifs du compte (par cartons, stocks, spiritueux selon la licence),
+  commande avec devis du serveur (franco, minimum, encours), suivi des commandes, factures et fiches
+  techniques imprimables (A4), médiathèque, compte et adresses, messages avec la distillerie.
 
 ## Âge légal et loi Évin
 
@@ -221,9 +229,13 @@ Labo de réglage (développement seulement, non versionné) : `labo.html?scene=d
 
 ## Ce qui est simulé
 
-Paiement, envoi de la commande, réservation de visite, connexion et demande de compte pro, lettre
-d'information : les formulaires vérifient la saisie, affichent une confirmation et n'envoient rien.
-La carte des points de vente est un emplacement réservé ; la liste est indicative.
+Le paiement (carte, PayPal, virement) et tout envoi réel. La commande, la réservation de visite, le
+contact, la demande de compte pro et la lettre d'information s'enregistrent dans la démo privée du
+navigateur (voir « CRM et espace pro ») et apparaissent dans le CRM de démonstration ; les e-mails sont
+rangés dans ses courriels envoyés, rien n'est transmis à la distillerie. Une barre « Démo » (en bas à
+droite) mène au CRM et à l'espace pro et permet de quitter la démo ; sans démo en cours, la boutique et
+les fiches produit n'appellent pas l'API. La carte des points de vente est un emplacement réservé ; la
+liste est indicative.
 
 ## CRM et espace pro
 
@@ -312,12 +324,17 @@ Adresses propres : réécritures de Vite en développement (`vite.config.js`), `
 - `src/data/` : catalogue officiel importé, données du site (`site/`), présentation des produits.
 - `src/partials/` : en-tête (barre utilitaire, méga-menus, recherche, menu), pied de page, fenêtres.
 - `src/app/` : site commun (âge, en-tête, panier latéral), cartes, pièces d'archives, blocs de marque.
-- `src/pages/` : un module par page. `src/lib/` : panier, filtres, marques, alcool, vignettes, photos.
+- `src/pages/` : un module par page (dont `contact.js`). `src/lib/` : panier, filtres, marques, alcool,
+  vignettes, photos, client d'API (`api.js`), démo (`demo.js` : barre de démo, prix et stocks de la
+  démo sur la boutique).
+- `src/pro/` : application de l'espace professionnel (`pro.html`, Preact) : routeur, données, commande
+  en cours, composants, vues (`src/pro/vues/`).
 - `src/three/` : studio (rendu, post-traitement), plateau, bouteilles en photo, garnitures, campagnes,
   visionneuse, rendus de vignettes ; bouteilles et étiquettes dessinées de secours.
 - `src/styles/` : `base.css` (système), `home.css`, `brand.css` (pages de marque, archives, maison,
   recettes, textes légaux), `pratique.css` (visiter, où trouver, espace pro : formulaires, formules,
-  points de vente), `shop.css`, `product.css`, `checkout.css`.
+  points de vente, contact), `shop.css`, `product.css`, `checkout.css`, `pro.css` (espace pro, feuilles
+  A4 imprimables), `demo.css` (barre de démo).
 
 ## Robustesse
 

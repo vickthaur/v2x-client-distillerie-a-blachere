@@ -126,8 +126,8 @@ function Liste() {
 // le CRM), sinon les mentions du site.
 const mentions = textes.mentions?.texte || [];
 const SIRET = (mentions.find((l) => /^SIRET/.test(l)) || '').replace(/^SIRET\s*:\s*/, '') || null;
-// « Raison sociale : SARL DISTILLERIE A. BLACHERE au capital de 165 493 EUROS »
-const CAPITAL = ((mentions.find((l) => /^Raison sociale/i.test(l)) || '').match(/capital de ([\d\s\u00a0\u202f]+?)\s*EUROS?/i)?.[1] || '').trim().replace(/\s+/g, NB) || null;
+// Capital social : 165 493 € selon les mentions du site, 1 508 428 € selon le BODACC (mai 2025) ; à
+// confirmer par la distillerie, donc « à compléter » tant que les paramètres ne le donnent pas.
 
 function Facture({ id, session }) {
   const cmd = useDonnees('commande', { id });
@@ -347,7 +347,7 @@ function Facture({ id, session }) {
             En cas de retard de paiement, pénalités au taux de <Afc /> (au moins trois fois le taux d’intérêt légal) et indemnité forfaitaire pour frais de recouvrement de 40{NB}€ (articles L.{NB}441-10 et D.{NB}441-5 du Code de commerce).
           </p>
           <p>
-            {(ent.raisonSociale || 'SARL Distillerie A. Blachère')} · capital social {ent.capital || (CAPITAL ? `${CAPITAL}${NB}€` : <Afc />)} · SIRET {ent.siret || SIRET || <Afc />} · RCS {ent.rcs || <Afc />} · TVA intracommunautaire {ent.tvaIntra || <Afc />}.
+            {(ent.raisonSociale || 'SARL Distillerie A. Blachère')} · capital social {ent.capital || <Afc />} · SIRET {ent.siret || SIRET || <Afc />} · RCS {ent.rcs || <Afc />} · TVA intracommunautaire {ent.tvaIntra || <Afc />}.
           </p>
           {alcool && <p class="inv__evin">{EVIN}</p>}
         </footer>
