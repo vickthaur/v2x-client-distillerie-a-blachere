@@ -4,7 +4,7 @@
 // par le pro ; visites jusqu'à la séance complète ; ménage des démos inutilisées.
 import assert from 'node:assert/strict';
 import { afterEach, describe, test } from 'node:test';
-import { commandePublique, environnementNeuf, ligne, Navigateur } from './aide.js';
+import { adresseEssai, commandePublique, environnementNeuf, ligne, Navigateur } from './aide.js';
 import { magasin, utiliserPilote } from '../server/store.js';
 import { cheminDemo } from '../server/demo.js';
 import { chargeDemo } from '../server/acces.js';
@@ -13,10 +13,13 @@ describe('parcours de démonstration', () => {
   test('du site au CRM, puis à l’espace pro, et retour', async () => {
     environnementNeuf();
     const navigateur = new Navigateur();
+    // visiteuse nouvelle quel que soit le tirage de la démo (domaine réservé aux tests, voir aide.js)
+    const claire = adresseEssai('claire.vidal');
+    const marc = adresseEssai('marc');
 
     // 1. Un visiteur commande sur le site : la démo est créée pour lui.
     const commande = await navigateur.post('site', 'commande', {
-      client: { prenom: 'Claire', nom: 'Vidal', email: 'claire.vidal@example.org', telephone: '06 39 98 45 12' },
+      client: { prenom: 'Claire', nom: 'Vidal', email: claire, telephone: '06 39 98 45 12' },
       livraison: { mode: 'relais', adresse: { ligne1: '12 rue des Écoles', cp: '30000', ville: 'Nîmes' } },
       paiement: { mode: 'paypal' },
       lignes: [ligne('pac-citron', '1000', 3), ligne('pastis-marra', '700', 1)],
@@ -49,7 +52,7 @@ describe('parcours de démonstration', () => {
     await navigateur.patch('crm', 'commande', { statut: 'en-preparation' }, { query: { id } });
     const exp = await navigateur.patch('crm', 'commande', { statut: 'expediee', suivi: { transporteur: 'Colissimo', numero: '6A98765432109' } }, { query: { id } });
     assert.equal(exp.json.statut, 'expediee');
-    const courriels = (await navigateur.get('crm', 'courriels', { q: 'claire.vidal' })).json.elements;
+    const courriels = (await navigateur.get('crm', 'courriels', { q: claire })).json.elements;
     // confirmation, bienvenue (newsletter), préparation, expédition
     assert.deepEqual(courriels.map((c) => c.type).sort(), ['bienvenue', 'commande', 'commande', 'expedition']);
     const confirmation = (await navigateur.get('crm', 'courriel', { id: courriels.find((c) => c.objet.includes('enregistrée')).id })).json;
@@ -57,7 +60,7 @@ describe('parcours de démonstration', () => {
     assert.ok(confirmation.contenu.paragraphes.some((p) => p.startsWith('Grâce à votre commande, 3 € seront reversés')));
 
     // 4. Une demande de compte pro arrive du site.
-    const demande = await navigateur.post('site', 'demande-pro', { societe: 'Le Comptoir Essai', activite: 'chr', siret: '123 456 789 00012', nom: 'Marc Essai', ville: 'Orange', email: 'marc@example.com', telephone: '04 65 71 99 88', message: 'Bar à vins, ouverture en novembre.', rgpd: true });
+    const demande = await navigateur.post('site', 'demande-pro', { societe: 'Le Comptoir Essai', activite: 'chr', siret: '123 456 789 00012', nom: 'Marc Essai', ville: 'Orange', email: marc, telephone: '04 65 71 99 88', message: 'Bar à vins, ouverture en novembre.', rgpd: true });
     assert.equal(demande.status, 201);
     await navigateur.entrer('commercial');
     const demandes = (await navigateur.get('crm', 'demandes', { statut: 'nouvelle' })).json.elements;
@@ -67,7 +70,7 @@ describe('parcours de démonstration', () => {
     // 5. Acceptée : compte, utilisateur et courriel d'invitation.
     const acceptee = await navigateur.post('crm', 'demande-accepter', { grille: 'chr', remise: 0, conditions: '30j-fdm', encoursMax: 3000, licence: 'licence-iv' }, { query: { id: dem.id } });
     assert.equal(acceptee.status, 201, acceptee.texte);
-    const invitation = (await navigateur.get('crm', 'courriels', { type: 'invitation', q: 'marc@example.com' })).json.elements[0];
+    const invitation = (await navigateur.get('crm', 'courriels', { type: 'invitation', q: marc })).json.elements[0];
     const lien = (await navigateur.get('crm', 'courriel', { id: invitation.id })).json.contenu.bouton.url;
     assert.match(lien, /^\/espace-pro\/activer\?jeton=[\w-]{43}$/);
 
@@ -77,11 +80,11 @@ describe('parcours de démonstration', () => {
     const rejoint = await telephone.get('session', 'rejoindre', { jeton: new URL(partage.lien).searchParams.get('jeton'), vers: 'pro' });
     assert.equal(rejoint.headers.get('location'), '/espace-pro');
     const jeton = new URL(lien, 'http://x').searchParams.get('jeton');
-    assert.equal((await telephone.get('session', 'invitation', { jeton })).json.email, 'marc@example.com');
+    assert.equal((await telephone.get('session', 'invitation', { jeton })).json.email, marc);
     const active = await telephone.post('session', 'activer', { jeton, motDePasse: 'Comptoir-Essai-2026' });
     assert.equal(active.status, 200);
     await telephone.post('session', 'deconnexion', { espace: 'pro' });
-    const connexion = await telephone.post('session', 'connexion', { email: 'marc@example.com', motDePasse: 'Comptoir-Essai-2026', espace: 'pro', resterConnecte: true });
+    const connexion = await telephone.post('session', 'connexion', { email: marc, motDePasse: 'Comptoir-Essai-2026', espace: 'pro', resterConnecte: true });
     assert.equal(connexion.status, 200);
 
     // (la production remplit le stock de pastis avant l'ouverture)
@@ -122,7 +125,7 @@ describe('parcours de démonstration', () => {
     assert.equal((await telephone.get('pro', 'commande', { id: pro.json.id })).json.statut, 'expediee');
     // le courriel « facture disponible » est parti (dans la boîte d'envoi)
     await navigateur.entrer('direction');
-    assert.ok((await navigateur.get('crm', 'courriels', { type: 'facture', q: 'marc@example.com' })).json.total >= 1);
+    assert.ok((await navigateur.get('crm', 'courriels', { type: 'facture', q: marc })).json.total >= 1);
   });
 
   test('visites : réservations jusqu’à la séance complète, puis 409 avec d’autres disponibilités', async () => {
@@ -133,7 +136,7 @@ describe('parcours de démonstration', () => {
       creneaux.find((j) => j.date > '2026-10-15' && j.ouvert && j.apresMidi.restantes >= 6 && j.apresMidi.restantes < 25) ||
       creneaux.find((j) => j.date > '2026-10-15' && j.ouvert && j.apresMidi.restantes > 0);
     let restantes = jour.apresMidi.restantes;
-    const corps = (personnes) => ({ date: jour.date, moment: 'apres-midi', personnes, mineurs: 0, langue: 'fr', nom: 'Famille Essai', email: 'famille@example.net', rgpd: true, newsletter: false });
+    const corps = (personnes) => ({ date: jour.date, moment: 'apres-midi', personnes, mineurs: 0, langue: 'fr', nom: 'Famille Essai', email: adresseEssai('famille'), rgpd: true, newsletter: false });
     while (restantes > 0) {
       const p = Math.min(restantes, 6);
       const r = await n.post('site', 'reservation', corps(p));

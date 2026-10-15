@@ -18,6 +18,7 @@ import {
   compacterSeance,
   index,
   ligneComplete,
+  totauxCommande,
 } from './modele.js';
 import { operationPourCommande } from './operation.js';
 import {
@@ -32,6 +33,7 @@ import {
   PARAMETRES_DEFAUT,
   prixCompteHT,
   prixProReference,
+  versCentimes,
 } from './regles.js';
 import { ajouterJours, heureParis, instantParis, iso, jourParis, jourSemaine, JOUR_MS } from './temps.js';
 
@@ -701,10 +703,11 @@ export function genererDemo({ id, maintenant, hache, jetons }) {
     c.facture = fac;
   }
   // Règlements des factures pro : payées à l'échéance (ou un peu avant) une fois l'échéance passée,
-  // parfois en avance ; une seule reste en retard (Bistrot du Vieux Lavoir, 45 jours).
+  // parfois en avance ; une seule reste en retard (Bistrot du Vieux Lavoir, 45 jours ; à défaut un
+  // autre compte, jamais le Café des Platanes, compte de démonstration de l'espace pro).
   const enRetardChoisie =
     facturesPro.filter((c) => c.compteId === comptes.lavoir.id && c.facture.echeance < ajouterJours(aujourdhui, -5)).pop() ||
-    facturesPro.filter((c) => c.facture.echeance < ajouterJours(aujourdhui, -5)).pop();
+    facturesPro.filter((c) => c.compteId !== comptes.platanes.id && c.facture.echeance < ajouterJours(aujourdhui, -5)).pop();
   for (const c of facturesPro) {
     const f = c.facture;
     if (c === enRetardChoisie) continue;
@@ -724,11 +727,21 @@ export function genererDemo({ id, maintenant, hache, jetons }) {
       c.paiement.date = iso(instantParis(f.payeeLe, '10:00').getTime());
     }
   }
-  // Café des Platanes (compte de démonstration) : deux factures à régler au plus, les plus récentes,
-  // pour que la démo de l'espace pro puisse commander.
-  const platanesARegler = facturesPro.filter((c) => c.compteId === comptes.platanes.id && c.facture.statut === 'a-regler' && c !== enRetardChoisie);
+  // Café des Platanes (compte de démonstration) : pour que la démo de l'espace pro puisse toujours
+  // commander, deux factures à régler au plus, les plus récentes, et un encours de 40 % au plus de
+  // l'encours autorisé (quel que soit le tirage : une seule commande dépasse parfois 900 €).
+  const platanesARegler = facturesPro.filter((c) => c.compteId === comptes.platanes.id && c.facture.statut === 'a-regler');
+  const plafondPlatanes = Math.floor(versCentimes(comptes.platanes.encoursMax) * 0.4);
+  const gardees = new Set();
+  let encoursPlatanes = 0;
+  for (const c of [...platanesARegler].reverse()) {
+    const ttc = versCentimes(totauxCommande(c).totalTTC);
+    if (gardees.size === 2 || encoursPlatanes + ttc > plafondPlatanes) break;
+    gardees.add(c);
+    encoursPlatanes += ttc;
+  }
   const veille = ajouterJours(aujourdhui, -1);
-  for (const c of platanesARegler.slice(0, -2)) {
+  for (const c of platanesARegler.filter((x) => !gardees.has(x))) {
     const paye = ajouterJours(c.facture.date, 8);
     c.facture.statut = 'payee';
     // réglée 8 jours après la facture, hier au plus tard (jamais avant la facture)

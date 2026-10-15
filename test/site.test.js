@@ -107,8 +107,19 @@ describe('commande en ligne', () => {
     assert.ok(doc.mouvements.some((m) => m.commandeId === c.id && m.motif === 'vente' && m.delta === -3));
     assert.ok(doc.courriels.some((x) => x.type === 'commande' && x.objet.includes(r.json.numero)));
     assert.equal(doc.courriels.at(-1).type, 'bienvenue');
-    assert.ok(doc.abonnes.some((a) => a.email === 'anne.essai@example.com'));
-    assert.ok(doc.clients.some((k) => k.email === 'anne.essai@example.com'));
+    assert.ok(doc.abonnes.some((a) => a.email === 'anne.essai@essai.test'));
+    assert.ok(doc.clients.some((k) => k.email === 'anne.essai@essai.test'));
+  });
+
+  test('newsletter cochée par une personne déjà abonnée : pas de second courriel de bienvenue', async () => {
+    const n = new Navigateur();
+    await n.post('site', 'commande', commandePublique({ newsletter: true }));
+    const r = await n.post('site', 'commande', commandePublique({ newsletter: true }));
+    assert.equal(r.status, 201, r.texte);
+    const doc = await docDe(n);
+    const recus = doc.courriels.filter((x) => x.a === 'anne.essai@essai.test').map((x) => x.type);
+    assert.deepEqual(recus, ['commande', 'bienvenue', 'commande']);
+    assert.equal(doc.abonnes.filter((a) => a.email === 'anne.essai@essai.test').length, 1);
   });
 
   test('validation : CGV, âge pour l’alcool, adresse, outre-mer, retrait, stock', async () => {

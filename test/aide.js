@@ -9,6 +9,15 @@ import { piloteMemoire, utiliserPilote } from '../server/store.js';
 import { fixerHorloge } from '../server/temps.js';
 
 export const MOT_DE_PASSE = 'Distillerie1835';
+
+// Adresses des visiteurs des tests : domaine réservé « .test » (RFC 2606), que le jeu de
+// démonstration n'emploie jamais (example.com, example.org, example.net, *.example : vérifié par
+// seed.test.js sur plusieurs tirages). Une démo est tirée au hasard (identifiant aléatoire) : une
+// adresse « prénom.nom@example.org » de visiteur peut donc déjà y figurer, abonnée ou cliente
+// (claire.vidal@example.org : environ un tirage sur cinquante), et le test qui l'attend nouvelle
+// échoue au hasard. Dans ce domaine, un visiteur des tests est toujours nouveau.
+export const DOMAINE_ESSAI = 'essai.test';
+export const adresseEssai = (local) => `${local}@${DOMAINE_ESSAI}`;
 // Jeudi 15 octobre 2026, 10 h 30 à Paris : Octobre Rose en cours, saison des visites ouverte.
 export const MAINTENANT = '2026-10-15T08:30:00Z';
 
@@ -100,7 +109,7 @@ export const ligne = (slug, varianteId, qte) => ({ slug, varianteId, qte });
 // Commande publique valide (corps de site?r=commande).
 export function commandePublique(extra = {}) {
   return {
-    client: { prenom: 'Anne', nom: 'Essai', email: 'anne.essai@example.com', telephone: '06 39 98 11 22' },
+    client: { prenom: 'Anne', nom: 'Essai', email: adresseEssai('anne.essai'), telephone: '06 39 98 11 22' },
     livraison: { mode: 'colissimo', adresse: { ligne1: '3 rue des Lilas', cp: '84000', ville: 'Avignon' } },
     paiement: { mode: 'carte' },
     lignes: [ligne('pac-citron', '1000', 3), ligne('fun-blue', '1000', 1)],
