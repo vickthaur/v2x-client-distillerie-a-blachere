@@ -80,6 +80,8 @@ function noterConnexion(doc, m, id) {
 async function connecter(ctx, espace, id, options) {
   const u = await muter(ctx, (doc, m) => noterConnexion(doc, m, id));
   poserSession(ctx, espace, u, options);
+  // chaque connexion prolonge le cookie de démo (30 jours)
+  poserCookiesDemo(ctx, ctx._demo.id);
   return { utilisateur: vuePublique(ctx._demo.doc, u), redirection: REDIRECTIONS[espace] };
 }
 
