@@ -112,7 +112,7 @@ function Formulaire({ cat, p, site, session, onFaite }) {
       return requestAnimationFrame(() => document.querySelector('[name="adresse"]')?.focus());
     }
     if (p.dateSouhaitee && p.dateSouhaitee < minDate) {
-      setErreur({ message: `La date souhaitée doit laisser 48 à 72${NB}h ouvrées : à partir du ${dateJour(minDate)}.`, champ: 'dateSouhaitee' });
+      setErreur({ message: `La date souhaitée doit laisser 48 à 72${NB}h ouvrées${NB}: à partir du ${dateJour(minDate)}.`, champ: 'dateSouhaitee' });
       return requestAnimationFrame(() => document.getElementById('cmd-date')?.focus());
     }
     setEnvoi(true);

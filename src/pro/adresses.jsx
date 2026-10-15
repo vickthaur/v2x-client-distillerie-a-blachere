@@ -57,7 +57,7 @@ export function AdresseForm({ initiale = {}, onEnregistrer, onAnnuler, titre = '
   };
   const inv = (n) => (champ === n ? { 'aria-invalid': 'true', class: 'is-invalid' } : {});
   return (
-    <form class="pro-form pro-adr-form" ref={ref} onSubmit={submit} noValidate>
+    <form class="pro-form pro-adr-form" ref={ref} onSubmit={submit} onInput={() => erreur && setErreur(null)} noValidate>
       <p class="pro-form__t">{titre}</p>
       <div class="pro-grid">
         <label class="field pro-span2">

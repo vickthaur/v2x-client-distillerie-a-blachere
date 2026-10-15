@@ -165,7 +165,7 @@ function Etablissement({ c, site, onSaved }) {
         </div>
       </dl>
       {edition && (
-        <form class="pro-form" ref={ref} onSubmit={save} noValidate>
+        <form class="pro-form" ref={ref} onSubmit={save} onInput={() => err && setErr(null)} noValidate>
           <div class="pro-grid">
             <label class="field">
               <span>Téléphone</span>
@@ -356,7 +356,7 @@ function MotDePasse({ site }) {
       <h2 class="pro-h2" id="acc-mdp">
         Mot de passe
       </h2>
-      <form class="pro-form" ref={ref} onSubmit={submit} noValidate>
+      <form class="pro-form" ref={ref} onSubmit={submit} onInput={() => err && setErr(null)} noValidate>
         <label class="field">
           <span>Mot de passe actuel</span>
           <input name="actuel" type="password" autocomplete="current-password" required {...inv('actuel')} />

@@ -16,7 +16,11 @@ export function Acces({ route, site, onConnecte }) {
   useEffect(() => {
     if (!invitation || !jeton) return;
     api('session', 'invitation', { query: { jeton } }).then(
-      (r) => setInfo(r || {}),
+      (r) => {
+        // Invitation d'un membre de l'équipe ouverte depuis l'espace pro : l'écran du CRM s'en charge.
+        if (r?.espace === 'crm') return location.replace(`/crm/activer?jeton=${encodeURIComponent(jeton)}`);
+        setInfo(r || {});
+      },
       (e) => (e?.status === 404 || e?.status === 400 || e?.status === 410 ? setInvalide(true) : setErr(e)),
     );
   }, [jeton]);
@@ -89,7 +93,9 @@ function Formulaire({ invitation, info, jeton, site, onConnecte, onInvalide }) {
     setOccupe(true);
     setErr(null);
     try {
-      await api('session', invitation ? 'activer' : 'reinitialiser-mot-de-passe', { method: 'POST', body: { jeton, motDePasse: v.motDePasse } });
+      const r = await api('session', invitation ? 'activer' : 'reinitialiser-mot-de-passe', { method: 'POST', body: { jeton, motDePasse: v.motDePasse } });
+      // Lien de réinitialisation d'un membre de l'équipe : connecté au CRM, on l'y emmène.
+      if (r?.redirection && !r.redirection.startsWith('/espace-pro')) return location.assign(r.redirection);
       const s = await api('session', 'moi', { query: { espace: 'pro' } });
       if (!s?.utilisateur) throw new Error(`La connexion n’a pas abouti${NB}: connectez-vous depuis la page de l’espace pro.`);
       onConnecte(s);
@@ -118,7 +124,7 @@ function Formulaire({ invitation, info, jeton, site, onConnecte, onInvalide }) {
       </h1>
       <p class="pro-lead">
         {invitation
-          ? `La distillerie a ouvert votre accès à l’espace professionnel${info.compte?.enseigne || info.compte?.raisonSociale ? ` de ${info.compte.enseigne || info.compte.raisonSociale}` : ''}. Choisissez un mot de passe pour vous connecter.`
+          ? `La distillerie a ouvert votre accès à l’espace professionnel${info.compte?.enseigne || info.compte?.raisonSociale ? ` pour ${info.compte.enseigne || info.compte.raisonSociale}` : ''}. Il ne reste qu’à choisir votre mot de passe.`
           : `Choisissez un nouveau mot de passe${NB}: vous serez connecté, et vos autres appareils déconnectés.`}
       </p>
       <form class="pro-form" ref={ref} onSubmit={submit} noValidate>
@@ -130,7 +136,10 @@ function Formulaire({ invitation, info, jeton, site, onConnecte, onInvalide }) {
         )}
         <label class="field">
           <span>Mot de passe</span>
-          <input type="password" name="motDePasse" autocomplete="new-password" minLength={10} required value={mdp} onInput={(e) => setMdp(e.currentTarget.value)} aria-describedby="acces-force" {...inv('motDePasse')} />
+          <input type="password" name="motDePasse" autocomplete="new-password" minLength={10} required value={mdp} onInput={(e) => {
+              setMdp(e.currentTarget.value);
+              if (err) setErr(null);
+            }} aria-describedby="acces-force" {...inv('motDePasse')} />
           <span class={`acces__force acces__force--${force}`} id="acces-force" aria-live="polite">
             <span class="acces__bar" aria-hidden="true">
               <span />
@@ -142,7 +151,7 @@ function Formulaire({ invitation, info, jeton, site, onConnecte, onInvalide }) {
         </label>
         <label class="field">
           <span>Confirmation</span>
-          <input type="password" name="confirmation" autocomplete="new-password" required {...inv('confirmation')} />
+          <input type="password" name="confirmation" autocomplete="new-password" required onInput={() => err && setErr(null)} {...inv('confirmation')} />
         </label>
         {err && (
           <p class="form-msg is-error" role="alert">

@@ -191,7 +191,7 @@ function Fil({ m, session, site, onMaj, reload }) {
         })}
       </ol>
       <div ref={fin} />
-      <form class="msg-reply" onSubmit={repondre} noValidate>
+      <form class="msg-reply" onSubmit={repondre} onInput={() => err && setErr(null)} noValidate>
         <label class="sr-only" for="msg-reply">
           Votre réponse
         </label>
@@ -253,7 +253,7 @@ function Nouveau({ route, site, onEnvoye }) {
           Nouveau message
         </h2>
       </header>
-      <form class="pro-form" onSubmit={envoyer} noValidate>
+      <form class="pro-form" onSubmit={envoyer} onInput={() => err && setErr(null)} noValidate>
         <label class="field">
           <span>Sujet</span>
           <select value={sujet} onChange={(e) => setSujet(e.currentTarget.value)}>
