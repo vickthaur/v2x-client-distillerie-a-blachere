@@ -84,7 +84,8 @@ export const FAMILLES = [
 // liquide  : couleur du liquide (bouteille 3D en attendant les photos) ; trouble : liquide opaque
 // etiquette: pac | funblue | provence | maison ; bouteille : silhouette (src/data/shapes.js)
 // phrase   : phrase d'accroche (citation de la fiche officielle quand elle existe)
-// notes    : faits à afficher sur la fiche (sources : site officiel, page Histoire, presse citée)
+// notes    : faits à afficher sur la fiche : t, la forme publique ; revue, la forme sourcée (site
+//            officiel, page Histoire, presse citée), montrée en mode revue (?revue) à la place de t
 // garnish  : éléments 3D autour de la bouteille (héros et fiche)
 // habillage: univers d'un spiritueux (comtat | camargue | ventoux | marcs | maison), sinon celui de la gamme
 const P = {
@@ -100,9 +101,9 @@ const P = {
     garnish: ['lemonSlice', 'lemon', 'ice'],
     phrase: '100 % naturel au jus de citron, sans colorant ni conservateur',
     notes: [
-      { t: 'Lancé en 1960 selon la page Histoire de la maison (marque déposée en 1962) : « sirop à base de sucre et de citron, sans colorants ».' },
-      { t: 'Louis Guiot le compose « de chaque première lettre du prénom de ses enfants : Pierre, Annick, Christian et Colette » (page Histoire).' },
-      { t: '« Toujours fabriqué dans le Vaucluse par la Distillerie A. Blachère », dit sa fiche.' },
+      { t: 'Depuis plus de 60 ans, un « sirop à base de sucre et de citron, sans colorants ».', revue: 'Lancé en 1960 selon la page Histoire de la maison (marque déposée en 1962) : « sirop à base de sucre et de citron, sans colorants ».' },
+      { t: 'Son nom, Louis Guiot le compose « de chaque première lettre du prénom de ses enfants : Pierre, Annick, Christian et Colette ».', revue: 'Louis Guiot le compose « de chaque première lettre du prénom de ses enfants : Pierre, Annick, Christian et Colette » (page Histoire).' },
+      { t: 'Toujours fabriqué dans le Vaucluse par la Distillerie A. Blachère.', revue: '« Toujours fabriqué dans le Vaucluse par la Distillerie A. Blachère », dit sa fiche.' },
       { t: 'Pour ses 60 ans, en 2023 : quatre étiquettes collector, trois de C215 et une de Claude Viallat.' },
     ],
     conseil: '1 volume de sirop pour 8 à 10 volumes d’eau plate ou gazeuse.',
@@ -132,7 +133,7 @@ const P = {
     trouble: true,
     notes: [
       { t: 'Sa fiche évoque « des notes d’amande grillée et de fleur d’oranger ».' },
-      { t: 'Elle suggère aussi la Mauresque : pastis et sirop d’orgeat.', alcool: true },
+      { t: 'À essayer aussi : la Mauresque, pastis et sirop d’orgeat.', revue: 'Sa fiche suggère aussi la Mauresque : pastis et sirop d’orgeat.', alcool: true },
     ],
   },
   'sirop-couleur-provence-grenadine': {
@@ -141,7 +142,7 @@ const P = {
     famille: 'fruits-rouges',
     liquide: '#b3121d',
     notes: [
-      { t: 'Idée de la fiche : le Shirley Temple.' },
+      { t: 'À essayer : le Shirley Temple.', revue: 'Idée de la fiche : le Shirley Temple.' },
       { t: 'Et aussi le Monaco (grenadine et bière), la Tomate (grenadine et pastis) et le Tequila Sunrise.', alcool: true },
     ],
     conseil: '1 volume de sirop pour 8 à 10 volumes d’eau.',
@@ -188,7 +189,7 @@ const P = {
     liquide: '#7a4a2a',
     phrase: 'La version non alcoolisée de la crème de châtaigne de la maison',
     phraseAlcool: true,
-    notes: [{ t: 'Idée de la fiche : une vinaigrette au vinaigre balsamique, avec un peu de sirop et d’huile d’olive.' }],
+    notes: [{ t: 'À essayer : une vinaigrette au vinaigre balsamique, avec un peu de sirop et d’huile d’olive.', revue: 'Idée de la fiche : une vinaigrette au vinaigre balsamique, avec un peu de sirop et d’huile d’olive.' }],
   },
   'sirop-fraise-barbe-a-papa': { nom: 'Sirop fraise barbe à papa', lignes: ['Fraise', 'barbe à papa'], famille: 'fruits-rouges', liquide: '#f28bb3' },
   'sucre-de-canne': {
@@ -229,7 +230,7 @@ const P = {
     bouteille: 'pastis',
     bouchon: '#1d4f91',
     habillage: 'maison',
-    notes: [{ t: 'La page Histoire de la maison raconte qu’il a été créé par un confrère de L’Isle-sur-la-Sorgue, Michel Marra.' }],
+    notes: [{ t: 'Il a été créé par un confrère de L’Isle-sur-la-Sorgue, Michel Marra.', revue: 'La page Histoire de la maison raconte qu’il a été créé par un confrère de L’Isle-sur-la-Sorgue, Michel Marra.' }],
   },
   'pastis-le-camarguais': {
     nom: 'Pastis « Le Camarguais® »',
@@ -240,7 +241,7 @@ const P = {
     bouteille: 'pastis',
     bouchon: '#8a1c2b',
     habillage: 'camargue',
-    notes: [{ t: 'Selon la page Histoire, « un des derniers pastis fabriqué à l’ancienne », né de l’amour de Jean-Claude Blachère pour la Camargue.' }],
+    notes: [{ t: '« Un des derniers pastis fabriqué à l’ancienne », né de l’amour de Jean-Claude Blachère pour la Camargue.', revue: 'Selon la page Histoire, « un des derniers pastis fabriqué à l’ancienne », né de l’amour de Jean-Claude Blachère pour la Camargue.' }],
   },
   'aperitif-lou-gardian': {
     nom: 'Lou Gardian®',
@@ -251,7 +252,7 @@ const P = {
     bouteille: 'liqueur',
     bouchon: '#6d1b2a',
     habillage: 'camargue',
-    notes: [{ t: 'La page Histoire le décrit comme « un doux mélange de vin et de pêche ».' }],
+    notes: [{ t: '« Un doux mélange de vin et de pêche ».', revue: 'La page Histoire le décrit comme « un doux mélange de vin et de pêche ».' }],
   },
   'aperitif-a-l-olive-bronzini': {
     nom: 'Apéritif à l’olive « Bronzini® »',
@@ -272,7 +273,7 @@ const P = {
     bouchon: '#8a5a32',
     bouchage: 'cork',
     habillage: 'camargue',
-    notes: [{ t: 'Selon la page Histoire, la première bouteille sérigraphiée de la maison, « à base de thym et de romarin de l’arrière-pays ».' }],
+    notes: [{ t: 'La première bouteille sérigraphiée de la maison, « à base de thym et de romarin de l’arrière-pays ».', revue: 'Selon la page Histoire, la première bouteille sérigraphiée de la maison, « à base de thym et de romarin de l’arrière-pays ».' }],
   },
   'la-camarguaise-luxe': {
     nom: 'La Camarguaise® Luxe',
@@ -322,7 +323,7 @@ const P = {
     bouchon: '#5a1630',
     habillage: 'comtat',
     notes: [
-      { t: 'La page Histoire la cite parmi les vieux marcs développés à partir de 1951, sous la direction de Louis Guiot.' },
+      { t: 'L’un des vieux marcs développés à partir de 1951, sous la direction de Louis Guiot.', revue: 'La page Histoire la cite parmi les vieux marcs développés à partir de 1951, sous la direction de Louis Guiot.' },
       { t: 'Son nom évoque les légats qui ont gouverné Avignon et le Comtat après les papes.' },
     ],
   },
@@ -373,7 +374,7 @@ const P = {
     bouteille: 'apothicaire',
     bouchage: 'cork',
     habillage: 'ventoux',
-    notes: [{ t: 'Selon la page Histoire, inspirée des produits du révérend frère Imbert, chimiste religieux du XVIIIe siècle.' }],
+    notes: [{ t: 'Inspirée des produits du révérend frère Imbert, chimiste religieux du XVIIIe siècle.', revue: 'Selon la page Histoire, inspirée des produits du révérend frère Imbert, chimiste religieux du XVIIIe siècle.' }],
   },
   'elixir-du-mont-ventoux': {
     nom: 'Élixir du Mont Ventoux®',
@@ -404,7 +405,7 @@ const P = {
     trouble: true,
     bouteille: 'liqueur',
     habillage: 'maison',
-    notes: [{ t: 'Selon la page Histoire, inspirée par Jean-Claude Blachère, natif de l’Ardèche.' }],
+    notes: [{ t: 'Inspirée par Jean-Claude Blachère, natif de l’Ardèche.', revue: 'Selon la page Histoire, inspirée par Jean-Claude Blachère, natif de l’Ardèche.' }],
   },
   'creme-de-myrtille': { nom: 'Crème de myrtille « L’Ardéchoise® »', lignes: ['Crème', 'de myrtille'], type: 'Crème de liqueur', famille: 'fruits-rouges', liquide: '#3a1530', bouteille: 'liqueur', habillage: 'maison' },
   'creme-de-framboise': { nom: 'Crème de framboise « L’Ardéchoise® »', lignes: ['Crème', 'de framboise'], type: 'Crème de liqueur', famille: 'fruits-rouges', liquide: '#8a1530', bouteille: 'liqueur', habillage: 'maison' },

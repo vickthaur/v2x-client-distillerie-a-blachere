@@ -18,6 +18,7 @@ import { icons } from '../lib/icons.js';
 import { thumbHTML, upgradeThumbs } from '../lib/thumbs.js';
 import { photoOf } from '../lib/photos.js';
 import { operationAffichee, concerne, encartFicheHTML } from '../lib/operation.js';
+import { noteRevue, selonRevue } from '../lib/revue.js';
 import { demoCatalogue, appliquerDemo, etatDemo, indisponible, ETATS } from '../lib/demo.js';
 
 const site = initSite({ askAge: false });
@@ -118,7 +119,7 @@ function priceHTML() {
 function boutiqueHTML() {
   return `<div class="pp__dispo">
     <p class="pp__dispo-title">${icons.store}<strong>${esc(DISPO_BOUTIQUE)}</strong></p>
-    <p>Ce produit n’est pas vendu en ligne. Prix, contenance${p.alcool ? ' et degré' : ''} à confirmer avec la distillerie : ${esc(infos.magasin.tel)}.</p>
+    <p>Ce produit n’est pas vendu en ligne. Prix, contenance${p.alcool ? ' et degré' : ''}\u00a0: renseignez-vous à la boutique, au <a href="${infos.magasin.telLien}">${esc(infos.magasin.tel)}</a>.${noteRevue(` Prix, contenance${p.alcool ? ' et degré' : ''} à confirmer avec la distillerie.`)}</p>
     <a class="link" href="/visiter">Préparer une visite</a>
   </div>`;
 }
@@ -180,10 +181,10 @@ function render() {
   const facts = [
     ['Gamme', p.gammeNom],
     ['Arôme', famille(p)],
-    ['Contenance', p.contenances.map((c) => (c.prix != null ? `${c.volume} (${euro(c.prix)})` : c.volume)).join(' · ') || 'À confirmer'],
-    p.alcool ? ['Degré d’alcool', p.degre ? `${String(p.degre).replace('.', ',')} % vol.` : 'À confirmer avec la distillerie'] : ['Alcool', 'Sans alcool'],
+    ['Contenance', p.contenances.map((c) => (c.prix != null ? `${c.volume} (${euro(c.prix)})` : c.volume)).join(' · ') || null, 'Sur demande à la boutique', 'À confirmer'],
+    p.alcool ? ['Degré d’alcool', p.degre ? `${String(p.degre).replace('.', ',')} % vol.` : null, 'Sur demande à la boutique', 'À confirmer avec la distillerie'] : ['Alcool', 'Sans alcool'],
     p.reference ? ['Référence', p.reference] : null,
-  ].filter((f) => f && f[1]);
+  ].filter((f) => f && (f[1] || f[2]));
   const volumes =
     p.contenances.length > 1
       ? `<fieldset class="pp__volumes"><legend>Contenance</legend><div class="pp__vols">${p.contenances
@@ -209,7 +210,7 @@ function render() {
           <button type="button" data-side="0">Face</button><button type="button" data-side="1">Dos</button>
         </div>
       </div>
-      <p class="pp__source" id="source" hidden></p>
+      <p class="pp__source" id="source" data-revue hidden></p>
     </div>
     <div class="pp__info">
       <p class="pp__gamme"><span>${esc(p.gammeNom)}</span>${p.bestSeller ? ' <span class="badge badge--best">Meilleure vente</span>' : ''}${concerne(operation, p.slug) ? ` <span class="badge badge--rose">${esc(operation.nom)}</span>` : ''}${p.alcool ? ' <span class="badge badge--age">18+</span>' : ''}</p>
@@ -237,9 +238,9 @@ function render() {
         <li>${icons.store}<span><strong>La boutique de la distillerie</strong> à Châteauneuf-du-Pape, du lundi au samedi</span></li>
       </ul>
       ${p.alcool ? `<p class="evin pp__evin">${esc(EVIN)} ${esc(MINEURS)}</p>` : ''}
-      <dl class="pp__facts">${facts.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
+      <dl class="pp__facts">${facts.map(([k, v, sinon, revue]) => `<div><dt>${esc(k)}</dt><dd>${v ? esc(v) : selonRevue(esc(sinon), esc(revue))}</dd></div>`).join('')}</dl>
       <div class="pp__details">${detailsHTML()}</div>
-      ${notes.length ? `<div class="pp__notes"><h2>À savoir</h2><ul>${notes.map((n) => `<li>${esc(n.t)}</li>`).join('')}</ul></div>` : ''}
+      ${notes.length ? `<div class="pp__notes"><h2>À savoir</h2><ul>${notes.map((n) => `<li>${n.revue ? selonRevue(esc(n.t), esc(n.revue)) : esc(n.t)}</li>`).join('')}</ul></div>` : ''}
     </div>
   </article>
   ${

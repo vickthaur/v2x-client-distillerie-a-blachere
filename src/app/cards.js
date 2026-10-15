@@ -4,11 +4,13 @@ import { esc, plural } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
 import { thumbHTML } from '../lib/thumbs.js';
 import { operationAffichee, concerne } from '../lib/operation.js';
+import { noteRevue } from '../lib/revue.js';
 
 export function cardHTML(p, { tag = 'li' } = {}) {
   const price = minPrice(p);
   const c = p.contenances[0];
-  const volumes = p.contenances.map((k) => k.volume).join(' · ') || (p.enLigne ? 'Contenance à confirmer' : 'Contenance et degré à confirmer');
+  // contenance inconnue (produits vendus à la boutique seulement) : une note du mode revue
+  const volumes = p.contenances.map((k) => k.volume).join(' · ');
   const op = operationAffichee();
   const badges = [
     p.bestSeller ? '<span class="badge badge--best">Meilleure vente</span>' : '',
@@ -21,7 +23,7 @@ export function cardHTML(p, { tag = 'li' } = {}) {
     <div class="card__body">
       <p class="card__gamme">${esc(surtitre(p))}</p>
       <h3 class="card__name"><a href="/boutique/${p.slug}">${esc(p.nom)}</a></h3>
-      <p class="card__meta">${esc(p.alcool && p.degre ? `${volumes} · ${p.degre} % vol.` : volumes)}</p>
+      <p class="card__meta">${volumes ? esc(p.alcool && p.degre ? `${volumes} · ${p.degre} % vol.` : volumes) : noteRevue(p.enLigne ? 'Contenance à confirmer' : 'Contenance et degré à confirmer')}</p>
       ${
         p.enLigne
           ? `<div class="card__row">

@@ -15,6 +15,8 @@ import { watchBrands } from '../lib/marques.js';
 import { api } from '../lib/api.js';
 import { mountDemoBar, loadDemoPrices } from '../lib/demo.js';
 import { operationAffichee, lignePanierHTML } from '../lib/operation.js';
+// Mode revue (?revue) sur toutes les pages : notes de la maquette masquées par défaut (QUAL-8).
+import '../lib/revue.js';
 import '../styles/operation.css';
 
 let age = readAge(); // 'majeur' | 'mineur' | 'sirops' | null
@@ -263,7 +265,7 @@ function bindHeader() {
       open.focus();
     }
   });
-  // langues et compte : maquette
+  // langues et compte : pas encore en place, visibles seulement en mode revue (UX-13)
   $$('[data-lang]').forEach((b) => b.addEventListener('click', () => toast(`Version ${b.dataset.lang === 'en' ? 'anglaise' : 'allemande'}\u00a0: à venir (maquette).`)));
   $$('[data-account]').forEach((b) => b.addEventListener('click', () => toast('Espace client\u00a0: prévu pour la mise en ligne (maquette).')));
   $$('[data-cart-open]').forEach((b) => b.addEventListener('click', openCart));

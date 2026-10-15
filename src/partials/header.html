@@ -8,10 +8,11 @@
         <a href="/espace-pro" data-nav="pro">Espace pro</a>
         <a href="/visiter" data-nav="visiter">Visiter</a>
         <a href="/contact" data-nav="contact">Contact</a>
-        <span class="hd__lang" role="group" aria-label="Langue du site">
+        <!-- Langues et compte client : pas encore en place, montrés seulement en mode revue (?revue) -->
+        <span class="hd__lang" role="group" aria-label="Langue du site" data-revue>
           <a href="/" lang="fr" aria-current="true">FR</a><button type="button" lang="en" data-lang="en">EN</button><button type="button" lang="de" data-lang="de">DE</button>
         </span>
-        <button type="button" class="hd__util-btn" data-account>Compte</button>
+        <button type="button" class="hd__util-btn" data-account data-revue>Compte</button>
         <button type="button" class="hd__util-btn" data-cart-open>Panier <span class="hd__util-count" data-cart-count>0</span></button>
       </nav>
     </div>
@@ -164,8 +165,8 @@
     <div class="menu__foot">
       <a class="btn btn--primary btn--block" href="/visiter#reserver">Réserver une visite</a>
       <p class="menu__util">
-        <span class="hd__lang" role="group" aria-label="Langue du site"><a href="/" lang="fr" aria-current="true">FR</a><button type="button" lang="en" data-lang="en">EN</button><button type="button" lang="de" data-lang="de">DE</button></span>
-        <button type="button" class="hd__util-btn" data-account>Compte</button>
+        <span class="hd__lang" role="group" aria-label="Langue du site" data-revue><a href="/" lang="fr" aria-current="true">FR</a><button type="button" lang="en" data-lang="en">EN</button><button type="button" lang="de" data-lang="de">DE</button></span>
+        <button type="button" class="hd__util-btn" data-account data-revue>Compte</button>
         <a href="tel:+33490835565">04 90 83 55 65</a>
       </p>
     </div>

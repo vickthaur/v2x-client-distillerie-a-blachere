@@ -14,6 +14,7 @@ import { $, $$, esc, calm } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
 import { api } from '../lib/api.js';
 import { mountDemoBar } from '../lib/demo.js';
+import { noteRevue, selonRevue } from '../lib/revue.js';
 
 const site = initSite();
 const reservables = formules.filter((f) => f.reservable);
@@ -32,23 +33,30 @@ site.onAge(photo);
 
 $('#saison').innerHTML = saisonHTML();
 $('#formules').innerHTML = formulesHTML({ choose: true });
+// Valeur d'une formule : le texte public (« Tarif sur demande »), la note « à confirmer » en revue.
+const val = (f, k) => selonRevue(esc(f[k] || ''), f.revue?.[k] ? esc(f.revue[k]) : '');
 $('#booking-formules').innerHTML = reservables
-  .map((f, i) => `<label><input type="radio" name="formule" value="${f.id}"${i === 1 ? ' checked' : ''} /><strong>${esc(f.nom)}</strong><span>${esc(f.duree)}${f.capacite ? ` · ${esc(f.capacite)}` : ''}</span><span>${esc(f.prix)}</span></label>`)
+  .map((f, i) => `<label><input type="radio" name="formule" value="${f.id}"${i === 1 ? ' checked' : ''} /><strong>${esc(f.nom)}</strong><span>${val(f, 'duree')}${f.capacite ? ` · ${esc(f.capacite)}` : ''}</span><span>${val(f, 'prix')}</span></label>`)
   .join('');
 
 $('#infos').innerHTML = `
   <div class="info-card"><h3>${icons.pin}Adresse</h3><p>${infos.adresse.map(esc).join('<br />')}</p><p><a class="link" href="${infos.itineraire}" target="_blank" rel="noopener">Itinéraire<span class="sr-only"> (nouvel onglet)</span></a></p><p>La distillerie a sa fiche sur le site La Provence à Vélo.</p></div>
-  <div class="info-card"><h3>${icons.clock}Magasin</h3><p>${esc(infos.jours)}</p>${infos.horaires.map((h) => `<p><strong>${esc(h.periode)}</strong>\u00a0: ${esc(h.heures)}</p>`).join('')}<p>Bureaux et entrepôts\u00a0: ${esc(infos.bureauxHoraires.jours.toLowerCase())}, ${esc(infos.bureauxHoraires.heures)}.</p><p class="note">${esc(infos.horairesNote)} Visites fermées le dimanche.</p></div>
+  <div class="info-card"><h3>${icons.clock}Magasin</h3><p>${esc(infos.jours)}</p>${infos.horaires.map((h) => `<p><strong>${esc(h.periode)}</strong>\u00a0: ${esc(h.heures)}</p>`).join('')}<p>Bureaux et entrepôts\u00a0: ${esc(infos.bureauxHoraires.jours.toLowerCase())}, ${esc(infos.bureauxHoraires.heures)}.</p><p class="note">${noteRevue(`${esc(infos.horairesNote)} `)}Visites fermées le dimanche.</p></div>
   <div class="info-card"><h3>${icons.phone}Contact</h3><p>Magasin\u00a0: <a href="${infos.magasin.telLien}">${infos.magasin.tel}</a><br /><a href="mailto:${infos.magasin.email}">${infos.magasin.email}</a></p><p>Bureaux\u00a0: <a href="${infos.bureaux.telLien}">${infos.bureaux.tel}</a><br /><a href="mailto:${infos.bureaux.email}">${infos.bureaux.email}</a></p></div>`;
 
+// Réponses en HTML (texte échappé) : le tarif de la visite guidée reste « sur demande » ; l'écart
+// entre les sources est une note du mode revue.
 const faq = [
-  ['Faut-il réserver\u202f?', 'Pas pour passer à la boutique et goûter. La visite guidée de la distillerie, elle, se fait uniquement sur réservation.'],
-  ['Combien de temps dure la visite guidée\u202f?', 'Une heure, dégustation comprise, par groupes de 25 personnes au plus. Le parcours passe par la zone de stockage, l’herboristerie, la salle d’étiquetage, le vieux chai et la production, visible derrière les vitres.'],
-  ['Peut-on venir avec des enfants\u202f?', 'Oui\u00a0: les mineurs dégustent les sirops. Les alcools sont réservés aux personnes majeures.'],
-  ['Est-ce ouvert le dimanche\u202f?', 'Les visites sont fermées le dimanche. La saison 2026 court du 12 février au 31 décembre.'],
-  ['Quel est le tarif\u202f?', 'La dégustation en boutique est gratuite. Le tarif de la visite guidée est à confirmer\u00a0: les sources ne donnent pas toutes le même.'],
+  ['Faut-il réserver\u202f?', esc('Pas pour passer à la boutique et goûter. La visite guidée de la distillerie, elle, se fait uniquement sur réservation.')],
+  ['Combien de temps dure la visite guidée\u202f?', esc('Une heure, dégustation comprise, par groupes de 25 personnes au plus. Le parcours passe par la zone de stockage, l’herboristerie, la salle d’étiquetage, le vieux chai et la production, visible derrière les vitres.')],
+  ['Peut-on venir avec des enfants\u202f?', esc('Oui\u00a0: les mineurs dégustent les sirops. Les alcools sont réservés aux personnes majeures.')],
+  ['Est-ce ouvert le dimanche\u202f?', esc('Les visites sont fermées le dimanche. La saison 2026 court du 12 février au 31 décembre.')],
+  [
+    'Quel est le tarif\u202f?',
+    `La dégustation en boutique est gratuite. Le tarif de la visite guidée est donné sur demande, au <a href="${infos.magasin.telLien}">${esc(infos.magasin.tel)}</a>.${noteRevue(' Tarif à confirmer\u00a0: les sources ne donnent pas toutes le même.')}`,
+  ],
 ];
-$('#faq').innerHTML = faq.map(([q, a]) => `<details><summary>${esc(q)}${icons.chevron}</summary><p>${esc(a)}</p></details>`).join('');
+$('#faq').innerHTML = faq.map(([q, a]) => `<details><summary>${esc(q)}${icons.chevron}</summary><p>${a}</p></details>`).join('');
 
 // ---------- Réservation ----------
 const NB = ' ';
@@ -63,7 +71,7 @@ const min = iso(tomorrow) > saison.debut ? iso(tomorrow) : saison.debut;
 dateInput.min = min;
 dateInput.max = saison.fin;
 const seasonOver = min > saison.fin;
-$('#date-hint').textContent = seasonOver ? 'La saison 2026 est terminée\u00a0: les dates de 2027 sont à annoncer.' : `Du ${new Date(min).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} au 31 décembre 2026, sauf le dimanche. Choisissez dans le calendrier ou saisissez la date.`;
+$('#date-hint').innerHTML = seasonOver ? `La saison 2026 est terminée.${noteRevue(' Les dates de 2027 sont à annoncer.')}` : `Du ${new Date(min).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} au 31 décembre 2026, sauf le dimanche. Choisissez dans le calendrier ou saisissez la date.`;
 const MOMENTS = { matin: 'Matin', 'apres-midi': 'Après-midi' };
 const LANGUES = { fr: 'Français', en: 'Anglais', de: 'Allemand' };
 const heureFr = (h) => (h ? h.replace(/^0/, '').replace(':00', `${NB}h`).replace(':', `${NB}h${NB}`) : '');
@@ -411,7 +419,7 @@ form.addEventListener('submit', async (e) => {
     <h3>Visite réservée</h3>
     <p class="vis-done__when"><strong>${esc(date)}</strong> à <strong>${esc(heure)}</strong>${r?.reference ? `<br />Référence <strong>${esc(r.reference)}</strong>` : ''}</p>
     <dl class="recap">
-      <div><dt>Formule</dt><dd>${esc(f.nom)} · ${esc(f.prix)}</dd></div>
+      <div><dt>Formule</dt><dd>${esc(f.nom)} · ${val(f, 'prix')}</dd></div>
       <div><dt>Groupe</dt><dd>${esc(d.personnes)} personne${n > 1 ? 's' : ''}${Number(d.mineurs) ? `, dont ${esc(d.mineurs)} mineur${d.mineurs > 1 ? 's' : ''} (sirops)` : ''}</dd></div>
       <div><dt>Langue</dt><dd>${esc(LANGUES[d.langue] || d.langue)}</dd></div>
       <div><dt>Contact</dt><dd>${esc(d.nom)} · ${esc(d.email)}${d.tel ? ` · ${esc(d.tel)}` : ''}</dd></div>

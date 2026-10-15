@@ -402,6 +402,37 @@ for (const vp of ['bureau', 'mobile']) {
   await ctx2.close();
 }
 
+// ---------- 3 bis. Mode revue (QUAL-8) ----------
+// Sans ?revue, aucune note de maquette dans le texte public (la ligne « Maquette non officielle » du
+// pied de page et les mentions légales restent, par choix) ; avec ?revue, les notes apparaissent.
+{
+  // \b : « la visite de la distillerie » n'est pas une note de maquette
+  const NOTES = /à confirmer|à préciser|à annoncer|à fournir|maquette|\bsite (de la distillerie|officiel|actuel)|page Histoire|selon les sources/i;
+  const ctx = await context('bureau', 'majeur');
+  await ctx.addInitScript(() => localStorage.setItem('blachere-panier', JSON.stringify({ v: 3, items: [{ slug: 'pac-citron', v: '1000', qty: 1 }] })));
+  const pages = ['/boutique', '/boutique/pac-citron', '/boutique/la-camarguaise', '/panier', '/visiter', '/espace-pro', '/'];
+  const vues = [];
+  for (const path of pages) {
+    const { page } = await open(ctx, path, { wait: 1500, label: `revue ${path}` });
+    const lignes = await page.evaluate((re) => {
+      const rx = new RegExp(re, 'i');
+      // la ligne « Maquette non officielle réalisée par V2X Studio… » du pied de page reste
+      const legal = document.querySelector('.ft__legal')?.innerText || '';
+      const parts = ['#site-header', 'main', 'footer'].map((s) => document.querySelector(s)?.innerText || '');
+      parts[2] = parts[2].replace(legal, '');
+      return parts.join('\n').split('\n').map((l) => l.trim()).filter((l) => l && rx.test(l));
+    }, NOTES.source);
+    vues.push(...lignes.map((l) => `${path} : ${l.slice(0, 90)}`));
+    await page.close();
+  }
+  check(`Sans ?revue : aucune note de maquette visible (${pages.length} pages, en-tête et pied de page compris)`, !vues.length, vues.slice(0, 6).join(' | '));
+  const { page: rv } = await open(ctx, '/boutique/pac-citron?revue', { wait: 2500, label: 'revue fiche' });
+  const r = await rv.evaluate(() => ({ classe: document.documentElement.classList.contains('revue'), notes: [...document.querySelectorAll('.pp__notes [data-revue]')].filter((e) => e.getClientRects().length).length, langues: !!document.querySelector('.hd__lang')?.getClientRects().length }));
+  check('Avec ?revue : notes sourcées de la fiche et langues de l’en-tête affichées', r.classe && r.notes > 0 && r.langues, JSON.stringify(r));
+  await shot(rv, 'bureau-48-fiche-revue', false);
+  await ctx.close();
+}
+
 // ---------- 4. En-tête : méga-menus, recherche, menu mobile, panier latéral ----------
 {
   const ctx = await context('bureau', 'majeur');

@@ -13,6 +13,7 @@ import { applyFilters, facets, matches, parseState, serializeState, activeCount,
 import { icons } from '../lib/icons.js';
 import { upgradeThumbs } from '../lib/thumbs.js';
 import { demoCatalogue, appliquerDemo, etatDemo, indisponible, ETATS } from '../lib/demo.js';
+import { noteRevue } from '../lib/revue.js';
 
 const site = initSite();
 let state = parseState(location.search);
@@ -191,10 +192,12 @@ function render({ scroll = false } = {}) {
     t.classList.toggle('is-on', (t.dataset.tile === 'tout' && tout) || (t.dataset.tile === 'spiritueux' && state.univers === 'spiritueux' && !state.gammes.size) || (state.gammes.size === 1 && state.gammes.has(t.dataset.tile))),
   );
   const spiritsShown = results.some((p) => p.alcool);
+  // La source des prix est une note du mode revue ; la démonstration (prix et stocks modifiables,
+  // paiement simulé) reste dite à tous.
   $('#shop-note').innerHTML = `<span>${
     demo
       ? 'Prix TTC et stocks de la démonstration, modifiables dans le CRM de démonstration. Les produits sans prix en ligne sont vendus au prix de la boutique.'
-      : 'Prix TTC du site actuel de la distillerie. Les produits sans prix en ligne sont vendus au prix de la boutique.'
+      : `Prix TTC.${noteRevue(' Prix du site actuel de la distillerie.')} Les produits sans prix en ligne sont vendus au prix de la boutique.`
   } Démonstration\u00a0: le paiement est simulé.</span>${spiritsShown ? `<span class="evin">${esc(EVIN)} ${esc(MINEURS)}</span>` : ''}`;
   history.replaceState(null, '', `${location.pathname}${serializeState(state)}`);
   stocks(grid);
