@@ -29,6 +29,9 @@
 .shop__tools .shop-search input:hover { border-color: rgba(21, 19, 15, 0.42); }
 .shop__tools .shop-search input:focus { border-color: var(--ink); }
 .shop__tools .shop-search svg { left: 14px; width: 18px; height: 18px; }
+/* champ vide : Chromium et Safari réservent la place du bouton d'effacement, qui couperait le texte
+   d'exemple ; il revient dès qu'on tape */
+.shop-search input:placeholder-shown::-webkit-search-cancel-button { display: none; }
 .sort { display: flex; align-items: center; gap: 10px; font-size: 0.86rem; font-weight: 600; color: var(--ink-3); }
 .sort select { min-height: 44px; padding: 0 34px 0 14px; border: 1px solid var(--line-2); border-radius: 999px; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%2315130f' stroke-width='1.8'/%3E%3C/svg%3E") no-repeat right 12px center / 16px; appearance: none; font: 600 0.92rem var(--font); color: var(--ink); }
 .shop__filters-btn { display: none; }

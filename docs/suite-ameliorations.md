@@ -47,9 +47,9 @@ tête, mêmes scripts avant et après (mesures de la vague, `scripts/audit/axe.m
 | Focus caché (clavier.mjs, 9 pages) | 17 | 15 : les cases des filtres et la visionneuse ne passent plus sous la pastille V2X ; restent le lien d'évitement (9, voulu), les curseurs des filtres couverts par leur piste (5, anneau sur la poignée) et une carte de recette de la fiche, plus haute que l'espace au-dessus de la pastille (1) |
 | Débordements de 320 à 2 560 px (180 cas) | 0 | 0 |
 
-Avant chacun des sept commits de code : build vert, `npm test` vert (174 tests, puis 176 avec
-`test/livraison.test.js`), recette complète (`node scripts/qa.mjs`, sans `--rapide`) verte : 258, 260,
-262, 265, 270, 273 puis 278 vérifications, aucune erreur de console. Contrôles ajoutés : double marge
+Avant chacun des commits de code : build vert, `npm test` vert (174 tests, puis 176 avec
+`test/livraison.test.js`), recette complète (`node scripts/qa.mjs`, sans `--rapide`) verte : de 258 à
+278 vérifications selon l'étape, aucune erreur de console. Contrôles ajoutés : double marge
 (17 pages, bureau et téléphone), fiche au téléphone et au bureau, barre d'achat, boutique au bureau,
 3D sobre et dos de l'étiquette, mode revue, méga-menus au clavier, fenêtres modales, focus du panier,
 prix au litre, frais de port, erreurs par champ, balises, cache des images, feuille de la pastille,
