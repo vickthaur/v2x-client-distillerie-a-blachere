@@ -226,7 +226,8 @@ export const Montant = ({ v, class: cls = '' }) => <span class={`pro-num ${cls}`
 // ---------- Quantité par carton ----------
 // La quantité est comptée en bouteilles (ou coffrets) ; le pas est le colisage. L'affichage dit les
 // deux : « 2 cartons · 12 bouteilles ».
-export function Pas({ qte, colisage = 1, onChange, nom, max = 9999, compact = false }) {
+// Plafond : 999 bouteilles par produit, comme le serveur (api/pro, devis et commande).
+export function Pas({ qte, colisage = 1, onChange, nom, max = 999, compact = false }) {
   const pas = Math.max(1, colisage || 1);
   const n = Math.round(qte / pas);
   const unite = pas > 1 ? (n > 1 ? 'cartons' : 'carton') : n > 1 ? 'unités' : 'unité';
@@ -257,7 +258,7 @@ export function Pas({ qte, colisage = 1, onChange, nom, max = 9999, compact = fa
             }
           }}
         />
-        <button type="button" onClick={() => commit(n + 1)} aria-label={pas > 1 ? `Un carton de plus` : `Une unité de plus`}>
+        <button type="button" onClick={() => commit(n + 1)} aria-label={pas > 1 ? `Un carton de plus` : `Une unité de plus`} disabled={(n + 1) * pas > max}>
           <Icone n="plus" />
         </button>
       </div>

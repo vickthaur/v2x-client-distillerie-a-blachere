@@ -6,6 +6,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { readJSON, writeJSON } from '../lib/store.js';
 
 const VERSION = 1;
+const MAX = 999; // bouteilles par produit, comme le serveur
 let uid = null;
 let state = vide();
 const listeners = new Set();
@@ -18,7 +19,7 @@ const key = () => `blachere-pro-commande-${uid}`;
 function load() {
   const saved = uid ? readJSON(key(), null) : null;
   if (!saved || saved.v !== VERSION || !saved.state || !Array.isArray(saved.state.lignes)) return vide();
-  const lignes = saved.state.lignes.filter((l) => l && typeof l.slug === 'string' && l.varianteId != null && Number.isInteger(l.qte) && l.qte > 0 && l.qte <= 9999);
+  const lignes = saved.state.lignes.filter((l) => l && typeof l.slug === 'string' && l.varianteId != null && Number.isInteger(l.qte) && l.qte > 0 && l.qte <= MAX);
   return { ...vide(), ...saved.state, lignes };
 }
 
@@ -59,7 +60,7 @@ export const panier = {
   },
   // Quantité d'une ligne (0 : la ligne est retirée).
   set(slug, varianteId, qte) {
-    const q = Math.max(0, Math.min(9999, Math.round(Number(qte) || 0)));
+    const q = Math.max(0, Math.min(MAX, Math.round(Number(qte) || 0)));
     const has = state.lignes.some((l) => same(l, slug, varianteId));
     let lignes;
     if (!q) lignes = state.lignes.filter((l) => !same(l, slug, varianteId));
@@ -73,7 +74,7 @@ export const panier = {
     let next = [...state.lignes];
     for (const l of lignes) {
       const i = next.findIndex((x) => same(x, l.slug, l.varianteId));
-      if (i >= 0) next[i] = { ...next[i], qte: Math.min(9999, next[i].qte + l.qte) };
+      if (i >= 0) next[i] = { ...next[i], qte: Math.min(MAX, next[i].qte + l.qte) };
       else next.push({ slug: l.slug, varianteId: String(l.varianteId), qte: l.qte });
     }
     next = next.filter((l) => l.qte > 0);

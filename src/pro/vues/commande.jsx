@@ -100,7 +100,10 @@ function Formulaire({ cat, p, site, session, onFaite }) {
   const franco = devis?.francoHT ?? conditions.francoHT ?? 0;
   const reste = devis?.francoRestantHT ?? (franco && articlesHT != null ? Math.max(0, franco - articlesHT) : null);
   const alertes = (devis?.alertes || []).map((a) => (typeof a === 'string' ? { message: a } : a));
-  const bloquantes = alertes.filter((a) => a.bloquant || ['stock', 'encours', 'rupture', 'licence'].includes(a.type));
+  // Toutes les alertes du devis empêchent la commande (le serveur la refuserait : colisage, stock,
+  // encours, licence, produit retiré) ; le minimum a sa propre note.
+  const bloquantes = alertes.filter((a) => a.type !== 'minimum');
+  const bloque = devis?.valide === false && bloquantes.length > 0;
   const alcool = p.lignes.some((l) => cat.index[`${l.slug}|${l.varianteId}`]?.produit?.alcool);
   const minDate = isoJour(joursOuvres(2));
 
@@ -278,7 +281,7 @@ function Formulaire({ cat, p, site, session, onFaite }) {
               </Note>
             </div>
           )}
-          <button type="submit" class="btn btn--primary btn--block" disabled={envoi || calcul || !devis || manque > 0}>
+          <button type="submit" class="btn btn--primary btn--block" disabled={envoi || calcul || !devis || manque > 0 || bloque}>
             {envoi ? 'Validation…' : devis ? `Valider la commande · ${eur(t.totalHT ?? 0)} HT` : 'Valider la commande'}
           </button>
           <ul class="cmd-terms">
