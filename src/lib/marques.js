@@ -22,11 +22,11 @@ const TEST = new RegExp(SOURCE, 'u');
 
 const brandOf = (m) => (/^p/i.test(m) ? 'pac' : 'fb');
 
-function node(match, logo) {
+function node(match, logo, seul = false) {
   const b = brandOf(match);
   const span = document.createElement('span');
   if (logo) {
-    span.className = `wm wm--${b}`;
+    span.className = `wm wm--${b}${seul ? ' wm--seul' : ''}`;
     const t = document.createElement('span');
     t.className = 'sr-only';
     t.textContent = match;
@@ -57,13 +57,28 @@ export function brandify(root = document.body) {
   while (walker.nextNode()) found.push(walker.currentNode);
   for (const n of found) {
     const logo = !!n.parentElement.closest(WORDMARK) && !n.parentElement.closest(TEXTE);
+    // Titre fait du seul nom de marque (« Fun Blue », « Fun Blue® ») : le logo prend la place du mot.
+    const seul = logo && n.parentElement.textContent.replace(/®/g, '').trim().replace(/\s+/g, ' ') === n.data.trim().replace(/\s+/g, ' ');
     const text = n.data;
-    const frag = document.createDocumentFragment();
+    // Un seul élément en ligne pour tout le texte traité : dans un bouton ou une étiquette en flex,
+    // le logo ne devient pas un élément à part, écarté des mots voisins par l'espacement du flex.
+    const frag = document.createElement('span');
+    frag.className = 'mq';
     let last = 0;
     for (const m of text.matchAll(new RegExp(SOURCE, 'gu'))) {
       if (m.index > last) frag.append(text.slice(last, m.index));
-      frag.append(node(m[0], logo));
+      const marque = node(m[0], logo, seul);
       last = m.index + m[0].length;
+      // « PAC Citron », « Fun Blue Glacial » : le nom et le mot qui le suit forment un bloc insécable
+      // (un logo en ligne laisse sinon une coupure possible juste après lui).
+      const suite = /^ ([\p{L}\p{N}][\p{L}\p{N}’'-]*)/u.exec(text.slice(last));
+      if (suite) {
+        const bloc = document.createElement('span');
+        bloc.className = 'mq-bloc';
+        bloc.append(marque, `\u00a0${suite[1]}`);
+        frag.append(bloc);
+        last += suite[0].length;
+      } else frag.append(marque);
     }
     if (last < text.length) frag.append(text.slice(last));
     n.replaceWith(frag);

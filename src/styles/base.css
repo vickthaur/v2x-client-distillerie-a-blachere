@@ -550,11 +550,20 @@ body.menu-ouvert, body.search-ouverte { overflow: hidden; }
 .marque { display: inline; font-weight: 700; font-style: italic; letter-spacing: 0; line-height: 1; text-transform: none; white-space: nowrap; }
 .marque--pac { font-family: 'Lobster Two', var(--font); font-size: 1.14em; color: var(--mq-pac); text-transform: lowercase; }
 .marque--fb { font-family: 'Molle', var(--font); font-weight: 400; font-size: 1.04em; color: var(--mq-fb); }
+.mq-bloc { white-space: nowrap; }
 .wm { position: relative; display: inline-block; flex: none; background: no-repeat center / contain; vertical-align: middle; }
-/* pac : le « a » central (hauteur d'x du logo) mesure 0,85 em et pose sur la ligne de base ; le
-   jambage du « p » descend dessous. Fun Blue (deux lignes) : centré sur la hauteur d'x. */
-.wm--pac { width: 1.83em; height: 1.5em; margin: 0 0.1em 0 -0.04em; background-image: var(--wm-pac); vertical-align: -0.53em; }
-.wm--fb { width: 3.1em; height: 1.6em; margin: 0 0.06em 0 -0.04em; background-image: url('/marques/fun-blue.svg'); vertical-align: -0.45em; }
+/* Logotypes dans les titres, calés sur la typographie du titre (Archivo : capitales ≈ 0,72 em) :
+   - pac : le haut du « a » arrive à la hauteur des capitales et le bas du « a » pose sur la ligne de
+     base (mesures du logo : « a » de 8,7 % à 66,5 % de la hauteur) ; le jambage du « p » descend
+     dessous comme celui d'une vraie lettre ;
+   - Fun Blue (deux lignes) : centré sur la hauteur des capitales, chaque ligne un peu plus petite
+     qu'une capitale.
+   Les marges verticales négatives empêchent le logo d'écarter les lignes du titre. */
+.wm--pac { width: 1.56em; height: 1.28em; margin: -0.14em 0.07em -0.14em -0.02em; background-image: var(--wm-pac); vertical-align: -0.43em; }
+.wm--fb { width: 2.37em; height: 1.22em; margin: -0.16em 0.04em -0.16em -0.02em; background-image: url('/marques/fun-blue.svg'); vertical-align: -0.25em; }
+/* Titre fait du seul logotype (page Fun Blue, fiche produit) : le logo tient la place du mot. */
+.wm--seul.wm--fb { width: 3.3em; height: 1.7em; margin-block: 0; vertical-align: -0.42em; }
+.wm--seul.wm--pac { width: 1.86em; height: 1.52em; margin-block: 0; vertical-align: -0.51em; }
 /* petites étiquettes (cartes, prix, menus, panier) : plus grand, pour rester lisible */
 .card__name .wm--fb, .search__name .wm--fb, .hero__tag-name .wm--fb, .bprice__name .wm--fb, .line__name .wm--fb, .co-line__name .wm--fb, .menu__brand-name .wm--fb { width: 4.3em; height: 2.22em; vertical-align: -0.74em; }
 .card__name .wm--pac, .search__name .wm--pac, .hero__tag-name .wm--pac, .bprice__name .wm--pac, .line__name .wm--pac, .co-line__name .wm--pac, .menu__brand-name .wm--pac { width: 2.25em; height: 1.85em; vertical-align: -0.66em; }

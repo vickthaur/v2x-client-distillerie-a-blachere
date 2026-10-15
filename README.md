@@ -188,6 +188,19 @@ Labo de réglage (développement seulement, non versionné) : `labo.html?scene=d
   l'image d'origine. Le site officiel ne précise ni les contenances (seul le 1 L est vendu en ligne)
   ni un plafond : rien n'est ajouté à ce sujet.
 
+## Partage et icônes
+
+- **Aperçu des liens** (iMessage, WhatsApp, réseaux) : `public/og-v4.jpg` (1200 × 630), capture du
+  haut de l'accueil tel qu'il est en ligne (bouteilles en 3D, citrons, menthe, glaçons), prise en
+  mode recette (`?test`, image 3D fixe) à 1440 × 756 px ×2 puis réduite, sans la pastille V2X ni la
+  pastille d'opération du moment (l'aperçu doit rester valable après l'opération). `og.jpg` en est
+  une copie, pour les anciens liens. Le nom versionné force les messageries à reprendre l'image :
+  en changer à chaque nouvelle capture.
+- **Favicon** : l'écu au « B » du blason de la distillerie, seul (le blason complet, avec ses herbes
+  et son citron, est illisible à 16 px) : `favicon.svg` (tracé d'origine extrait de
+  `logos/blason.svg`), `favicon.ico` (16, 32, 48 px), `apple-touch-icon.png` et icônes 192 / 512 px
+  sur fond d'encre pour l'écran d'accueil (`site.webmanifest`).
+
 ## À confirmer avec la distillerie
 
 - **Naissance du PAC Citron** : 1960 sur la page Histoire, « voit le jour en 1963 » sur la fiche,
@@ -218,6 +231,32 @@ Labo de réglage (développement seulement, non versionné) : `labo.html?scene=d
   sirops ») : à corriger sur le site officiel d'abord.
 - **Directeur de la publication**, licence de vente à emporter, transporteur et frais réels, liste
   officielle des points de vente, dates du festival 2027.
+
+## Accès privé et propriété intellectuelle
+
+La maquette reprend les marques, textes et photos de la distillerie sans son accord : elle ne doit
+être vue que par la distillerie. Elle ne s'ouvre donc qu'avec le **lien privé** envoyé par V2X Studio.
+
+- **Verrou** : `middleware.js` (Routing Middleware Vercel, avant toute page, image ou appel d'API),
+  décision dans `server/portail.js`, testée par `test/portail.test.js`. Lien
+  `https://v2x-client-distillerie-a-blachere.vercel.app/?acces=<jeton>` : le jeton (22 caractères)
+  est dérivé de `MAQUETTES_SECRET` et du nom de la maquette ; la première visite pose le cookie
+  `v2x_acces` (HttpOnly, 180 jours) et la pastille retire le jeton de la barre d'adresse. Sans
+  lien ni cookie : page neutre « Maquette privée » (401), qui ne nomme pas la distillerie.
+- **Publics** : `/robots.txt` (tout interdit) et `/og-v4.jpg` (aperçu du lien dans le message).
+  `/api/menage` garde sa propre protection (`CRON_SECRET`).
+- **Variables (Vercel)** : `MAQUETTES_SECRET` (le même que dans le projet de V2X Studio, dont le CRM
+  ajoute `acces=` à chaque lien de maquette qu'il prépare) ; `MAQUETTE_RETIREE=1` retire la maquette
+  pour tout le monde (410), à utiliser sur simple demande de la distillerie. Sans `MAQUETTES_SECRET`,
+  tout est refusé.
+- **En local** : `MAQUETTES_SECRET=… npm run preview` rejoue le même verrou ; sans la variable, pas
+  de verrou.
+- **Mentions** : pastille « Maquette non officielle », pied de page (sans lien avec la distillerie,
+  © des titulaires, retrait sur simple demande), mentions légales (statut, propriété
+  intellectuelle, accès et retrait, signal de consultation). En-têtes : `noindex, nofollow,
+  noarchive, nosnippet, noimageindex`, pas d'affichage dans un cadre (`frame-ancestors 'none'`).
+- **Jamais** dans le portfolio, les réseaux ou une présentation à d'autres prospects sans accord
+  écrit de la distillerie.
 
 ## Ce qui est simulé
 

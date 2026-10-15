@@ -16,6 +16,16 @@
 
   const local = /^(localhost|127\.|192\.168\.|\[::1\])/.test(location.hostname) || location.protocol === 'file:';
 
+  // Lien d'accès privé (?acces=…) : le serveur a posé le cookie d'accès ; le jeton quitte la barre
+  // d'adresse pour ne se retrouver ni dans une capture d'écran ni dans un lien recopié.
+  try {
+    const u = new URL(location.href);
+    if (u.searchParams.has('acces')) {
+      u.searchParams.delete('acces');
+      history.replaceState(history.state, '', u.pathname + u.search + u.hash);
+    }
+  } catch { /* rien */ }
+
   function signaler() {
     // Page préchargée au survol d'un lien : on attend qu'elle soit vraiment affichée
     if (document.prerendering) { document.addEventListener('prerenderingchange', signaler, { once: true }); return; }
@@ -40,11 +50,11 @@
     racine.lang = 'fr'; // le calque reste en français, y compris sur les pages anglaises : il s'adresse au propriétaire
     racine.innerHTML = `
       <button class="v2x-pastille" type="button" aria-expanded="false" aria-controls="v2x-panneau">
-        <span class="v2x-marque" aria-hidden="true">V2X</span><span class="v2x-pastille-txt">Proposition de refonte</span>
+        <span class="v2x-marque" aria-hidden="true">V2X</span><span class="v2x-pastille-txt">Maquette non officielle</span>
       </button>
       <div class="v2x-panneau" id="v2x-panneau" role="dialog" aria-label="À propos de cette maquette" hidden>
-        <p class="v2x-k">Maquette préparée pour ${CONFIG.client}</p>
-        <p class="v2x-t">Ce site est une proposition de V2X Studio, studio web à Cavaillon. Les textes reprennent votre histoire et vos produits tels qu’ils sont présentés publiquement&nbsp;; les bouteilles 3D et leurs étiquettes sont dessinées en code, en attendant vos vrais visuels. À voir&nbsp;: les deux univers (sirops pour tous, spiritueux après vérification de l’âge), la réservation de visites et l’espace pro.</p>
+        <p class="v2x-k">Maquette non officielle · proposition pour ${CONFIG.client}</p>
+        <p class="v2x-t">Ce site est une proposition de V2X Studio, studio web à Cavaillon, sans lien avec ${CONFIG.client} à ce stade. Vos textes, photos et marques y sont repris tels qu’ils sont publiés, uniquement pour vous présenter cette proposition&nbsp;: ils restent votre propriété et celle de leurs auteurs. Les bouteilles en 3D sont construites à partir de vos photos. Accès privé, réservé aux destinataires du lien&nbsp;; retrait sur simple demande. À voir&nbsp;: les deux univers (sirops pour tous, spiritueux après vérification de l’âge), la boutique, la réservation de visites et l’espace pro.</p>
         <div class="v2x-boutons">
           <a href="${CONFIG.siteActuel}" target="_blank" rel="noopener">Comparer avec le site actuel</a>
           <a class="v2x-plein" href="${TEL_LIEN}">Appeler Victor · ${TEL}</a>

@@ -299,7 +299,21 @@ const bboxOf = (mask, W, H) => {
   const bb = bboxOf(Y, W, H);
   const m = halo + 2;
   const vb = [bb.x0 - m, bb.y0 - m, bb.x1 - bb.x0 + 2 * m, bb.y1 - bb.y0 + 2 * m].map((v) => Math.round(v));
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb.join(' ')}" width="${vb[2]}" height="${vb[3]}"><defs><path id="l" d="${d}"/></defs><use href="#l" fill="#fff" stroke="#fff" stroke-width="${2 * halo}" stroke-linejoin="round"/><use href="#l" fill="${liseré}" stroke="${liseré}" stroke-width="${2 * outline}" stroke-linejoin="round"/><use href="#l" fill="${jaune}"/></svg>\n`;
+  // Contrepoinçons (intérieur du « p » et du « a ») : les sous-chemins contenus dans un autre. Le
+  // tracé est rempli en pair-impair (le fond se voit au travers, comme sur l'étiquette) ; le halo
+  // blanc borde l'extérieur des lettres et, plus fin, l'intérieur des contrepoinçons.
+  const subs = d.split(/(?=M)/).filter(Boolean);
+  const bbs = subs.map((sp) => {
+    const n = sp.match(/-?\d+(\.\d+)?/g).map(Number);
+    const xs = n.filter((_, i) => i % 2 === 0);
+    const ys = n.filter((_, i) => i % 2 === 1);
+    return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
+  });
+  const trou = (i) => bbs.some((o, j) => j !== i && bbs[i][0] >= o[0] && bbs[i][1] >= o[1] && bbs[i][2] <= o[2] && bbs[i][3] <= o[3]);
+  const dOut = subs.filter((_, i) => !trou(i)).join('');
+  const dTrous = subs.filter((_, i) => trou(i)).join('');
+  const defs = `<defs><path id="l" fill-rule="evenodd" d="${d}"/><path id="o" d="${dOut}"/><path id="h" d="${dTrous}"/></defs>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb.join(' ')}" width="${vb[2]}" height="${vb[3]}">${defs}<use href="#l" fill="#fff"/><use href="#o" fill="none" stroke="#fff" stroke-width="${2 * halo}" stroke-linejoin="round"/><use href="#h" fill="none" stroke="#fff" stroke-width="${Math.round(halo + outline / 2)}" stroke-linejoin="round"/><use href="#l" fill="${liseré}" stroke="${liseré}" stroke-width="${2 * outline}" stroke-linejoin="round"/><use href="#l" fill="${jaune}"/></svg>\n`;
   writeFileSync(join(OUT, 'pac.svg'), svg);
   // Version pour les fonds clairs : le halo blanc de l'étiquette y disparaît ; le liseré, triplé,
   // détache le jaune du papier, comme le trait noir des étiquettes anciennes du PAC (archives).
@@ -307,7 +321,7 @@ const bboxOf = (mask, W, H) => {
   const m2 = clair + 2;
   writeFileSync(
     join(OUT, 'pac-clair.svg'),
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${[bb.x0 - m2, bb.y0 - m2, bb.x1 - bb.x0 + 2 * m2, bb.y1 - bb.y0 + 2 * m2].map(Math.round).join(' ')}"><defs><path id="l" d="${d}"/></defs><use href="#l" fill="${liseré}" stroke="${liseré}" stroke-width="${2 * clair}" stroke-linejoin="round"/><use href="#l" fill="${jaune}"/></svg>\n`,
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${[bb.x0 - m2, bb.y0 - m2, bb.x1 - bb.x0 + 2 * m2, bb.y1 - bb.y0 + 2 * m2].map(Math.round).join(' ')}"><defs><path id="l" fill-rule="evenodd" d="${d}"/></defs><use href="#l" fill="${liseré}" stroke="${liseré}" stroke-width="${2 * clair}" stroke-linejoin="round"/><use href="#l" fill="${jaune}"/></svg>\n`,
   );
   writeFileSync(join(OUT, 'pac.json'), `${JSON.stringify({ source: 'photos/site/produits/pac-citron-2.jpg (étiquette à plat du site officiel)', jaune, lisere: liseré, halo: '#ffffff', epaisseurs: { lisere: outline, halo }, ratio: +(vb[2] / vb[3]).toFixed(4) }, null, 1)}\n`);
   log(`pac : public/marques/pac.svg (${(svg.length / 1024).toFixed(1)} Ko)`);
