@@ -5,6 +5,10 @@ import { EVIN, MINEURS } from '../data/products.js';
 import { formules, saison } from '../data/site.js';
 import { esc } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
+import { noteRevue, selonRevue } from '../lib/revue.js';
+
+// Valeur d'une formule : le texte public, ou la note de la maquette en mode revue (f.revue).
+const val = (f, k) => (f.revue?.[k] ? selonRevue(f[k] ? esc(f[k]) : '', esc(f.revue[k])) : esc(f[k] || ''));
 
 // ---------- Visites : les quatre formules ----------
 export function formulesHTML({ compact = false, choose = false } = {}) {
@@ -16,12 +20,12 @@ export function formulesHTML({ compact = false, choose = false } = {}) {
         <p class="formule__sous">${esc(f.sous)}</p>
         ${compact ? '' : `<ul class="formule__voir">${f.voir.map((v) => `<li>${esc(v)}</li>`).join('')}</ul>`}
         <dl class="formule__facts">
-          <div><dt>Durée</dt><dd>${esc(f.duree)}</dd></div>
+          <div><dt>Durée</dt><dd>${val(f, 'duree')}</dd></div>
           ${f.capacite ? `<div><dt>Groupe</dt><dd>${esc(f.capacite)}</dd></div>` : ''}
-          <div><dt>Réservation</dt><dd>${esc(f.reservation)}</dd></div>
+          <div><dt>Réservation</dt><dd>${val(f, 'reservation')}</dd></div>
         </dl>
-        <p class="formule__prix${/confirmer/.test(f.prix) ? ' is-tbc' : ''}">${esc(f.prix)}</p>
-        ${f.prixNote && !compact ? `<p class="formule__note">${esc(f.prixNote)}</p>` : ''}
+        <p class="formule__prix${f.revue?.prix ? ' is-tbc' : ''}">${val(f, 'prix')}</p>
+        ${compact ? '' : f.prixNote ? `<p class="formule__note">${val(f, 'prixNote')}</p>` : noteRevue(esc(f.revue?.prixNote || ''), { tag: 'p', cls: 'formule__note' })}
         ${choose && f.reservable ? `<button type="button" class="btn btn--ink formule__go" data-formule="${f.id}">Choisir cette formule</button>` : ''}
       </li>`,
     )

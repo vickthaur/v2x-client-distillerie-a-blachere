@@ -11,6 +11,9 @@
 //   4. écrit dans public/bouteilles/<slug>/ : face.webp (texture RGBA, 1024 px de haut),
 //      dos.webp (si photo de dos), profil.json (silhouette), vignette.webp (cartes de la boutique).
 // Les photos de lieux photos/lieux/<nom>.jpg sont redimensionnées dans public/lieux/.
+// Les archives (public/archives/<id>.webp, versionnées, jusqu'à 1 400 px de large) reçoivent des
+// tailles réduites pour leur srcset (src/app/pieces.js) : public/archives-tailles/<id>-400.webp et
+// -800.webp, seulement quand l'original est plus large.
 // Étiquettes : photos/etiquettes/<slug>.jpg|png (photo de la bouteille de face, étiquette bien
 // visible) → public/etiquettes/<slug>.webp, l'étiquette « déroulée » (projection cylindrique
 // inverse, éclairage égalisé), posée sur la bouteille 3D dessinée en code à la place de
@@ -46,6 +49,8 @@ const warn = (...a) => console.warn('[photos] ⚠', ...a);
 const outBottles = join(OUT, 'bouteilles');
 const outPlaces = join(OUT, 'lieux');
 const outLabels = join(OUT, 'etiquettes');
+const outArchives = join(OUT, 'archives-tailles');
+const ARCHIVE_TAILLES = [400, 800]; // mêmes largeurs que src/app/pieces.js
 
 function writeJSON(file, data) {
   mkdirSync(dirname(file), { recursive: true });
@@ -1427,6 +1432,25 @@ async function main() {
   }
   writeJSON(join(outPlaces, 'index.json'), places);
 
+  // Archives : tailles réduites (srcset des cadres du musée, des pages de marque et de l'accueil)
+  rmSync(outArchives, { recursive: true, force: true });
+  mkdirSync(outArchives, { recursive: true });
+  let archives = 0;
+  try {
+    const { pieces } = JSON.parse(readFileSync(join(root, 'src/data/site/archives.json'), 'utf8'));
+    for (const piece of pieces) {
+      const src = join(OUT, piece.image.replace(/^\//, ''));
+      if (!existsSync(src)) continue;
+      for (const w of ARCHIVE_TAILLES.filter((x) => piece.largeur > x)) {
+        await sharp(src, { failOn: 'none' }).resize({ width: w }).webp({ quality: 78, effort: 5 }).toFile(join(outArchives, `${piece.id}-${w}.webp`));
+        archives++;
+      }
+    }
+  } catch (err) {
+    errors++;
+    warn(`archives : ${err.message}`);
+  }
+
   // Étiquettes déroulées (photos/etiquettes/<slug>.jpg|png + <slug>.json facultatif)
   rmSync(outLabels, { recursive: true, force: true });
   const labels = { version: VERSION, etiquettes: {} };
@@ -1467,7 +1491,7 @@ async function main() {
     /* cache facultatif */
   }
   const nb = Object.keys(manifest.produits).length;
-  log(`${nb} bouteille${nb > 1 ? 's' : ''} en photo, ${Object.keys(places.lieux).length} photo(s) de lieux${errors ? `, ${errors} erreur(s)` : ''}.`);
+  log(`${nb} bouteille${nb > 1 ? 's' : ''} en photo, ${Object.keys(places.lieux).length} photo(s) de lieux, ${archives} taille(s) d'archives${errors ? `, ${errors} erreur(s)` : ''}.`);
   if (errors && STRICT) process.exit(1);
 }
 

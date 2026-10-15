@@ -14,7 +14,8 @@ import * as THREE from 'three';
 import { BOTTLE_HEIGHT } from './bottle.js';
 
 const loader = new THREE.TextureLoader();
-const assets = new Map(); // slug → Promise<{ profil, front, back }>
+const assets = new Map(); // slug → Promise<{ profil, front, back, label, body }>
+const labelBacks = new Map(); // url → Promise<Texture> (dos de l'étiquette, chargé seulement s'il sert)
 
 function loadTexture(url, anisotropy) {
   return new Promise((resolve, reject) =>
@@ -41,14 +42,13 @@ function loadAssets(slug, entry, anisotropy) {
         const res = await fetch(entry.profil);
         if (!res.ok) throw new Error(`profil introuvable (${res.status})`);
         const profil = await res.json();
-        const [front, back, label, labelBack, body] = await Promise.all([
+        const [front, back, label, body] = await Promise.all([
           loadTexture(entry.face, anisotropy),
           entry.dos ? loadTexture(entry.dos, anisotropy) : null,
           entry.etiquette && profil.etiquette ? loadTexture(entry.etiquette, anisotropy).catch(() => null) : null,
-          entry.etiquetteDos && profil.etiquetteDos ? loadTexture(entry.etiquetteDos, anisotropy).catch(() => null) : null,
           entry.corps ? loadTexture(entry.corps, 1).catch(() => null) : null,
         ]);
-        return { profil, front, back, label, labelBack, body };
+        return { profil, front, back, label, body };
       })(),
     );
     assets.get(slug).catch(() => assets.delete(slug));
@@ -248,9 +248,17 @@ export function photoMaterial(front, back, { lite = false, background = null, fa
   return mat;
 }
 
-export async function createPhotoBottle(product, entry, { lite = false, anisotropy = 8 } = {}) {
+// Dos de l'étiquette (contre-étiquette des sirops) : ~180 Ko, utile seulement quand la bouteille
+// tourne (visionneuse des fiches) ; les campagnes et les vignettes (dos: false) ne le chargent pas.
+function loadLabelBack(url, anisotropy) {
+  if (!labelBacks.has(url)) labelBacks.set(url, loadTexture(url, anisotropy).catch(() => null));
+  return labelBacks.get(url);
+}
+
+export async function createPhotoBottle(product, entry, { lite = false, anisotropy = 8, dos = true } = {}) {
   if (entry.plat && entry.photo) return createFlatPhoto(product, entry, { anisotropy });
-  const { profil, front, back, label: labelTex, labelBack, body } = await loadAssets(product.slug, entry, anisotropy);
+  const { profil, front, back, label: labelTex, body } = await loadAssets(product.slug, entry, anisotropy);
+  const labelBack = dos && entry.etiquetteDos && profil.etiquetteDos ? await loadLabelBack(entry.etiquetteDos, anisotropy) : null;
   const label = labelTex && profil.etiquette ? { texture: labelTex, ...profil.etiquette, dos: labelBack && profil.etiquetteDos ? { texture: labelBack, ...profil.etiquetteDos } : null } : null;
   const H = BOTTLE_HEIGHT;
   const pts = profil.points.map(([r, y]) => new THREE.Vector2(Math.max(r * H, 0.0005), (y - 0.5) * H));

@@ -1,0 +1,78 @@
+{
+  "version": 13,
+  "genere": "2026-10-15",
+  "images": {
+    "pac-citron|#c2177f|paysage": {
+      "src": "/rendus/menu-pac-citron.webp",
+      "w": 640,
+      "h": 480,
+      "srcset": "/rendus/menu-pac-citron.webp 1x, /rendus/menu-pac-citron@2x.webp 2x"
+    },
+    "fun-blue|#1f56a8|paysage": {
+      "src": "/rendus/menu-fun-blue.webp",
+      "w": 640,
+      "h": 480,
+      "srcset": "/rendus/menu-fun-blue.webp 1x, /rendus/menu-fun-blue@2x.webp 2x"
+    },
+    "sirop-couleur-provence-grenadine+sirop-lavande+sirop-menthe|#e9dfc8|paysage": {
+      "src": "/rendus/menu-couleur-provence.webp",
+      "w": 640,
+      "h": 480,
+      "srcset": "/rendus/menu-couleur-provence.webp 1x, /rendus/menu-couleur-provence@2x.webp 2x"
+    },
+    "sirop-couleur-provence-grenadine|#e9dfc8|paysage": {
+      "src": "/rendus/menu-grenadine.webp",
+      "w": 640,
+      "h": 480,
+      "srcset": "/rendus/menu-grenadine.webp 1x, /rendus/menu-grenadine@2x.webp 2x"
+    },
+    "pastis-marra||paysage": {
+      "src": "/rendus/menu-pastis-marra.webp",
+      "w": 640,
+      "h": 480,
+      "srcset": "/rendus/menu-pastis-marra.webp 1x, /rendus/menu-pastis-marra@2x.webp 2x"
+    },
+    "la-camarguaise||paysage": {
+      "src": "/rendus/menu-la-camarguaise.webp",
+      "w": 640,
+      "h": 480,
+      "srcset": "/rendus/menu-la-camarguaise.webp 1x, /rendus/menu-la-camarguaise@2x.webp 2x"
+    },
+    "creme-de-chataigne||paysage": {
+      "src": "/rendus/menu-creme-de-chataigne.webp",
+      "w": 640,
+      "h": 480,
+      "srcset": "/rendus/menu-creme-de-chataigne.webp 1x, /rendus/menu-creme-de-chataigne@2x.webp 2x"
+    },
+    "marc-chateauneuf-du-pape-reserve-des-legats||paysage": {
+      "src": "/rendus/menu-marc-reserve-des-legats.webp",
+      "w": 640,
+      "h": 480,
+      "srcset": "/rendus/menu-marc-reserve-des-legats.webp 1x, /rendus/menu-marc-reserve-des-legats@2x.webp 2x"
+    },
+    "pac-citron|#c2177f|carte": {
+      "src": "/rendus/carte-pac-citron.webp",
+      "w": 420,
+      "h": 575,
+      "srcset": "/rendus/carte-pac-citron.webp 1x, /rendus/carte-pac-citron@2x.webp 2x"
+    },
+    "fun-blue|#1f56a8|carte": {
+      "src": "/rendus/carte-fun-blue.webp",
+      "w": 420,
+      "h": 575,
+      "srcset": "/rendus/carte-fun-blue.webp 1x, /rendus/carte-fun-blue@2x.webp 2x"
+    },
+    "sirop-couleur-provence-grenadine+sirop-menthe+sirop-lavande|#e9dfc8|carte": {
+      "src": "/rendus/carte-couleur-provence.webp",
+      "w": 420,
+      "h": 575,
+      "srcset": "/rendus/carte-couleur-provence.webp 1x, /rendus/carte-couleur-provence@2x.webp 2x"
+    },
+    "pastis-marra+marc-chateauneuf-du-pape-reserve-des-legats|#2b2723|carte": {
+      "src": "/rendus/carte-spiritueux.webp",
+      "w": 420,
+      "h": 575,
+      "srcset": "/rendus/carte-spiritueux.webp 1x, /rendus/carte-spiritueux@2x.webp 2x"
+    }
+  }
+}

@@ -5,6 +5,7 @@ import '../styles/brand.css';
 import { initSite } from '../app/site.js';
 import textes from '../data/site/textes.json';
 import { $, esc } from '../lib/dom.js';
+import { REVUE, noteRevue } from '../lib/revue.js';
 
 initSite({ askAge: false });
 const slug = (t) =>
@@ -21,7 +22,7 @@ if ($('#cgv-body')) {
   $('#cgv-toc').innerHTML = `<p class="legal-toc__h">Sommaire</p><ol>${s.map((x) => `<li><a href="#${slug(x.titre)}">${esc(x.titre)}</a></li>`).join('')}</ol>`;
   $('#cgv-body').innerHTML =
     s.map((x) => `<h2 id="${slug(x.titre)}">${esc(x.titre)}</h2>${(x.paragraphes || []).map((p) => `<p>${esc(p)}</p>`).join('')}`).join('') +
-    `<p class="bsource">Texte du site de la distillerie (<a class="link" href="${textes.cgv.url || 'https://www.distillerieablachere.com'}" target="_blank" rel="noopener">page des CGV</a>).</p>`;
+    noteRevue(`Texte du site de la distillerie (<a class="link" href="${textes.cgv.url || 'https://www.distillerieablachere.com'}" target="_blank" rel="noopener">page des CGV</a>).`, { tag: 'p', cls: 'bsource' });
 }
 
 // Mentions légales : le texte officiel, rangé sous ses intertitres
@@ -42,6 +43,8 @@ if ($('#legal-official')) {
     html += m ? `<div><dt>${esc(m[1])}</dt><dd>${esc(m[2])}</dd></div>` : `<div class="legal-dl__p"><dd>${esc(l)}</dd></div>`;
   }
   if (open) html += '</dl>';
-  $('#legal-official').innerHTML = html + '<p class="bsource">Texte des mentions légales du site de la distillerie.</p>';
-  $('#legal-toc').innerHTML = `<p class="legal-toc__h">Sommaire</p><ol>${[...$('.legal-body').querySelectorAll('h2')].map((h) => `<li><a href="#${h.id}">${esc(h.textContent)}</a></li>`).join('')}</ol>`;
+  $('#legal-official').innerHTML = html + noteRevue('Texte des mentions légales du site de la distillerie.', { tag: 'p', cls: 'bsource' });
+  // sommaire : sans les sections réservées au mode revue (notes de la maquette)
+  const titres = [...$('.legal-body').querySelectorAll('h2')].filter((h) => REVUE || !h.closest('[data-revue]'));
+  $('#legal-toc').innerHTML = `<p class="legal-toc__h">Sommaire</p><ol>${titres.map((h) => `<li><a href="#${h.id}">${esc(h.textContent)}</a></li>`).join('')}</ol>`;
 }

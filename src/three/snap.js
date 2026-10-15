@@ -15,7 +15,8 @@ function layout(slugs) {
 }
 
 // jobs : [{ slugs, bg, fmt }] ; onDone(job, dataURL)
-export async function renderShots(jobs, onDone) {
+// dpr : densité du rendu (1 par défaut ; 2 pour les rendus pré-calculés des écrans haute densité).
+export async function renderShots(jobs, onDone, { dpr = 1, type = 'image/webp', quality = 0.88 } = {}) {
   const groups = new Map();
   jobs.forEach((j) => groups.set(j.fmt, [...(groups.get(j.fmt) || []), j]));
   for (const [fmt, list] of groups) {
@@ -33,12 +34,13 @@ export async function renderShots(jobs, onDone) {
           return { left: c.left + c.width * frame.x, top: c.top + c.height * frame.y, width: c.width * frame.w, height: c.height * frame.h };
         }
       : null;
-    const stage = new Stage(canvas, { colors: { a: THUMB_BG }, bottles: [], manual: true, dpr: 1, target, fill: fmt === 'paysage' ? 0.8 : 0.86, dof: false, sway: false, interactive: false, spot: [0, 0, -6.5, 7] });
+    // dos : false → les bouteilles sont vues de face, le dos des étiquettes n'est pas téléchargé
+    const stage = new Stage(canvas, { colors: { a: THUMB_BG }, bottles: [], manual: true, dpr, target, fill: fmt === 'paysage' ? 0.8 : 0.86, dof: false, sway: false, interactive: false, dos: false, spot: [0, 0, -6.5, 7] });
     try {
       for (const job of list) {
         stage.setColors({ a: job.bg || THUMB_BG });
         await stage.setBottles(layout(job.slugs.filter((s) => bySlug[s])));
-        onDone(job, stage.snapshot());
+        onDone(job, stage.snapshot(type, quality));
         await nextFrame();
       }
     } finally {

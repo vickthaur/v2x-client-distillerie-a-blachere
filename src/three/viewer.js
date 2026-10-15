@@ -6,7 +6,8 @@ import { Stage } from './stage.js';
 const TEST = typeof location !== 'undefined' && new URLSearchParams(location.search).has('test');
 
 export class BottleViewer {
-  constructor(canvas, product, { calm = false, colors = null, target = null } = {}) {
+  // dos : false → le dos de l'étiquette n'est pas téléchargé (voir Stage) ; vrai par défaut.
+  constructor(canvas, product, { calm = false, colors = null, target = null, dos = true } = {}) {
     this.canvas = canvas;
     this.product = product;
     this.calm = calm;
@@ -21,6 +22,7 @@ export class BottleViewer {
       calm,
       sway: false,
       interactive: false,
+      dos,
       spot: [0, -0.2, -6.5, 6],
       onUpdate: (t, dt) => this.tick(t, dt),
     });

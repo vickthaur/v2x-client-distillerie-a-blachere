@@ -5,38 +5,15 @@ import { addToCart, reveal } from './site.js';
 import { pieceById, pieceHTML } from './pieces.js';
 import { bySlug, recettes, euro, minPrice, formatsAilleursTexte } from '../data/products.js';
 import textes from '../data/site/textes.json';
-import { $, esc, calm, clamp, hasWebGL } from '../lib/dom.js';
+import { monterCampagne } from '../lib/campagne.js';
+import { $, esc } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
-import { renderHTML } from '../lib/thumbs.js';
+import { noteRevue } from '../lib/revue.js';
 
-const TEST = typeof location !== 'undefined' && new URLSearchParams(location.search).has('test');
-
-// Campagne : la bouteille en 3D sur l'aplat de la marque (scène de src/three/hero.js).
-export async function mountBrandHero(sceneName, products) {
-  const hero = $('#bhero');
-  const stageEl = $('#bhero-stage');
-  if (!hero || !stageEl) return;
-  if (!hasWebGL()) {
-    hero.classList.add('is-static');
-    stageEl.innerHTML = renderHTML(products.map((p) => p.slug), { bg: '', fmt: 'portrait' });
-    return;
-  }
-  try {
-    const { HeroScene } = await import('../three/hero.js');
-    const scene = new HeroScene($('#bhero-canvas'), { scene: sceneName, products, target: () => stageEl.getBoundingClientRect(), calm: calm() });
-    window.__hero = scene;
-    await scene.ready;
-    hero.classList.add('is-live');
-    const onScroll = () => scene.setScroll(clamp(scrollY / Math.max(hero.offsetHeight, 1), 0, 1));
-    addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-    if (TEST) setTimeout(() => (window.__heroReady = true), 600);
-  } catch (err) {
-    console.warn('3D indisponible, photo affichée.', err);
-    hero.classList.add('is-static');
-    stageEl.innerHTML = renderHTML(products.map((p) => p.slug), { bg: '', fmt: 'portrait' });
-  }
-}
+// Campagne : la vraie bouteille sur l'aplat de la marque, en photo dans le HTML (affiche), puis en
+// 3D quand elle est prête (scène de src/three/hero.js ; jamais en mouvement réduit, en économie de
+// données ou sans WebGL : voir src/lib/campagne.js).
+export const mountBrandHero = (sceneName, products) => monterCampagne({ hero: $('#bhero'), stage: $('#bhero-stage'), canvas: $('#bhero-canvas'), scene: sceneName, products });
 
 // Carte de prix (contenance, prix TTC, ajout au panier) sous le titre de la campagne.
 export function priceCardHTML(p) {
@@ -74,7 +51,7 @@ export function compositionHTML(p) {
     <div><dt>Ingrédients</dt><dd>${esc(p.ingredients || '—')}</dd></div>
     ${rows.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}
   </dl>
-  <p class="bnote">Valeurs pour 100 ml de sirop non dilué, d’après la fiche du produit sur le site de la distillerie.</p>`;
+  <p class="bnote">Valeurs pour 100 ml de sirop non dilué${noteRevue(', d’après la fiche du produit sur le site de la distillerie')}.</p>`;
 }
 
 // Recettes officielles avec ce produit (les recettes avec alcool seulement pour les majeurs).
@@ -84,7 +61,7 @@ export function recipesHTML(slugs, majeur, max = 3) {
   return `<ul class="brecipes">${list
     .map(
       (r) => `<li class="rcard"><a href="/recettes#${r.id}">
-        ${r.image ? `<span class="rcard__img"><img src="${r.image}" alt="" loading="lazy" decoding="async" /></span>` : ''}
+        ${r.image ? `<span class="rcard__img"><img src="${r.image}" alt="" width="619" height="1100" loading="lazy" decoding="async" /></span>` : ''}
         <span class="rcard__title">${esc(r.titre)}</span>
         ${r.alcool ? '<span class="badge badge--age">18+</span>' : '<span class="rcard__meta">Sans alcool</span>'}
       </a></li>`,
@@ -109,7 +86,7 @@ export function pressHTML(test, max = 6) {
       (a) => `<li><a href="${a.url}" target="_blank" rel="noopener">
         <span class="bpress__meta">${a.type === 'video' ? 'Vidéo' : 'Presse'} · ${esc(a.date)}</span>
         <span class="bpress__title">${esc(a.titre)}</span>
-        <span class="bpress__go">${icons.arrow}<span class="sr-only"> (nouvel onglet, site de la distillerie)</span></span>
+        <span class="bpress__go">${icons.arrow}<span class="sr-only"> (nouvel onglet${noteRevue(', site de la distillerie')})</span></span>
       </a></li>`,
     )
     .join('')}</ul>`;

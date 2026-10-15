@@ -7,7 +7,7 @@ import '../styles/home.css';
 import '../styles/brand.css';
 import { initSite, reveal } from '../app/site.js';
 import { fillPlaces } from '../app/lieux.js';
-import { pieceById, pieceHTML } from '../app/pieces.js';
+import { imgPiece, pieceById, pieceHTML } from '../app/pieces.js';
 import textes from '../data/site/textes.json';
 import { phrasesSansAlcool, hasAlcool } from '../lib/alcool.js';
 import { $, esc } from '../lib/dom.js';
@@ -24,8 +24,7 @@ function render() {
   const majeur = site.majeur;
   const h = textes.histoire;
   $('#maison-epi').textContent = h.epigraphe;
-  const stand = pieceById['stand-palais-des-papes'];
-  $('#maison-hero-fig').innerHTML = `<span class="piece__frame"><span class="piece__mat"><img src="${stand.image}" alt="${esc(stand.titre)}" width="${stand.largeur}" height="${stand.hauteur}" /></span></span><figcaption class="cartel"><span class="cartel__title">${esc(stand.titre)}</span><span class="cartel__meta">${esc(stand.technique)} · archive de la distillerie</span></figcaption>`;
+  // le bandeau (carte postale du stand au Palais des Papes) est écrit dans la-maison.html
   let retirees = 0;
   $('#periodes').innerHTML = h.periodes
     .map((p, i) => {
@@ -57,9 +56,9 @@ function render() {
   $('#savoir-texte').innerHTML = savoir.map((x) => `<p>${esc(x)}</p>`).join('');
   $('#savoir-photos').innerHTML = majeur
     ? `<figure class="ph"><span class="ph__slot" data-lieu="boutique-rayons"></span><figcaption>La boutique de la distillerie</figcaption></figure>
-       <figure class="ph"><img src="${pieceById['chai-futs'].image}" alt="" loading="lazy" /><figcaption>Les fûts du chai (archive de la distillerie)</figcaption></figure>`
-    : `<figure class="ph ph--archive"><img src="${pieceById['lettre-14-rue-moliere'].image}" alt="" loading="lazy" /><figcaption>Papier à en-tête, 14 rue Molière</figcaption></figure>
-       <figure class="ph ph--archive"><img src="${pieceById['avenue-de-la-gare'].image}" alt="" loading="lazy" /><figcaption>Avignon, avenue de la Gare (carte postale)</figcaption></figure>`;
+       <figure class="ph">${imgPiece(pieceById['chai-futs'], { sizes: '(max-width: 1000px) 50vw, 25vw' })}<figcaption>Les fûts du chai (archive de la distillerie)</figcaption></figure>`
+    : `<figure class="ph ph--archive">${imgPiece(pieceById['lettre-14-rue-moliere'], { sizes: '(max-width: 1000px) 40vw, 20vw' })}<figcaption>Papier à en-tête, 14 rue Molière</figcaption></figure>
+       <figure class="ph ph--archive">${imgPiece(pieceById['avenue-de-la-gare'], { sizes: '(max-width: 1000px) 40vw, 20vw' })}<figcaption>Avignon, avenue de la Gare (carte postale)</figcaption></figure>`;
   fillPlaces($('#savoir-photos'));
   $('#maison-pieces').innerHTML = `<ul class="pieces">${['lettre-maison-fondee-1835', 'lettre-14-rue-moliere', 'avenue-de-la-gare', 'stand-palais-des-papes']
     .map((id) => pieceHTML(pieceById[id]))

@@ -3,9 +3,12 @@
   <head>
     <!-- @include head.html -->
     <title>Où trouver nos produits · Distillerie A. Blachère</title>
-    <meta name="description" content="Où trouver le PAC Citron, Fun Blue et les produits de la Distillerie A. Blachère : à la distillerie, en grande surface, chez les cavistes et épiceries fines, dans les cafés." />
+    <meta name="description" content="Où trouver PAC Citron, Fun Blue et les sirops de la Distillerie A. Blachère : à la distillerie, en grande surface, chez les cavistes et dans les cafés." />
     <meta name="theme-color" content="#c2167f" />
     <meta property="og:title" content="Où trouver nos produits · Distillerie A. Blachère" />
+    <link rel="canonical" href="https://v2x-client-distillerie-a-blachere.vercel.app/ou-trouver" />
+    <meta property="og:url" content="https://v2x-client-distillerie-a-blachere.vercel.app/ou-trouver" />
+    <meta property="og:description" content="Où trouver PAC Citron, Fun Blue et les sirops de la Distillerie A. Blachère : à la distillerie, en grande surface, chez les cavistes et dans les cafés." />
   </head>
   <body data-page="ou-trouver" class="ot-page">
     <!-- @include header.html -->
@@ -26,10 +29,11 @@
             <label class="shop-search"><span class="sr-only">Rechercher une ville, une enseigne ou un produit</span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="M20 20l-4.2-4.2" /></svg><input type="search" id="ot-q" placeholder="Une ville, une enseigne, un produit…" autocomplete="off" enterkeyhint="search" /></label>
             <div class="cats" role="group" aria-label="Type de point de vente" id="ot-couches"></div>
           </div>
-          <div class="map-ph" aria-hidden="true"><strong>La carte des points de vente</strong><span>Elle se remplira avec la liste officielle du service commercial, enseigne par enseigne et région par région.</span></div>
+          <!-- Emplacement de la future carte : note de la maquette (visible avec ?revue) -->
+          <div class="map-ph" aria-hidden="true" data-revue><strong>La carte des points de vente</strong><span>Elle se remplira avec la liste officielle du service commercial, enseigne par enseigne et région par région.</span></div>
           <p class="note" id="ot-count" aria-live="polite"></p>
           <ul class="pdv" id="ot-list"></ul>
-          <p class="note ot-legal">Liste indicative, relevée en ligne le 14 octobre 2026. Les cafés ne seront cités qu’avec leur accord. Les liens mènent aux fiches des revendeurs ; leurs prix ne sont pas ceux de la distillerie.</p>
+          <p class="note ot-legal">Liste indicative<span data-revue>, relevée en ligne le 14 octobre 2026. Les cafés ne seront cités qu’avec leur accord</span>. Les liens mènent aux fiches des revendeurs ; leurs prix ne sont pas ceux de la distillerie.</p>
         </div>
       </section>
     </main>

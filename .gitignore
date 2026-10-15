@@ -11,3 +11,6 @@ public/etiquettes/
 
 # Données locales de l’API (pilote fs, développement et recette)
 .data/
+
+# Tailles d’affichage des archives (générées)
+public/archives-tailles/

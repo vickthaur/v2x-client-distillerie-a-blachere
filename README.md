@@ -43,7 +43,10 @@ Vercel, `robots.txt` qui interdit tout), avec la pastille « Proposition de refo
 Polices (SIL OFL, sous-ensemble latin, auto-hébergées dans `src/fonts`, licences jointes) : Archivo,
 Fraunces, Lobster Two 700 italique (nom « pac » dans le texte), Molle italique (nom « Fun Blue » dans
 le texte) ; Spicy Rice, Federant, Della Respira et Cinzel ne servent plus qu'aux bouteilles dessinées
-de secours. Aucune requête vers un CDN.
+de secours. Aucune requête vers un CDN. L'italique de Fraunces (accents des titres, graisses 400 à 420)
+est une instance de la police variable (graisses 400 à 500, axe SOFT fixé à 0, fontTools
+`varLib.instancer`) : 75 → 42 Ko, rendu identique. Archivo garde ses axes complets : la bande
+Octobre Rose utilise la largeur 74 % (graisse 820).
 
 ## Plan du site
 
@@ -95,10 +98,26 @@ conçu pour le rendu de produits et garde les couleurs d'étiquette ; AgX reste 
 mouvement lent et pesant. Le cadrage tient les bouteilles entières dans un rectangle de la page, à
 toutes les tailles d'écran (vérifié par la recette, de 390 à 3440 px de large).
 
-Vignettes : la vraie photo détourée sur fond neutre pour les cartes ; rendus 3D de groupe pour les
-menus et les cartes de marque (faits à la demande, gardés pour la session) ; en attendant, ou sans
-WebGL, les photos côte à côte — jamais de bouteille dessinée. La bouteille dessinée en code
-(`src/three/bottle.js`, `labels.js`) ne sert plus que si une photo manquait.
+**L'affiche d'abord, la 3D en plus** (`src/lib/campagne.js`) : les campagnes (accueil, PAC Citron,
+Fun Blue, Couleur Provence) portent dans leur HTML une affiche faite des vraies photos détourées
+(`/bouteilles/<slug>/face.webp`, la texture de face de la 3D : rien de plus à télécharger), posées
+là où la 3D placera les bouteilles. Three.js n'est chargé que quand le cadre est à l'écran, au
+premier moment libre du navigateur, puis la 3D remplace l'affiche en fondu une fois sa première image
+dessinée. **Jamais de 3D** en mouvement réduit (`prefers-reduced-motion`), en économie de données
+(`Save-Data`), en 2G ou sans WebGL : l'affiche reste, jamais de cadre vide. Les campagnes et les
+vignettes ne téléchargent pas le dos des étiquettes (`dos: false`) ; en mouvement réduit (visionneuse
+des fiches), l'image n'est redessinée que si quelque chose change.
+
+Vignettes : la vraie photo détourée sur fond neutre pour les cartes, à son chemin connu d'avance
+(`/bouteilles/<slug>/vignette.webp`), en `loading="lazy"` : seules les vignettes proches de l'écran
+sont téléchargées. Rendus 3D de groupe des menus et des cartes de marque **pré-calculés** :
+`node scripts/rendus.mjs --base <serveur de développement>` les fait avec le même code
+(`src/three/snap.js`) dans Chromium sans tête → `public/rendus/<nom>.webp` et `@2x.webp`,
+manifeste `src/data/rendus.json` (à relancer quand une bouteille, le plateau ou `RENDER_VERSION`
+changent). Ouvrir un menu ne charge plus three.js ; un rendu absent du manifeste est fait à la
+demande (jamais en économie de données ni en mouvement réduit), en attendant les photos côte à côte —
+jamais de bouteille dessinée. La bouteille dessinée en code (`src/three/bottle.js`, `labels.js`) ne
+sert plus que si une photo manquait.
 
 Labo de réglage (développement seulement, non versionné) : `labo.html?scene=duo|pac|funblue|neutre&slug=…`.
 
@@ -175,7 +194,9 @@ Labo de réglage (développement seulement, non versionné) : `labo.html?scene=d
   `public/recettes`, `public/logos`, `public/favicon.svg`. Les images sont réduites (build léger).
 - `scripts/archives-site.json` : les 46 pièces choisies, avec leur cartel. **Dates des cartels** :
   seulement ce qui est imprimé sur la pièce (« Tampon « 16 mai 1962 » », « Nice, Exposition
-  internationale, 1884, médaille d'or ») ; sinon « Date à préciser ».
+  internationale, 1884, médaille d'or ») ; sinon « Sans date » (« Date à préciser » en mode revue).
+  `scripts/photos.mjs` en tire des tailles réduites (`public/archives-tailles/<id>-400.webp` et
+  `-800.webp`, non versionnées) pour le `srcset` des cadres.
 - `src/data/products.js` : présentation (noms d'affichage, familles d'arômes, couleurs de secours,
   notes sourcées) ; `src/data/site.js` : contacts, horaires, visites, actualités, points de vente.
 - `scripts/import-catalogue.mjs` (catalogue de la recherche) est gardé pour l'historique.
@@ -196,6 +217,18 @@ Labo de réglage (développement seulement, non versionné) : `labo.html?scene=d
   l'image d'origine. Le site officiel ne précise ni les contenances (seul le 1 L est vendu en ligne)
   ni un plafond : rien n'est ajouté à ce sujet.
 
+## Mode revue (`?revue`)
+
+Les notes de travail de la maquette (sources citées dans le texte, « à confirmer », écarts entre les
+sources, choses à demander à la distillerie) sont **masquées par défaut** : le site se lit comme un
+site fini, et une valeur inconnue est contournée sans rien inventer (« Tarif sur demande », « Sans
+date »). `?revue` les affiche pour la session (filet pointillé, étiquette « Note V2X », repère en bas
+à droite pour en sortir), `?revue=0` les masque. Balisage : `data-revue` (note) et `data-revue-hors`
+(texte remplacé par la note en revue) ; `noteRevue()` et `selonRevue()` dans `src/lib/revue.js` ;
+champ `revue` des formules de visite dans `src/data/site.js`. Les faits restent tracés dans le code,
+les données et la liste « À confirmer » ci-dessous. Restent visibles : la pastille V2X, la ligne
+« Maquette non officielle » du pied de page et les mentions légales de la maquette.
+
 ## Partage et icônes
 
 - **Aperçu des liens** (iMessage, WhatsApp, réseaux) : `public/og-v4.jpg` (1200 × 630), capture du
@@ -208,6 +241,10 @@ Labo de réglage (développement seulement, non versionné) : `labo.html?scene=d
   et son citron, est illisible à 16 px) : `favicon.svg` (tracé d'origine extrait de
   `logos/blason.svg`), `favicon.ico` (16, 32, 48 px), `apple-touch-icon.png` et icônes 192 / 512 px
   sur fond d'encre pour l'écran d'accueil (`site.webmanifest`).
+- **Balises de page** : `canonical`, `og:url`, `og:title`, `og:description` (155 caractères au plus)
+  sur chaque page ; données structurées `Organization`, `Store` (horaires du magasin) et `WebSite`
+  (recherche dans la boutique) sur l'accueil, `AboutPage` sur la maison. Adresse de base :
+  https://v2x-client-distillerie-a-blachere.vercel.app (à remplacer par le domaine définitif).
 
 ## À confirmer avec la distillerie
 
@@ -276,8 +313,8 @@ contact, la demande de compte pro et la lettre d'information s'enregistrent dans
 navigateur (voir « CRM et espace pro ») et apparaissent dans le CRM de démonstration ; les e-mails sont
 rangés dans ses courriels envoyés, rien n'est transmis à la distillerie. Une barre « Démo » (en bas à
 droite) mène au CRM et à l'espace pro et permet de quitter la démo ; sans démo en cours, la boutique et
-les fiches produit n'appellent pas l'API. La carte des points de vente est un emplacement réservé ; la
-liste est indicative.
+les fiches produit n'appellent pas l'API. La carte des points de vente reste à faire (son emplacement n'apparaît qu'en mode
+revue) ; la liste est indicative.
 
 ## CRM et espace pro
 
@@ -342,6 +379,7 @@ npm run build          # dist/ (traite d'abord photos/, ~1 min pour 63 bouteille
 npm run preview        # http://localhost:4173
 npm run qa             # recette complète sur le build
 npm run test:photos    # preuve du pipeline photo
+node scripts/rendus.mjs --base http://localhost:5173   # rendus des menus et cartes (serveur dev lancé)
 ```
 
 `npm run qa` (`scripts/qa.mjs`, `--sortie <dossier>`, `--rapide`) lance `vite preview`, parcourt les
@@ -367,7 +405,7 @@ Adresses propres : réécritures de Vite en développement (`vite.config.js`), `
 - `src/partials/` : en-tête (barre utilitaire, méga-menus, recherche, menu), pied de page, fenêtres.
 - `src/app/` : site commun (âge, en-tête, panier latéral), cartes, pièces d'archives, blocs de marque.
 - `src/pages/` : un module par page (dont `contact.js`). `src/lib/` : panier, filtres, marques, alcool,
-  vignettes, photos, client d'API (`api.js`), démo (`demo.js` : barre de démo, prix et stocks de la
+  vignettes, photos, campagnes (affiche puis 3D), mode revue, client d'API (`api.js`), démo (`demo.js` : barre de démo, prix et stocks de la
   démo sur la boutique).
 - `src/pro/` : application de l'espace professionnel (`pro.html`, Preact) : routeur, données, commande
   en cours, composants, vues (`src/pro/vues/`).
@@ -380,9 +418,15 @@ Adresses propres : réécritures de Vite en développement (`vite.config.js`), `
 
 ## Robustesse
 
-- De 390 à 3440 px de large sans défilement horizontal ; `prefers-reduced-motion` respecté.
-- Sans WebGL : photos détourées à la place de la 3D ; tout le contenu reste lisible.
-- Three.js dans son propre fichier, chargé après la page ; la résolution baisse si l'appareil peine.
+- De 320 à 3440 px de large sans défilement horizontal (en-tête resserré sous 360 px) ;
+  `prefers-reduced-motion` respecté (ni 3D ni animation, l'affiche des campagnes reste).
+- Sans WebGL, en économie de données ou en 2G : les photos détourées à la place de la 3D, jamais de
+  cadre vide ; tout le contenu reste lisible.
+- Three.js dans son propre fichier, chargé seulement quand une campagne est à l'écran (au repos du
+  navigateur) ; la résolution baisse si l'appareil peine.
+- Accessibilité : texte secondaire à 64 % d'encre (≥ 5:1 sur le papier), anneau de focus double
+  (trait et halo) lisible sur le papier, le fuchsia, le bleu Fun Blue et les fonds sombres ; la barre
+  utilitaire cachée au défilement redescend quand elle reçoit le focus.
 - Stockage du navigateur toujours protégé (navigation privée, stockage bloqué).
 
 ## Avant la mise en ligne réelle

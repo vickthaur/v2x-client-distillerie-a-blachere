@@ -9,6 +9,7 @@ import { mountBrandHero, recipesHTML, piecesHTML, bindAdd, bySlug, reveal } from
 import { products } from '../data/products.js';
 import textes from '../data/site/textes.json';
 import { $, esc, plural } from '../lib/dom.js';
+import { selonRevue } from '../lib/revue.js';
 import { upgradeThumbs } from '../lib/thumbs.js';
 
 const site = initSite();
@@ -17,7 +18,7 @@ const cp = products.filter((p) => p.gamme === 'couleur-provence');
 // La page Histoire : « je lance la gamme « Couleur Provence », déclinée en douze parfums… »
 const histoire = textes.histoire.periodes.flatMap((x) => x.paragraphes).find((x) => /Couleur Provence/.test(x));
 const phrase = histoire ? /je lance la gamme « Couleur Provence ».*?réglisse/.exec(histoire)?.[0] : null;
-$('#cp-lead').innerHTML = `${phrase ? `« Fidèle à mon âme provençale et guidée par l’innovation, ${esc(phrase.replace(/\s+$/, ''))} », raconte la page Histoire de la maison. ` : ''}Aujourd’hui, ${plural(cp.length, 'sirop')} dans la boutique.`;
+$('#cp-lead').innerHTML = `${phrase ? `« Fidèle à mon âme provençale et guidée par l’innovation, ${esc(phrase.replace(/\s+$/, ''))} », raconte ${selonRevue('la maison', 'la page Histoire de la maison')}. ` : ''}Aujourd’hui, ${plural(cp.length, 'sirop')} dans la boutique.`;
 
 // La gamme, par contenance (celle de la fiche officielle)
 const groups = new Map();
