@@ -6,8 +6,8 @@ import { useCatalogue } from '../donnees.js';
 import { panier, usePanier } from '../panier.js';
 import { GAMMES, bySlug, surtitre } from '../../data/products.js';
 import { fold } from '../../lib/dom.js';
-import { eur, pluriel, ETATS, volume, NB } from '../format.js';
-import { Chargement, Erreur, Evin, Icone, Jauge, Montant, NomProduit, Packshot, Pas, Pastille, TitreVue, Vide } from '../ui.jsx';
+import { eur, pluriel, ETATS, volume, typo, NB } from '../format.js';
+import { Chargement, Erreur, Evin, Icone, Jauge, Marques, Montant, NomProduit, Packshot, Pas, Pastille, TitreVue, Vide } from '../ui.jsx';
 
 const SIROPS = ['pac', 'fun-blue', 'couleur-provence'];
 const gammeNom = Object.fromEntries(GAMMES.map((g) => [g.id, g.nom]));
@@ -90,7 +90,9 @@ function Liste({ data, q, setQ, filtre, setFiltre, dispo, setDispo, site }) {
         <div class="cats pc-cats" role="group" aria-label="Gammes">
           {onglets.map((o) => (
             <button type="button" key={o.id} class={`cat${filtre === o.id ? ' is-on' : ''}`} aria-pressed={filtre === o.id} onClick={() => setFiltre(o.id)}>
-              <Nom nom={o.nom} />
+              <span>
+                <Marques texte={o.nom} />
+              </span>
               <span class="cat__n">{o.n}</span>
             </button>
           ))}
@@ -109,7 +111,9 @@ function Liste({ data, q, setQ, filtre, setFiltre, dispo, setDispo, site }) {
             <section class="pc-group" key={g.id} aria-labelledby={`pc-g-${g.id}`}>
               <div class="pc-group__head">
                 <h2 class="pc-group__t" id={`pc-g-${g.id}`}>
-                  <Nom nom={g.nom} />
+                  <span>
+                    <Nom nom={g.nom} />
+                  </span>
                   <span>{pluriel(g.produits.length, 'produit')}</span>
                 </h2>
                 {g.univers === 'spiritueux' && <Evin />}
@@ -157,7 +161,7 @@ function Produit({ p, lignes, site }) {
           </h3>
           {p.alcool && <p class="pc-meta">{p.degre ? `${String(p.degre).replace('.', ',')}${NB}% vol.` : 'Degré à confirmer'}</p>}
           <a class="pc-fiche" href={`/espace-pro/documents/${p.slug}`}>
-            Fiche technique<span class="sr-only"> de {p.nom}</span>
+            Fiche technique<span class="sr-only"> de {typo(p.nom)}</span>
           </a>
           {p.alcool && <Evin class="pc-evin" />}
         </div>
@@ -176,10 +180,10 @@ function Variante({ p, v, qte, site }) {
   const etat = ETATS[v.etat] || ETATS.disponible;
   const rupture = v.etat === 'rupture';
   const vol = volume(v.id, v.volume);
-  const nomComplet = `${p.nom} ${vol}`;
+  const nomComplet = `${typo(p.nom)} ${vol}`;
   const ajouter = () => {
     panier.set(p.slug, v.id, colisage);
-    site?.toast(`${colisage > 1 ? `1 carton de ${colisage}` : '1 unité'} · ${p.nom} ${vol} ajouté à la commande`);
+    site?.toast(`${colisage > 1 ? `1 carton de ${colisage}` : '1 unité'} · ${nomComplet} ajouté à la commande`);
   };
   return (
     <li class={`pc-var${qte ? ' is-in' : ''}${rupture ? ' is-out' : ''}`}>

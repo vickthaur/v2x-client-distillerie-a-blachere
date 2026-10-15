@@ -17,6 +17,7 @@ import { loadDemoPrices, mountDemoBar, ETATS } from '../lib/demo.js';
 import { $, $$, esc, plural } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
 import { operationAffichee, lignePanierHTML, donPour, ruban, euros as eurosOp } from '../lib/operation.js';
+import { OPERATIONS } from '../data/operation.js';
 import { readJSON, writeJSON, remove } from '../lib/store.js';
 import { thumbHTML, upgradeThumbs } from '../lib/thumbs.js';
 
@@ -55,6 +56,18 @@ const iso = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOSt
 const tomorrow = () => {
   const d = new Date();
   d.setDate(d.getDate() + 1);
+  return iso(d);
+};
+// Retrait : du lundi au samedi, à partir de demain et dans les 30 jours (règle du serveur).
+const maxRetrait = () => {
+  const d = new Date();
+  d.setDate(d.getDate() + 30);
+  return iso(d);
+};
+const premierJourRetrait = () => {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  if (d.getDay() === 0) d.setDate(d.getDate() + 1);
   return iso(d);
 };
 const frDate = (s) => new Date(`${s}T12:00:00`).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -138,9 +151,11 @@ function checkCoord(c = order.coord || {}, alcohol = cart.totals().alcohol) {
 function checkMode(m = order) {
   const bad = [];
   if (m.mode !== 'retrait' && m.mode !== 'livraison') bad.push(['mode', 'Choisissez le retrait à la distillerie ou la livraison.']);
-  if (m.mode === 'retrait' && m.retrait?.date) {
-    const d = m.retrait.date;
-    if (d < tomorrow()) bad.push(['date', 'Choisissez une date à partir de demain.']);
+  if (m.mode === 'retrait') {
+    const d = m.retrait?.date;
+    if (!d) bad.push(['date', 'Choisissez le jour de retrait.']);
+    else if (d < tomorrow()) bad.push(['date', 'Choisissez une date à partir de demain.']);
+    else if (d > maxRetrait()) bad.push(['date', 'Choisissez un jour dans les 30 prochains jours.']);
     else if (new Date(`${d}T12:00:00`).getDay() === 0) bad.push(['date', 'La boutique est fermée le dimanche : choisissez un autre jour.']);
   }
   if (m.mode === 'livraison') {
@@ -196,7 +211,7 @@ function lineHTML(l, editable) {
 
 function modeSummary() {
   if (order.mode === 'retrait')
-    return `<p class="co-mode">${icons.store}<span><strong>Retrait à la distillerie</strong> · gratuit<br />${esc(infos.adresseLigne)}<br />${esc(infos.retrait)}, du lundi au samedi${order.retrait?.date ? `<br />Jour souhaité${NB}: ${esc(frDate(order.retrait.date))}` : ''}</span></p>`;
+    return `<p class="co-mode">${icons.store}<span><strong>Retrait à la distillerie</strong> · gratuit<br />${esc(infos.adresseLigne)}<br />${esc(infos.retrait)}, du lundi au samedi${order.retrait?.date ? `<br />Jour de retrait${NB}: ${esc(frDate(order.retrait.date))}` : ''}</span></p>`;
   if (order.mode === 'livraison') {
     const l = order.livraison || {};
     const tr = TRANSPORTS[order.transport] || TRANSPORTS.colissimo;
@@ -296,7 +311,7 @@ const VIEWS = {
         <small class="field__err" data-err="mode"></small>
       </fieldset>
       <div class="co-sub" data-for="retrait" ${order.mode === 'retrait' ? '' : 'hidden'}>
-        ${field('date', 'Jour de retrait souhaité (facultatif)', r.date || '', `type="date" min="${tomorrow()}"`, 'Du lundi au samedi. La distillerie vous confirme le jour de retrait.')}
+        ${field('date', 'Jour de retrait', r.date || premierJourRetrait(), `type="date" min="${tomorrow()}" max="${maxRetrait()}" required`, `Du lundi au samedi, dans les 30 prochains jours (horaires de retrait${NB}: ${esc(infos.retrait)}).`)}
       </div>
       <div class="co-sub" data-for="livraison" ${order.mode === 'livraison' ? '' : 'hidden'}>
         <fieldset class="modes modes--sub">
@@ -306,7 +321,7 @@ const VIEWS = {
           <small class="field__err" data-err="transport"></small>
         </fieldset>
         <p class="co-quote-err" id="co-quote-err" role="alert" hidden></p>
-        <p class="co-sub__note" data-relais ${tr === 'relais' ? '' : 'hidden'}>Point relais${NB}: Colissimo dépose le colis dans le point relais le plus proche de l’adresse ci-dessous et vous prévient par e-mail et SMS.</p>
+        <p class="co-sub__note" data-relais ${tr === 'relais' ? '' : 'hidden'}>Point relais${NB}: dans la démonstration, le colis part vers le point relais le plus proche de l’adresse ci-dessous${NNB}; sur le site en ligne, vous le choisirez sur une carte.</p>
         ${field('adresse', 'Adresse', l.adresse, 'autocomplete="address-line1"')}
         ${field('complement', 'Complément (facultatif)', l.complement, 'autocomplete="address-line2"')}
         <div class="form-row">${field('cp', 'Code postal', l.cp, 'autocomplete="postal-code" inputmode="numeric" maxlength="5"')}${field('ville', 'Ville', l.ville, 'autocomplete="address-level2"')}</div>
@@ -375,7 +390,7 @@ const VIEWS = {
             ? 'Elle sera expédiée sous 3 jours ouvrés au plus après la réception du virement, à l’adresse indiquée.'
             : 'Elle sera expédiée sous 3 jours ouvrés au plus, à l’adresse indiquée.'
       }</p>
-      ${don ? `<p class="op-cart">${ruban('rose', 'op-cart__ruban')}<span>Grâce à votre commande, <strong>${eurosOp(don.montant)}</strong> ${don.montant > 1 ? 'seront reversés' : 'sera reversé'} ${esc(don.beneficiaire || 'à l’Institut du Cancer Avignon-Provence (Sainte-Catherine)')} dans le cadre d’${esc(don.nom || 'Octobre Rose')}.</span></p>` : ''}
+      ${don ? `<p class="op-cart">${ruban('rose', 'op-cart__ruban')}<span>Grâce à votre commande, <strong>${eurosOp(don.montant)}</strong> ${don.montant >= 2 ? 'seront reversés' : 'sera reversé'} ${esc(don.beneficiaire)} dans le cadre ${/^[aeiouyhâàéèêëîïôûüœ]/i.test(don.nom || '') ? 'd’' : 'de '}${esc(don.nom)}.</span></p>` : ''}
       <p class="co-sim"><span class="co-sim__badge">Démonstration</span> La commande est enregistrée dans un espace de démonstration privé, visible seulement depuis ce navigateur${NNB}; rien n’a été payé ni transmis à la distillerie. L’e-mail de confirmation adressé à ${esc(d.email)} est déposé dans les courriels envoyés du CRM de démonstration.</p>
       <div class="co-actions">${d.crm ? `<a class="btn btn--primary" href="${esc(d.crm)}">Voir la commande dans le CRM (démo)</a>` : ''}<a class="btn btn--ghost" href="/boutique">Retour à la boutique</a><a class="btn btn--ghost" href="/visiter">Préparer une visite</a></div>
     </div>`;
@@ -672,8 +687,11 @@ async function submitOrder(e) {
     return orderError(form, x);
   }
   const m = montants(t);
-  const don = r?.operation?.montant
-    ? { montant: r.operation.montant, bouteilles: r.operation.bouteilles, nom: r.operation.nom, beneficiaire: r.operation.beneficiaireAvecArticle || r.operation.beneficiaire }
+  // Don de l'opération du moment : la valeur du serveur (commande enregistrée) fait foi.
+  const opServeur = r?.operation?.montant ? r.operation : null;
+  const opRef = OPERATIONS.find((o) => o.id === (opServeur?.id || operation?.id)) || operation;
+  const don = opServeur
+    ? { montant: opServeur.montant, bouteilles: opServeur.bouteilles, nom: opServeur.nom, beneficiaire: opRef?.beneficiaireAvecArticle || `à ${opServeur.beneficiaire}` }
     : operation
       ? { ...donPour(operation, t.lines), nom: operation.nom, beneficiaire: operation.beneficiaireAvecArticle }
       : null;

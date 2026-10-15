@@ -7,7 +7,7 @@ import { adresseLignes } from '../adresses.jsx';
 import { infos } from '../../data/site.js';
 import textes from '../../data/site/textes.json';
 import { EVIN } from '../../data/products.js';
-import { eur, dateLongue, dateCourte, pluriel, volume, CONDITIONS, pourcent, NB } from '../format.js';
+import { eur, dateLongue, dateCourte, pluriel, volume, typo, CONDITIONS, pourcent, NB } from '../format.js';
 import { Chargement, Erreur, Icone, Montant, Pastille, TitreVue, Vide, Note } from '../ui.jsx';
 
 export function Factures({ route, session }) {
@@ -226,7 +226,7 @@ function Facture({ id, session }) {
                   <br />
                 </span>
               ))}
-              {compte.siret ? <span>SIRET {compte.siret}</span> : null}
+              {compte.siret ? <span>SIRET {String(compte.siret).replace(/^(\d{3})(\d{3})(\d{3})(\d{5})$/, `$1${NB}$2${NB}$3${NB}$4`)}</span> : null}
               {compte.tvaIntra ? <span> · TVA {compte.tvaIntra}</span> : null}
             </p>
           </div>
@@ -269,7 +269,7 @@ function Facture({ id, session }) {
             {(c.lignes || []).map((l) => (
               <tr key={`${l.slug}|${l.varianteId}`}>
                 <td>
-                  {l.nom} · {volume(l.varianteId, l.volume)}
+                  {typo(l.nom)} · {volume(l.varianteId, l.volume)}
                   {l.colisage > 1 ? <small> · {pluriel(Math.round(l.qte / l.colisage), 'carton')} de {l.colisage}</small> : null}
                 </td>
                 <td class="num">{l.qte}</td>

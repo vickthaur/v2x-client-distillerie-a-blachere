@@ -267,8 +267,8 @@ function check() {
     errs.push(`Le groupe compte de 1 à ${saison.groupeMax} personnes.`);
     bad.add('personnes');
   }
-  if (!Number.isInteger(m) || m < 0 || m > n) {
-    errs.push('Le nombre de mineurs ne peut pas dépasser la taille du groupe.');
+  if (!Number.isInteger(m) || m < 0 || m >= n) {
+    errs.push('Au moins un adulte accompagne le groupe : les mineurs sont comptés dans le nombre de personnes.');
     bad.add('mineurs');
   }
   if (!d.moment) {
@@ -394,7 +394,7 @@ form.addEventListener('submit', async (e) => {
       // Séance complète entre-temps : disponibilités relues, autres séances du jour proposées.
       mois.delete(moisDe(d.date));
       voir(moisDe(d.date));
-      return alternatives(x.data?.disponibilites || autresSeances(d.date, d.moment, n), 'Autres disponibilités ce jour-là :');
+      return alternatives(x.data?.disponibilites || autresSeances(d.date, d.moment, n), 'Autres séances disponibles :');
     }
     const champ = { telephone: 'tel', date: 'date', personnes: 'personnes', mineurs: 'mineurs', email: 'email', nom: 'nom', rgpd: 'rgpd' }[String(x?.champ || '').split('.').pop()];
     if (champ) {

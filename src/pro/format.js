@@ -45,6 +45,16 @@ export function joursOuvres(n, from = new Date()) {
   return d;
 }
 
+// Typographie française d'un texte venu des données (noms officiels, ingrédients) : espace
+// insécable dans les guillemets et avant « : », espace fine insécable avant « ; ! ? ».
+export function typo(texte) {
+  return String(texte ?? '')
+    .replace(/«[ \u00a0\u202f]*/g, `«${NB}`)
+    .replace(/[ \u00a0\u202f]*»/g, `${NB}»`)
+    .replace(/ +:(?=\s|$)/g, `${NB}:`)
+    .replace(/ +([;!?])/g, `${NNB}$1`);
+}
+
 export const pluriel = (n, un, plusieurs = `${un}s`) => `${nombre(n)}${NB}${n > 1 ? plusieurs : un}`;
 
 // ---------- Statuts ----------

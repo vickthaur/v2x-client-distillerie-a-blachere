@@ -47,6 +47,7 @@ const loginMsg = $('#login-msg');
 // Message d'arrivée : session expirée, déconnexion
 if (qs.get('session') === 'expiree') say(loginMsg, `Votre session a expiré${NB}: reconnectez-vous pour continuer.`, 'info');
 else if (qs.has('deconnecte')) say(loginMsg, 'Vous êtes déconnecté de l’espace pro.', 'ok');
+else if (qs.get('demo') === 'lien-invalide') say(loginMsg, `Ce lien de démonstration n’est plus valable${NB}: ouvrez une nouvelle démo ci-dessous.`, 'info');
 
 function go(redirection) {
   location.assign(suite || (redirection && /^\/espace-pro\//.test(redirection) ? redirection : '/espace-pro/accueil'));
@@ -69,6 +70,14 @@ login.addEventListener('submit', async (e) => {
   } catch (x) {
     busy(btn, false, 'Se connecter');
     login.elements.mdp.value = '';
+    // Compte du personnel sur l'écran de l'espace pro : le message oriente vers le CRM.
+    if (x?.code === 'mauvais-espace') {
+      mark(login, new Set());
+      say(loginMsg, x.message);
+      const to = x.data?.redirection;
+      if (to && /^\/(crm|espace-pro)/.test(to)) loginMsg.insertAdjacentHTML('beforeend', ` <a class="link" href="${esc(to)}">Ouvrir ${to.startsWith('/crm') ? 'le CRM' : 'l’espace pro'}</a>`);
+      return;
+    }
     mark(login, new Set(x?.champ === 'email' ? ['email'] : ['mdp']));
     say(loginMsg, x?.message || 'La connexion a échoué. Réessayez.');
   }
@@ -168,7 +177,7 @@ async function session() {
 session();
 
 // ---------- Demande de compte ----------
-const ACTIVITES = { chr: 'Café, hôtel, restaurant', caviste: 'Caviste, épicerie fine', distributeur: 'Grande distribution, centrale d’achat', autre: 'Autre' };
+const ACTIVITES = { chr: 'Café, bar, restaurant', hotel: 'Hôtel', camping: 'Camping', caviste: 'Caviste', epicerie: 'Épicerie fine', distributeur: 'Distributeur, centrale d’achat', autre: 'Autre' };
 const FIELD = { telephone: 'tel', societe: 'societe', activite: 'activite', siret: 'siret', nom: 'nom', ville: 'ville', email: 'email', message: 'message', rgpd: 'rgpd' };
 
 $('#pro-form').addEventListener('submit', async (e) => {

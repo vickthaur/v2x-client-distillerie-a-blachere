@@ -4,7 +4,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { pro, useDonnees } from '../donnees.js';
 import { panier, usePanier } from '../panier.js';
 import { navigate } from '../router.js';
-import { eur, dateLongue, dateJour, statut, pluriel, CONDITIONS, NB, NNB } from '../format.js';
+import { eur, dateLongue, dateJour, statut, pluriel, typo, CONDITIONS, NB, NNB } from '../format.js';
 import { Chargement, Erreur, Icone, Jauge, Montant, NomProduit, Packshot, Pastille, TitreVue, Vide } from '../ui.jsx';
 import { totalHT, totalTTC, dateDe, enRetard, joursRetard, recommander, devisLignes } from '../commun.js';
 
@@ -15,7 +15,7 @@ export function Accueil({ session, site }) {
   const today = new Date();
   return (
     <>
-      <TitreVue kicker={dateJour(today)} titre={`Bonjour ${u.prenom || ''}`.trim()} accent={c.enseigne ? `, ${c.enseigne}` : null}>
+      <TitreVue kicker={dateJour(today)} titre={c.enseigne ? `Bonjour ${u.prenom || ''},`.replace(' ,', ',') : `Bonjour ${u.prenom || ''}`.trim()} accent={c.enseigne || null}>
         <p class="pro-lead">Vos tarifs, vos commandes et vos documents, au même endroit. Livraison sous 48 à 72{NB}h ouvrées.</p>
       </TitreVue>
       {loading && !data ? <Chargement lignes={4} /> : error ? <Erreur erreur={error} reessayer={reload} /> : <Tableau data={data} site={site} />}
@@ -304,10 +304,10 @@ function Suggestions({ items, site }) {
                 <button
                   type="button"
                   class="pro-iconbtn"
-                  aria-label={`Ajouter ${colisage > 1 ? `un carton de ${colisage}` : 'une unité'} de ${s.nom} à la commande`}
+                  aria-label={`Ajouter ${colisage > 1 ? `un carton de ${colisage}` : 'une unité'} de ${typo(s.nom)} à la commande`}
                   onClick={() => {
                     panier.set(s.slug, v.id, panier.qte(s.slug, v.id) + colisage);
-                    site?.toast(`${s.nom} ajouté à la commande`);
+                    site?.toast(`${typo(s.nom)} ajouté à la commande`);
                   }}
                 >
                   <Icone n="plus" />

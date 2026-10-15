@@ -6,7 +6,7 @@ import { pro, useCatalogue, useDonnees, chargerCatalogue } from '../donnees.js';
 import { panier, usePanier } from '../panier.js';
 import { devisLignes } from '../commun.js';
 import { Adresse, AdresseForm } from '../adresses.jsx';
-import { eur, dateJour, isoJour, joursOuvres, pluriel, volume, CONDITIONS, NB, pourcent } from '../format.js';
+import { eur, dateJour, isoJour, joursOuvres, pluriel, volume, typo, CONDITIONS, NB, pourcent } from '../format.js';
 import { Chargement, Erreur, Evin, Icone, Jauge, Montant, NomProduit, Note, Packshot, Pas, TitreVue, Vide } from '../ui.jsx';
 
 export function Commande({ site, session }) {
@@ -303,7 +303,7 @@ function Ligne({ l, cat, devis }) {
   const v = x?.variante;
   const d = (devis?.lignes || []).find((y) => y.slug === l.slug && String(y.varianteId) === String(l.varianteId));
   const colisage = Math.max(1, v?.colisage || d?.colisage || 1);
-  const nom = p?.nom || d?.nom || l.slug;
+  const nom = typo(p?.nom || d?.nom || l.slug);
   const vol = volume(l.varianteId, v?.volume || d?.volume);
   const pu = d?.prixUnitaireHT ?? v?.prixHT ?? null;
   const total = d?.totalHT ?? (pu != null ? Math.round(pu * l.qte * 100) / 100 : null);
@@ -396,9 +396,9 @@ function Confirmation({ commande }) {
       <span class="pro-done__seal" aria-hidden="true">
         <Icone n="check" />
       </span>
-      <p class="kicker">Commande enregistrée</p>
+      <p class="kicker">Merci{NB}!</p>
       <h1 class="pro-h1" id="pro-titre" tabindex="-1">
-        Merci, votre commande <span class="accent">{commande.numero}</span> est enregistrée.
+        Commande <span class="accent pro-nowrap">{commande.numero}</span> enregistrée
       </h1>
       <p class="pro-lead">La distillerie la prépare sous 48 à 72{NB}h ouvrées. Vous suivez sa préparation et son expédition dans vos commandes&nbsp;; la facture est émise à l’expédition.</p>
       <dl class="pro-recap">

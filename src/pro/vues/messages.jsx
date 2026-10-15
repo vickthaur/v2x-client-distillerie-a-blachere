@@ -17,7 +17,9 @@ export function Messages({ route, session, site }) {
   const { data, error, loading, reload, setData } = useDonnees('messages');
   const fils = (Array.isArray(data) ? data : data?.messages || data?.elements || []).slice().sort((a, b) => String(derniere(b)?.date || b.createdAt).localeCompare(String(derniere(a)?.date || a.createdAt)));
   const nouveau = route.query.has('nouveau');
-  const selId = route.query.get('fil');
+  const large = useLarge();
+  // Sur ordinateur, la conversation la plus récente s'ouvre d'elle-même ; sur téléphone, la liste d'abord.
+  const selId = route.query.get('fil') || (large && !nouveau ? fils[0]?.id : null);
   const sel = fils.find((m) => m.id === selId);
   const ouvrir = (id) => navigate(`/espace-pro/messages?fil=${encodeURIComponent(id)}`);
   return (
@@ -45,7 +47,7 @@ export function Messages({ route, session, site }) {
         <div class={`msg${sel || nouveau ? ' has-sel' : ''}`}>
           <div class="msg__list" aria-label="Conversations">
             {fils.length ? (
-              <ul>
+              <ul class="msg-list">
                 {fils.map((m) => {
                   const d = derniere(m);
                   const s = STATUTS[m.statut] || STATUTS.nouveau;
@@ -110,6 +112,18 @@ export function Messages({ route, session, site }) {
 }
 
 const derniere = (m) => (m.fil || [])[m.fil?.length - 1] || null;
+
+function useLarge() {
+  const mq = typeof matchMedia === 'function' ? matchMedia('(min-width: 761px)') : null;
+  const [large, setLarge] = useState(!!mq?.matches);
+  useEffect(() => {
+    if (!mq) return undefined;
+    const on = () => setLarge(mq.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
+  return large;
+}
 
 function majListe(x, m) {
   const list = Array.isArray(x) ? x : x?.messages || x?.elements || [];

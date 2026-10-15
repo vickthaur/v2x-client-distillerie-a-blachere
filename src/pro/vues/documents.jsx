@@ -6,8 +6,8 @@ import { useCatalogue, useDonnees } from '../donnees.js';
 import { bySlug, GAMMES, EVIN, FAMILLES, surtitre } from '../../data/products.js';
 import { infos } from '../../data/site.js';
 import { fold } from '../../lib/dom.js';
-import { eur, dateLongue, volume, pluriel, CONDITIONS, NB } from '../format.js';
-import { Chargement, Erreur, Evin, Icone, NomProduit, Packshot, TitreVue, Vide } from '../ui.jsx';
+import { eur, dateLongue, volume, pluriel, typo, CONDITIONS, NB } from '../format.js';
+import { Chargement, Erreur, Evin, Icone, Marques, NomProduit, Packshot, TitreVue, Vide } from '../ui.jsx';
 
 const gammeNom = Object.fromEntries(GAMMES.map((g) => [g.id, g.nom]));
 const familleNom = Object.fromEntries(FAMILLES.map((f) => [f.id, f.nom]));
@@ -74,8 +74,16 @@ function Fiches() {
         </label>
         <p class="pro-muted">{pluriel(list.length, 'fiche')}</p>
       </div>
-      <ul class="doc-grid">
-        {list.map((p) => {
+      {GAMMES.map((g) => ({ g, items: list.filter((p) => p.gamme === g.id) }))
+        .filter((x) => x.items.length)
+        .map(({ g, items }) => (
+          <section class="doc-group" key={g.id} aria-labelledby={`doc-g-${g.id}`}>
+            <h2 class="doc-group__t" id={`doc-g-${g.id}`}>
+              <Marques texte={g.nom} />
+              <span>{pluriel(items.length, 'fiche')}</span>
+            </h2>
+            <ul class="doc-grid">
+              {items.map((p) => {
           const local = bySlug[p.slug];
           return (
             <li key={p.slug}>
@@ -97,10 +105,12 @@ function Fiches() {
                 </span>
               </a>
             </li>
-          );
-        })}
-      </ul>
-      {data.produits.some((p) => p.alcool) && <Evin />}
+                );
+              })}
+            </ul>
+            {g.univers === 'spiritueux' && <Evin />}
+          </section>
+        ))}
     </>
   );
 }
@@ -131,7 +141,7 @@ function Mediatheque() {
               </span>
               <a class="btn btn--ghost btn--sm" href={l.url} download>
                 <Icone n="download" />
-                SVG<span class="sr-only"> : {l.titre}</span>
+                SVG<span class="sr-only">&nbsp;: {l.titre}</span>
               </a>
             </li>
           ))}
@@ -163,7 +173,7 @@ function Mediatheque() {
                 </span>
                 <a class="btn btn--ghost btn--sm" href={`/bouteilles/${p.slug}/face.webp`} download={`${p.slug}.webp`}>
                   <Icone n="download" />
-                  Photo<span class="sr-only"> : {p.nom}</span>
+                  Photo<span class="sr-only">&nbsp;: {typo(p.nom)}</span>
                 </a>
               </li>
             ))}
@@ -270,10 +280,13 @@ function nutrition(text) {
     if (!l || /^valeurs/i.test(l)) continue;
     const m = /^([^:]+?)\s*:\s*(.+)$/.exec(l);
     if (!m) continue;
-    if (/allerg/i.test(m[1])) allergenes = m[2];
+    // « Kcal : 354 / kJ : 1506 » → Énergie : 1506 kJ / 354 kcal (ordre de l'étiquetage européen)
+    const e = /^kcal$/i.test(m[1].trim()) && /^([\d,.]+)\s*\/\s*kj\s*:\s*([\d,.]+)/i.exec(m[2]);
+    if (e) rows.push(['Énergie', `${e[2]}${NB}kJ / ${e[1]}${NB}kcal`]);
+    else if (/allerg/i.test(m[1])) allergenes = m[2];
     else rows.push([m[1].trim(), m[2].trim()]);
   }
-  return { rows, allergenes, titre: /pour 100 ?ml[^:]*/i.exec(text || '')?.[0] || null };
+  return { rows, allergenes, titre: /pour 100 ?ml[^:]*/i.exec(text || '')?.[0]?.trim() || null };
 }
 function dilution(p) {
   const all = `${p.description || ''}\n${p.application || ''}`;
@@ -316,9 +329,9 @@ function Fiche({ slug }) {
         </button>
       </div>
       <h1 class="sr-only" id="pro-titre" tabindex="-1">
-        Fiche technique {p.nom}
+        Fiche technique {typo(p.nom)}
       </h1>
-      <article class="sheet fiche" aria-label={`Fiche technique ${p.nom}`}>
+      <article class="sheet fiche" aria-label={`Fiche technique ${typo(p.nom)}`}>
         <header class="fiche__head">
           <img class="sheet__logo" src="/logos/logo.svg" alt="Distillerie A. Blachère" width="200" height="49" />
           <div class="fiche__meta">
@@ -328,14 +341,14 @@ function Fiche({ slug }) {
         </header>
         <div class="fiche__id">
           <div class="fiche__shot">
-            <Packshot slug={p.slug} photo={p.photo} taille="xl" alt={p.nom} />
+            <Packshot slug={p.slug} photo={p.photo} taille="xl" alt={typo(p.nom)} />
           </div>
           <div class="fiche__name">
             <p class="inv__k">{surtitre(local)}</p>
             <h2 class="fiche__nom">
               <NomProduit nom={p.nom} imprimable />
             </h2>
-            {desc[0] && <p class="fiche__lead">{desc[0]}</p>}
+            {desc[0] && <p class="fiche__lead">{typo(desc[0])}</p>}
             <dl class="fiche__facts">
               <div>
                 <dt>Catégorie</dt>
@@ -393,17 +406,17 @@ function Fiche({ slug }) {
         <div class="fiche__cols">
           <section class="fiche__sec">
             <h3>Ingrédients</h3>
-            <p>{local.ingredients || <span class="sheet__tbc">À fournir</span>}</p>
+            <p>{local.ingredients ? typo(local.ingredients) : <span class="sheet__tbc">À fournir</span>}</p>
             {nut.allergenes && (
               <>
                 <h3>Allergènes et OGM</h3>
-                <p>{nut.allergenes}</p>
+                <p>{typo(nut.allergenes)}</p>
               </>
             )}
             {dil && (
               <>
                 <h3>Conseil de dilution</h3>
-                <p>{dil}</p>
+                <p>{typo(dil)}</p>
               </>
             )}
             <h3>Conservation</h3>
@@ -418,8 +431,8 @@ function Fiche({ slug }) {
                 <tbody>
                   {nut.rows.map(([k, v]) => (
                     <tr key={k}>
-                      <th scope="row">{k}</th>
-                      <td>{v}</td>
+                      <th scope="row">{typo(k)}</th>
+                      <td>{typo(v)}</td>
                     </tr>
                   ))}
                 </tbody>

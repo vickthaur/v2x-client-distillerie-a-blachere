@@ -112,13 +112,15 @@ function Rangee({ c, site }) {
         {c.suivi?.numero && <span class="pro-table__sub">Suivi {c.suivi.numero}</span>}
       </td>
       <td class="pro-table__act">
-        <a class="btn btn--ghost btn--sm" href={`/espace-pro/commandes/${c.id}`}>
-          Détail
-        </a>
-        <button type="button" class="btn btn--ghost btn--sm" onClick={again} disabled={occupe} aria-label={`Recommander ${c.numero}`}>
-          <Icone n="repeat" />
-          {occupe ? '…' : 'Recommander'}
-        </button>
+        <div class="pro-table__btns">
+          <a class="btn btn--ghost btn--sm" href={`/espace-pro/commandes/${c.id}`}>
+            Détail<span class="sr-only"> de {c.numero}</span>
+          </a>
+          <button type="button" class="btn btn--ghost btn--sm" onClick={again} disabled={occupe} aria-label={`Recommander ${c.numero}`}>
+            <Icone n="repeat" />
+            {occupe ? '…' : 'Recommander'}
+          </button>
+        </div>
       </td>
     </tr>
   );

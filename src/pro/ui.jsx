@@ -5,7 +5,7 @@ import { Fragment } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { photoIndex } from '../lib/photos.js';
 import { EVIN } from '../data/products.js';
-import { eur, nombre, NB } from './format.js';
+import { eur, nombre, typo, NB } from './format.js';
 
 // ---------- Icônes (trait 1,8, comme le site) ----------
 const P = {
@@ -297,7 +297,7 @@ const SOURCE = '(?<![\\p{L}\\p{N}./@_-])(?:PAC|Pac|pac|Fun[\\s\\u00a0]+Blue|FUN[
 // imprimable : le logotype en image (les fonds CSS ne s'impriment pas par défaut).
 const LOGOS = { pac: '/marques/pac-clair.svg', fb: '/marques/fun-blue.svg' };
 export function Marques({ texte, logo = false, imprimable = false }) {
-  const s = String(texte ?? '');
+  const s = typo(texte);
   const out = [];
   let last = 0;
   for (const m of s.matchAll(new RegExp(SOURCE, 'gu'))) {
