@@ -827,6 +827,8 @@ button.list__item { width: 100%; border-left: 0; border-right: 0; border-bottom:
 /* ---------- Notifications (« toasts ») ---------- */
 .toasts { position: fixed; right: 20px; bottom: 20px; z-index: 300; display: grid; gap: 8px; width: min(400px, calc(100vw - 24px)); pointer-events: none; }
 @media (max-width: 1023.98px) { .toasts { left: 12px; right: 12px; bottom: calc(var(--tab-h) + var(--safe-b) + 12px); width: auto; } }
+/* au-dessus de la barre d'action collée : l'action suivante reste visible */
+@media (max-width: 640px) { body:has(.dock) .toasts { bottom: calc(var(--tab-h) + var(--safe-b) + 78px); } }
 .toast { display: flex; align-items: flex-start; gap: 10px; padding: 12px 12px 12px 14px; border-radius: 12px; background: var(--ink); color: #fff; box-shadow: var(--shadow-dlg); font: 500 13.5px/1.4 var(--font); pointer-events: auto; animation: toast-in 0.26s var(--ease); }
 .toast[data-sortie] { animation: toast-out 0.2s ease forwards; }
 .toast > .ico { margin-top: 1px; }
