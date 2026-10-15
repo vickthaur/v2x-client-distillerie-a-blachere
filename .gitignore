@@ -8,3 +8,6 @@ public/bouteilles/
 public/lieux/
 .cache/
 public/etiquettes/
+
+# Données locales de l’API (pilote fs, développement et recette)
+.data/

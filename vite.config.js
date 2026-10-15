@@ -1,5 +1,6 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { defineConfig } from 'vite';
 
 // Pages du site (Vite multi-pages). Les adresses propres (/boutique, /panier…) et les fiches
@@ -21,15 +22,19 @@ const pages = {
   ouTrouver: 'ou-trouver.html',
   actualites: 'actualites.html',
   pro: 'espace-pro.html',
+  proApp: 'pro.html',
+  crm: 'crm.html',
+  contact: 'contact.html',
   mentions: 'mentions-legales.html',
   cgv: 'conditions-de-vente.html',
   introuvable: '404.html',
 };
 
-// Adresse propre → fichier (/boutique/<slug> → produit.html est traité à part).
+// Adresse propre → fichier (/boutique/<slug> → produit.html, /crm/… → crm.html et
+// /espace-pro/… → pro.html sont traités à part).
 const clean = Object.fromEntries(
   Object.values(pages)
-    .filter((f) => f !== '404.html' && f !== 'produit.html')
+    .filter((f) => !['404.html', 'produit.html', 'pro.html'].includes(f))
     .map((f) => [f === 'index.html' ? '/' : `/${f.replace(/\.html$/, '')}`, f]),
 );
 // Ancienne adresse de la v1 (redirection 301 dans vercel.json).
@@ -61,6 +66,8 @@ function cleanUrls() {
     const p = path.length > 1 ? path.replace(/\/$/, '') : path;
     let target = clean[p];
     if (!target && /^\/boutique\/[a-z0-9-]+$/.test(p)) target = 'produit.html';
+    if (!target && /^\/crm\/.+/.test(p)) target = 'crm.html';
+    if (!target && /^\/espace-pro\/.+/.test(p)) target = 'pro.html';
     if (target) req.url = `/${target}${query ? `?${query}` : ''}`;
   };
   const notFound = (root) => (req, res, next) => {
@@ -90,9 +97,68 @@ function cleanUrls() {
   };
 }
 
+// API en développement et en prévisualisation : /api/<nom> → api/<nom>.js, appelé comme sur Vercel
+// (gestionnaire Web Request → Response, un export par méthode HTTP). Sans BLOB_READ_WRITE_TOKEN,
+// le serveur range ses données dans .data/ (pilote fs).
+const HOP = new Set(['connection', 'keep-alive', 'transfer-encoding', 'content-length', 'upgrade', 'expect']);
+function apiRoutes() {
+  const handle = (load) => async (req, res, next) => {
+    const m = req.url.match(/^\/api\/([a-z][a-z-]*)\/?(?:\?|$)/);
+    if (!m) return next();
+    const json = (status, body) => {
+      res.statusCode = status;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-store');
+      res.end(JSON.stringify(body));
+    };
+    const file = resolve(__dirname, 'api', `${m[1]}.js`);
+    if (!existsSync(file)) return json(404, { erreur: 'Adresse inconnue.' });
+    try {
+      const mod = await load(file);
+      const fn = mod[req.method] ?? (req.method === 'HEAD' ? mod.GET : undefined);
+      if (typeof fn !== 'function') return json(405, { erreur: 'Méthode non prise en charge.' });
+      const chunks = [];
+      for await (const c of req) chunks.push(c);
+      const headers = new Headers();
+      for (const [k, v] of Object.entries(req.headers)) {
+        if (v === undefined || HOP.has(k) || k.startsWith(':')) continue;
+        headers.set(k, Array.isArray(v) ? v.join(', ') : v);
+      }
+      const hasBody = !['GET', 'HEAD'].includes(req.method) && chunks.length > 0;
+      const request = new Request(`http://${req.headers.host || 'localhost'}${req.url}`, {
+        method: req.method,
+        headers,
+        body: hasBody ? Buffer.concat(chunks) : undefined,
+      });
+      const response = await fn(request);
+      res.statusCode = response.status;
+      response.headers.forEach((v, k) => {
+        if (k !== 'set-cookie') res.setHeader(k, v);
+      });
+      const cookies = response.headers.getSetCookie();
+      if (cookies.length) res.setHeader('Set-Cookie', cookies);
+      res.end(Buffer.from(await response.arrayBuffer()));
+    } catch (e) {
+      console.error(e);
+      if (!res.headersSent) json(500, { erreur: 'Erreur interne du serveur de développement.' });
+    }
+  };
+  return {
+    name: 'blachere-api',
+    configureServer(server) {
+      server.middlewares.use(handle((file) => server.ssrLoadModule(file)));
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use(handle((file) => import(pathToFileURL(file).href)));
+    },
+  };
+}
+
 export default defineConfig({
   appType: 'mpa',
-  plugins: [partials(), cleanUrls()],
+  plugins: [apiRoutes(), partials(), cleanUrls()],
+  // JSX (CRM et espace pro) compilé pour Preact.
+  esbuild: { jsx: 'automatic', jsxImportSource: 'preact' },
   server: { port: 5173 },
   preview: { port: 4173 },
   build: {
