@@ -419,3 +419,22 @@ export function appliquerPromo(promo, { articlesTTC, aujourdhui }) {
   if (promo.type === 'montant') return { remiseTTC: versEuros(Math.min(articlesC, versCentimes(promo.valeur))), livraisonOfferte: false };
   return { remiseTTC: 0, livraisonOfferte: true };
 }
+
+// ---------- Libellés (exports, courriels) ----------
+
+export const LIBELLES_PAIEMENTS = {
+  carte: 'Carte bancaire',
+  paypal: 'PayPal',
+  virement: 'Virement',
+  'a-reception': 'À réception',
+  comptant: 'Comptant',
+  '30j-fdm': '30 jours fin de mois',
+  '45j': '45 jours',
+  prelevement: 'Prélèvement',
+};
+export const LIBELLES_STATUTS_PAIEMENT = { paye: 'Payé', 'en-attente': 'En attente', rembourse: 'Remboursé' };
+export const LIBELLES_TYPES_COMPTE = { chr: 'Café, bar, restaurant', hotel: 'Hôtel', camping: 'Camping', caviste: 'Caviste', epicerie: 'Épicerie fine', distributeur: 'Distributeur', autre: 'Autre' };
+export const LIBELLES_LICENCES = { 'licence-iv': 'Licence IV', 'licence-restaurant': 'Licence restaurant', 'petite-licence-restaurant': 'Petite licence restaurant', 'vente-a-emporter': 'Licence à emporter', aucune: 'Aucune' };
+export const LIBELLES_SOURCES = { 'pied-de-page': 'Pied de page du site', commande: 'Commande', visite: 'Visite', contact: 'Contact', salon: 'Salon' };
+export const LIBELLES_RESERVATIONS = { confirmee: 'Confirmée', annulee: 'Annulée', venue: 'Venue', absente: 'Absente' };
+export const LIBELLES_ORIGINES = { 'boutique-en-ligne': 'Boutique en ligne', boutique: 'Boutique', visite: 'Visite', newsletter: 'Newsletter', salon: 'Salon', site: 'Site', commercial: 'Commercial' };
