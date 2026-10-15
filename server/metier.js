@@ -245,7 +245,6 @@ export function creerCommandeParticulier(doc, m, donnees, { canal, par, auteurId
   if (!paye) f.echeance = ajouterJours(f.date, 7);
   sortirStock(doc, date, c, canal === 'telephone' ? { ...par } : { ...PAR_SITE });
   if (promoDoc) promoDoc.utilisations = (promoDoc.utilisations || 0) + 1;
-  if (donnees.newsletter) inscrireAbonne(doc, date, { email: donnees.client.email, prenom: donnees.client.prenom, source: 'commande' });
   doc.commandes.push(c);
   const complete = commandeComplete(c, index(doc));
   journaliser(doc, date, {
@@ -255,6 +254,10 @@ export function creerCommandeParticulier(doc, m, donnees, { canal, par, auteurId
     details: `${bouteilles} article${bouteilles > 1 ? 's' : ''}, ${euros(complete.totaux.totalTTC)} TTC`,
   });
   deposerCourriel(doc, date, C.confirmationCommande(complete));
+  if (donnees.newsletter) {
+    const r = inscrireAbonne(doc, date, { email: donnees.client.email, prenom: donnees.client.prenom, source: 'commande' });
+    if (!r.deja) deposerCourriel(doc, date, C.bienvenueNewsletter(r.abonne));
+  }
   return complete;
 }
 
@@ -463,7 +466,6 @@ export function reserver(doc, m, donnees, { source, par }) {
   };
   for (const k of ['telephone', 'message', 'notes']) if (donnees[k]) r[k] = donnees[k];
   doc.reservations.push(r);
-  if (donnees.newsletter) inscrireAbonne(doc, date, { email: donnees.email, prenom: donnees.nom.split(' ')[0], source: 'visite' });
   journaliser(doc, date, {
     par,
     action: 'reservation.creation',
@@ -471,6 +473,10 @@ export function reserver(doc, m, donnees, { source, par }) {
     details: typo(`${personnes} personne${personnes > 1 ? 's' : ''}, ${jour} ${LIBELLES_MOMENTS[moment]}`),
   });
   deposerCourriel(doc, date, C.confirmationVisite(r, seanceComplete(s, doc.parametres)));
+  if (donnees.newsletter) {
+    const ab = inscrireAbonne(doc, date, { email: donnees.email, prenom: donnees.nom.split(' ')[0], source: 'visite' });
+    if (!ab.deja) deposerCourriel(doc, date, C.bienvenueNewsletter(ab.abonne));
+  }
   return { reservation: r, seance: seanceComplete(s, doc.parametres) };
 }
 

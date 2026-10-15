@@ -3,7 +3,8 @@
 //   lire(chemin)                          → { contenu, etag } ou null
 //   ecrire(chemin, contenu, { ifMatch })  → { etag } ; ConflitStockage si l'ETag a changé
 //   ecrire(chemin, contenu, { creation }) → { etag } ; ConflitStockage si le document existe déjà
-//   supprimer(chemin), lister(prefixe)    → itérateur asynchrone de { chemin, majLe, taille }
+//   supprimer(chemin, { ifMatch })        → supprime ; ConflitStockage si l'ETag a changé
+//   lister(prefixe)                       → itérateur asynchrone de { chemin, majLe, taille, etag }
 // Choix : BLOB_READ_WRITE_TOKEN → Vercel Blob privé ; BLACHERE_STORE=memoire → mémoire (tests) ;
 // sinon fichiers dans .data/ (développement, recette locale).
 import { createHash, randomBytes } from 'node:crypto';
@@ -75,12 +76,16 @@ export function piloteMemoire() {
         return { etag };
       });
     },
-    async supprimer(chemin) {
+    async supprimer(chemin, { ifMatch } = {}) {
       controlerChemin(chemin);
-      docs.delete(chemin);
+      await avecVerrou(chemin, async () => {
+        const actuel = docs.get(chemin);
+        if (ifMatch && actuel && actuel.etag !== ifMatch) throw new ConflitStockage();
+        docs.delete(chemin);
+      });
     },
     async *lister(prefixe = '') {
-      for (const [chemin, d] of docs) if (chemin.startsWith(prefixe)) yield { chemin, majLe: d.majLe, taille: d.contenu.length };
+      for (const [chemin, d] of [...docs]) if (chemin.startsWith(prefixe)) yield { chemin, majLe: d.majLe, taille: d.contenu.length, etag: d.etag };
     },
     // tests : vieillir un document (ménage)
     _vieillir(chemin, date) {
@@ -130,9 +135,15 @@ export function piloteFs(dossier = process.env.BLACHERE_DATA || resolve(process.
         return { etag: etagDe(contenu) };
       });
     },
-    async supprimer(chemin) {
+    async supprimer(chemin, { ifMatch } = {}) {
       const f = fichier(chemin);
-      await verrousFs(f, () => unlink(f).catch((e) => (e.code === 'ENOENT' ? undefined : Promise.reject(e))));
+      await verrousFs(f, async () => {
+        if (ifMatch) {
+          const actuel = await lireBrut(chemin);
+          if (actuel !== null && etagDe(actuel) !== ifMatch) throw new ConflitStockage();
+        }
+        await unlink(f).catch((e) => (e.code === 'ENOENT' ? undefined : Promise.reject(e)));
+      });
     },
     async *lister(prefixe = '') {
       const base = join(dossier, prefixe.replace(/[^/]*$/, ''));
@@ -148,7 +159,9 @@ export function piloteFs(dossier = process.env.BLACHERE_DATA || resolve(process.
         const chemin = `${prefixe.replace(/[^/]*$/, '')}${n}`;
         if (!chemin.startsWith(prefixe)) continue;
         const s = await stat(join(base, n)).catch(() => null);
-        if (s?.isFile()) yield { chemin, majLe: s.mtime, taille: s.size };
+        if (!s?.isFile()) continue;
+        const contenu = await lireBrut(chemin);
+        if (contenu !== null) yield { chemin, majLe: s.mtime, taille: s.size, etag: etagDe(contenu) };
       }
     },
   };
@@ -186,16 +199,21 @@ export function piloteBlob() {
         throw e;
       }
     },
-    async supprimer(chemin) {
-      const { del } = await charger();
-      await del(controlerChemin(chemin));
+    async supprimer(chemin, { ifMatch } = {}) {
+      const { del, BlobPreconditionFailedError } = await charger();
+      try {
+        await del(controlerChemin(chemin), ifMatch ? { ifMatch } : undefined);
+      } catch (e) {
+        if (e instanceof BlobPreconditionFailedError) throw new ConflitStockage();
+        throw e;
+      }
     },
     async *lister(prefixe = '') {
       const { list } = await charger();
       let cursor;
       do {
         const page = await list({ prefix: prefixe, cursor, limit: 1000 });
-        for (const b of page.blobs) yield { chemin: b.pathname, majLe: new Date(b.uploadedAt), taille: b.size };
+        for (const b of page.blobs) yield { chemin: b.pathname, majLe: new Date(b.uploadedAt), taille: b.size, etag: b.etag };
         cursor = page.hasMore ? page.cursor : undefined;
       } while (cursor);
     },

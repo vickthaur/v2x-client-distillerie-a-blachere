@@ -98,7 +98,8 @@ describe('accueil, catalogue, documents', () => {
     const a = (await n.get('pro', 'accueil')).json;
     assert.equal(a.compte.enseigne, 'Café des Platanes');
     assert.equal(a.commercial.nom, 'Thomas Roux');
-    assert.equal(a.encoursMax, 2500);
+    assert.equal(a.encoursMax, 4000);
+    assert.ok(a.encours < 0.5 * a.encoursMax, `encours ${a.encours}`);
     assert.equal(a.facturesARegler.totalTTC, a.encours);
     assert.ok(a.commandesEnCours.length >= 1);
     assert.ok(a.suggestions.length > 0 && a.suggestions.length <= 4);
@@ -144,6 +145,11 @@ describe('accueil, catalogue, documents', () => {
 
 describe('devis et commande', () => {
   test('devis : totaux et alertes, sans rien enregistrer', async () => {
+    // stock de pastis assuré (il peut être bas dans le jeu de démonstration)
+    const crm = new Navigateur();
+    crm.cookies = new Map(n.cookies);
+    await crm.entrer('logistique');
+    await crm.post('crm', 'stock', { slug: 'pastis-marra', varianteId: '700', delta: 60, motif: 'production' });
     const avant = JSON.stringify(await docDe(n));
     const d = (await n.post('pro', 'devis', { lignes: [ligne('pac-citron', '1000', 24), ligne('pastis-marra', '700', 6)] })).json;
     assert.equal(d.totaux.totalTTC, 245.93);
@@ -163,10 +169,18 @@ describe('devis et commande', () => {
   test('commande : colisage, minimum, encours, stock ; puis enregistrée et visible au CRM', async () => {
     assert.equal((await n.post('pro', 'commande', { lignes: [ligne('pac-citron', '1000', 25)] })).json.code, 'colisage');
     assert.equal((await n.post('pro', 'commande', { lignes: [ligne('pac-citron', '1000', 12)] })).json.code, 'minimum');
-    const encours = await n.post('pro', 'commande', { lignes: [ligne('pac-citron', '1000', 600)] });
+    const crm = new Navigateur();
+    crm.cookies = new Map(n.cookies);
+    await crm.entrer('commercial');
+    const compteId = (await n.get('pro', 'compte')).json.compte.id;
+    await crm.patch('crm', 'compte', { encoursMax: 100 }, { query: { id: compteId } });
+    const encours = await n.post('pro', 'commande', { lignes: [ligne('pac-citron', '1000', 36)] });
     assert.equal(encours.status, 409);
     assert.equal(encours.json.code, 'encours');
+    await crm.patch('crm', 'compte', { encoursMax: 4000 }, { query: { id: compteId } });
     assert.equal((await n.post('pro', 'commande', { lignes: [ligne('pac-citron', '1000', 36)], adresseId: 'adr_aaaaaaaaaaaa' })).json.champ, 'adresseId');
+    await crm.entrer('logistique');
+    assert.equal((await crm.post('crm', 'stock', { slug: 'pastis-marra', varianteId: '700', delta: 60, motif: 'production' })).status, 201);
     const r = await n.post('pro', 'commande', { lignes: [ligne('pac-citron', '1000', 24), ligne('pastis-marra', '700', 6)], referenceClient: 'BC-ESSAI', dateSouhaitee: '2026-10-20', commentaire: 'Avant 11 h' });
     assert.equal(r.status, 201);
     assert.match(r.json.numero, /^PRO-26-\d{5}$/);
@@ -174,8 +188,6 @@ describe('devis et commande', () => {
     assert.equal(r.json.referenceClient, 'BC-ESSAI');
     assert.equal(r.json.statut, 'nouvelle');
     assert.equal(r.json.operation, undefined, 'Octobre Rose : pas pour les pros');
-    const crm = new Navigateur();
-    crm.cookies = new Map(n.cookies);
     await crm.entrer('logistique');
     const vu = (await crm.get('crm', 'commande', { id: r.json.id })).json;
     assert.equal(vu.compte.enseigne, 'Café des Platanes');
