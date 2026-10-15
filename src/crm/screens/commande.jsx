@@ -51,9 +51,10 @@ export function Commande({ id }) {
   const pro = c.canal === 'pro' || !!c.compteId;
   const peutModifier = pro ? s.peut('commandes-pro', 'ecriture') : s.peut('commandes', 'ecriture');
   const voitFactures = s.peut('factures');
-  const transitions = (r.data?.transitions || c.transitions || []).filter((t) => t !== c.statut);
-  const principales = transitions.filter((t) => AVANT.has(t));
-  const secondaires = transitions.filter((t) => !AVANT.has(t));
+  // transitions permises : [{ statut, libelle, exigeSuivi }] (ou simples statuts)
+  const transitions = (r.data?.transitions || c.transitions || []).map((t) => (typeof t === 'string' ? { statut: t } : t)).filter((t) => t.statut !== c.statut);
+  const principales = transitions.filter((t) => AVANT.has(t.statut));
+  const secondaires = transitions.filter((t) => !AVANT.has(t.statut));
   const fStatut = factureStatut(c.facture);
   const client = r.data?.client || c.client;
   const compte = r.data?.compte || c.compte;
@@ -75,9 +76,10 @@ export function Commande({ id }) {
     }
   };
 
-  const transition = async (t) => {
+  const transition = async (tr) => {
+    const t = tr.statut;
     if (t === 'expediee') {
-      setExpedier(true);
+      setExpedier(tr);
       return;
     }
     const faire = async () => {
@@ -161,13 +163,13 @@ export function Commande({ id }) {
               {peutModifier && transitions.length > 0 && (
                 <div class="btn-row etapes__actions only-desk-flex">
                   {principales.map((t) => (
-                    <Button key={t} variant="primary" icon={TRANSITION[t]?.icone} busy={busy === t} onClick={() => transition(t)}>
-                      {TRANSITION[t]?.label || t}
+                    <Button key={t.statut} variant="primary" icon={TRANSITION[t.statut]?.icone} busy={busy === t.statut} onClick={() => transition(t)}>
+                      {TRANSITION[t.statut]?.label || t.libelle || t.statut}
                     </Button>
                   ))}
                   {secondaires.map((t) => (
-                    <Button key={t} variant="danger-soft" icon={TRANSITION[t]?.icone} busy={busy === t} onClick={() => transition(t)}>
-                      {TRANSITION[t]?.label || t}
+                    <Button key={t.statut} variant="danger-soft" icon={TRANSITION[t.statut]?.icone} busy={busy === t.statut} onClick={() => transition(t)}>
+                      {TRANSITION[t.statut]?.label || t.libelle || t.statut}
                     </Button>
                   ))}
                 </div>
@@ -192,8 +194,8 @@ export function Commande({ id }) {
       {peutModifier && transitions.length > 0 && (
         <div class="dock">
           {principales.slice(0, 1).map((t) => (
-            <Button key={t} variant="primary" icon={TRANSITION[t]?.icone} busy={busy === t} onClick={() => transition(t)}>
-              {TRANSITION[t]?.label || t}
+            <Button key={t.statut} variant="primary" icon={TRANSITION[t.statut]?.icone} busy={busy === t.statut} onClick={() => transition(t)}>
+              {TRANSITION[t.statut]?.label || t.libelle || t.statut}
             </Button>
           ))}
           {(principales.length > 1 || secondaires.length > 0) && (
@@ -201,13 +203,13 @@ export function Commande({ id }) {
               {(fermer) => (
                 <>
                   {principales.slice(1).map((t) => (
-                    <MenuItem key={t} icone={TRANSITION[t]?.icone} fermer={fermer} onSelect={() => transition(t)}>
-                      {TRANSITION[t]?.label}
+                    <MenuItem key={t.statut} icone={TRANSITION[t.statut]?.icone} fermer={fermer} onSelect={() => transition(t)}>
+                      {TRANSITION[t.statut]?.label || t.libelle}
                     </MenuItem>
                   ))}
                   {secondaires.map((t) => (
-                    <MenuItem key={t} icone={TRANSITION[t]?.icone} danger fermer={fermer} onSelect={() => transition(t)}>
-                      {TRANSITION[t]?.label}
+                    <MenuItem key={t.statut} icone={TRANSITION[t.statut]?.icone} danger fermer={fermer} onSelect={() => transition(t)}>
+                      {TRANSITION[t.statut]?.label || t.libelle}
                     </MenuItem>
                   ))}
                 </>
@@ -221,6 +223,7 @@ export function Commande({ id }) {
         <DialogExpedition
           c={c}
           pro={pro}
+          exigeSuivi={expedier.exigeSuivi}
           onClose={() => setExpedier(false)}
           onValider={async (suivi) => {
             await patch({ statut: 'expediee', suivi }, 'expediee');
@@ -294,8 +297,8 @@ function Etapes({ c }) {
   );
 }
 
-function DialogExpedition({ c, pro, onClose, onValider }) {
-  const proTransporteur = pro && c.livraison?.mode === 'transporteur';
+function DialogExpedition({ c, pro, exigeSuivi, onClose, onValider }) {
+  const proTransporteur = exigeSuivi === undefined ? pro && c.livraison?.mode === 'transporteur' : !exigeSuivi;
   const [f, setF] = useState({ transporteur: c.livraison?.mode === 'colissimo' || c.livraison?.mode === 'relais' ? 'Colissimo' : proTransporteur ? 'Transporteur de la distillerie' : 'Colissimo', numero: '', url: '' });
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -303,6 +306,10 @@ function DialogExpedition({ c, pro, onClose, onValider }) {
   const envoyer = async () => {
     if (requis && f.numero.trim().length < 4) {
       setErr({ champ: 'numero', message: 'Le numéro de suivi est obligatoire pour une expédition.' });
+      return;
+    }
+    if (f.url.trim() && !/^https:\/\/\S+$/.test(f.url.trim())) {
+      setErr({ champ: 'url', message: 'Adresse https attendue (lien de suivi du transporteur).' });
       return;
     }
     setBusy(true);
@@ -549,6 +556,15 @@ function CarteClient({ c, client, compte, pro }) {
               <span>{CONDITIONS[cp.conditions] || cp.conditions}</span>
             </div>
           )}
+          {Number.isFinite(cp.encours) && (
+            <div class="kv">
+              <span>Encours</span>
+              <span>
+                {euros(cp.encours)}
+                {cp.encoursMax ? <span class="muted"> / {euros(cp.encoursMax)}</span> : null}
+              </span>
+            </div>
+          )}
         </div>
       </Card>
     );
@@ -562,6 +578,7 @@ function CarteClient({ c, client, compte, pro }) {
           <div style="min-width:0">
             <div class="strong">{contact.nom || [cl.prenom, cl.nom].filter(Boolean).join(' ')}</div>
             {cl.commandes !== undefined && <div class="small muted">{pluriel(cl.commandes, 'commande', 'commandes')}{cl.totalTTC !== undefined ? ` · ${euros(cl.totalTTC)}` : ''}</div>}
+            {c.anonymise && <div class="small muted">Données effacées à la demande du client (RGPD)</div>}
           </div>
         </div>
         <Contact contact={contact} />

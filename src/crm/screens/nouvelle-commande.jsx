@@ -42,24 +42,27 @@ export function NouvelleCommande() {
   const [lignes, setLignes] = useState([]);
   const [livraison, setLivraison] = useState({ mode: 'retrait', jourRetrait: prochainJourOuvre(), adresse: { ligne1: '', ligne2: '', cp: '', ville: '', pays: 'France' }, adresseId: '' });
   const [paiement, setPaiement] = useState('carte');
+  const [paye, setPaye] = useState(false);
+  const [code, setCode] = useState('');
+  const [consentement, setConsentement] = useState(false);
+  const [pro, setPro] = useState({ referenceClient: '', dateSouhaitee: '', commentaire: '' });
   const [note, setNote] = useState('');
   const [age, setAge] = useState(false);
   const [err, setErr] = useState(null);
   const [envoi, setEnvoi] = useState(false);
 
+  const clientQ = useCrm(q.get('client') && !clientChoisi ? 'client' : null, { id: q.get('client') });
+  useEffect(() => {
+    const k = clientQ.data?.client || clientQ.data;
+    if (k?.id && !clientChoisi) setClientChoisi(k);
+  }, [clientQ.data]);
   const produits = useCrm('produits', {});
   const catalogue = useMemo(() => lireProduits(produits.data).filter((p) => p.actif !== false), [produits.data]);
   const compte = useCrm(type === 'pro' && compteId ? 'compte' : null, { id: compteId });
   const cpt = compte.data?.compte || compte.data;
 
   useEffect(() => {
-    if (type === 'pro') {
-      setLivraison((l) => ({ ...l, mode: 'transporteur' }));
-      if (cpt?.conditions) setPaiement(cpt.conditions);
-    } else {
-      setLivraison((l) => ({ ...l, mode: l.mode === 'transporteur' ? 'retrait' : l.mode }));
-      setPaiement((p) => (['carte', 'virement', 'a-reception'].includes(p) ? p : 'carte'));
-    }
+    if (type === 'pro') setLivraison((l) => ({ ...l, adresseId: cpt?.adressesLivraison?.[0]?.id || '' }));
   }, [type, cpt?.id]);
 
   const ajouter = (p, v) => {
@@ -78,24 +81,39 @@ export function NouvelleCommande() {
   const creer = async () => {
     setErr(null);
     if (type === 'pro' && !compteId) return setErr({ champ: 'compteId', message: 'Choisissez le compte pro.' });
-    if (type === 'telephone' && !clientChoisi && (!client.nom.trim() || !client.email.trim())) return setErr({ champ: 'client', message: 'Indiquez au moins le nom et l’e-mail du client.' });
+    if (type === 'telephone' && !clientChoisi && (!client.prenom.trim() || !client.nom.trim() || !client.email.trim())) return setErr({ champ: 'client', message: 'Indiquez le prénom, le nom et l’e-mail du client.' });
     if (!lignes.length) return setErr({ champ: 'lignes', message: 'Ajoutez au moins un produit.' });
     if (alcool && type === 'telephone' && !age) return setErr({ champ: 'ageConfirme', message: 'Confirmez que le client a 18 ans ou plus (boisson alcoolisée).' });
-    const liv = { mode: livraison.mode };
-    if (livraison.mode === 'retrait') liv.jourRetrait = livraison.jourRetrait;
-    else if (type === 'pro' && livraison.adresseId) liv.adresseId = livraison.adresseId;
-    else liv.adresse = { ...livraison.adresse, nom: livraison.adresse.nom || (clientChoisi ? `${clientChoisi.prenom || ''} ${clientChoisi.nom || ''}`.trim() : `${client.prenom} ${client.nom}`.trim()) };
-    const body = {
-      lignes: lignes.map((l) => ({ slug: l.slug, varianteId: l.varianteId, qte: l.qte })),
-      livraison: liv,
-      paiement: { mode: paiement },
-      note: note.trim() || undefined,
-      canal: type === 'pro' ? 'pro' : 'telephone',
-    };
-    if (type === 'pro') body.compteId = compteId;
-    else {
-      body.client = clientChoisi ? { id: clientChoisi.id, prenom: clientChoisi.prenom, nom: clientChoisi.nom, email: clientChoisi.email, telephone: clientChoisi.telephone } : { prenom: client.prenom.trim(), nom: client.nom.trim(), email: client.email.trim(), telephone: client.telephone.trim() || undefined };
-      if (alcool) body.ageConfirme = true;
+    const lignesApi = lignes.map((l) => ({ slug: l.slug, varianteId: l.varianteId, qte: l.qte }));
+    let body;
+    if (type === 'pro') {
+      body = {
+        compteId,
+        lignes: lignesApi,
+        livraison: livraison.adresseId ? { adresseId: livraison.adresseId } : {},
+        dateSouhaitee: pro.dateSouhaitee || undefined,
+        referenceClient: pro.referenceClient.trim() || undefined,
+        commentaire: pro.commentaire.trim() || undefined,
+        note: note.trim() || undefined,
+      };
+    } else {
+      const k = clientChoisi || client;
+      const liv = { mode: livraison.mode };
+      if (livraison.mode === 'retrait') liv.jourRetrait = livraison.jourRetrait;
+      else {
+        const a = livraison.adresse;
+        liv.adresse = { nom: `${(k.prenom || '').trim()} ${(k.nom || '').trim()}`.trim() || undefined, ligne1: a.ligne1.trim(), ligne2: a.ligne2.trim() || undefined, cp: a.cp.trim(), ville: a.ville.trim(), pays: 'France' };
+      }
+      body = {
+        client: { prenom: (k.prenom || '').trim(), nom: (k.nom || '').trim(), email: (k.email || '').trim(), telephone: (k.telephone || '').trim() || undefined },
+        livraison: liv,
+        paiement: { mode: paiement, statut: paye ? 'paye' : 'en-attente' },
+        lignes: lignesApi,
+        code: code.trim() || undefined,
+        ageConfirme: alcool ? age : undefined,
+        newsletter: consentement || undefined,
+        note: note.trim() || undefined,
+      };
     }
     setEnvoi(true);
     try {
@@ -131,7 +149,7 @@ export function NouvelleCommande() {
               {type === 'pro' ? (
                 <ChoixCompte compteId={compteId} setCompteId={setCompteId} cpt={cpt} chargement={compte.loading} err={erreurDe(err, 'compteId')} />
               ) : (
-                <ChoixClient client={client} setClient={setClient} choisi={clientChoisi} setChoisi={setClientChoisi} err={erreurDe(err, 'client', 'email', 'nom')} />
+                <ChoixClient client={client} setClient={setClient} choisi={clientChoisi} setChoisi={setClientChoisi} err={erreurDe(err, 'client', 'email', 'nom', 'prenom', 'telephone')} />
               )}
             </div>
           </Card>
@@ -166,52 +184,70 @@ export function NouvelleCommande() {
             )}
           </Card>
 
-          <Card titre="3. Livraison et paiement" icone="camion">
-            <div class="form">
-              <Choices
-                name="livraison"
-                value={livraison.mode}
-                onChange={(m) => setLivraison({ ...livraison, mode: m })}
-                items={(type === 'pro' ? ['transporteur', 'retrait'] : ['retrait', 'colissimo', 'relais']).map((m) => ({ value: m, titre: LIVRAISON[m].label, icone: LIVRAISON[m].icone }))}
-              />
-              {livraison.mode === 'retrait' && (
-                <Input label="Jour de retrait" type="date" min={aujourdHui()} value={livraison.jourRetrait} onInput={(e) => setLivraison({ ...livraison, jourRetrait: e.currentTarget.value })} help="Du lundi au samedi, à la distillerie." error={erreurDe(err, 'jourRetrait')} />
-              )}
-              {livraison.mode !== 'retrait' && type === 'pro' && cpt?.adressesLivraison?.length > 0 && (
-                <Select
-                  label="Adresse de livraison"
-                  value={livraison.adresseId}
-                  onChange={(e) => setLivraison({ ...livraison, adresseId: e.currentTarget.value })}
-                  options={[...cpt.adressesLivraison.map((a, i) => ({ value: a.id || String(i), label: formatAdresse(a).join(', ') })), { value: '', label: 'Autre adresse…' }]}
-                />
-              )}
-              {livraison.mode !== 'retrait' && !(type === 'pro' && livraison.adresseId) && (
+          {type === 'pro' ? (
+            <Card titre="3. Livraison" icone="camion">
+              <div class="form">
+                {cpt?.adressesLivraison?.length > 0 ? (
+                  <Select
+                    label="Adresse de livraison"
+                    value={livraison.adresseId}
+                    onChange={(e) => setLivraison({ ...livraison, adresseId: e.currentTarget.value })}
+                    options={cpt.adressesLivraison.map((a, i) => ({ value: a.id || String(i), label: formatAdresse(a).join(', ') }))}
+                    help="Transporteur de la distillerie, 48 à 72 h ouvrées."
+                  />
+                ) : (
+                  <p class="small muted">Livraison à l’adresse du compte, par le transporteur de la distillerie.</p>
+                )}
                 <div class="form-grid">
-                  <Input class="span-2" label={livraison.mode === 'relais' ? 'Adresse du client (pour trouver le relais)' : 'Adresse'} value={livraison.adresse.ligne1} onInput={(e) => setLivraison({ ...livraison, adresse: { ...livraison.adresse, ligne1: e.currentTarget.value } })} autoComplete="address-line1" error={erreurDe(err, 'adresse', 'ligne1')} />
-                  <Input class="span-2" label="Complément" opt value={livraison.adresse.ligne2} onInput={(e) => setLivraison({ ...livraison, adresse: { ...livraison.adresse, ligne2: e.currentTarget.value } })} autoComplete="address-line2" />
-                  <Input label="Code postal" inputMode="numeric" value={livraison.adresse.cp} onInput={(e) => setLivraison({ ...livraison, adresse: { ...livraison.adresse, cp: e.currentTarget.value } })} autoComplete="postal-code" error={erreurDe(err, 'cp')} />
-                  <Input label="Ville" value={livraison.adresse.ville} onInput={(e) => setLivraison({ ...livraison, adresse: { ...livraison.adresse, ville: e.currentTarget.value } })} autoComplete="address-level2" error={erreurDe(err, 'ville')} />
+                  <Input label="Référence du client" opt value={pro.referenceClient} onInput={(e) => setPro({ ...pro, referenceClient: e.currentTarget.value })} maxLength={40} error={erreurDe(err, 'referenceClient')} placeholder="Bon de commande n°…" />
+                  <Input label="Date souhaitée" opt type="date" min={aujourdHui()} value={pro.dateSouhaitee} onInput={(e) => setPro({ ...pro, dateSouhaitee: e.currentTarget.value })} error={erreurDe(err, 'dateSouhaitee')} />
                 </div>
-              )}
-              <Select
-                label="Paiement"
-                value={paiement}
-                onChange={(e) => setPaiement(e.currentTarget.value)}
-                options={
-                  type === 'pro'
-                    ? Object.entries(CONDITIONS).map(([v, l]) => ({ value: v, label: `${l}${cpt?.conditions === v ? ' (conditions du compte)' : ''}` }))
-                    : [
-                        { value: 'carte', label: 'Carte bancaire (par téléphone)' },
-                        { value: 'virement', label: 'Virement' },
-                        { value: 'a-reception', label: 'À la réception ou au retrait' },
-                      ]
-                }
-              />
-              <Textarea label="Note interne" opt value={note} onInput={(e) => setNote(e.currentTarget.value)} rows={2} placeholder="Ex. : rappeler le client à la préparation" style="min-height:72px" />
-              {alcool && type === 'telephone' && <Check label="Le client a confirmé avoir 18 ans ou plus (la commande contient de l’alcool)." checked={age} onChange={(e) => setAge(e.currentTarget.checked)} boite />}
-              {erreurDe(err, 'ageConfirme') && <p class="field__err">{erreurDe(err, 'ageConfirme')}</p>}
-            </div>
-          </Card>
+                <Textarea label="Commentaire du client" opt value={pro.commentaire} onInput={(e) => setPro({ ...pro, commentaire: e.currentTarget.value })} rows={2} style="min-height:64px" error={erreurDe(err, 'commentaire')} />
+                <Textarea label="Note interne" opt value={note} onInput={(e) => setNote(e.currentTarget.value)} rows={2} placeholder="Ex. : livraison avant 11 h" style="min-height:64px" />
+                {cpt && (
+                  <p class="small muted">
+                    Paiement selon les conditions du compte : <strong>{CONDITIONS[cpt.conditions] || cpt.conditions}</strong>. Prix de la grille {GRILLE[cpt.grille]?.label.replace('Grille ', '') || cpt.grille}
+                    {cpt.remise ? `, remise de ${String(cpt.remise).replace('.', ',')} %` : ''}.
+                  </p>
+                )}
+              </div>
+            </Card>
+          ) : (
+            <Card titre="3. Livraison et paiement" icone="camion">
+              <div class="form">
+                <Choices name="livraison" value={livraison.mode} onChange={(m) => setLivraison({ ...livraison, mode: m })} items={['retrait', 'colissimo', 'relais'].map((m) => ({ value: m, titre: LIVRAISON[m].label, icone: LIVRAISON[m].icone }))} />
+                {livraison.mode === 'retrait' ? (
+                  <Input label="Jour de retrait" type="date" min={aujourdHui()} value={livraison.jourRetrait} onInput={(e) => setLivraison({ ...livraison, jourRetrait: e.currentTarget.value })} help="Du lundi au samedi, à la distillerie." error={erreurDe(err, 'jourRetrait')} />
+                ) : (
+                  <div class="form-grid">
+                    <Input class="span-2" label={livraison.mode === 'relais' ? 'Adresse du client (pour choisir le relais)' : 'Adresse'} value={livraison.adresse.ligne1} onInput={(e) => setLivraison({ ...livraison, adresse: { ...livraison.adresse, ligne1: e.currentTarget.value } })} autoComplete="off" error={erreurDe(err, 'adresse', 'ligne1')} />
+                    <Input class="span-2" label="Complément" opt value={livraison.adresse.ligne2} onInput={(e) => setLivraison({ ...livraison, adresse: { ...livraison.adresse, ligne2: e.currentTarget.value } })} autoComplete="off" />
+                    <Input label="Code postal" inputMode="numeric" value={livraison.adresse.cp} onInput={(e) => setLivraison({ ...livraison, adresse: { ...livraison.adresse, cp: e.currentTarget.value } })} autoComplete="off" error={erreurDe(err, 'cp')} help="France métropolitaine" />
+                    <Input label="Ville" value={livraison.adresse.ville} onInput={(e) => setLivraison({ ...livraison, adresse: { ...livraison.adresse, ville: e.currentTarget.value } })} autoComplete="off" error={erreurDe(err, 'ville')} />
+                  </div>
+                )}
+                <div class="form-grid">
+                  <Select
+                    label="Paiement"
+                    value={paiement}
+                    onChange={(e) => setPaiement(e.currentTarget.value)}
+                    options={[
+                      { value: 'carte', label: 'Carte bancaire (par téléphone)' },
+                      { value: 'virement', label: 'Virement' },
+                      { value: 'a-reception', label: 'À la réception ou au retrait' },
+                      { value: 'comptant', label: 'Comptant à la boutique' },
+                    ]}
+                  />
+                  <Input label="Code promo" opt value={code} onInput={(e) => setCode(e.currentTarget.value.toUpperCase())} champClass="mono" error={erreurDe(err, 'code')} autoComplete="off" />
+                </div>
+                <Check label="Paiement déjà reçu" checked={paye} onChange={(e) => setPaye(e.currentTarget.checked)} />
+                <Check label="Le client accepte de recevoir la lettre d’information" checked={consentement} onChange={(e) => setConsentement(e.currentTarget.checked)} />
+                <Textarea label="Note interne" opt value={note} onInput={(e) => setNote(e.currentTarget.value)} rows={2} placeholder="Ex. : rappeler le client à la préparation" style="min-height:72px" />
+                {alcool && <Check label="Le client a confirmé avoir 18 ans ou plus (la commande contient de l’alcool)." checked={age} onChange={(e) => setAge(e.currentTarget.checked)} boite />}
+                {erreurDe(err, 'ageConfirme') && <p class="field__err">{erreurDe(err, 'ageConfirme')}</p>}
+              </div>
+            </Card>
+          )}
         </div>
 
         <aside class="stack resume-col">
@@ -227,14 +263,14 @@ export function NouvelleCommande() {
               </div>
               <div class="kv">
                 <span>Livraison</span>
-                <span>{LIVRAISON[livraison.mode]?.court}</span>
+                <span>{type === 'pro' ? 'Transporteur' : LIVRAISON[livraison.mode]?.court}</span>
               </div>
               <div class="kv">
                 <span>Sous-total indicatif {type === 'pro' ? 'HT' : 'TTC'}</span>
                 <span class="strong">{euros(sousTotal)}</span>
               </div>
               <p class="small muted">{type === 'pro' ? 'Prix de la grille de base : la remise du compte, le franco et la TVA sont appliqués à l’enregistrement.' : 'Port, code promo et TVA calculés à l’enregistrement.'}</p>
-              {err && !erreurDe(err, 'compteId', 'client', 'email', 'nom', 'lignes', 'ageConfirme', 'jourRetrait', 'adresse', 'ligne1', 'cp', 'ville') && <Notice ton="err">{err.message}</Notice>}
+              {err && !erreurDe(err, 'compteId', 'client', 'email', 'nom', 'prenom', 'lignes', 'ageConfirme', 'jourRetrait', 'adresse', 'ligne1', 'cp', 'ville', 'code', 'referenceClient', 'dateSouhaitee', 'commentaire') && <Notice ton="err">{err.message}</Notice>}
               <Button variant="primary" size="lg" block icon="check" busy={envoi} onClick={creer} class="only-desk-flex">
                 Créer la commande
               </Button>

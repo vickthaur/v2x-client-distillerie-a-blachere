@@ -5,6 +5,7 @@ import { Icon } from '../ui/icons.jsx';
 import { Avatar, Button, Empty, Erreur, PageHead, Pagination, SkeletonRows, cx, useTitre } from '../ui/base.jsx';
 import { lienCible } from '../lib/liens.js';
 import { roleNom } from '../lib/droits.js';
+import { ACTIONS } from '../lib/statuts.js';
 import { dateHeure, heure, jourSemaine, isoJour, aujourdHui, ajouterJours } from '../lib/format.js';
 import { phraseAction } from './tableau.jsx';
 
@@ -37,11 +38,14 @@ export function Journal() {
       <div class="toolbar">
         <select class="select select--sm" style="width:auto;max-width:100%" aria-label="Action" value={action} onChange={(e) => setQ({ action: e.currentTarget.value, page: undefined })}>
           <option value="">Toutes les actions</option>
-          {actions.map((a) => (
-            <option key={typeof a === 'string' ? a : a.id} value={typeof a === 'string' ? a : a.id}>
-              {typeof a === 'string' ? a : a.libelle}
-            </option>
-          ))}
+          {actions.map((a) => {
+            const id = typeof a === 'string' ? a : a.id;
+            return (
+              <option key={id} value={id}>
+                {typeof a === 'string' ? ACTIONS[a]?.nom || a : a.libelle || ACTIONS[id]?.nom || id}
+              </option>
+            );
+          })}
         </select>
         <select class="select select--sm" style="width:auto" aria-label="Auteur" value={par} onChange={(e) => setQ({ par: e.currentTarget.value, page: undefined })}>
           <option value="">Tout le monde</option>

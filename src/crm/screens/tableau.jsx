@@ -11,8 +11,8 @@ import { Marque } from '../ui/marque.jsx';
 import { Ruban } from '../ui/ruban.jsx';
 import { BarresEmpilees, BasculeTableau, Jauge, Legende, MiniCourbe } from '../charts/charts.jsx';
 import { COULEURS, lienCible } from '../lib/liens.js';
-import { aujourdHui, date, dateCourte, dateLongue, ecartJours, euros, eurosCourt, eurosRond, heure, jourSemaine, lundi, nombre, periode, pluriel, relatif, variation } from '../lib/format.js';
-import { LANGUE_COURT, MOMENT } from '../lib/statuts.js';
+import { aujourdHui, date, dateCourte, dateLongue, ecartJours, euros, eurosCourt, eurosRond, heure, jourSemaine, lundi, mois, nombre, periode, pluriel, relatif, variation } from '../lib/format.js';
+import { ACTIONS, LANGUE_COURT, MOMENT } from '../lib/statuts.js';
 
 export function Tableau() {
   useTitre('Tableau de bord');
@@ -49,7 +49,7 @@ export function Tableau() {
           <Kpis d={d} />
           <div class="dash__main">
             {d.operation && <Operation op={d.operation} />}
-            <CarteVentes ventes={d.ventes30 || []} ca={d.ca} />
+            <CarteVentes ventes={d.ventes30 || []} ca={d.ca} ht={d.montants === 'TTC' ? 'TTC' : 'HT'} />
             <div class="cols cols--2 dash__duo">
               <TopProduits top={d.top || []} />
               <StocksBas liste={d.stocksBas || []} />
@@ -90,30 +90,46 @@ function SqueletteTableau() {
 function Kpis({ d }) {
   const ca = d.ca || {};
   const ventes = d.ventes30 || [];
-  const ca30 = Number.isFinite(ca.mois) ? ca.mois : (ca.enLigne30 || 0) + (ca.pro30 || 0);
-  const delta = ca.moisPrecedent > 0 ? (ca30 - ca.moisPrecedent) / ca.moisPrecedent : null;
   const parJour = ventes.map((v) => (Number(v.enLigne) || 0) + (Number(v.pro) || 0));
+  const ca30 = Number.isFinite(ca.enLigne30) || Number.isFinite(ca.pro30) ? (Number(ca.enLigne30) || 0) + (Number(ca.pro30) || 0) : parJour.reduce((t, v) => t + v, 0);
+  // Variation : avec les 30 jours précédents si l'API les donne, sinon 15 derniers jours contre
+  // les 15 d'avant (tirés de ventes30)
+  const precedent30 = Number.isFinite(ca.precedent30) ? ca.precedent30 : null;
+  let delta = null;
+  let cmp = '';
+  if (precedent30 > 0) {
+    delta = (ca30 - precedent30) / precedent30;
+    cmp = 'vs 30 jours précédents';
+  } else if (parJour.length >= 30) {
+    const avant = parJour.slice(0, 15).reduce((t, v) => t + v, 0);
+    const apres = parJour.slice(15).reduce((t, v) => t + v, 0);
+    if (avant > 0) {
+      delta = (apres - avant) / avant;
+      cmp = '15 derniers jours vs 15 précédents';
+    }
+  }
   const a = d.aTraiter || {};
   const totalATraiter = (a.commandes || 0) + (a.demandes || 0) + (a.messages || 0) + (a.facturesEnRetard || 0);
+  const ht = d.montants === 'TTC' ? 'TTC' : 'HT';
   return (
     <div class="kpis" role="list" aria-label="Chiffres clés">
       <div class="card kpi kpi--hero" role="listitem">
         <p class="kpi__label">
-          <span class="kpi__long">Chiffre d’affaires · 30 jours</span>
-          <span class="kpi__court">CA · 30 jours</span>
+          <span class="kpi__long">Chiffre d’affaires {ht} · 30 jours</span>
+          <span class="kpi__court">CA {ht} · 30 jours</span>
         </p>
         <p class="kpi__value">{eurosRond(ca30)}</p>
         <div class="kpi__spark">
           <MiniCourbe valeurs={parJour} couleur={COULEURS.enLigne} largeur={240} hauteur={30} />
         </div>
         <div class="kpi__foot">
-          {delta !== null ? (
+          {delta !== null && (
             <span class={`kpi__delta kpi__delta--${delta >= 0 ? 'up' : 'down'}`}>
               <Icon name={delta >= 0 ? 'hausse' : 'baisse'} size="xs" />
               {variation(delta)}
             </span>
-          ) : null}
-          <span class="kpi__cmp">{delta !== null ? 'vs 30 jours précédents' : 'Aucune vente sur la période précédente'}</span>
+          )}
+          <span class="kpi__cmp">{delta !== null ? cmp : 'Pas assez d’historique pour comparer'}</span>
         </div>
       </div>
       <div class="card kpi" role="listitem">
@@ -122,10 +138,12 @@ function Kpis({ d }) {
         <Repartition enLigne={ca.enLigne30 || 0} pro={ca.pro30 || 0} />
       </div>
       <div class="card kpi" role="listitem">
-        <p class="kpi__label">Panier moyen</p>
+        <p class="kpi__label">Panier moyen {ht}</p>
         <p class="kpi__value">{euros(d.panierMoyen30)}</p>
         <div class="kpi__foot">
-          <span class="kpi__cmp">Aujourd’hui : {eurosRond(ca.jour)} · 7 jours : {eurosRond(ca.semaine)}</span>
+          <span class="kpi__cmp">
+            Aujourd’hui : {eurosRond(ca.jour)} · cette semaine : {eurosRond(ca.semaine)}
+          </span>
         </div>
       </div>
       <Link class="card kpi kpi--link" role="listitem" href="#a-traiter" onClick={(e) => { e.preventDefault(); document.getElementById('a-traiter')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); document.getElementById('a-traiter-titre')?.focus?.(); }}>
@@ -135,7 +153,7 @@ function Kpis({ d }) {
           {totalATraiter > 0 && <span class="kpi__pulse" aria-hidden="true" />}
         </p>
         <div class="kpi__foot">
-          <span class="kpi__cmp">{totalATraiter ? `${pluriel(a.commandes || 0, 'commande', 'commandes')}, ${pluriel(a.messages || 0, 'message', 'messages')}…` : 'Rien en attente'}</span>
+          <span class="kpi__cmp">{totalATraiter ? [a.commandes && pluriel(a.commandes, 'commande', 'commandes'), a.messages && pluriel(a.messages, 'message', 'messages'), a.demandes && pluriel(a.demandes, 'demande pro', 'demandes pro')].filter(Boolean).join(', ') : 'Rien en attente'}</span>
         </div>
       </Link>
     </div>
@@ -148,14 +166,14 @@ function Repartition({ enLigne, pro }) {
   const p = total ? enLigne / total : 0;
   return (
     <div class="repart">
-      <div class="repart__barre" role="img" aria-label={`Chiffre d’affaires : ${eurosRond(enLigne)} en ligne, ${eurosRond(pro)} pro`}>
+      <div class="repart__barre" role="img" aria-label={`Chiffre d’affaires : ${eurosRond(enLigne)} particuliers, ${eurosRond(pro)} pro`}>
         {enLigne > 0 && <span style={{ width: `${p * 100}%`, background: COULEURS.enLigne }} />}
         {pro > 0 && <span style={{ width: `${(1 - p) * 100}%`, background: COULEURS.pro }} />}
       </div>
       <div class="repart__leg">
         <span>
           <i style={{ background: COULEURS.enLigne }} />
-          En ligne <strong>{eurosRond(enLigne)}</strong>
+          Particuliers <strong>{eurosRond(enLigne)}</strong>
         </span>
         <span>
           <i style={{ background: COULEURS.pro }} />
@@ -167,19 +185,22 @@ function Repartition({ enLigne, pro }) {
 }
 
 // ---------- Ventes des 30 derniers jours ----------
-function CarteVentes({ ventes, ca }) {
+function CarteVentes({ ventes, ca = {}, ht }) {
   const [tableau, setTableau] = useState(false);
   const totEnLigne = ventes.reduce((s, v) => s + (Number(v.enLigne) || 0), 0);
   const totPro = ventes.reduce((s, v) => s + (Number(v.pro) || 0), 0);
   const series = [
-    { cle: 'enLigne', label: 'En ligne', couleur: COULEURS.enLigne },
+    { cle: 'enLigne', label: 'Particuliers', couleur: COULEURS.enLigne },
     { cle: 'pro', label: 'Pro', couleur: COULEURS.pro },
   ];
   return (
-    <Card titre="Ventes des 30 derniers jours" sous="Montants par jour, boutique en ligne et commandes pro" actions={<BasculeTableau actif={tableau} onChange={setTableau} />}>
+    <Card titre="Ventes des 30 derniers jours" sous={`Montants ${ht} par jour : boutique en ligne et téléphone, commandes pro`} actions={<BasculeTableau actif={tableau} onChange={setTableau} />}>
       <div class="chart-head">
         <Legende items={series.map((x) => ({ label: x.label, couleur: x.couleur, valeur: eurosRond(x.cle === 'enLigne' ? totEnLigne : totPro) }))} />
-        <span class="small muted">Total {eurosRond(totEnLigne + totPro)}</span>
+        <span class="small muted">
+          {Number.isFinite(ca.mois) ? `${mois(aujourdHui()).replace(/ \d{4}$/, '')} : ${eurosRond(ca.mois)}` : ''}
+          {Number.isFinite(ca.moisPrecedent) ? ` · mois dernier : ${eurosRond(ca.moisPrecedent)}` : ''}
+        </span>
       </div>
       {ventes.length === 0 ? (
         <Empty petit icone="graphique" titre="Pas encore de ventes" texte="Les ventes des 30 derniers jours apparaîtront ici." />
@@ -190,7 +211,7 @@ function CarteVentes({ ventes, ca }) {
             <thead>
               <tr>
                 <th scope="col">Jour</th>
-                <th scope="col">En ligne</th>
+                <th scope="col">Particuliers</th>
                 <th scope="col">Pro</th>
                 <th scope="col">Total</th>
               </tr>
@@ -228,11 +249,11 @@ function ATraiter({ a }) {
   const s = useSession();
   const jour = aujourdHui();
   const lignes = [
-    { cle: 'commandes', icone: 'commandes', ton: 'new', titre: 'Commandes à préparer', sous: 'Nouvelles, en attente de préparation', href: '/crm/commandes?statut=nouvelle', droit: ['commandes', 'commandes-pro'] },
+    { cle: 'commandes', icone: 'commandes', ton: 'new', titre: 'Commandes à traiter', sous: 'Nouvelles ou en préparation', href: '/crm/commandes?statut=nouvelle', droit: ['commandes', 'commandes-pro'] },
     { cle: 'demandes', icone: 'briefcase', ton: 'new', titre: 'Demandes de compte pro', sous: 'À étudier', href: '/crm/demandes?statut=nouvelle', droit: ['demandes', 'comptes'] },
     { cle: 'messages', icone: 'message', ton: 'info', titre: 'Messages non lus', sous: 'Formulaire de contact et espace pro', href: '/crm/messages?statut=nouveau', droit: ['messages'] },
     { cle: 'reservationsJour', icone: 'calendrier', ton: 'ok', titre: 'Visites aujourd’hui', sous: 'Réservations du jour', href: `/crm/visites?jour=${jour}`, droit: ['visites'] },
-    { cle: 'facturesEnRetard', icone: 'facture', ton: 'err', titre: 'Factures en retard', sous: 'Échéance dépassée, non réglées', href: '/crm/comptes?encours=retard', droit: ['factures', 'comptes'] },
+    { cle: 'facturesEnRetard', icone: 'facture', ton: 'err', titre: 'Factures en retard', sous: 'Échéance dépassée, non réglées', href: '/crm/comptes?tri=-encours', droit: ['factures', 'comptes'] },
   ].filter((l) => l.droit.some((x) => s.peut(x)));
   const total = lignes.reduce((t, l) => t + (a[l.cle] || 0), 0);
   return (
@@ -269,7 +290,7 @@ function ATraiter({ a }) {
 function TopProduits({ top }) {
   const max = Math.max(...top.map((p) => Number(p.totalHT) || 0), 1);
   return (
-    <Card titre="Meilleures ventes" sous="30 derniers jours, en montant hors taxes" corps={false} actions={<Link class="more" href="/crm/produits">Produits<Icon name="droite" /></Link>}>
+    <Card titre="Meilleures ventes" sous="30 derniers jours, montants hors taxes" corps={false} actions={<Link class="more" href="/crm/produits">Produits<Icon name="droite" /></Link>}>
       {top.length === 0 ? (
         <Empty petit icone="bouteille" titre="Aucune vente" texte="Les produits les plus vendus apparaîtront ici." />
       ) : (
@@ -423,9 +444,10 @@ function Activite({ liste }) {
   );
 }
 
-// Action du journal en phrase (le serveur peut renvoyer un code « commande.statut » ou une phrase)
+// Action du journal en phrase : code du serveur (« commande.statut ») traduit, sinon tel quel
 export function phraseAction(e) {
   const a = String(e.action || '');
+  if (ACTIONS[a]) return ACTIONS[a].verbe;
   if (/\s/.test(a) || !/[.:_]/.test(a)) return a.charAt(0).toLowerCase() + a.slice(1);
   return a.replace(/[._:]/g, ' ');
 }

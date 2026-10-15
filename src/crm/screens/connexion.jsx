@@ -40,6 +40,8 @@ function Marque() {
 
 export function Connexion({ message, demo, onConnecte }) {
   useTitre('Connexion');
+  const [q] = useQuery();
+  const lienInvalide = q.get('demo') === 'lien-invalide';
   const [busy, setBusy] = useState(null);
   const [errDemo, setErrDemo] = useState(null);
   const [f, setF] = useState({ email: '', motDePasse: '' });
@@ -101,7 +103,12 @@ export function Connexion({ message, demo, onConnecte }) {
               {message.texte}
             </Notice>
           )}
-          {demo?.active && !message && (
+          {lienInvalide && !message && (
+            <Notice ton="warn" class="auth__msg">
+              Ce lien de démo n’est plus valable (il expire au bout de 7 jours). Ouvrez une nouvelle démo ci-dessous.
+            </Notice>
+          )}
+          {demo?.active && !message && !lienInvalide && (
             <Notice ton="demo" class="auth__msg">
               <strong>Démo en cours dans ce navigateur</strong>
               {demo.creeLe ? ` (ouverte le ${date(demo.creeLe)})` : ''}. Choisissez un profil pour la retrouver avec ses données.
@@ -173,7 +180,19 @@ export function Connexion({ message, demo, onConnecte }) {
                 </p>
               )}
             </div>
-            {errAutre && <Notice ton="err">{errAutre}</Notice>}
+            {errAutre && (
+              <Notice ton="err">
+                {errAutre}
+                {err?.data?.redirection && (
+                  <>
+                    {' '}
+                    <a class="link" href={err.data.redirection}>
+                      {err.data.redirection.startsWith('/espace-pro') ? 'Aller à l’espace pro' : 'Aller au CRM'}
+                    </a>
+                  </>
+                )}
+              </Notice>
+            )}
             <Button type="submit" variant="primary" size="lg" block busy={envoi}>
               Se connecter
             </Button>
