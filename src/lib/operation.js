@@ -35,7 +35,7 @@ export const euros = (n) => `${Number.isInteger(n) ? n : n.toFixed(2).replace('.
 // Phrase de la bannière officielle : « Pour chaque bouteille de PAC Citron vendue*, 1 € sera
 // reversé à … » ; l'astérisque renvoie aux conditions.
 export function accroche(op) {
-  return `Pour chaque bouteille de ${esc(op.produitNom)} vendue*, ${euros(op.montant)} sera reversé ${esc(op.beneficiaireAvecArticle).replace(/Avignon-Provence/g, 'Avignon\u2011Provence')}.`;
+  return `Pour chaque bouteille de ${esc(op.produitNom)} vendue*, ${euros(op.montant)} sera reversé ${esc(op.beneficiaireAvecArticle).replace(/Avignon-Provence/g, 'Avignon\u2011Provence').replace(/Sainte-Catherine/g, 'Sainte\u2011Catherine')}.`;
 }
 
 // Pastille courte (héros de l'accueil) : lien vers le bandeau de la page de marque.
@@ -86,7 +86,7 @@ export function bandeauHTML(op, { titreId = 'op-titre', cta = true } = {}) {
         <p class="op-band__montant" aria-hidden="true">${euros(op.montant)}</p>
         <h2 class="op-band__titre" id="${titreId}"><span class="sr-only">${euros(op.montant)} </span>reversé pour chaque bouteille de ${esc(op.produitNom)} vendue*</h2>
         <p class="op-band__benef"><span>Au profit de</span> <strong>l’${esc(op.beneficiaire).replace(/-/g, '\u2011')}</strong> <span class="op-band__benef-sous">${esc(op.beneficiaireSousTitre)}</span></p>
-        ${cta ? `<div class="op-band__ctas"><a class="btn op-band__cta" href="${esc(op.produitUrl)}">Acheter le ${esc(op.produitNom)}${prix != null ? `<span class="op-band__prix">${euro(prix)}</span>` : ''}</a></div>` : ''}
+        ${cta ? `<div class="op-band__ctas"><a class="btn op-band__cta" href="${esc(op.produitUrl)}"><span>Acheter le ${esc(op.produitNom)}</span>${prix != null ? `<span class="op-band__prix">${euro(prix)}</span>` : ''}</a></div>` : ''}
         <p class="op-band__fine">${esc(op.conditions)} ${esc(op.precisions || '')}</p>
       </div>
       <div class="op-band__visuel" aria-hidden="true">
