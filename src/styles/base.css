@@ -280,8 +280,10 @@ body[data-hero] .hd[data-state='top']:not(.has-mega) .logo__img--light { opacity
 .mega__lock > svg { width: 28px; height: 28px; flex: none; margin-top: 2px; }
 .mega__lock .btn { margin-top: 14px; }
 
-/* Recherche */
-.search { position: fixed; inset: 0; z-index: 80; background: rgba(21, 19, 15, 0.42); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); opacity: 0; transition: opacity 0.25s; }
+/* Recherche : fenêtre modale (<dialog>) sur tout l'écran ; le voile est la fenêtre elle-même (il
+   apparaît en fondu avec elle), le panneau blanc est en haut. */
+.search { position: fixed; inset: 0; z-index: 80; width: 100%; max-width: none; height: 100%; max-height: none; margin: 0; padding: 0; border: 0; overflow: hidden; background: rgba(21, 19, 15, 0.42); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); color: var(--ink); opacity: 0; transition: opacity 0.25s; }
+.search::backdrop { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
 .search.is-open { opacity: 1; }
 .search__in { background: #fff; padding-block: 22px 32px; border-radius: 0 0 var(--r-l) var(--r-l); box-shadow: var(--shadow-2); max-height: 100vh; overflow: auto; }
 .search__form { display: flex; align-items: center; gap: 14px; border-bottom: 2px solid var(--ink); padding-bottom: 10px; }
@@ -302,9 +304,11 @@ body[data-hero] .hd[data-state='top']:not(.has-mega) .logo__img--light { opacity
 .search__pages a:hover { text-decoration: underline; }
 .search__none { color: var(--ink-3); }
 
-/* Menu plein écran (téléphone, tablette) */
-.menu { position: fixed; inset: 0; z-index: 90; background: var(--paper); transform: translateX(100%); visibility: hidden; transition: transform 0.5s var(--ease), visibility 0s 0.5s; }
-.menu.is-open { transform: none; visibility: visible; transition: transform 0.5s var(--ease); }
+/* Menu plein écran (téléphone, tablette) : fenêtre modale (<dialog>) qui glisse depuis la droite ;
+   elle se ferme une fois sortie de l'écran (src/app/site.js). */
+.menu { position: fixed; inset: 0; z-index: 90; width: 100%; max-width: none; height: 100%; max-height: none; margin: 0; padding: 0; border: 0; overflow: hidden; background: var(--paper); color: var(--ink); transform: translateX(100%); transition: transform 0.5s var(--ease); }
+.menu::backdrop { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.menu.is-open { transform: none; }
 .menu__in { display: flex; flex-direction: column; height: 100%; overflow-y: auto; overscroll-behavior: contain; }
 .menu__top { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; min-height: 68px; padding: 10px var(--gutter); background: var(--paper); border-bottom: 1px solid var(--line); }
 /* colonne bornée à l'écran : sans minmax(0, …), le carrousel des marques élargissait tout le menu

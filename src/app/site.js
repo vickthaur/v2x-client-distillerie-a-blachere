@@ -257,6 +257,15 @@ function bindHeader() {
   document.addEventListener('click', (e) => {
     if (!e.target.closest('.mega') && !e.target.closest('[data-mega]')) closeMegas();
   });
+  // Au clavier : le panneau suit son bouton dans l'ordre du focus ; il se ferme quand le focus
+  // quitte le bouton et le panneau (un clic dans le vide du panneau ne le ferme pas).
+  $$('.nav__item').forEach((item) => {
+    const btn = $('[data-mega]', item);
+    if (!btn) return;
+    item.addEventListener('focusout', (e) => {
+      if (btn.getAttribute('aria-expanded') === 'true' && e.relatedTarget && !item.contains(e.relatedTarget)) closeMegas();
+    });
+  });
   addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
     const open = $('[data-mega][aria-expanded="true"]');
@@ -291,20 +300,24 @@ function bindSearch() {
   if (!box || !btn) return;
   const input = $('#search-q');
   const out = $('#search-results');
-  const set = (on) => {
-    box.hidden = !on;
-    btn.setAttribute('aria-expanded', String(on));
-    document.body.classList.toggle('search-ouverte', on);
-    if (on) {
-      closeMegas();
-      requestAnimationFrame(() => box.classList.add('is-open'));
-      input.focus();
-      run();
-    } else {
-      box.classList.remove('is-open');
-      btn.focus({ preventScroll: true });
-    }
+  // Fenêtre modale : le reste de la page est inerte, Échap ferme (événement « close »).
+  const open = () => {
+    if (box.open) return;
+    closeMegas();
+    box.showModal();
+    void box.offsetWidth; // départ du fondu
+    box.classList.add('is-open');
+    btn.setAttribute('aria-expanded', 'true');
+    document.body.classList.add('search-ouverte');
+    input.focus();
+    run();
   };
+  box.addEventListener('close', () => {
+    box.classList.remove('is-open');
+    btn.setAttribute('aria-expanded', 'false');
+    document.body.classList.remove('search-ouverte');
+    btn.focus({ preventScroll: true });
+  });
   const run = () => {
     const q = fold(input.value.trim());
     const pool = products.filter((p) => !p.alcool || age === 'majeur');
@@ -321,33 +334,64 @@ function bindSearch() {
     }</div>`;
     upgradeThumbs(out);
   };
-  btn.addEventListener('click', () => set(box.hidden));
-  $('[data-search-close]', box).addEventListener('click', () => set(false));
+  btn.addEventListener('click', () => (box.open ? box.close() : open()));
+  $('[data-search-close]', box).addEventListener('click', () => box.close());
   input.addEventListener('input', run);
-  box.addEventListener('click', (e) => e.target === box && set(false));
-  addEventListener('keydown', (e) => e.key === 'Escape' && !box.hidden && set(false));
+  // Échap ferme du premier coup, même avec du texte (un champ « search » se viderait d'abord)
+  input.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    e.preventDefault();
+    box.close();
+  });
+  // clic sur le voile, hors du panneau
+  box.addEventListener('click', (e) => e.target === box && box.close());
 }
 
+// Menu du téléphone : fenêtre modale qui glisse depuis la droite ; elle ne se ferme (et ne rend le
+// focus au bouton) qu'une fois sortie de l'écran.
 function bindMenu() {
   const menu = $('#menu');
   const open = $('#menu-open');
   if (!menu || !open) return;
-  const set = (on) => {
-    menu.classList.toggle('is-open', on);
-    menu.inert = !on;
-    open.setAttribute('aria-expanded', String(on));
-    document.body.classList.toggle('menu-ouvert', on);
-    if (on) {
-      fillRenders(menu);
-      $('#menu-close').focus();
-    } else open.focus({ preventScroll: true });
+  let timer = 0;
+  const show = () => {
+    if (menu.open) return;
+    clearTimeout(timer);
+    fillRenders(menu);
+    menu.showModal();
+    void menu.offsetWidth; // départ du glissé
+    menu.classList.add('is-open');
+    open.setAttribute('aria-expanded', 'true');
+    document.body.classList.add('menu-ouvert');
+    $('#menu-close').focus();
   };
-  open.addEventListener('click', () => set(true));
-  $('#menu-close').addEventListener('click', () => set(false));
-  menu.addEventListener('click', (e) => {
-    if (e.target === menu || e.target.closest('a')) set(false);
+  const hide = () => {
+    if (!menu.open || !menu.classList.contains('is-open')) return;
+    menu.classList.remove('is-open');
+    const done = () => {
+      clearTimeout(timer);
+      menu.removeEventListener('transitionend', end);
+      if (menu.open) menu.close();
+    };
+    const end = (e) => e.target === menu && done();
+    menu.addEventListener('transitionend', end);
+    timer = setTimeout(done, calm() ? 0 : 650);
+  };
+  menu.addEventListener('cancel', (e) => {
+    e.preventDefault();
+    hide();
   });
-  addEventListener('keydown', (e) => e.key === 'Escape' && menu.classList.contains('is-open') && set(false));
+  menu.addEventListener('close', () => {
+    menu.classList.remove('is-open');
+    open.setAttribute('aria-expanded', 'false');
+    document.body.classList.remove('menu-ouvert');
+    open.focus({ preventScroll: true });
+  });
+  open.addEventListener('click', show);
+  $('#menu-close').addEventListener('click', hide);
+  menu.addEventListener('click', (e) => {
+    if (e.target === menu || e.target.closest('a')) hide();
+  });
 }
 
 // Lettre d'information : inscription enregistrée dans la démo de ce navigateur (api/site, newsletter).
@@ -507,11 +551,27 @@ export function addToCart(slug, v = null, qty = 1, { open = false } = {}) {
 
 // ---------- Message ----------
 let toastTimer;
+// Une fenêtre modale est ouverte (menu, recherche, panier, porte d'âge) : le message s'affiche dans
+// la fenêtre, sinon il serait caché derrière elle et inerte (jamais lu par les lecteurs d'écran).
+const modale = () => {
+  try {
+    return [...document.querySelectorAll('dialog[open]')].reverse().find((d) => d.matches(':modal')) || null;
+  } catch {
+    return null;
+  }
+};
 function toast(text) {
   const t = $('#toast');
   if (!t) return;
-  t.textContent = text;
-  t.classList.add('is-on');
+  const host = modale() || document.body;
+  const show = () => {
+    t.textContent = text;
+    t.classList.add('is-on');
+  };
+  if (t.parentElement !== host) {
+    host.append(t);
+    requestAnimationFrame(show);
+  } else show();
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('is-on'), 2400);
 }

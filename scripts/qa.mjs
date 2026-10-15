@@ -275,9 +275,13 @@ for (const vp of ['bureau', 'mobile']) {
     const row = document.querySelector('#buy .pp__row').getBoundingClientRect();
     scrollTo(0, scrollY + row.bottom + 60);
   });
-  // la barre suit le défilement à l'image près (requestAnimationFrame) : jusqu'à 8 s sous charge
-  await fm.waitForFunction(() => document.querySelector('#pp-bar')?.classList.contains('is-on'), null, { timeout: 8000 }).catch(() => {});
-  await fm.waitForTimeout(600);
+  // la barre suit le défilement à l'image près (requestAnimationFrame), puis glisse en place
+  // (0,4 s) : on attend qu'elle soit à l'écran, jusqu'à 8 s sous charge
+  await fm.waitForFunction(() => {
+    const b = document.querySelector('#pp-bar');
+    return !!b?.classList.contains('is-on') && b.getBoundingClientRect().top < innerHeight - 10;
+  }, null, { timeout: 8000 }).catch(() => {});
+  await fm.waitForTimeout(300);
   const pendant = await etatBarre();
   await shot(fm, 'mobile-46-fiche-barre-achat', false);
   await fm.click('#pp-bar-add');
@@ -460,6 +464,63 @@ for (const vp of ['bureau', 'mobile']) {
   await mm.waitForTimeout(700);
   check('Téléphone : le menu plein écran s’ouvre', await mm.evaluate(() => document.querySelector('#menu').classList.contains('is-open')));
   await shot(mm, 'mobile-31-menu', false);
+  await ctxm.close();
+}
+
+// ---------- 4 bis. Clavier : méga-menus dans l'ordre du focus, fenêtres modales (A11Y-3, A11Y-4) ----------
+{
+  const actif = (page) => page.evaluate(() => {
+    const a = document.activeElement;
+    return { id: a?.id || '', mega: a?.closest('.mega')?.id || null, dialog: a?.closest('dialog')?.id || null, tag: a?.tagName.toLowerCase() };
+  });
+  const ctx = await context('bureau', 'majeur');
+  const { page } = await open(ctx, '/boutique', { wait: 2000, label: 'clavier en-tête' });
+  // attentes sur l'état plutôt qu'à durée fixe : la recette tourne parfois sur une machine chargée
+  await page.focus('[data-mega="marques"]');
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => !document.querySelector('#mega-marques').hidden, null, { timeout: 5000 }).catch(() => {});
+  await page.waitForTimeout(200);
+  await page.keyboard.press('Tab');
+  const premier = await actif(page);
+  await page.keyboard.press('Shift+Tab');
+  await page.keyboard.press('Shift+Tab');
+  await page.waitForFunction(() => document.querySelector('#mega-marques').hidden, null, { timeout: 5000 }).catch(() => {});
+  const ferme = await page.evaluate(() => document.querySelector('#mega-marques').hidden);
+  check('Méga-menu ouvert au clavier : la tabulation suivante entre dans le panneau, qui se ferme quand le focus le quitte', premier.mega === 'mega-marques' && ferme, JSON.stringify({ premier, ferme }));
+  await page.click('#search-open');
+  await page.waitForFunction(() => document.querySelector('#search').open && document.activeElement?.id === 'search-q', null, { timeout: 5000 }).catch(() => {});
+  const modale = await page.evaluate(() => ({ open: document.querySelector('#search').open, modal: document.querySelector('#search').matches(':modal'), focus: document.activeElement?.id }));
+  await page.keyboard.type('menthe');
+  await page.waitForTimeout(400);
+  const sorties = [];
+  for (let i = 0; i < 14; i++) {
+    await page.keyboard.press('Tab');
+    const a = await actif(page);
+    if (a.dialog !== 'search' && a.tag !== 'body') sorties.push(a.id || a.tag);
+  }
+  // un seul Échap, champ rempli : la recherche se ferme (le champ ne se vide pas d'abord)
+  await page.focus('#search-q');
+  await page.keyboard.press('Escape');
+  await page.waitForFunction(() => !document.querySelector('#search').open, null, { timeout: 5000 }).catch(() => {});
+  await page.waitForTimeout(200);
+  const retour = await page.evaluate(() => ({ open: document.querySelector('#search').open, focus: document.activeElement?.id }));
+  check('Recherche : fenêtre modale, le focus y reste (14 tabulations), un Échap la ferme et rend le focus au bouton', modale.open && modale.modal && modale.focus === 'search-q' && !sorties.length && !retour.open && retour.focus === 'search-open', JSON.stringify({ modale, sorties, retour }));
+  await ctx.close();
+  const ctxm = await context('mobile', 'sirops');
+  const { page: mm } = await open(ctxm, '/', { wait: 2500, label: 'menu modal' });
+  await mm.click('#menu-open');
+  await mm.waitForFunction(() => document.querySelector('#menu').open && document.activeElement?.id === 'menu-close', null, { timeout: 5000 }).catch(() => {});
+  const m = await mm.evaluate(() => ({ open: document.querySelector('#menu').open, modal: document.querySelector('#menu').matches(':modal'), focus: document.activeElement?.id }));
+  const hors = [];
+  for (let i = 0; i < 40; i++) {
+    await mm.keyboard.press('Tab');
+    const a = await actif(mm);
+    if (a.dialog !== 'menu' && a.tag !== 'body') hors.push(a.id || a.tag);
+  }
+  await mm.keyboard.press('Escape');
+  await mm.waitForFunction(() => !document.querySelector('#menu').open && document.activeElement?.id === 'menu-open', null, { timeout: 5000 }).catch(() => {});
+  const fin = await mm.evaluate(() => ({ open: document.querySelector('#menu').open, focus: document.activeElement?.id }));
+  check('Menu du téléphone : fenêtre modale, le focus y reste (40 tabulations), Échap rend le focus au bouton', m.open && m.modal && m.focus === 'menu-close' && !hors.length && !fin.open && fin.focus === 'menu-open', JSON.stringify({ m, hors: hors.slice(0, 5), fin }));
   await ctxm.close();
 }
 
