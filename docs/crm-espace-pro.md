@@ -305,7 +305,8 @@ ne change pour le CRM ni l'espace pro.
 - Ménage : `api/menage` exige `Authorization: Bearer ${CRON_SECRET}` (comparaison à temps constant ;
   sans `CRON_SECRET`, 401 en local et 500 « configuration » sur Vercel).
 - Création de démo seulement en `POST` avec les contrôles ci-dessus (les robots ne créent rien) ;
-  limiteur par IP (20 démos par heure et par instance).
+  limiteur par IP (60 démos par heure et par instance : en présentation, plusieurs appareils
+  partagent le même wifi).
 
 ### Revue de sécurité du back-end (octobre 2026)
 
@@ -340,7 +341,7 @@ Vérifié, et couvert par les tests (`test/securite.test.js`, `crm.test.js`, `pr
 - **Journaux de la plateforme** : seulement la référence, le type d'erreur et la pile d'appels ; ni
   corps de requête, ni e-mail, ni message.
 - **Démos** : identifiant aléatoire de 80 bits, signé dans le cookie ; liens de partage signés
-  (7 jours) ; création en POST seulement, 20 par heure et par IP ; concurrence optimiste (ETag) ; taille
+  (7 jours) ; création en POST seulement, 60 par heure et par IP ; concurrence optimiste (ETag) ; taille
   plafonnée (2 Mo) ; ménage à 30 jours. **RGPD** : export des données d'un client, effacement qui
   anonymise commandes, réservations, messages et retire abonnement et courriels.
 
@@ -363,8 +364,13 @@ Réponse : JSON. Succès `200` (`201` à la création) ; erreurs `{ erreur: 'Mes
 champ?: 'email', code?: 'conflit'|'verrouille'|'stock'|… }` avec `400` (saisie), `401` (non
 connecté), `403` (droit), `404`, `405` (méthode), `409` (conflit, stock), `413` (trop gros), `415`
 (pas du JSON), `423` (verrouillé), `429`, `500` (`{ erreur, reference }`). Les messages suivent la
-typographie française (espaces insécables avant « : », « ; », « ? », dans « »). Listes
+typographie française (espaces insécables avant « : », « ; », « ? », dans « ») et écrivent les dates
+en français (« le 12 novembre », l'année seulement si ce n'est pas l'année en cours), jamais au
+format ISO ; les champs de date des réponses restent au format ISO (`AAAA-MM-JJ`). Listes
 paginées : `?page=1&par=25` → `{ elements, total, page, pages }`. Tris : `?tri=date|-date|total…`.
+Modifications (`PATCH`) : un champ absent est laissé tel quel ; un champ facultatif envoyé à `null`
+ou `''` est effacé (champs indiqués pour chaque ressource ; les notes d'un client ou d'un compte, du
+texte toujours présent, redeviennent `''`) ; pour les autres champs, `null` vaut absent.
 
 ### `api/session`
 
@@ -420,7 +426,7 @@ inconnu ou mal formé → 404.
 
 | Méthode | `r` | Détail |
 |---|---|---|
-| GET | `tableau` | `{ ca: { jour, semaine (depuis lundi), mois, moisPrecedent, enLigne30 (particuliers : en ligne et téléphone), pro30 }, commandes30, panierMoyen30, aTraiter: { commandes (nouvelles et en préparation), demandes (nouvelles), messages (nouveaux), reservationsJour, facturesEnRetard }, ventes30: [{ date, enLigne, pro }], top: [{ slug, nom, qte, totalHT }] (5, sur 30 jours), stocksBas: [{ slug, varianteId, nom, volume, stock, seuil, etat, actif }], prochainesVisites: [Séance vue¹] (5), activite: Entree[] (10 dernières), operation, montants: 'HT' }` — commandes annulées et remboursées exclues ; `operation` = `{ id, nom, beneficiaire, debut, fin, enCours: boolean, bouteilles, montant, commandes }` (Octobre Rose : commandes en ligne non annulées ni remboursées dont le jour de Paris est dans la période), présent pendant l'opération et 30 jours après sa fin (virement du don), sinon `null` |
+| GET | `tableau` | `{ ca: { jour, semaine (depuis lundi), mois, moisPrecedent, enLigne30 (particuliers : en ligne et téléphone), pro30, precedent30 (tous canaux, les 30 jours d'avant : J−59 à J−30, à comparer à enLigne30 + pro30) }, commandes30, panierMoyen30, aTraiter: { commandes (nouvelles et en préparation), demandes (nouvelles), messages (nouveaux), reservationsJour, facturesEnRetard }, ventes30: [{ date, enLigne, pro }], top: [{ slug, nom, qte, totalHT }] (5, sur 30 jours), stocksBas: [{ slug, varianteId, nom, volume, stock, seuil, etat, actif }], prochainesVisites: [Séance vue¹] (5), activite: Entree[] (10 dernières), operation, montants: 'HT' }` — commandes annulées et remboursées exclues ; `operation` = `{ id, nom, beneficiaire, debut, fin, enCours: boolean, bouteilles, montant, commandes }` (Octobre Rose : commandes en ligne non annulées ni remboursées dont le jour de Paris est dans la période), présent pendant l'opération et 30 jours après sa fin (virement du don), sinon `null` |
 | GET | `notifications` | `{ commandes, demandes (créées depuis la dernière consultation), messages (non lus), stocksBas, version, vuLe }` (version = `updatedAt`) — appelé toutes les 30 s quand l'onglet est visible et actif ; 0 pour une rubrique sans droit |
 | POST | `notifications-vues` | marque vu → `{ ok, vuLe }` |
 | GET | `recherche` | `q` (2 caractères au moins, sans accents) → `{ resultats: [{ type: 'commande'\|'client'\|'compte'\|'demande'\|'message'\|'reservation'\|'produit', id, titre, sousTitre, url }] }` (30 au plus, selon les droits) |
@@ -430,12 +436,12 @@ inconnu ou mal formé → 404.
 | PATCH | `commande` | `id`, `{ statut?, suivi?: { transporteur?, numero?, url? (https) }, note?, paiementStatut?: 'paye', factureStatut?: 'payee'\|'a-regler' (droit factures) }` → commande complète |
 | POST | `commandes-statut` | `{ ids (100 au plus), statut }` → `{ ok: [id], erreurs: [{ id, numero?, erreur }] }` (une commande refusée n'empêche pas les autres) |
 | GET | `clients` / `client` | liste (`q, segment: 'tous'\|'newsletter'\|'fideles' (3 commandes ou plus)\|'inactifs' (aucune commande depuis 90 jours), page, par, tri=nom\|date\|total\|commandes\|derniere`) → `{ elements: [{ id, prenom, nom, email, telephone, ville, newsletter, tags, origine, commandes, totalTTC, derniereCommande, createdAt }], …, compteurs }` ; fiche → Client + `commandes` (résumés), `totaux: { commandes, totalTTC, panierMoyen, premiereCommande, derniereCommande }`, `reservations`, `messages`, `abonnement` |
-| POST / PATCH / DELETE | `client` | créer `{ prenom, nom, email, telephone?, adresse?, newsletter?, tags?, notes?, origine? }` (e-mail déjà connu → 409) ; modifier (mêmes champs ; `newsletter` inscrit ou désinscrit l'abonné) ; supprimer (RGPD : client et abonnement effacés, commandes anonymisées, réservations, messages et courriels aussi) → `{ ok, commandesAnonymisees }` |
+| POST / PATCH / DELETE | `client` | créer `{ prenom, nom, email, telephone?, adresse?, newsletter?, tags?, notes?, origine? }` (e-mail déjà connu → 409) ; modifier (mêmes champs ; `newsletter` inscrit ou désinscrit l'abonné ; `null` ou `''` efface `telephone`, `adresse`, `notes`) ; supprimer (RGPD : client et abonnement effacés, commandes anonymisées, réservations, messages et courriels aussi) → `{ ok, commandesAnonymisees }` |
 | GET | `client-export` | `id` → JSON des données personnelles (RGPD, en pièce jointe ; droit d'écriture sur les clients) |
 | GET | `comptes` / `compte` | liste (`q, type, statut, commercial, page, par, tri=nom\|ca\|date\|encours`) → `{ id, enseigne, raisonSociale, type, ville, statut, grille, remise, conditions, licence, commercial: { id, nom }, ca12 (HT), encours?, encoursMax?, derniereCommande, utilisateurs, tags }` ; fiche → Compte + `commercial: { id, nom, email, telephone }`, `utilisateurs: [{ id, prenom, nom, email, telephone, statut: 'actif'\|'invitation'\|'desactive', derniereConnexion, invitationExpireLe? }]`, `commandes`, `ca12`, `messages`, et pour qui voit les factures `encours`, `factures: [{ numero, date, echeance, statut, payeeLe?, enRetard, totalTTC, commandeId, commandeNumero }]` |
-| POST / PATCH | `compte` | créer `{ raisonSociale, enseigne, type, siret?, tvaIntra?, licence, telephone?, email, adresseFacturation, adressesLivraison?, grille, remise?, conditions, francoHT?, encoursMax?, commercialId?, tags?, notes?, utilisateur?: { prenom, nom, email } }` → `201 { compte, utilisateur?, lienDemo? }` (invitation du premier utilisateur) ; modifier les mêmes champs + `statut: 'actif'\|'suspendu'` (suspendu : sessions pro fermées) |
+| POST / PATCH | `compte` | créer `{ raisonSociale, enseigne, type, siret?, tvaIntra?, licence, telephone?, email, adresseFacturation, adressesLivraison?, grille, remise?, conditions, francoHT?, encoursMax?, commercialId?, tags?, notes?, utilisateur?: { prenom, nom, email } }` → `201 { compte, utilisateur?, lienDemo? }` (invitation du premier utilisateur) ; modifier les mêmes champs + `statut: 'actif'\|'suspendu'` (suspendu : sessions pro fermées ; `null` ou `''` efface `siret`, `tvaIntra`, `telephone`, `commercialId`, `notes`) |
 | POST | `compte-utilisateur` | `{ compteId, prenom, nom, email }` → invitation (courriel) → `201 { utilisateur, lienDemo }` (e-mail déjà utilisé → 409) |
-| GET / PATCH | `demandes` / `demande` | liste (`statut`, paginée, + `compteurs`) ; fiche `id` ; modifier `{ statut?: 'nouvelle'\|'en-cours', note? }` |
+| GET / PATCH | `demandes` / `demande` | liste (`statut`, paginée, + `compteurs`) ; fiche `id` ; modifier `{ statut?: 'nouvelle'\|'en-cours', note? }` (`note` à `null` ou `''` : effacée) |
 | POST | `demande-accepter` | `id`, `{ grille, remise?, conditions, commercialId?, encoursMax, licence? (défaut 'aucune' : pas d'alcool tant qu'elle n'est pas renseignée), type? (défaut : l'activité), adresse?, francoHT? }` → crée compte + utilisateur + invitation (courriel) → `201 { compte, utilisateur, lienDemo, demande }` (demande déjà traitée → 409) |
 | POST | `demande-refuser` | `id`, `{ motif }` → courriel de réponse → demande |
 | GET | `produits` | `q, gamme, stock=tous\|bas\|rupture` → `{ elements: [{ slug, nom, type, gamme, gammeNom, univers, alcool, degre, photo, reference, actif, enLigne, variantes: [{ id, volume, coffret, prixTTC, prixOfficielTTC, prixProHT, proManuel, tva, stock, seuil, colisage, etat, vendus30 }] }], total, page, pages, compteurs, gammes }` |
@@ -443,21 +449,21 @@ inconnu ou mal formé → 404.
 | POST | `stock` | `{ slug, varianteId, delta, motif: 'production' (positif)\|'inventaire'\|'casse' (négatif)\|'ajustement', note? }` → `201 { mouvement, stock, etat }` (stock négatif → 409) |
 | GET | `mouvements` | `slug?` → mouvements récents (200 au plus, paginés), avec `nom`, `volume` |
 | GET | `visites` | `du, au` (défaut : aujourd'hui + 13 jours ; 120 jours au plus) → `{ du, au, seances: [Séance vue¹], reservations: [Réservation + heure] }` |
-| POST / PATCH | `seance` | ajouter `{ date, moment, heure?, capacite?, langue?, guideId?, notes? }` (même un jour habituellement fermé ; doublon → 409) ; modifier `{ capacite? (≥ inscrits), statut?: 'ouverte'\|'fermee', langue?, guideId?, notes? }` |
-| POST / PATCH | `reservation` | saisie `{ seanceId \| date + moment, personnes, mineurs?, langue?, nom, email, telephone?, message?, notes?, newsletter?, source?: 'telephone'\|'crm' }` (complet → 409 avec disponibilités) ; modifier `{ statut?: 'confirmee'\|'annulee'\|'venue'\|'absente', personnes?, mineurs?, seanceId?, notes? }` |
+| POST / PATCH | `seance` | ajouter `{ date, moment, heure?, capacite?, langue?, guideId?, notes? }` (même un jour habituellement fermé ; doublon → 409) ; modifier `{ capacite? (≥ inscrits), statut?: 'ouverte'\|'fermee', langue?, guideId?, notes? }` (`guideId` à `null` ou `''` : guide retiré ; `notes` à `null` ou `''` : effacées) → Séance vue¹ ; guide inconnu ou inactif → 400 (`champ: 'guideId'`) |
+| POST / PATCH | `reservation` | saisie `{ seanceId \| date + moment, personnes, mineurs?, langue?, nom, email, telephone?, message?, notes?, newsletter?, source?: 'telephone'\|'crm' }` (complet → 409 avec disponibilités) ; modifier `{ statut?: 'confirmee'\|'annulee'\|'venue'\|'absente', personnes?, mineurs?, seanceId?, notes? }` (`notes` à `null` ou `''` : effacées) |
 | GET | `messages` / `message` | liste (`statut, q`, paginée, + `compteurs` dont `nonLus`) → `{ id, reference, nom, email, telephone?, sujet, statut, lu, assigneA: { id, nom } \| null, extrait, dernierMessage, nbMessages, compte?, client?, createdAt }` ; fiche (+ `fil`) : la lecture le marque lu |
-| PATCH | `message` | `{ statut?, assigneA? (id du personnel ; null pour retirer), lu? }` |
+| PATCH | `message` | `{ statut?, assigneA? (id du personnel ; null ou '' pour retirer), lu? }` |
 | POST | `message-reponse` | `id`, `{ texte }` → fil + courriel → `201` message |
 | GET | `newsletter` | `{ abonnes: { total, inscrits, desinscrits, parSource, evolution: [{ mois, inscrits, nouveaux }] (12 mois) }, liste: { elements, total, page, pages } (`q, statut, source`), campagnes }` |
 | POST / PATCH / DELETE | `campagne` | brouillon `{ objet, introduction, corps, segment: 'tous'\|'clients'\|'pros'\|'visiteurs', bouton?: { libelle, url (/… ou https://…) } }` ; modifier ; supprimer un brouillon (envoyée → 409) |
 | POST | `campagne-envoyer` | `id` → « envoyée » à N destinataires (simulation, 1 courriel d'exemple dans la boîte d'envoi) → `{ ok, destinataires, campagne }` |
-| PATCH / DELETE | `abonne` | `{ statut: 'inscrit'\|'desinscrit' }` ; supprimer (RGPD) |
-| GET / POST / PATCH | `promos` / `promo` | liste (+ `etat: 'actif'\|'inactif'\|'a-venir'\|'expire'\|'epuise'`) ; créer `{ code, libelle, type, valeur, minimumTTC?, debut?, fin?, limite?, actif? }` (code existant → 409) ; modifier (null efface `debut`, `fin`, `limite`) |
+| GET / PATCH / DELETE | `abonne` | fiche `id` → Abonné (§ 4, `statut` toujours présent) + `client: { id, nom } \| null` (fiche client de même e-mail ; `null` sans droit de lecture sur les clients), `courriels: [{ id, date, objet, type }]` (les 20 derniers reçus, du plus récent ; vide sans droit sur les courriels) ; modifier `{ statut: 'inscrit'\|'desinscrit' }` ; supprimer (RGPD) |
+| GET / POST / PATCH | `promos` / `promo` | liste (+ `etat: 'actif'\|'inactif'\|'a-venir'\|'expire'\|'epuise'`) ; créer `{ code, libelle, type, valeur, minimumTTC?, debut?, fin?, limite?, actif? }` (code existant → 409) ; modifier (`null` ou `''` efface `debut`, `fin` ; `limite: null` lève la limite, comme à la création) |
 | GET | `courriels` / `courriel` | boîte d'envoi (`type, q`, paginée, du plus récent) ; détail `id` avec `contenu` |
 | GET | `journal` | `page, par (taille de page), action (préfixe : « commande » ou « commande.statut »), auteur (id)` → paginé + `actions` (liste des codes) |
-| GET / POST / PATCH | `equipe` / `membre` | personnel : direction → `{ membres: [{ id, prenom, nom, email, role, roleNom, poste, telephone, actif, statut, derniereConnexion, demo, invitationExpireLe? }] }`, autres rôles → noms seulement (attribution) ; inviter `{ prenom, nom, email, role, poste?, telephone? }` → `201 { membre, lienDemo }` ; modifier `{ role?, actif?, poste?, telephone? }` (rôle ou accès changé : ses sessions sont fermées ; pas sur soi-même → 409) |
+| GET / POST / PATCH | `equipe` / `membre` | personnel : direction → `{ membres: [{ id, prenom, nom, email, role, roleNom, poste, telephone, actif, statut, derniereConnexion, demo, invitationExpireLe? }] }`, autres rôles → noms seulement (attribution) ; inviter `{ prenom, nom, email, role, poste?, telephone? }` → `201 { membre, lienDemo }` ; modifier `{ role?, actif?, poste?, telephone? }` (`null` ou `''` efface poste et téléphone ; rôle ou accès changé : ses sessions sont fermées ; pas sur soi-même → 409) |
 | GET / PATCH | `parametres` | réglages (direction) ; modifier par rubrique `{ livraison?: { colissimo?, relais?, francoTTC? }, pro?: { minimumHT?, francoHT?, fraisPortHT?, delai? }, visites?: { capacite?, horaires?, saison?, fermeLe? }, entreprise?: {…} }` |
-| GET | `export` | `type=commandes\|clients\|comptes\|abonnes\|reservations\|produits` (droit exports + lecture de la rubrique) → CSV UTF-8 avec BOM, séparateur `;`, décimales à virgule, dates JJ/MM/AAAA, pièce jointe `<type>-AAAA-MM-JJ.csv`, cellules commençant par = + - @ neutralisées (commandes : colonne « Don Octobre Rose (€) ») |
+| GET | `export` | `type=commandes\|clients\|comptes\|abonnes\|reservations\|produits` (droit exports + lecture de la rubrique) + les filtres et le tri de la liste correspondante, appliqués s'ils sont fournis (sans filtre : export complet) : commandes `statut, canal, du, au, q, compteId, clientId, tri` ; clients `segment, q, tri` ; comptes `typeCompte` (le `type` de la liste : `type` désigne l'export), `statut, commercial, q, tri` ; abonnés `statut, source, q` ; réservations `du, au` (bornes facultatives, jours compris) ; produits `gamme, q, stock` — mêmes contrôles (400) et même ordre que la liste → CSV UTF-8 avec BOM, séparateur `;`, décimales à virgule, dates JJ/MM/AAAA, pièce jointe `<type>-AAAA-MM-JJ.csv`, cellules commençant par = + - @ neutralisées (commandes : colonne « Don Octobre Rose (€) ») |
 
 ¹ Séance vue = Séance (§ 4) + `inscrits`, `restantes`, `reservations` (nombre), `guide?: { id, nom }`.
 
@@ -477,7 +483,7 @@ inconnu. Les commandes rendues au pro n'ont ni notes internes ni identifiants du
 | GET | `recommander` | `id` → `{ depuis: { id, numero, date }, lignes: [{ slug, varianteId, nom, volume, qte (arrondie au carton, bornée au stock), colisage, prixHT, etat }], indisponibles: [{ …, raison }] }` |
 | GET | `factures` | `{ factures: [{ numero, date, echeance, statut, payeeLe?, enRetard, totalHT, totalTVA, totalTTC, commandeId, commandeNumero }], totalARegler, enRetard, emetteur (coordonnées de la distillerie), client }` |
 | GET | `documents` | `{ fiches: [{ slug, nom, nomOfficiel, type, gammeNom, alcool, degre, reference, photo, photoGrande, phrase, ingredients, nutrition, contenances, mentions }], mediatheque: [{ titre, type: 'logo'\|'photo', format, url }], plv, conditions }` |
-| GET / PATCH | `compte` | `{ compte (raison sociale, SIRET, conditions… en lecture), utilisateurs: [{ id, prenom, nom, email, statut, derniereConnexion }], commercial }` ; modifier `{ telephone?, email? }` (rien d'autre : 400) → compte |
+| GET / PATCH | `compte` | `{ compte (raison sociale, SIRET, conditions… en lecture), utilisateurs: [{ id, prenom, nom, email, statut, derniereConnexion }], commercial }` ; modifier `{ telephone?, email? }` (`telephone` à `null` ou `''` : effacé ; rien d'autre : 400) → compte |
 | POST / PATCH / DELETE | `adresse` | ajouter `{ nom?, ligne1, ligne2?, cp, ville, instructions? }` (10 au plus) → `201` adresse ; modifier `id` (remplace l'adresse) ; supprimer `id` (les commandes gardent l'adresse du jour de la commande) |
 | GET / POST | `messages` / `message` | liste paginée `[{ id, reference, sujet, statut, extrait, dernierMessage, nbMessages, createdAt }]` ; détail `id` + `fil: [{ date, de, nom, texte }]` ; nouveau `{ texte, sujet? (défaut 'pro') }` ou réponse `{ id, texte }` → `201` (arrive non lu dans les messages du CRM, attribué au commercial du compte) |
 
