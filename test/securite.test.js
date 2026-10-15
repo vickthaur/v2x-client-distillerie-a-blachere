@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import { afterEach, beforeEach, describe, test } from 'node:test';
 import { environnementNeuf, MOT_DE_PASSE, Navigateur } from './aide.js';
-import { signer, USAGES, verifier } from '../server/auth.js';
+import { LIMITES, limiter, signer, USAGES, verifier } from '../server/auth.js';
 import { fixerHorloge } from '../server/temps.js';
 
 beforeEach(() => environnementNeuf());
@@ -148,8 +148,11 @@ describe('verrouillage et limiteurs', () => {
     assert.equal((await autreIp.post('session', 'connexion', { email: 'personne@example.com', motDePasse: 'mauvais-mot-xx', espace: 'crm' })).status, 401);
   });
 
-  test('20 démos par heure et par adresse IP', async () => {
-    for (let i = 0; i < 20; i++) assert.equal((await new Navigateur({ ip: '192.0.2.50' }).post('session', 'demo', { profil: 'pro' })).status, 200);
+  test('60 démos par heure et par adresse IP', async () => {
+    assert.equal(LIMITES.demos.max, 60);
+    // 58 créations comptées d'avance (le limiteur seul), puis deux vraies : la 61e est refusée
+    for (let i = 0; i < 58; i++) assert.ok(limiter('demos:192.0.2.50', LIMITES.demos.max, LIMITES.demos.fenetre, Date.parse('2026-10-15T08:30:00Z')));
+    for (let i = 0; i < 2; i++) assert.equal((await new Navigateur({ ip: '192.0.2.50' }).post('session', 'demo', { profil: 'pro' })).status, 200);
     const r = await new Navigateur({ ip: '192.0.2.50' }).post('session', 'demo', { profil: 'pro' });
     assert.equal(r.status, 429);
     assert.equal((await new Navigateur({ ip: '192.0.2.51' }).post('session', 'demo', { profil: 'pro' })).status, 200);

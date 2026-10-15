@@ -25,8 +25,9 @@ export function reinitialiserLimiteurs() {
 }
 
 export const LIMITES = {
-  // créations de démo : 20 par heure et par adresse IP (§ 6)
-  demos: { max: 20, fenetre: 3600000 },
+  // créations de démo : 60 par heure et par adresse IP (§ 6) ; en présentation, plusieurs appareils
+  // partagent le même réseau wifi, donc la même adresse
+  demos: { max: 60, fenetre: 3600000 },
   // échecs de connexion par adresse IP (en plus du verrouillage par compte)
   echecs: { max: 30, fenetre: 15 * 60000 },
   // écritures par adresse IP (garde-fou contre l'emballement)

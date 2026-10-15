@@ -12,6 +12,10 @@ import { $, $$, esc, calm, plural, fold } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
 import { thumbHTML, renderHTML, upgradeThumbs } from '../lib/thumbs.js';
 import { watchBrands } from '../lib/marques.js';
+import { api } from '../lib/api.js';
+import { mountDemoBar, loadDemoPrices } from '../lib/demo.js';
+import { operationAffichee, lignePanierHTML } from '../lib/operation.js';
+import '../styles/operation.css';
 
 let age = readAge(); // 'majeur' | 'mineur' | 'sirops' | null
 const TEST = typeof location !== 'undefined' && new URLSearchParams(location.search).has('test');
@@ -260,8 +264,8 @@ function bindHeader() {
     }
   });
   // langues et compte : maquette
-  $$('[data-lang]').forEach((b) => b.addEventListener('click', () => toast(`Version ${b.dataset.lang === 'en' ? 'anglaise' : 'allemande'} : à venir (maquette).`)));
-  $$('[data-account]').forEach((b) => b.addEventListener('click', () => toast('Espace client : prévu pour la mise en ligne (maquette).')));
+  $$('[data-lang]').forEach((b) => b.addEventListener('click', () => toast(`Version ${b.dataset.lang === 'en' ? 'anglaise' : 'allemande'}\u00a0: à venir (maquette).`)));
+  $$('[data-account]').forEach((b) => b.addEventListener('click', () => toast('Espace client\u00a0: prévu pour la mise en ligne (maquette).')));
   $$('[data-cart-open]').forEach((b) => b.addEventListener('click', openCart));
 }
 
@@ -277,6 +281,7 @@ const PAGES = [
   ['Où acheter', '/ou-trouver', 'ou acheter points de vente magasins cavistes'],
   ['Actualités', '/actualites', 'actualites presse'],
   ['Espace pro', '/espace-pro', 'pro professionnels chr cavistes'],
+  ['Contact', '/contact', 'contact ecrire message telephone adresse horaires'],
 ];
 function bindSearch() {
   const box = $('#search');
@@ -343,17 +348,39 @@ function bindMenu() {
   addEventListener('keydown', (e) => e.key === 'Escape' && menu.classList.contains('is-open') && set(false));
 }
 
-// Lettre d'information (maquette : rien n'est envoyé).
+// Lettre d'information : inscription enregistrée dans la démo de ce navigateur (api/site, newsletter).
 function bindNewsletter() {
   $$('[data-newsletter]').forEach((f) =>
-    f.addEventListener('submit', (e) => {
+    f.addEventListener('submit', async (e) => {
       e.preventDefault();
       const input = $('input[type="email"]', f);
+      const btn = $('button[type="submit"]', f);
       const msg = $('.ft__news-msg, [data-newsletter-msg]', f);
-      const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value.trim());
+      const email = input.value.trim();
+      const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
       input.classList.toggle('is-invalid', !ok);
-      if (msg) msg.textContent = ok ? 'Merci : inscription enregistrée (maquette, aucun envoi).' : 'Indiquez une adresse e-mail valide.';
-      if (ok) input.value = '';
+      input.setAttribute('aria-invalid', String(!ok));
+      if (!ok) {
+        if (msg) msg.textContent = 'Indiquez une adresse e-mail valide.';
+        input.focus();
+        return;
+      }
+      if (btn) btn.disabled = true;
+      if (msg) msg.textContent = 'Inscription en cours…';
+      try {
+        const r = await api('site', 'newsletter', { method: 'POST', body: { email, source: f.dataset.newsletter || 'pied-de-page' } });
+        input.value = '';
+        if (msg)
+          msg.textContent = r?.deja
+            ? 'Cette adresse est déjà inscrite à la lettre de la distillerie.'
+            : 'Merci, votre inscription est enregistrée. Démonstration\u00a0: elle est visible dans le CRM de démonstration de ce navigateur, aucun e-mail n’est envoyé.';
+        mountDemoBar({ toast });
+      } catch (x) {
+        input.classList.toggle('is-invalid', x?.champ === 'email');
+        if (msg) msg.textContent = x?.message || 'L’inscription n’a pas pu être enregistrée. Réessayez.';
+      } finally {
+        if (btn) btn.disabled = false;
+      }
     }),
   );
 }
@@ -372,6 +399,7 @@ function markNav() {
 function openCart() {
   const d = $('#cart');
   if (!d) return;
+  loadDemoPrices();
   renderDrawer();
   if (!d.open) d.showModal();
 }
@@ -410,8 +438,11 @@ function renderDrawer() {
   list.innerHTML = t.lines.length
     ? t.lines.map((l) => lineHTML(l)).join('')
     : `<li class="drawer__empty"><p>Votre panier est vide.</p><a class="oval" href="/boutique">Voir la boutique</a></li>`;
+  // Opération du moment (Octobre Rose) : don correspondant aux bouteilles concernées du panier.
+  const op = operationAffichee();
   foot.innerHTML = t.lines.length
     ? `${totalsHTML(t)}
+       ${op ? lignePanierHTML(op, t.lines) : ''}
        <a class="oval oval--block" href="/panier">Voir le panier et commander</a>
        ${t.alcohol ? `<p class="evin">${esc(EVIN)} ${esc(MINEURS)}</p>` : ''}`
     : '';
@@ -515,6 +546,8 @@ export function initSite({ askAge = true } = {}) {
   bindGate();
   bindCart();
   bindNewsletter();
+  // Démo active dans ce navigateur : pastille d'accès au CRM et à l'espace pro (en bas à droite).
+  mountDemoBar({ toast });
   $$('[data-year]').forEach((el) => (el.textContent = new Date().getFullYear()));
   $$('[data-evin-majeur], [data-majeur]').forEach((el) => (el.hidden = age !== 'majeur'));
   if (age !== 'majeur') cart.purgeAlcohol();

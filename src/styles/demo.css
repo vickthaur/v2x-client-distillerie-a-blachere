@@ -1,0 +1,106 @@
+/* Barre de démo (src/lib/demo.js) : pastille sombre et discrète en bas à droite, en miroir de la
+   pastille V2X (en bas à gauche). Sous le message (toast) : elle ne le cache jamais. Sur téléphone,
+   repliée sur « Démo » ; le message remonte au-dessus des deux pastilles. */
+.demo-bar {
+  position: fixed;
+  right: 14px;
+  bottom: calc(14px + env(safe-area-inset-bottom));
+  z-index: 140;
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+  max-width: calc(100vw - 28px);
+  font: 600 0.82rem/1.2 var(--font);
+  color: #f4efe6;
+}
+.demo-bar__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 40px;
+  padding: 3px;
+  border: 1px solid rgba(244, 239, 230, 0.16);
+  border-radius: 999px;
+  background: rgba(21, 19, 15, 0.88);
+  box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.6);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+.demo-bar button, .demo-bar a { font: inherit; color: inherit; }
+.demo-bar__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 10px 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(244, 239, 230, 0.1);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.demo-bar__tag svg { width: 14px; height: 14px; transform: rotate(-90deg); transition: transform 0.25s var(--ease); }
+.demo-bar.is-open .demo-bar__tag svg { transform: rotate(90deg); }
+.demo-bar__dot { width: 8px; height: 8px; border-radius: 50%; background: #f2d22e; box-shadow: 0 0 0 3px rgba(242, 210, 46, 0.22); }
+.demo-bar__links { display: inline-flex; align-items: center; gap: 2px; }
+.demo-bar__links > a, .demo-bar__links > button {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.demo-bar__links > a:hover, .demo-bar__links > button:hover { background: rgba(244, 239, 230, 0.12); }
+.demo-bar__links > button { color: rgba(244, 239, 230, 0.78); }
+.demo-bar :focus-visible { outline: 2px solid #f2d22e; outline-offset: 2px; }
+
+/* Confirmation de sortie */
+.demo-bar__confirm {
+  display: grid;
+  gap: 10px;
+  width: min(340px, calc(100vw - 28px));
+  padding: 18px;
+  border-radius: 16px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 30px 70px -20px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(21, 19, 15, 0.08);
+  font-weight: 400;
+}
+.demo-bar__q { font: 720 1.02rem/1.25 var(--font); letter-spacing: -0.01em; }
+.demo-bar__d { font-size: 0.86rem; line-height: 1.5; color: var(--ink-2); }
+.demo-bar__err { font-size: 0.84rem; font-weight: 600; color: var(--err); }
+.demo-bar__err:empty { display: none; }
+.demo-bar__actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+.demo-bar__btn { min-height: 40px; padding: 0 16px; border: 1px solid var(--line-2) !important; border-radius: 999px; background: #fff; color: var(--ink) !important; font-weight: 650 !important; cursor: pointer; }
+.demo-bar__btn:hover { border-color: var(--ink) !important; }
+.demo-bar__btn--go { border-color: var(--ink) !important; background: var(--ink); color: #fff !important; }
+.demo-bar__btn--go:hover { background: #000; }
+.demo-bar__btn[disabled] { opacity: 0.6; cursor: progress; }
+.demo-bar__confirm :focus-visible { outline-color: var(--ink); }
+
+/* Jamais au-dessus d'un menu, de la porte d'âge, d'un tiroir ; jamais imprimée */
+body.menu-ouvert .demo-bar, body.age-ouvert .demo-bar, body.search-ouverte .demo-bar { display: none; }
+@media print { .demo-bar { display: none !important; } }
+
+/* Téléphone : la pastille repliée ne prend que sa place ; ouverte, les liens passent au-dessus en
+   colonne. Le message (toast) remonte au-dessus des pastilles V2X et Démo. */
+@media (max-width: 760px) {
+  .demo-bar { right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); }
+  .demo-bar__pill { flex-direction: column-reverse; align-items: stretch; border-radius: 22px; }
+  .demo-bar.is-open .demo-bar__pill { padding: 6px; border-radius: 18px; }
+  .demo-bar__links { flex-direction: column; align-items: stretch; padding-bottom: 4px; }
+  .demo-bar__links > a, .demo-bar__links > button { height: 44px; padding: 0 16px; border-radius: 12px; }
+  .demo-bar__tag { height: 36px; justify-content: center; }
+  .demo-bar__tag svg { transform: none; }
+  .demo-bar.is-open .demo-bar__tag svg { transform: rotate(180deg); }
+  body.demo-on .toast { bottom: calc(72px + env(safe-area-inset-bottom)); }
+}

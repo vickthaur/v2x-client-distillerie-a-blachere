@@ -18,6 +18,7 @@ import { icons } from '../lib/icons.js';
 import { thumbHTML, upgradeThumbs } from '../lib/thumbs.js';
 import { photoOf } from '../lib/photos.js';
 import { operationAffichee, concerne, encartFicheHTML } from '../lib/operation.js';
+import { demoCatalogue, appliquerDemo, etatDemo, indisponible, ETATS } from '../lib/demo.js';
 
 const site = initSite({ askAge: false });
 // Opération du moment (Octobre Rose) : pastille et encart sur la fiche des produits concernés.
@@ -28,6 +29,9 @@ const root = $('#product-root');
 let viewer = null;
 let selected = 0;
 let qty = 1;
+// Démo active : prix et stocks de la démo (« Stock bas », « Rupture » : ajout au panier désactivé).
+let demo = null;
+const etatDe = (c) => (demo && c ? etatDemo(demo, p.slug, c.id) : null);
 
 const famille = (x) => FAMILLES.find((f) => f.id === x.famille)?.nom;
 
@@ -105,7 +109,9 @@ function lockedView() {
 
 function priceHTML() {
   const c = p.contenances[selected];
-  if (c?.prix != null) return `<p class="pp__price"><strong>${euro(c.prix)}</strong><span>TTC · ${esc(c.volume)}</span></p>`;
+  const etat = etatDe(c);
+  const stock = etat && etat !== 'disponible' ? `<span class="pp__stock pp__stock--${etat}">${esc(ETATS[etat])}${etat === 'stock-bas' ? ' · dernières bouteilles' : etat === 'rupture' ? ' · réassort à venir' : ''}</span>` : '';
+  if (c?.prix != null) return `<p class="pp__price"><strong>${euro(c.prix)}</strong><span>TTC · ${esc(c.volume)}</span>${stock}</p>`;
   return `<p class="pp__price pp__price--none"><strong>Prix en boutique</strong><span>Ce prix n’est pas affiché en ligne : la distillerie vous le donne au magasin ou par téléphone (${infos.magasin.tel}).</span></p>`;
 }
 
@@ -183,7 +189,7 @@ function render() {
       ? `<fieldset class="pp__volumes"><legend>Contenance</legend><div class="pp__vols">${p.contenances
           .map(
             (c, i) =>
-              `<label class="vol"><input type="radio" name="volume" value="${i}"${i === selected ? ' checked' : ''} /><span class="vol__in"><span class="vol__name">${esc(c.volume)}</span>${c.prix != null ? `<span class="vol__price">${euro(c.prix)}</span>` : ''}</span></label>`,
+              `<label class="vol${indisponible(etatDe(c)) ? ' is-off' : ''}"><input type="radio" name="volume" value="${i}"${i === selected ? ' checked' : ''} /><span class="vol__in"><span class="vol__name">${esc(c.volume)}</span>${c.prix != null ? `<span class="vol__price">${euro(c.prix)}${indisponible(etatDe(c)) ? ` · ${esc(ETATS[etatDe(c)].toLowerCase())}` : ''}</span>` : ''}</span></label>`,
           )
           .join('')}</div></fieldset>`
       : p.contenances.length
@@ -258,14 +264,26 @@ function render() {
   renderRelated();
 }
 
+// Bouton d'ajout selon le stock de la démo pour la contenance choisie.
+function syncStock() {
+  const btn = $('.pp__add');
+  if (!btn) return;
+  const etat = etatDe(p.contenances[selected]);
+  const off = indisponible(etat);
+  btn.disabled = off;
+  btn.innerHTML = off ? `${icons.bag}${esc(etat === 'rupture' ? 'En rupture de stock' : 'Indisponible')}` : `${icons.bag}Ajouter au panier`;
+}
+
 function bindBuy() {
   const form = $('#buy');
   form.addEventListener('change', (e) => {
     if (e.target.name === 'volume') {
       selected = Number(e.target.value);
       $('#price').innerHTML = priceHTML();
+      syncStock();
     }
   });
+  syncStock();
   const input = $('#qty');
   const setQty = (n) => {
     qty = Math.min(99, Math.max(1, Number.isFinite(n) ? Math.round(n) : 1));
@@ -277,6 +295,7 @@ function bindBuy() {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       const c = p.contenances[selected];
+      if (indisponible(etatDe(c))) return;
       addToCart(p.slug, c?.id ?? null, qty, { open: true });
     });
   $$('[data-side]').forEach((b) => b.addEventListener('click', () => viewer?.setAngle(Number(b.dataset.side) ? Math.PI : 0)));
@@ -343,6 +362,23 @@ document.addEventListener('click', (e) => {
 
 site.onAge(show);
 show();
+// Démo : prix et stocks appliqués à la fiche sans reconstruire la bouteille 3D.
+demoCatalogue().then((d) => {
+  if (!d || !p) return;
+  demo = d;
+  appliquerDemo(d);
+  if (!$('#buy')) return;
+  $('#price').innerHTML = priceHTML();
+  $$('.vol', root).forEach((label, i) => {
+    const c = p.contenances[i];
+    const etat = etatDe(c);
+    label.classList.toggle('is-off', indisponible(etat));
+    const price = $('.vol__price', label);
+    if (price && c?.prix != null) price.textContent = `${euro(c.prix)}${indisponible(etat) ? ` · ${ETATS[etat].toLowerCase()}` : ''}`;
+  });
+  syncStock();
+  renderRelated();
+});
 // Spiritueux sans âge vérifié : on pose la question tout de suite.
 if (p?.alcool && (site.age === null || site.age === 'sirops')) site.requireAge();
 else if (site.age === null) setTimeout(() => site.age === null && site.openGate('ask'), calm() ? 0 : 900);

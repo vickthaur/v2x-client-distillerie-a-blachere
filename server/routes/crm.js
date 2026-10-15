@@ -34,6 +34,7 @@ import {
   LIBELLES_STATUTS,
   LIBELLES_STATUTS_PAIEMENT,
   LIBELLES_TYPES_COMPTE,
+  libelleSeance,
   MODES_PARTICULIER,
   MOMENTS,
   placesRestantes,
@@ -151,6 +152,9 @@ async function tableau(ctx) {
   const jourDe = (c) => jourParis(c.createdAt);
   const debut30 = ajouterJours(aujourdhui, -29);
   const sur30 = valides.filter((c) => jourDe(c) >= debut30);
+  // les 30 jours d'avant (J−59 à J−30), pour comparer 30 jours à 30 jours
+  const debutPrecedent30 = ajouterJours(aujourdhui, -59);
+  const precedent30 = valides.filter((c) => jourDe(c) >= debutPrecedent30 && jourDe(c) < debut30);
   const ht = (l) => somme(l.map((c) => c.totaux.totalHT));
   const moisCourant = moisDe(aujourdhui);
   const precedent = moisPrecedent(aujourdhui);
@@ -189,6 +193,7 @@ async function tableau(ctx) {
       moisPrecedent: ht(valides.filter((c) => moisDe(jourDe(c)) === precedent)),
       enLigne30: ht(sur30.filter((c) => c.canal !== 'pro')),
       pro30: ht(sur30.filter((c) => c.canal === 'pro')),
+      precedent30: ht(precedent30),
     },
     commandes30: sur30.length,
     panierMoyen30: sur30.length ? versEuros(Math.round(versCentimes(caSur30) / sur30.length)) : 0,
@@ -271,11 +276,12 @@ async function recherche(ctx) {
 
 // ---------- Commandes ----------
 
-async function commandes(ctx) {
-  const { u, doc, idx } = await lire(ctx, null);
-  const lisibles = ['commandes', 'commandes-pro'].filter((r) => peutLire(u.role, r));
-  if (!lisibles.length) exiger(u, 'commandes', 'lecture');
-  const aujourdhui = aujourdhuiDe(ctx);
+const TRI_COMMANDES = { date: (c) => c.createdAt, total: (c) => c.totaux.totalTTC, numero: (c) => c.numero, statut: (c) => STATUTS.indexOf(c.statut) };
+
+// Commandes lisibles filtrées comme dans la liste du CRM (et dans son export) : canal, compte,
+// client, période (jour de Paris) et recherche. Le statut demandé est rendu à part : les compteurs de
+// la liste comptent tous les statuts.
+function commandesFiltrees(ctx, doc, idx, lisibles) {
   const statut = ctx.param('statut');
   const canal = ctx.param('canal');
   const du = ctx.param('du');
@@ -286,7 +292,7 @@ async function commandes(ctx) {
   if (statut && !STATUTS.includes(statut)) throw erreur(400, 'Statut inconnu.', { champ: 'statut', code: 'saisie' });
   if (canal && !['en-ligne', 'pro', 'telephone'].includes(canal)) throw erreur(400, 'Canal inconnu.', { champ: 'canal', code: 'saisie' });
   if ((du && !estJour(du)) || (au && !estJour(au))) throw erreur(400, 'Dates invalides (AAAA-MM-JJ).', { champ: du && !estJour(du) ? 'du' : 'au', code: 'saisie' });
-  let liste = doc.commandes
+  const liste = doc.commandes
     .filter((c) => lisibles.includes(rubriqueCommande(c)))
     .filter((c) => !canal || c.canal === canal)
     .filter((c) => !compteId || c.compteId === compteId)
@@ -294,10 +300,18 @@ async function commandes(ctx) {
     .filter((c) => (!du || jourParis(c.createdAt) >= du) && (!au || jourParis(c.createdAt) <= au))
     .map((c) => commandeComplete(c, idx))
     .filter((c) => !q || contient(q, c.numero, c.contact.nom, c.contact.email, c.referenceClient, idx.comptes.get(c.compteId)?.enseigne));
+  return { liste, statut };
+}
+
+async function commandes(ctx) {
+  const { u, doc, idx } = await lire(ctx, null);
+  const lisibles = ['commandes', 'commandes-pro'].filter((r) => peutLire(u.role, r));
+  if (!lisibles.length) exiger(u, 'commandes', 'lecture');
+  const aujourdhui = aujourdhuiDe(ctx);
+  const { liste: toutes, statut } = commandesFiltrees(ctx, doc, idx, lisibles);
   const compteurs = Object.fromEntries(STATUTS.map((s) => [s, 0]));
-  for (const c of liste) compteurs[c.statut] += 1;
-  if (statut) liste = liste.filter((c) => c.statut === statut);
-  liste = trier(liste, ctx.param('tri'), { date: (c) => c.createdAt, total: (c) => c.totaux.totalTTC, numero: (c) => c.numero, statut: (c) => STATUTS.indexOf(c.statut) }, '-date');
+  for (const c of toutes) compteurs[c.statut] += 1;
+  const liste = trier(statut ? toutes.filter((c) => c.statut === statut) : toutes, ctx.param('tri'), TRI_COMMANDES, '-date');
   const page = paginer(liste, ctx);
   return { ...page, elements: page.elements.map((c) => resumeCommande(c, idx, aujourdhui, ctx.maintenant)), compteurs };
 }
@@ -516,19 +530,27 @@ function segmentDe(k, s, abonnes, limiteInactif) {
   };
 }
 
-async function clients(ctx) {
-  const { doc, idx } = await lire(ctx, 'clients');
+const TRI_CLIENTS = { nom: (x) => `${x.k.nom} ${x.k.prenom}`, date: (x) => x.k.createdAt, total: (x) => x.s?.c || 0, commandes: (x) => x.s?.n || 0, derniere: (x) => x.s?.derniere || '' };
+
+// Clients filtrés et triés comme dans la liste du CRM (et dans son export) : segment, recherche, tri.
+// Rend tous les clients (compteurs) et la liste filtrée : [{ k: client, s: statistiques, seg }].
+function clientsFiltres(ctx, doc, idx) {
   const segment = V.choix({ s: ctx.param('segment') || 'tous' }, 's', ['tous', 'newsletter', 'fideles', 'inactifs'], { libelle: 'Segment' });
   const q = sansAccents(ctx.param('q', 80) || '');
   const stats = statsClients(doc, idx);
   const abonnes = new Set(doc.abonnes.filter((a) => (a.statut || 'inscrit') === 'inscrit').map((a) => a.email));
   const limite = iso(ctx.maintenant.getTime() - 90 * 86400000);
-  let liste = doc.clients.map((k) => ({ k: clientComplet(k), s: stats.get(k.id) })).map(({ k, s }) => ({ k, s, seg: segmentDe(k, s, abonnes, limite) }));
-  const compteurs = { tous: liste.length, newsletter: 0, fideles: 0, inactifs: 0 };
-  for (const x of liste) for (const seg of ['newsletter', 'fideles', 'inactifs']) if (x.seg[seg]) compteurs[seg] += 1;
-  if (segment !== 'tous') liste = liste.filter((x) => x.seg[segment]);
+  const tous = doc.clients.map((k) => ({ k: clientComplet(k), s: stats.get(k.id) })).map(({ k, s }) => ({ k, s, seg: segmentDe(k, s, abonnes, limite) }));
+  let liste = segment === 'tous' ? tous : tous.filter((x) => x.seg[segment]);
   if (q) liste = liste.filter(({ k }) => contient(q, `${k.prenom} ${k.nom}`, k.email, k.telephone, k.adresse?.ville, k.tags.join(' ')));
-  liste = trier(liste, ctx.param('tri'), { nom: (x) => `${x.k.nom} ${x.k.prenom}`, date: (x) => x.k.createdAt, total: (x) => x.s?.c || 0, commandes: (x) => x.s?.n || 0, derniere: (x) => x.s?.derniere || '' }, 'nom');
+  return { tous, liste: trier(liste, ctx.param('tri'), TRI_CLIENTS, 'nom') };
+}
+
+async function clients(ctx) {
+  const { doc, idx } = await lire(ctx, 'clients');
+  const { tous, liste } = clientsFiltres(ctx, doc, idx);
+  const compteurs = { tous: tous.length, newsletter: 0, fideles: 0, inactifs: 0 };
+  for (const x of tous) for (const seg of ['newsletter', 'fideles', 'inactifs']) if (x.seg[seg]) compteurs[seg] += 1;
   const page = paginer(liste, ctx);
   return {
     ...page,
@@ -572,16 +594,18 @@ async function client(ctx) {
 
 const ORIGINES_CLIENT = ['boutique-en-ligne', 'boutique', 'visite', 'newsletter', 'salon'];
 
+// Saisie d'un client ; en modification, null ou '' efface téléphone, adresse et notes.
 function lireClient(corps, { creation }) {
+  const opt = (k, lire, vide = null) => (creation ? lire() : V.effacable(corps, k, lire, { vide }));
   return V.sansVide({
     prenom: V.texte(corps, 'prenom', { requis: creation, max: 60, libelle: 'Prénom' }),
     nom: V.texte(corps, 'nom', { requis: creation, max: 80, libelle: 'Nom' }),
     email: V.email(corps, 'email', { requis: creation }),
-    telephone: V.telephone(corps, 'telephone'),
-    adresse: V.adresse(corps, 'adresse'),
+    telephone: opt('telephone', () => V.telephone(corps, 'telephone')),
+    adresse: opt('adresse', () => V.adresse(corps, 'adresse')),
     newsletter: V.booleen(corps, 'newsletter'),
     tags: V.etiquettes(corps),
-    notes: V.texte(corps, 'notes', { max: 2000, multiligne: true, libelle: 'Notes' }),
+    notes: opt('notes', () => V.texte(corps, 'notes', { max: 2000, multiligne: true, libelle: 'Notes' }), ''),
     origine: V.choix(corps, 'origine', ORIGINES_CLIENT, { libelle: 'Origine' }),
   });
 }
@@ -619,7 +643,7 @@ async function modifierClient(ctx) {
     const k = trouver(doc.clients, id, 'cli');
     if (d.email && d.email !== k.email && trouverClient(doc, d.email)) throw erreur(409, 'Un client existe déjà avec cet e-mail.', { champ: 'email', code: 'conflit' });
     const avant = !!k.newsletter;
-    Object.assign(k, d);
+    V.appliquer(k, d);
     synchroniserAbonnement(doc, m.maintenant, k, avant);
     journaliser(doc, m.maintenant, { par: auteur(moi), action: 'client.modification', cible: { type: 'client', id: k.id, libelle: `${k.prenom} ${k.nom}` }, details: `Champs : ${Object.keys(d).join(', ')}` });
     return ficheClient(doc, index(doc), k, moi, m.maintenant);
@@ -705,43 +729,52 @@ function ca12(doc, compteId, instant) {
 
 const statutUtilisateur = (x) => (!x.actif ? 'desactive' : x.hash ? 'actif' : 'invitation');
 
-async function comptes(ctx) {
-  const { u, doc, idx } = await lire(ctx, 'comptes');
+const TRI_COMPTES = { nom: (x) => x.r.enseigne, ca: (x) => x.r.ca12, date: (x) => x.r.derniereCommande || '', encours: (x) => x.r.encours || 0 };
+
+// Comptes filtrés et triés comme dans la liste du CRM (et dans son export) : type, statut,
+// commercial, recherche, tri. Rend [{ k: compte, r: résumé de la liste }]. Dans l'export, `type`
+// désigne l'export : le type de compte y passe en `typeCompte`.
+function comptesFiltres(ctx, doc, idx, factures, { type = ctx.param('type') } = {}) {
   const q = sansAccents(ctx.param('q', 80) || '');
-  const type = ctx.param('type');
   const statut = ctx.param('statut');
   const commercial = ctx.param('commercial', 40);
-  const factures = peutLire(u.role, 'factures');
-  let liste = doc.comptes
+  const liste = doc.comptes
     .filter((k) => !type || k.type === type)
     .filter((k) => !statut || k.statut === statut)
     .filter((k) => !commercial || k.commercialId === commercial)
-    .filter((k) => !q || contient(q, k.enseigne, k.raisonSociale, k.adresseFacturation?.ville, k.email, (k.tags || []).join(' ')));
-  liste = liste.map((k) => {
-    const dernieres = doc.commandes.filter((c) => c.compteId === k.id).map((c) => c.createdAt).sort();
-    const out = {
-      id: k.id,
-      enseigne: k.enseigne,
-      raisonSociale: k.raisonSociale,
-      type: k.type,
-      ville: k.adresseFacturation?.ville,
-      statut: k.statut,
-      grille: k.grille,
-      remise: k.remise,
-      conditions: k.conditions,
-      licence: k.licence,
-      commercial: nomUtilisateur(idx, k.commercialId),
-      ca12: ca12(doc, k.id, ctx.maintenant),
-      derniereCommande: dernieres.at(-1) || null,
-      utilisateurs: doc.utilisateurs.filter((x) => x.compteId === k.id).length,
-      tags: k.tags || [],
-      createdAt: k.createdAt,
-    };
-    if (factures) Object.assign(out, { encours: encoursCompte(doc, k.id), encoursMax: k.encoursMax });
-    return out;
-  });
-  liste = trier(liste, ctx.param('tri'), { nom: (k) => k.enseigne, ca: (k) => k.ca12, date: (k) => k.derniereCommande || '', encours: (k) => k.encours || 0 }, 'nom');
-  return paginer(liste, ctx);
+    .filter((k) => !q || contient(q, k.enseigne, k.raisonSociale, k.adresseFacturation?.ville, k.email, (k.tags || []).join(' ')))
+    .map((k) => ({ k, r: resumeCompte(doc, idx, k, ctx.maintenant, factures) }));
+  return trier(liste, ctx.param('tri'), TRI_COMPTES, 'nom');
+}
+
+// Résumé d'un compte dans la liste (et clés de tri) ; encours pour qui voit les factures.
+function resumeCompte(doc, idx, k, instant, factures) {
+  const dernieres = doc.commandes.filter((c) => c.compteId === k.id).map((c) => c.createdAt).sort();
+  const out = {
+    id: k.id,
+    enseigne: k.enseigne,
+    raisonSociale: k.raisonSociale,
+    type: k.type,
+    ville: k.adresseFacturation?.ville,
+    statut: k.statut,
+    grille: k.grille,
+    remise: k.remise,
+    conditions: k.conditions,
+    licence: k.licence,
+    commercial: nomUtilisateur(idx, k.commercialId),
+    ca12: ca12(doc, k.id, instant),
+    derniereCommande: dernieres.at(-1) || null,
+    utilisateurs: doc.utilisateurs.filter((x) => x.compteId === k.id).length,
+    tags: k.tags || [],
+    createdAt: k.createdAt,
+  };
+  if (factures) Object.assign(out, { encours: encoursCompte(doc, k.id), encoursMax: k.encoursMax });
+  return out;
+}
+
+async function comptes(ctx) {
+  const { u, doc, idx } = await lire(ctx, 'comptes');
+  return paginer(comptesFiltres(ctx, doc, idx, peutLire(u.role, 'factures')).map((x) => x.r), ctx);
 }
 
 function ficheCompte(doc, idx, k, u, instant) {
@@ -776,15 +809,18 @@ async function compte(ctx) {
   return ficheCompte(doc, idx, k, u, ctx.maintenant);
 }
 
+// Saisie d'un compte ; en modification, null ou '' efface SIRET, TVA intracommunautaire, téléphone,
+// commercial et notes.
 function lireCompte(corps, { creation }) {
+  const opt = (k, lire, vide = null) => (creation ? lire() : V.effacable(corps, k, lire, { vide }));
   return V.sansVide({
     raisonSociale: V.texte(corps, 'raisonSociale', { requis: creation, max: 120, libelle: 'Raison sociale' }),
     enseigne: V.texte(corps, 'enseigne', { requis: creation, max: 120, libelle: 'Enseigne' }),
     type: V.choix(corps, 'type', TYPES_COMPTE, { requis: creation, libelle: 'Type' }),
-    siret: V.siret(corps, 'siret'),
-    tvaIntra: V.tvaIntra(corps, 'tvaIntra'),
+    siret: opt('siret', () => V.siret(corps, 'siret')),
+    tvaIntra: opt('tvaIntra', () => V.tvaIntra(corps, 'tvaIntra')),
     licence: V.choix(corps, 'licence', LICENCES, { requis: creation, libelle: 'Licence' }),
-    telephone: V.telephone(corps, 'telephone'),
+    telephone: opt('telephone', () => V.telephone(corps, 'telephone')),
     email: V.email(corps, 'email', { requis: creation, libelle: 'E-mail de facturation' }),
     adresseFacturation: V.adresse(corps, 'adresseFacturation', { requis: creation, libelle: 'Adresse de facturation' }),
     statut: V.choix(corps, 'statut', ['actif', 'suspendu'], { libelle: 'Statut' }),
@@ -793,17 +829,20 @@ function lireCompte(corps, { creation }) {
     conditions: V.choix(corps, 'conditions', CONDITIONS, { requis: creation, libelle: 'Conditions de paiement' }),
     francoHT: V.nombre(corps, 'francoHT', { min: 0, max: 10000, libelle: 'Franco (€ HT)' }),
     encoursMax: V.nombre(corps, 'encoursMax', { min: 0, max: 1000000, libelle: 'Encours autorisé (€)' }),
-    commercialId: corps.commercialId === undefined || corps.commercialId === null ? undefined : V.identifiant(corps.commercialId, 'usr', { champ: 'commercialId' }),
+    commercialId: opt('commercialId', () => (corps.commercialId === undefined || corps.commercialId === null || corps.commercialId === '' ? undefined : V.identifiant(corps.commercialId, 'usr', { champ: 'commercialId' }))),
     tags: V.etiquettes(corps),
-    notes: V.texte(corps, 'notes', { max: 2000, multiligne: true, libelle: 'Notes' }),
+    notes: opt('notes', () => V.texte(corps, 'notes', { max: 2000, multiligne: true, libelle: 'Notes' }), ''),
   });
 }
 
-function controlerCommercial(doc, id) {
-  if (id === undefined) return;
+// Membre actif du personnel (commercial d'un compte, guide d'une séance) ; null ou absent : rien à contrôler.
+function controlerPersonnel(doc, id, { champ = 'commercialId', message = 'Commercial inconnu.' } = {}) {
+  if (id === undefined || id === null) return;
   const x = doc.utilisateurs.find((y) => y.id === id && ROLES_PERSONNEL.includes(y.role) && y.actif);
-  if (!x) throw erreur(400, 'Commercial inconnu.', { champ: 'commercialId', code: 'saisie' });
+  if (!x) throw erreur(400, message, { champ, code: 'saisie' });
 }
+const controlerCommercial = (doc, id) => controlerPersonnel(doc, id);
+const controlerGuide = (doc, id) => controlerPersonnel(doc, id, { champ: 'guideId', message: 'Guide inconnu.' });
 
 // Invitation d'un utilisateur (pro ou personnel) : jeton haché, 7 jours, courriel.
 function inviter(doc, m, { prenom, nom, email, role, compte, poste, telephone }) {
@@ -875,7 +914,7 @@ async function modifierCompte(ctx) {
     const k = trouver(doc.comptes, id, 'cpt');
     controlerCommercial(doc, d.commercialId);
     const avant = k.statut;
-    Object.assign(k, d);
+    V.appliquer(k, d);
     const details = d.statut && d.statut !== avant ? (d.statut === 'suspendu' ? 'Compte suspendu' : 'Compte réactivé') : `Champs : ${Object.keys(d).join(', ')}`;
     journaliser(doc, m.maintenant, { par: auteur(moi), action: 'compte.modification', cible: { type: 'compte', id: k.id, libelle: k.enseigne }, details });
     return ficheCompte(doc, index(doc), k, moi, m.maintenant);
@@ -925,12 +964,13 @@ async function modifierDemande(ctx) {
   await droit(ctx, 'comptes');
   const id = parametreId(ctx, 'dem');
   const statut = V.choix(ctx.corps, 'statut', ['nouvelle', 'en-cours'], { libelle: 'Statut' });
-  const note = V.texte(ctx.corps, 'note', { max: 2000, multiligne: true, libelle: 'Note' });
+  // null ou '' efface la note
+  const note = V.effacable(ctx.corps, 'note', () => V.texte(ctx.corps, 'note', { max: 2000, multiligne: true, libelle: 'Note' }));
   return ecrire(ctx, 'comptes', (doc, m, moi) => {
     const d = trouver(doc.demandes, id, 'dem');
     if (['acceptee', 'refusee'].includes(d.statut) && statut) throw erreur(409, 'Cette demande est déjà traitée.', { code: 'statut' });
     if (statut) d.statut = statut;
-    if (note !== undefined) d.note = note;
+    V.appliquer(d, { note });
     if (statut === 'en-cours' && !d.traiteePar) {
       d.traiteePar = moi.id;
       d.traiteeLe = iso(m.maintenant);
@@ -1054,23 +1094,30 @@ function vueProduit(p, pd, ventes) {
   };
 }
 
-async function produits(ctx) {
-  const { doc } = await lire(ctx, 'produits');
+// Produits filtrés comme dans la liste du CRM (et dans son export) : gamme, recherche, état du stock
+// (un produit dont une contenance est en stock bas ou en rupture). Rend tous les produits et la liste.
+function produitsFiltres(ctx, doc) {
   const q = sansAccents(ctx.param('q', 80) || '');
   const gamme = ctx.param('gamme');
   const stock = ctx.param('stock') || 'tous';
   if (!['tous', 'bas', 'rupture'].includes(stock)) throw erreur(400, 'Filtre de stock inconnu.', { champ: 'stock', code: 'saisie' });
   const ventes = vendus30(doc, ctx.maintenant);
   const tous = PRODUITS.map((p) => vueProduit(p, doc.produits[p.slug], ventes));
+  const liste = tous
+    .filter((p) => !gamme || p.gamme === gamme)
+    .filter((p) => !q || contient(q, p.nom, p.slug, p.gammeNom))
+    .filter((p) => stock === 'tous' || p.variantes.some((v) => v.etat === (stock === 'bas' ? 'stock-bas' : 'rupture')));
+  return { tous, liste };
+}
+
+async function produits(ctx) {
+  const { doc } = await lire(ctx, 'produits');
+  const { tous, liste } = produitsFiltres(ctx, doc);
   const compteurs = {
     tous: tous.length,
     bas: tous.filter((p) => p.variantes.some((v) => v.etat === 'stock-bas')).length,
     rupture: tous.filter((p) => p.variantes.some((v) => v.etat === 'rupture')).length,
   };
-  const liste = tous
-    .filter((p) => !gamme || p.gamme === gamme)
-    .filter((p) => !q || contient(q, p.nom, p.slug, p.gammeNom))
-    .filter((p) => stock === 'tous' || p.variantes.some((v) => v.etat === (stock === 'bas' ? 'stock-bas' : 'rupture')));
   return { ...paginer(liste, ctx, { parDefaut: 100, max: 100 }), compteurs, gammes: Object.entries(NOMS_GAMMES).map(([id, nom]) => ({ id, nom })) };
 }
 
@@ -1161,6 +1208,16 @@ function vueSeance(s, doc, idx) {
   return out;
 }
 
+// Réservations d'une période (jours compris ; bornes facultatives), avec l'heure de leur séance,
+// dans l'ordre des séances : planning des visites et export.
+function reservationsDe(doc, du, au) {
+  const heures = new Map(doc.seances.map((s) => [s.id, s.heure]));
+  return doc.reservations
+    .filter((r) => (!du || r.date >= du) && (!au || r.date <= au))
+    .map((r) => ({ ...reservationComplete(r), heure: heures.get(r.seanceId) }))
+    .sort((a, b) => `${a.date}${a.heure}`.localeCompare(`${b.date}${b.heure}`));
+}
+
 async function visites(ctx) {
   const { doc, idx } = await lire(ctx, 'visites');
   const aujourdhui = aujourdhuiDe(ctx);
@@ -1168,12 +1225,7 @@ async function visites(ctx) {
   const au = ctx.param('au') || ajouterJours(du, 13);
   if (!estJour(du) || !estJour(au) || au < du || ecartJours(du, au) > 120) throw erreur(400, 'Période invalide (AAAA-MM-JJ, 120 jours au plus).', { champ: 'du', code: 'saisie' });
   const seances = doc.seances.filter((s) => s.date >= du && s.date <= au).map((s) => vueSeance(s, doc, idx));
-  const heures = new Map(doc.seances.map((s) => [s.id, s.heure]));
-  const reservations = doc.reservations
-    .filter((r) => r.date >= du && r.date <= au)
-    .map((r) => ({ ...reservationComplete(r), heure: heures.get(r.seanceId) }))
-    .sort((a, b) => `${a.date}${a.heure}`.localeCompare(`${b.date}${b.heure}`));
-  return { du, au, seances, reservations };
+  return { du, au, seances, reservations: reservationsDe(doc, du, au) };
 }
 
 async function creerSeance(ctx) {
@@ -1192,11 +1244,11 @@ async function creerSeance(ctx) {
   if (date < aujourdhuiDe(ctx)) throw erreur(400, 'Date passée.', { champ: 'date', code: 'saisie' });
   const r = await ecrire(ctx, 'visites', (doc, m, moi) => {
     if (doc.seances.some((s) => s.date === date && s.moment === moment)) throw erreur(409, 'Une séance existe déjà ce jour-là à ce moment.', { code: 'conflit' });
-    if (d.guideId) controlerCommercial(doc, d.guideId);
+    controlerGuide(doc, d.guideId);
     const s = { id: idAleatoire('sea'), date, heure: heure || doc.parametres.visites.horaires[moment], moment, capacite: d.capacite ?? doc.parametres.visites.capacite, langue: d.langue || 'fr', statut: 'ouverte', ...d };
     doc.seances.push(s);
     doc.seances.sort((a, b) => (a.date + a.heure).localeCompare(b.date + b.heure));
-    journaliser(doc, m.maintenant, { par: auteur(moi), action: 'seance.creation', cible: { type: 'seance', id: s.id, libelle: `Séance du ${date}` }, details: moment });
+    journaliser(doc, m.maintenant, { par: auteur(moi), action: 'seance.creation', cible: { type: 'seance', id: s.id, libelle: `Séance du ${libelleSeance(date, moment, jourParis(m.maintenant))}` } });
     return vueSeance(s, doc, index(doc));
   });
   return avecStatut(201, r);
@@ -1210,16 +1262,17 @@ async function modifierSeance(ctx) {
     capacite: V.entier(c, 'capacite', { min: 1, max: 60, libelle: 'Capacité' }),
     statut: V.choix(c, 'statut', ['ouverte', 'fermee'], { libelle: 'Statut' }),
     langue: V.choix(c, 'langue', ['fr', 'en', 'de'], { libelle: 'Langue' }),
-    guideId: c.guideId === undefined || c.guideId === null ? undefined : V.identifiant(c.guideId, 'usr', { champ: 'guideId' }),
-    notes: V.texte(c, 'notes', { max: 500, multiligne: true, libelle: 'Notes' }),
+    // null ou '' : guide retiré, notes effacées
+    guideId: V.effacable(c, 'guideId', () => V.identifiant(c.guideId, 'usr', { champ: 'guideId' })),
+    notes: V.effacable(c, 'notes', () => V.texte(c, 'notes', { max: 500, multiligne: true, libelle: 'Notes' })),
   });
   return ecrire(ctx, 'visites', (doc, m, moi) => {
     const s = trouver(doc.seances, id, 'sea');
-    if (d.guideId) controlerCommercial(doc, d.guideId);
+    controlerGuide(doc, d.guideId);
     const inscrits = doc.reservations.filter((r) => r.seanceId === s.id && r.statut !== 'annulee').reduce((t, r) => t + r.personnes, 0);
     if (d.capacite !== undefined && d.capacite < inscrits) throw erreur(409, `Capacité inférieure aux ${inscrits} personnes déjà inscrites.`, { champ: 'capacite', code: 'capacite' });
-    Object.assign(s, d);
-    journaliser(doc, m.maintenant, { par: auteur(moi), action: 'seance.modification', cible: { type: 'seance', id: s.id, libelle: `Séance du ${s.date}` }, details: d.statut === 'fermee' ? 'Séance fermée' : `Champs : ${Object.keys(d).join(', ')}` });
+    V.appliquer(s, d);
+    journaliser(doc, m.maintenant, { par: auteur(moi), action: 'seance.modification', cible: { type: 'seance', id: s.id, libelle: `Séance du ${libelleSeance(s.date, s.moment, jourParis(m.maintenant))}` }, details: d.statut === 'fermee' ? 'Séance fermée' : `Champs : ${Object.keys(d).join(', ')}` });
     return vueSeance(s, doc, index(doc));
   });
 }
@@ -1266,7 +1319,8 @@ async function modifierReservation(ctx) {
     personnes: V.entier(c, 'personnes', { min: 1, max: 60, libelle: 'Nombre de personnes' }),
     mineurs: V.entier(c, 'mineurs', { min: 0, max: 59, libelle: 'Mineurs' }),
     seanceId: c.seanceId === undefined ? undefined : V.identifiant(c.seanceId, 'sea', { champ: 'seanceId' }),
-    notes: V.texte(c, 'notes', { max: 1000, multiligne: true, libelle: 'Notes' }),
+    // null ou '' efface les notes
+    notes: V.effacable(c, 'notes', () => V.texte(c, 'notes', { max: 1000, multiligne: true, libelle: 'Notes' })),
   });
   return ecrire(ctx, 'visites', (doc, m, moi) => {
     const r = trouver(doc.reservations, id, 'res');
@@ -1279,7 +1333,7 @@ async function modifierReservation(ctx) {
       const cap = seanceComplete(cible, doc.parametres).capacite;
       if (autres + personnes > cap) throw erreur(409, `Plus que ${Math.max(0, cap - autres)} place(s) pour cette séance.`, { code: 'complet' });
     }
-    Object.assign(r, d);
+    V.appliquer(r, d);
     if (cible) {
       r.seanceId = cible.id;
       r.date = cible.date;
@@ -1355,7 +1409,8 @@ async function modifierMessage(ctx) {
   await droit(ctx, 'messages');
   const id = parametreId(ctx, 'msg');
   const statut = V.choix(ctx.corps, 'statut', STATUTS_MESSAGE, { libelle: 'Statut' });
-  const assigne = ctx.corps.assigneA === null ? null : ctx.corps.assigneA === undefined ? undefined : V.identifiant(ctx.corps.assigneA, 'usr', { champ: 'assigneA' });
+  // null ou '' : attribution retirée
+  const assigne = V.effacable(ctx.corps, 'assigneA', () => V.identifiant(ctx.corps.assigneA, 'usr', { champ: 'assigneA' }));
   const lu = V.booleen(ctx.corps, 'lu', { libelle: 'Lu' });
   return ecrire(ctx, 'messages', (doc, m, moi) => {
     const msg = trouver(doc.messages, id, 'msg');
@@ -1412,6 +1467,19 @@ function vueCampagne(cam, doc, idx) {
   return out;
 }
 
+// Abonnés filtrés comme dans la liste de la newsletter (et dans son export) : statut, source,
+// recherche ; du plus récent au plus ancien.
+function abonnesFiltres(ctx, tous) {
+  const statut = ctx.param('statut');
+  const source = ctx.param('source');
+  const q = sansAccents(ctx.param('q', 80) || '');
+  return tous
+    .filter((a) => !statut || a.statut === statut)
+    .filter((a) => !source || a.source === source)
+    .filter((a) => !q || contient(q, a.email, a.prenom))
+    .sort((a, b) => b.inscritLe.localeCompare(a.inscritLe));
+}
+
 async function newsletter(ctx) {
   const { doc, idx } = await lire(ctx, 'newsletter');
   const tous = doc.abonnes.map(abonneComplet);
@@ -1428,17 +1496,9 @@ async function newsletter(ctx) {
     });
     m = moisPrecedent(`${m}-01`);
   }
-  const statut = ctx.param('statut');
-  const source = ctx.param('source');
-  const q = sansAccents(ctx.param('q', 80) || '');
-  const liste = tous
-    .filter((a) => !statut || a.statut === statut)
-    .filter((a) => !source || a.source === source)
-    .filter((a) => !q || contient(q, a.email, a.prenom))
-    .sort((a, b) => b.inscritLe.localeCompare(a.inscritLe));
   return {
     abonnes: { total: tous.length, inscrits: tous.filter((a) => a.statut === 'inscrit').length, desinscrits: tous.filter((a) => a.statut === 'desinscrit').length, parSource, evolution },
-    liste: paginer(liste, ctx),
+    liste: paginer(abonnesFiltres(ctx, tous), ctx),
     campagnes: [...doc.campagnes].reverse().map((c) => vueCampagne(c, doc, idx)),
   };
 }
@@ -1515,6 +1575,25 @@ async function envoyerCampagne(ctx) {
   });
 }
 
+// Fiche d'un abonné : l'abonné, le client de même e-mail et les courriels qui lui ont été envoyés
+// (20 derniers, du plus récent), selon les droits.
+async function abonne(ctx) {
+  const { u, doc } = await lire(ctx, 'newsletter');
+  const a = trouver(doc.abonnes, parametreId(ctx, 'abo'), 'abo');
+  const k = peutLire(u.role, 'clients') ? trouverClient(doc, a.email) : null;
+  return {
+    ...abonneComplet(a),
+    client: k ? { id: k.id, nom: `${k.prenom} ${k.nom}` } : null,
+    courriels: peutLire(u.role, 'courriels')
+      ? doc.courriels
+          .filter((x) => x.a === a.email)
+          .slice(-20)
+          .reverse()
+          .map((x) => ({ id: x.id, date: x.date, objet: x.objet, type: x.type }))
+      : [],
+  };
+}
+
 async function modifierAbonne(ctx) {
   await droit(ctx, 'newsletter');
   const id = parametreId(ctx, 'abo');
@@ -1562,21 +1641,22 @@ async function promos(ctx) {
   return { elements: doc.promos.map((p) => ({ ...p, etat: etatPromo(p, aujourdhui) })), total: doc.promos.length, page: 1, pages: 1 };
 }
 
+// Saisie d'un code promo ; en modification, null ou '' efface début, fin et limite d'utilisations.
 function lirePromo(corps, { creation }) {
+  const opt = (k, lire) => (creation ? lire() : V.effacable(corps, k, lire));
   const d = V.sansVide({
     code: (V.texte(corps, 'code', { requis: creation, min: 3, max: 20, libelle: 'Code' }) || '').toUpperCase() || undefined,
     libelle: V.texte(corps, 'libelle', { requis: creation, max: 120, libelle: 'Libellé' }),
     type: V.choix(corps, 'type', ['pourcentage', 'montant', 'livraison'], { requis: creation, libelle: 'Type' }),
     valeur: V.nombre(corps, 'valeur', { requis: creation, min: 0, max: 500, libelle: 'Valeur' }),
     minimumTTC: V.nombre(corps, 'minimumTTC', { min: 0, max: 10000, libelle: 'Minimum d’achat' }),
-    debut: V.jour(corps, 'debut', { libelle: 'Début' }),
-    fin: V.jour(corps, 'fin', { libelle: 'Fin' }),
-    limite: V.entier(corps, 'limite', { min: 1, max: 100000, libelle: 'Limite d’utilisations' }),
+    debut: opt('debut', () => V.jour(corps, 'debut', { libelle: 'Début' })),
+    fin: opt('fin', () => V.jour(corps, 'fin', { libelle: 'Fin' })),
+    limite: opt('limite', () => V.entier(corps, 'limite', { min: 1, max: 100000, libelle: 'Limite d’utilisations' })),
     actif: V.booleen(corps, 'actif', { libelle: 'Actif' }),
   });
   if (d.code && !/^[A-Z0-9-]{3,20}$/.test(d.code)) throw erreur(400, 'Code : lettres, chiffres et tirets.', { champ: 'code', code: 'saisie' });
   if (d.type === 'pourcentage' && d.valeur > 90) throw erreur(400, 'Pourcentage : 90 % au plus.', { champ: 'valeur', code: 'saisie' });
-  for (const k of ['debut', 'fin', 'limite']) if (corps[k] === null) d[k] = null;
   return d;
 }
 
@@ -1600,8 +1680,9 @@ async function modifierPromo(ctx) {
   return ecrire(ctx, 'newsletter', (doc, m, moi) => {
     const p = trouver(doc.promos, id, 'pro');
     if (d.code && d.code !== p.code && doc.promos.some((x) => x.code === d.code)) throw erreur(409, 'Ce code existe déjà.', { champ: 'code', code: 'conflit' });
-    Object.assign(p, d);
-    for (const k of ['debut', 'fin']) if (p[k] === null) delete p[k];
+    const { limite, ...reste } = d;
+    V.appliquer(p, reste);
+    if (limite !== undefined) p.limite = limite; // null : sans limite, comme à la création
     journaliser(doc, m.maintenant, { par: auteur(moi), action: 'promo.modification', cible: { type: 'promo', id: p.id, libelle: p.code } });
     return { ...p, etat: etatPromo(p, jourParis(m.maintenant)) };
   });
@@ -1689,15 +1770,16 @@ async function modifierMembre(ctx) {
   const d = V.sansVide({
     role: V.choix(c, 'role', ROLES_PERSONNEL, { libelle: 'Rôle' }),
     actif: V.booleen(c, 'actif', { libelle: 'Actif' }),
-    poste: V.texte(c, 'poste', { max: 80, libelle: 'Poste' }),
-    telephone: V.telephone(c, 'telephone'),
+    // null ou '' efface le poste ou le téléphone
+    poste: V.effacable(c, 'poste', () => V.texte(c, 'poste', { max: 80, libelle: 'Poste' })),
+    telephone: V.effacable(c, 'telephone', () => V.telephone(c, 'telephone')),
   });
   return ecrire(ctx, 'equipe', (doc, m, moi) => {
     const x = doc.utilisateurs.find((y) => y.id === id && ROLES_PERSONNEL.includes(y.role));
     if (!x) throw introuvable();
     if (x.id === moi.id && ((d.role && d.role !== moi.role) || d.actif === false)) throw erreur(409, 'Vous ne pouvez pas retirer vos propres droits.', { code: 'soi-meme' });
     const avant = { role: x.role, actif: x.actif };
-    Object.assign(x, d);
+    V.appliquer(x, d);
     // changement de rôle ou désactivation : ses sessions sont fermées
     if (x.role !== avant.role || x.actif !== avant.actif) x.sessionVersion = (x.sessionVersion || 0) + 1;
     journaliser(doc, m.maintenant, { par: auteur(moi), action: 'equipe.modification', cible: { type: 'utilisateur', id: x.id, libelle: nomComplet(x) }, details: d.actif === false ? 'Accès désactivé' : d.role ? `Rôle : ${NOMS_ROLES[d.role]}` : 'Coordonnées' });
@@ -1798,18 +1880,22 @@ const EXPORTS = {
   produits: ['produits'],
 };
 
+// Les filtres et le tri de la liste correspondante s'appliquent quand ils sont fournis (commandes :
+// statut, canal, du, au, q, compteId, clientId, tri ; clients : segment, q, tri ; comptes :
+// typeCompte (le `type` de la liste), statut, commercial, q, tri ; abonnés : statut, source, q ;
+// réservations : du, au ; produits : gamme, q, stock) ; sans filtre, l'export est complet.
 async function exporter(ctx) {
   const type = ctx.param('type');
   if (!Object.hasOwn(EXPORTS, type)) throw erreur(400, 'Export inconnu.', { champ: 'type', code: 'saisie' });
   const { u, doc, idx } = await lire(ctx, 'exports');
   const lisibles = EXPORTS[type].filter((r) => peutLire(u.role, r));
   if (!lisibles.length) exiger(u, EXPORTS[type][0], 'lecture');
-  const jour = aujourdhuiDe(ctx);
-  const fichier = `${type}-${jour}.csv`;
-  const aujourdhui = jour;
+  const aujourdhui = aujourdhuiDe(ctx);
+  const fichier = `${type}-${aujourdhui}.csv`;
   if (type === 'commandes') {
     const factures = peutLire(u.role, 'factures');
-    const liste = doc.commandes.filter((c) => lisibles.includes(rubriqueCommande(c))).map((c) => commandeComplete(c, idx)).reverse();
+    const { liste: toutes, statut } = commandesFiltrees(ctx, doc, idx, lisibles);
+    const liste = trier(statut ? toutes.filter((c) => c.statut === statut) : toutes, ctx.param('tri'), TRI_COMMANDES, '-date');
     const colonnes = [
       { titre: 'Numéro', valeur: (c) => c.numero },
       { titre: 'Date', valeur: (c) => c.createdAt, type: 'instant' },
@@ -1835,50 +1921,49 @@ async function exporter(ctx) {
     return reponseCsv(fichier, colonnes, liste);
   }
   if (type === 'clients') {
-    const stats = statsClients(doc, idx);
     return reponseCsv(
       fichier,
       [
-        { titre: 'Prénom', valeur: (k) => k.prenom },
-        { titre: 'Nom', valeur: (k) => k.nom },
-        { titre: 'E-mail', valeur: (k) => k.email },
-        { titre: 'Téléphone', valeur: (k) => k.telephone },
-        { titre: 'Code postal', valeur: (k) => k.adresse?.cp },
-        { titre: 'Ville', valeur: (k) => k.adresse?.ville },
-        { titre: 'Newsletter', valeur: (k) => !!k.newsletter, type: 'booleen' },
-        { titre: 'Commandes', valeur: (k) => stats.get(k.id)?.n || 0, type: 'nombre' },
-        { titre: 'Total TTC (€)', valeur: (k) => versEuros(stats.get(k.id)?.c || 0), type: 'montant' },
-        { titre: 'Dernière commande', valeur: (k) => stats.get(k.id)?.derniere, type: 'instant' },
-        { titre: 'Origine', valeur: (k) => LIBELLES_ORIGINES[k.origine] || k.origine },
-        { titre: 'Étiquettes', valeur: (k) => (k.tags || []).join(', ') },
-        { titre: 'Créé le', valeur: (k) => k.createdAt, type: 'instant' },
+        { titre: 'Prénom', valeur: (x) => x.k.prenom },
+        { titre: 'Nom', valeur: (x) => x.k.nom },
+        { titre: 'E-mail', valeur: (x) => x.k.email },
+        { titre: 'Téléphone', valeur: (x) => x.k.telephone },
+        { titre: 'Code postal', valeur: (x) => x.k.adresse?.cp },
+        { titre: 'Ville', valeur: (x) => x.k.adresse?.ville },
+        { titre: 'Newsletter', valeur: (x) => !!x.seg.newsletter, type: 'booleen' },
+        { titre: 'Commandes', valeur: (x) => x.s?.n || 0, type: 'nombre' },
+        { titre: 'Total TTC (€)', valeur: (x) => versEuros(x.s?.c || 0), type: 'montant' },
+        { titre: 'Dernière commande', valeur: (x) => x.s?.derniere, type: 'instant' },
+        { titre: 'Origine', valeur: (x) => LIBELLES_ORIGINES[x.k.origine] || x.k.origine },
+        { titre: 'Étiquettes', valeur: (x) => x.k.tags.join(', ') },
+        { titre: 'Créé le', valeur: (x) => x.k.createdAt, type: 'instant' },
       ],
-      doc.clients,
+      clientsFiltres(ctx, doc, idx).liste,
     );
   }
   if (type === 'comptes') {
     const factures = peutLire(u.role, 'factures');
     const colonnes = [
-      { titre: 'Enseigne', valeur: (k) => k.enseigne },
-      { titre: 'Raison sociale', valeur: (k) => k.raisonSociale },
-      { titre: 'Type', valeur: (k) => LIBELLES_TYPES_COMPTE[k.type] || k.type },
-      { titre: 'SIRET', valeur: (k) => k.siret },
-      { titre: 'TVA intracommunautaire', valeur: (k) => k.tvaIntra },
-      { titre: 'Licence', valeur: (k) => LIBELLES_LICENCES[k.licence] || k.licence },
-      { titre: 'Ville', valeur: (k) => k.adresseFacturation?.ville },
-      { titre: 'Statut', valeur: (k) => (k.statut === 'actif' ? 'Actif' : 'Suspendu') },
-      { titre: 'Grille', valeur: (k) => k.grille.toUpperCase() },
-      { titre: 'Remise (%)', valeur: (k) => k.remise, type: 'nombre' },
-      { titre: 'Conditions', valeur: (k) => LIBELLES_CONDITIONS[k.conditions] },
-      { titre: 'CA 12 mois HT (€)', valeur: (k) => ca12(doc, k.id, ctx.maintenant), type: 'montant' },
-      { titre: 'Commercial', valeur: (k) => nomUtilisateur(idx, k.commercialId)?.nom },
-      { titre: 'E-mail', valeur: (k) => k.email },
-      { titre: 'Téléphone', valeur: (k) => k.telephone },
+      { titre: 'Enseigne', valeur: (x) => x.k.enseigne },
+      { titre: 'Raison sociale', valeur: (x) => x.k.raisonSociale },
+      { titre: 'Type', valeur: (x) => LIBELLES_TYPES_COMPTE[x.k.type] || x.k.type },
+      { titre: 'SIRET', valeur: (x) => x.k.siret },
+      { titre: 'TVA intracommunautaire', valeur: (x) => x.k.tvaIntra },
+      { titre: 'Licence', valeur: (x) => LIBELLES_LICENCES[x.k.licence] || x.k.licence },
+      { titre: 'Ville', valeur: (x) => x.k.adresseFacturation?.ville },
+      { titre: 'Statut', valeur: (x) => (x.k.statut === 'actif' ? 'Actif' : 'Suspendu') },
+      { titre: 'Grille', valeur: (x) => x.k.grille.toUpperCase() },
+      { titre: 'Remise (%)', valeur: (x) => x.k.remise, type: 'nombre' },
+      { titre: 'Conditions', valeur: (x) => LIBELLES_CONDITIONS[x.k.conditions] },
+      { titre: 'CA 12 mois HT (€)', valeur: (x) => x.r.ca12, type: 'montant' },
+      { titre: 'Commercial', valeur: (x) => x.r.commercial?.nom },
+      { titre: 'E-mail', valeur: (x) => x.k.email },
+      { titre: 'Téléphone', valeur: (x) => x.k.telephone },
     ];
     if (factures) {
-      colonnes.splice(11, 0, { titre: 'Encours (€)', valeur: (k) => encoursCompte(doc, k.id), type: 'montant' }, { titre: 'Encours autorisé (€)', valeur: (k) => k.encoursMax, type: 'montant' });
+      colonnes.splice(11, 0, { titre: 'Encours (€)', valeur: (x) => x.r.encours, type: 'montant' }, { titre: 'Encours autorisé (€)', valeur: (x) => x.k.encoursMax, type: 'montant' });
     }
-    return reponseCsv(fichier, colonnes, doc.comptes);
+    return reponseCsv(fichier, colonnes, comptesFiltres(ctx, doc, idx, factures, { type: ctx.param('typeCompte') }));
   }
   if (type === 'abonnes') {
     return reponseCsv(
@@ -1891,17 +1976,19 @@ async function exporter(ctx) {
         { titre: 'Inscrit le', valeur: (a) => a.inscritLe, type: 'instant' },
         { titre: 'Désinscrit le', valeur: (a) => a.desinscritLe, type: 'instant' },
       ],
-      doc.abonnes.map(abonneComplet),
+      abonnesFiltres(ctx, doc.abonnes.map(abonneComplet)),
     );
   }
   if (type === 'reservations') {
-    const heures = new Map(doc.seances.map((s) => [s.id, s.heure]));
+    const du = ctx.param('du');
+    const au = ctx.param('au');
+    if ((du && !estJour(du)) || (au && !estJour(au)) || (du && au && au < du)) throw erreur(400, 'Période invalide (AAAA-MM-JJ).', { champ: du && !estJour(du) ? 'du' : 'au', code: 'saisie' });
     return reponseCsv(
       fichier,
       [
         { titre: 'Référence', valeur: (r) => r.reference },
         { titre: 'Date', valeur: (r) => r.date, type: 'jour' },
-        { titre: 'Heure', valeur: (r) => heures.get(r.seanceId) },
+        { titre: 'Heure', valeur: (r) => r.heure },
         { titre: 'Personnes', valeur: (r) => r.personnes, type: 'nombre' },
         { titre: 'Mineurs', valeur: (r) => r.mineurs, type: 'nombre' },
         { titre: 'Langue', valeur: (r) => r.langue },
@@ -1912,11 +1999,10 @@ async function exporter(ctx) {
         { titre: 'Source', valeur: (r) => ({ site: 'Site', telephone: 'Téléphone', crm: 'CRM' })[r.source] || r.source },
         { titre: 'Créée le', valeur: (r) => r.createdAt, type: 'instant' },
       ],
-      doc.reservations.map(reservationComplete),
+      reservationsDe(doc, du, au),
     );
   }
-  const ventes = vendus30(doc, ctx.maintenant);
-  const lignes = PRODUITS.flatMap((p) => vueProduit(p, doc.produits[p.slug], ventes).variantes.map((v) => ({ p, v })));
+  const lignes = produitsFiltres(ctx, doc).liste.flatMap((p) => p.variantes.map((v) => ({ p, v })));
   return reponseCsv(
     fichier,
     [
@@ -1933,7 +2019,7 @@ async function exporter(ctx) {
       { titre: 'Colisage', valeur: (x) => x.v.colisage, type: 'nombre' },
       { titre: 'État', valeur: (x) => ({ disponible: 'Disponible', 'stock-bas': 'Stock bas', rupture: 'Rupture' })[x.v.etat] },
       { titre: 'Vendus 30 jours', valeur: (x) => x.v.vendus30, type: 'nombre' },
-      { titre: 'En vente', valeur: (x) => doc.produits[x.p.slug].actif, type: 'booleen' },
+      { titre: 'En vente', valeur: (x) => x.p.actif, type: 'booleen' },
     ],
     lignes,
   );
@@ -1959,6 +2045,7 @@ export const routes = {
     messages,
     message,
     newsletter,
+    abonne,
     promos,
     courriels,
     courriel,

@@ -106,3 +106,10 @@
   .sort select { width: 100%; }
   .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px 12px; }
 }
+
+/* ---------- Démo : états de stock (prix et stocks modifiés dans le CRM de démonstration) ---------- */
+.badge--stock-bas { background: #fbf0d9; color: #7d5100; }
+.badge--rupture, .badge--inactif { background: var(--ink); color: #fff; }
+.card__add.is-off, .card__add[disabled] { border-color: var(--line); background: var(--paper-2); color: var(--ink-3); cursor: not-allowed; }
+.card__add.is-off:hover { border-color: var(--line); background: var(--paper-2); color: var(--ink-3); }
+.card.is-rupture .card__media .thumb { opacity: 0.5; }

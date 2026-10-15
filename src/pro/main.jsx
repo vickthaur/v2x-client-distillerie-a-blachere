@@ -1,13 +1,13 @@
-// Espace professionnel connecté (Preact). Voir docs/crm-espace-pro.md.
+// Espace professionnel connecté (Preact) : /espace-pro/<vue>. Voir docs/crm-espace-pro.md, § 8.
+// En-tête et pied de page du site, barre de l'espace pro, vues chargées depuis api/pro.
 import '../styles/base.css';
-import '../styles/brand.css';
+import '../styles/pro.css';
 import { render } from 'preact';
 import { initSite } from '../app/site.js';
+import { interceptLinks } from './router.js';
+import { App } from './app.jsx';
 
-initSite({ askAge: false });
-
-function App() {
-  return <p>Espace pro en construction.</p>;
-}
-
-render(<App />, document.getElementById('app'));
+const site = initSite({ askAge: false });
+const root = document.getElementById('app');
+interceptLinks(document);
+render(<App site={site} />, root);

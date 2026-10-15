@@ -1,4 +1,4 @@
-/* Panier et commande (maquette) : mêmes codes que la boutique — papier, filets fins, encre, aucun
+/* Panier et commande : mêmes codes que la boutique — papier, filets fins, encre, aucun
    aplat de couleur de marque. Les bouteilles ne sont jamais recadrées. */
 .checkout-page { min-height: 80vh; padding-top: clamp(20px, 3vw, 40px); padding-bottom: clamp(56px, 8vw, 100px); background: var(--paper); }
 .co-head { display: grid; gap: 10px; padding: clamp(12px, 2vw, 24px) 0 clamp(20px, 3vw, 32px); }
@@ -95,6 +95,46 @@ body[data-step='panier'] .co { grid-template-columns: minmax(0, 1fr); }
 .co-done__lead { font: 720 clamp(1.4rem, 2.4vw, 1.9rem)/1.2 var(--font); letter-spacing: -0.015em; color: var(--ink); }
 .co-done .co-actions { width: 100%; }
 
+/* Frais de livraison, transporteurs, code promo (calculés par le serveur de la démo) */
+.mode__price { flex: none; margin-left: auto; padding-left: 10px; font: 720 0.98rem/1.3 var(--font); color: var(--ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.mode__price:empty { display: none; }
+.modes--sub { gap: 8px; }
+.co-sub__legend { margin-bottom: 8px; padding: 0; font: 650 0.86rem/1.3 var(--font); color: var(--ink); }
+.mode--sub .mode__card { padding-block: 14px; }
+.mode.is-off .mode__card { opacity: 0.55; cursor: not-allowed; }
+.mode.is-off input { cursor: not-allowed; }
+.mode__off { font-weight: 600; color: var(--err) !important; }
+.co-franco { font-weight: 600; color: var(--ok) !important; }
+.co-franco:empty { display: none; }
+.co-sub__note { font-size: 0.86rem; line-height: 1.5; color: var(--ink-2); }
+.co-quote-err { font-size: 0.86rem; font-weight: 600; color: var(--err); }
+.co-news { margin-top: -2px; }
+.co-line__stock { justify-self: start; margin-top: 2px; font-size: 0.8rem; font-weight: 650; color: var(--err); }
+.co-line__stock--stock-bas { color: #7d5100; }
+.co-line.is-rupture .co-line__img, .co-line.is-inactif .co-line__img { opacity: 0.55; }
+.co-stop { margin-top: 18px; }
+.totals__row--promo strong { color: var(--ok); }
+.totals__row--promo small { font-size: 0.82rem; color: var(--ink-3); }
+.totals__wait { color: var(--ink-3); font-size: 0.9rem; }
+.co-promo { display: grid; gap: 8px; max-width: 520px; }
+.co-promo__row { display: flex; gap: 8px; }
+.co-promo__row input { flex: 1; min-width: 0; text-transform: uppercase; letter-spacing: 0.04em; }
+.co-promo__row .btn { flex: none; min-height: 52px; }
+.co-promo--on { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; max-width: none; padding: 12px 16px; border: 1px solid rgba(27, 107, 58, 0.25); border-radius: 12px; background: #edf6ef; color: var(--ok); font-weight: 600; }
+.co-promo--on p { display: flex; align-items: center; gap: 8px; }
+.co-promo--on svg { width: 18px; height: 18px; flex: none; }
+.co-promo--on strong { letter-spacing: 0.04em; }
+.co-promo--on .link { color: var(--ink); font-weight: 600; }
+.co-done__recap { display: grid; width: 100%; margin: 4px 0; border-top: 1px solid var(--line); }
+.co-done__recap > div { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 0.94rem; }
+.co-done__recap dt { color: var(--ink-3); }
+.co-done__recap dd { margin: 0; color: var(--ink); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.co-done__recap small { color: var(--ink-3); }
+.co-done .op-cart { width: 100%; margin: 0; }
+.co-done .btn { white-space: normal; text-align: center; line-height: 1.2; }
+.co-nowrap { white-space: nowrap; }
+.co-card .link { padding: 0; border: 0; background: none; font-size: 0.92rem; cursor: pointer; }
+
 @media (max-width: 960px) {
   .co { grid-template-columns: minmax(0, 1fr); }
   .co__side { position: static; order: -1; }
@@ -113,4 +153,8 @@ body[data-step='panier'] .co { grid-template-columns: minmax(0, 1fr); }
   .co-recap__grid, .form-row { grid-template-columns: minmax(0, 1fr); }
   .co-actions { flex-direction: column-reverse; }
   .co-actions > * { width: 100%; }
+  .co-done .co-actions { flex-direction: column; }
+  .co-done__recap > div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .mode__card { flex-wrap: wrap; }
+  .mode__price { order: 3; flex-basis: 100%; margin-left: 38px; padding-left: 0; }
 }
