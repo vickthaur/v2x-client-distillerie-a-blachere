@@ -264,6 +264,60 @@ Paiement, envoi de la commande, réservation de visite, connexion et demande de 
 d'information : les formulaires vérifient la saisie, affichent une confirmation et n'envoient rien.
 La carte des points de vente est un emplacement réservé ; la liste est indicative.
 
+## CRM et espace pro
+
+Le CRM de la distillerie (`/crm`), l'espace professionnel (`/espace-pro/…`) et les formulaires du site
+s'appuient sur une API réelle (`api/`, `server/`) : **une démo privée par navigateur**, enregistrée
+côté serveur, où rien ne sort (pas d'e-mail ni de paiement réels : les courriels sont rangés dans la
+boîte d'envoi du CRM). La conception, le modèle de données, les règles métier et le **contrat d'API**
+sont dans [`docs/crm-espace-pro.md`](docs/crm-espace-pro.md), qui fait foi.
+
+**En local.** `npm run dev` et `npm run preview` servent l'API avec le site (`/api/<nom>` →
+`api/<nom>.js`, appelé comme sur Vercel ; `npm run dev -- --port 5181` pour un autre port). Sans
+`BLOB_READ_WRITE_TOKEN`, les démos sont des fichiers JSON dans `.data/demos/` (ignoré par git) : les
+effacer remet tout à zéro. `npm test` lance les tests (node:test, magasin en mémoire) : règles au
+centime près, droits, sécurité, stockage et concurrence, parcours complets à travers les fonctions.
+
+**Comptes de démonstration** (mot de passe commun `Distillerie1835`, affiché en démo ; les boutons
+« Entrer en démo » connectent sans mot de passe) :
+
+| Compte | Profil |
+|---|---|
+| `direction@blachere.example` | Hélène Garnier, direction (tous les droits) |
+| `commercial@blachere.example` | Thomas Roux, commercial Vaucluse et Gard |
+| `logistique@blachere.example` | Karim Benali, expéditions et stocks |
+| `boutique@blachere.example` | Léa Fabre, boutique et visites |
+| `julien@cafe-des-platanes.example` | Julien Morel, client pro (Café des Platanes, Avignon) |
+
+Le jeu de démonstration (`server/seed.js`) est fictif et déterministe : 17 comptes pro, 90 clients,
+230 commandes sur 120 jours (saisons, statuts selon l'âge), factures, stocks, visites, messages,
+abonnés, campagnes, codes promo `BIENVENUE10`, `PACETE`, `PORTOFFERT`. Catalogue et prix TTC officiels
+(`server/generated/catalogue.js`, régénéré depuis `src/data/products.js` par
+`scripts/server-catalogue.mjs` avant `dev` et `build`).
+
+**Variables d'environnement (Vercel)**
+
+| Variable | Rôle |
+|---|---|
+| `BLOB_READ_WRITE_TOKEN` | magasin Vercel Blob **privé** relié au projet (région cdg1) ; sans lui, l'API refuse de tourner sur Vercel |
+| `SESSION_SECRET` | signature des cookies (32 caractères au moins, aléatoires) ; obligatoire sur Vercel, sinon l'API répond 500 « configuration » |
+| `CRON_SECRET` | protège `/api/menage` (Vercel Cron l'envoie en `Authorization: Bearer …`) ; sans lui, le ménage ne tourne pas |
+
+En local et en test : secret de développement fixe, pilote `fs` (ou `BLACHERE_STORE=memoire`).
+
+**Stockage.** Un document JSON par démo, `demos/<id>.json` (moins de 400 Ko, stockage compact : l'API
+recalcule totaux et libellés), lu sans cache et écrit avec `ifMatch` (concurrence optimiste, trois
+essais). Cookies : `bl_demo` (démo, 30 jours), `bl_demo_actif` (lisible par les pages), `bl_crm`
+(personnel, 12 h) et `bl_pro` (client pro), signés avec une clé par usage. `/api/menage` (tous les
+jours à 3 h 17 UTC) efface les démos inutilisées depuis 30 jours.
+
+**Sécurité (revue d'octobre 2026).** Écritures : JSON, en-tête `X-Blachere`, origine vérifiée, 64 Ko
+au plus, validation stricte ; droits du rôle contrôlés par le serveur à chaque appel ; un client pro
+ne voit que son compte (404 sinon) ; mots de passe scrypt, verrouillage après 5 échecs, limiteurs par
+adresse IP ; jetons d'invitation et de réinitialisation hachés, à usage unique ; aucune donnée
+personnelle dans les journaux de la plateforme ; exports CSV protégés contre les formules. Détail et
+points restant à traiter avant une vraie mise en service : `docs/crm-espace-pro.md`, § 6.
+
 ## Lancer, construire, vérifier
 
 ```bash
