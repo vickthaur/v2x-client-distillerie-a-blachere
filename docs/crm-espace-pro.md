@@ -78,6 +78,11 @@ test/                   tests node:test (règles, sécurité, parcours complets)
   (dossier `.data/`, ignoré par git) ou `memoire`, avec la même sémantique d'ETag.
 - **Coût** : une requête d'API = une lecture ; une action = une lecture + une écriture. Pas de
   `list()` hors du ménage quotidien. Les visiteurs du site sans démo ne déclenchent **aucun** appel.
+- **Ménage** (`api/menage`, Vercel Cron, tous les jours à 3 h 17 UTC) : efface les démos sans
+  écriture depuis 30 jours (date du blob dans `list()`), chacune par `del(chemin, { ifMatch })` avec
+  l'ETag de la liste : une démo reprise pendant le passage est gardée. Au plus 500 suppressions et
+  10 s par passage (fonctions limitées à 15 s), le reste le lendemain. Rend `{ examinees,
+  supprimees, conservees, restantes, reprises }`.
 - **Taille** : document visé < 400 Ko ; journal et boîte d'envoi plafonnés (500 entrées chacun).
 - **Secrets** : `SESSION_SECRET` (signature des cookies, obligatoire sur Vercel : sans lui l'API
   refuse de fonctionner), `CRON_SECRET` (ménage). En local, secret de développement fixe.
@@ -297,9 +302,60 @@ ne change pour le CRM ni l'espace pro.
   'self' https://v2x-studio.fr`, `frame-ancestors 'none'`…), `X-Frame-Options: DENY`.
 - Aucune donnée personnelle dans les journaux de la plateforme (`console.*`) ; erreurs internes →
   message générique + identifiant d'erreur.
-- Ménage : `api/menage` exige `Authorization: Bearer ${CRON_SECRET}`.
+- Ménage : `api/menage` exige `Authorization: Bearer ${CRON_SECRET}` (comparaison à temps constant ;
+  sans `CRON_SECRET`, 401 en local et 500 « configuration » sur Vercel).
 - Création de démo seulement en `POST` avec les contrôles ci-dessus (les robots ne créent rien) ;
   limiteur par IP (20 démos par heure et par instance).
+
+### Revue de sécurité du back-end (octobre 2026)
+
+Vérifié, et couvert par les tests (`test/securite.test.js`, `crm.test.js`, `pro.test.js`) :
+
+- **Mots de passe** : scrypt (N = 16384, r = 8, p = 1, sel de 16 octets), comparaison à temps
+  constant, calcul factice pour un e-mail inconnu (même temps, même message 401 : pas d'énumération
+  des comptes à la connexion), 10 caractères au moins, verrouillage 15 minutes après 5 échecs (423 +
+  `Retry-After`), limiteur des échecs par adresse IP (30 par 15 minutes, 429).
+- **Sessions** : jetons HMAC-SHA256 avec une clé dérivée par usage (un `bl_pro` ou un `bl_demo` ne
+  vaut pas `bl_crm`), expiration, rattachement à la démo du cookie `bl_demo`, `sessionVersion`
+  (changement de mot de passe, « déconnexion partout », changement de rôle, désactivation) ; compte pro
+  suspendu → sessions fermées ; cookies `HttpOnly; SameSite=Lax; Path=/`, `Secure` en HTTPS.
+- **CSRF** : en-tête `X-Blachere` + `Content-Type: application/json` (une page tierce déclenche un
+  pré-vol CORS auquel l'API ne répond pas), `Origin` comparé à l'hôte, cookies `SameSite=Lax` ; les
+  GET ne créent jamais de démo.
+- **Autorisation** : contrôlée par le serveur à chaque appel, avant la lecture de la saisie, puis de
+  nouveau dans la mutation (document frais) ; tableau du § 3 testé rôle par rôle ; espace pro filtré
+  par `compteId` (un identifiant d'un autre compte → 404), sans notes internes.
+- **Saisies** : champs lus un à un (jamais de fusion d'objet reçu : pas de pollution de prototype),
+  types, longueurs, listes fermées, formats (e-mail, téléphone, code postal, SIRET), caractères de
+  contrôle retirés, corps ≤ 64 Ko, identifiants vérifiés par motif avant toute recherche, chemins de
+  stockage vérifiés (pas de `..`).
+- **Sorties** : JSON `no-store` + `nosniff` ; aucun HTML produit par le serveur (courriels en contenu
+  structuré, échappés par Preact) ; liens des campagnes limités à `/…` et `https://…` ; CSV protégés
+  contre l'injection de formules.
+- **Secrets et configuration** : `SESSION_SECRET` (32 caractères au moins), `BLOB_READ_WRITE_TOKEN` et
+  `CRON_SECRET` exigés sur Vercel (sinon 500 « configuration », l'API ne tourne pas sans protection) ;
+  `CRON_SECRET` comparé à temps constant.
+- **Jetons à usage unique** : 32 octets aléatoires, seul le haché SHA-256 est gardé, 7 jours
+  (invitation) ou 1 heure (réinitialisation), effacés à l'usage.
+- **Journaux de la plateforme** : seulement la référence, le type d'erreur et la pile d'appels ; ni
+  corps de requête, ni e-mail, ni message.
+- **Démos** : identifiant aléatoire de 80 bits, signé dans le cookie ; liens de partage signés
+  (7 jours) ; création en POST seulement, 20 par heure et par IP ; concurrence optimiste (ETag) ; taille
+  plafonnée (2 Mo) ; ménage à 30 jours. **RGPD** : export des données d'un client, effacement qui
+  anonymise commandes, réservations, messages et retire abonnement et courriels.
+
+Limites connues, à traiter avant une vraie mise en service (hors maquette) :
+
+- Les limiteurs sont **en mémoire, par instance** : plusieurs instances Vercel multiplient les
+  plafonds. Pour un vrai service : limiteur partagé (KV) ou règles de pare-feu Vercel.
+- La maquette est un bac à sable **ouvert par conception** : quiconque a le cookie d'une démo peut y
+  entrer sous tous les profils (« Entrer en démo »), `oubli` et les invitations rendent le lien
+  (`lienDemo`), la boîte d'envoi montre les liens d'activation. À retirer dans un vrai CRM.
+- L'adresse IP vient de `x-forwarded-for`, fiable derrière Vercel seulement.
+- Pas de double authentification pour le personnel, pas de contrôle des mots de passe divulgués.
+- Les documents de démo sont stockés en clair dans le magasin Blob privé (données fictives et saisies
+  des visiteurs) ; le ménage les efface après 30 jours sans écriture (une démo seulement consultée
+  pendant 30 jours est effacée aussi).
 
 ## 7. API
 
@@ -468,10 +524,14 @@ chargements, erreurs, confirmations et notifications (« toasts ») soignés.
 
 ## 9. Recette
 
-- `npm test` : règles (TVA, prorata du port, franco, minimum, encours, stocks, transitions,
-  numérotation, échéances), sécurité (signature des cookies, falsification, CSRF, droits par rôle,
-  isolement des comptes pro et des démos, verrouillage), stockage (conflits d'ETag et reprise), et
-  parcours complets à travers les gestionnaires.
+- `npm test` (node:test, `BLACHERE_STORE=memoire`, horloge fixée) : règles au centime (TVA, prorata
+  du port, franco, minimum, encours, stocks, transitions, numérotation, échéances), sécurité
+  (signature des cookies, falsification, CSRF, origine, taille, droits par rôle ligne à ligne,
+  isolement des comptes pro et des démos, verrouillage, limiteurs, jetons à usage unique, secret
+  obligatoire sur Vercel), stockage (conflits d'ETag et reprise, concurrence, pilotes mémoire et fs,
+  pilote Blob à travers le vrai SDK contre une fausse API locale), jeu de démonstration (déterminisme,
+  < 400 Ko, cohérence), catalogue généré à jour, parcours complets à travers les gestionnaires
+  (`test/parcours.test.js`), Octobre Rose, ménage.
 - Recette navigateur (Playwright, Chromium) en local avec le pilote `fs` : démo → commande sur le site
   → CRM → expédition → espace pro → commande pro → facture ; aucun message d'erreur dans la console ;
   captures téléphone (390 px) et ordinateur (1440 px).

@@ -105,7 +105,8 @@ describe('commande en ligne', () => {
     assert.match(c.facture.numero, /^FA-26-\d{5}$/);
     assert.equal(Number(c.facture.numero.slice(-5)), doc.seq.facture);
     assert.ok(doc.mouvements.some((m) => m.commandeId === c.id && m.motif === 'vente' && m.delta === -3));
-    assert.ok(doc.courriels.at(-1).objet.includes(r.json.numero));
+    assert.ok(doc.courriels.some((x) => x.type === 'commande' && x.objet.includes(r.json.numero)));
+    assert.equal(doc.courriels.at(-1).type, 'bienvenue');
     assert.ok(doc.abonnes.some((a) => a.email === 'anne.essai@example.com'));
     assert.ok(doc.clients.some((k) => k.email === 'anne.essai@example.com'));
   });

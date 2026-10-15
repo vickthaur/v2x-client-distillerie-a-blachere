@@ -52,8 +52,17 @@ describe('pilotes : ETag, création seule, écriture conditionnelle', async () =
       // écriture conditionnelle sur un document absent : refusée
       await assert.rejects(p.ecrire('demos/zzzzzzzzzzzzzzzz.json', '{}', { ifMatch: e2 }), ConflitStockage);
       const liste = [];
-      for await (const x of p.lister('demos/')) liste.push(x.chemin);
-      assert.deepEqual(liste, [ch]);
+      for await (const x of p.lister('demos/')) liste.push(x);
+      assert.deepEqual(
+        liste.map((x) => [x.chemin, x.etag, x.taille]),
+        [[ch, e2, 7]],
+      );
+      // suppression conditionnelle (ménage) : refusée si le document a changé depuis la liste
+      await assert.rejects(p.supprimer(ch, { ifMatch: e1 }), ConflitStockage);
+      assert.equal((await p.lire(ch)).etag, e2);
+      await p.supprimer(ch, { ifMatch: e2 });
+      assert.equal(await p.lire(ch), null);
+      await p.ecrire(ch, '{"a":3}', { creation: true });
       await p.supprimer(ch);
       assert.equal(await p.lire(ch), null);
       await p.supprimer(ch); // déjà absent : sans erreur

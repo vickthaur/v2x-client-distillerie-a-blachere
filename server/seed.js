@@ -86,7 +86,7 @@ const PERSONNEL = [
 
 // Comptes pro (fictifs). poids : part des commandes ; saison : mois où le compte commande.
 const COMPTES = [
-  { cle: 'platanes', enseigne: 'Café des Platanes', raisonSociale: 'SARL Les Platanes d’Avignon', type: 'chr', ville: 'Avignon', licence: 'licence-iv', grille: 'chr', remise: 3, conditions: '30j-fdm', encoursMax: 2500, commercial: 'commercial', poids: 14, origine: 'commercial', email: 'contact@cafe-des-platanes.example', anciennete: 2100, tags: ['terrasse', 'PAC', 'fidèle'], notes: 'Café-brasserie avec grande terrasse : gros volumes de PAC Citron et de Fun Blue l’été. Livraison le matin avant 11 h, accès par la cour.', utilisateurs: [{ prenom: 'Julien', nom: 'Morel', email: 'julien@cafe-des-platanes.example', demo: true }, { prenom: 'Camille', nom: 'Morel', email: 'camille@cafe-des-platanes.example', invite: true }] },
+  { cle: 'platanes', enseigne: 'Café des Platanes', raisonSociale: 'SARL Les Platanes d’Avignon', type: 'chr', ville: 'Avignon', licence: 'licence-iv', grille: 'chr', remise: 3, conditions: '30j-fdm', encoursMax: 4000, commercial: 'commercial', poids: 6, origine: 'commercial', email: 'contact@cafe-des-platanes.example', anciennete: 2100, tags: ['terrasse', 'PAC', 'fidèle'], notes: 'Café-brasserie avec grande terrasse : gros volumes de PAC Citron et de Fun Blue l’été. Livraison le matin avant 11 h, accès par la cour.', utilisateurs: [{ prenom: 'Julien', nom: 'Morel', email: 'julien@cafe-des-platanes.example', demo: true }, { prenom: 'Camille', nom: 'Morel', email: 'camille@cafe-des-platanes.example', invite: true }] },
   { cle: 'zinc', enseigne: 'Le Zinc des Remparts', raisonSociale: 'SAS Zinc des Remparts', type: 'chr', ville: 'Villeneuve-lès-Avignon', licence: 'licence-iv', grille: 'chr', remise: 0, conditions: 'comptant', encoursMax: 1500, commercial: 'commercial', poids: 5, origine: 'salon', anciennete: 900, tags: ['bar'], notes: 'Bar à cocktails : sirops Couleur Provence pour la carte sans alcool.', utilisateurs: [{ prenom: 'Sébastien', nom: 'Audibert' }] },
   { cle: 'cours', enseigne: 'Bar du Cours Fleuri', raisonSociale: 'EURL Cours Fleuri', type: 'chr', ville: 'Orange', licence: 'licence-iv', grille: 'chr', remise: 2, conditions: '30j-fdm', encoursMax: 2000, commercial: 'commercial', poids: 5, origine: 'commercial', anciennete: 1500, tags: ['terrasse'], notes: '', utilisateurs: [{ prenom: 'Martine', nom: 'Chabaud' }] },
   { cle: 'fontaine', enseigne: 'Brasserie de la Fontaine Haute', raisonSociale: 'SARL Fontaine Haute', type: 'chr', ville: 'Carpentras', licence: 'licence-iv', grille: 'chr', remise: 2, conditions: 'prelevement', encoursMax: 2500, commercial: 'commercial', poids: 4, origine: 'site', anciennete: 700, tags: ['marché du vendredi'], notes: 'Commande souvent la veille du marché.', utilisateurs: [{ prenom: 'Arnaud', nom: 'Pellegrin' }] },
@@ -551,8 +551,8 @@ export function genererDemo({ id, maintenant, hache, jetons }) {
     const m = Number(jour.slice(5, 7));
     return m >= 6 && m <= 8 ? 1.3 : m >= 11 ? 1.4 : 1;
   };
-  // 64 commandes réparties sur les jours ouvrés passés, 6 dans les quatre derniers jours (dont le
-  // Café des Platanes).
+  // 64 commandes réparties sur les jours ouvrés passés, 6 dans les quatre derniers jours (dont deux
+  // du Café des Platanes).
   const RECENTES_PRO = [
     [2.5, 'platanes'],
     [9, 'rhodanien'],
@@ -562,7 +562,8 @@ export function genererDemo({ id, maintenant, hache, jetons }) {
     [97, 'flacons'],
   ];
   const instantsPro = [
-    ...Array.from({ length: 64 }, () => ({ t: instantDuJour(gr, gr.pondere(ouvres, poidsJourPro), 7, 18), cle: null })),
+    // historique riche du Café des Platanes (compte de démonstration) : 8 commandes garanties
+    ...Array.from({ length: 64 }, (_, i) => ({ t: instantDuJour(gr, gr.pondere(ouvres, poidsJourPro), 7, 18), cle: i < 8 ? 'platanes' : null })),
     ...RECENTES_PRO.map(([h, cle]) => ({ t: nowMs - h * 3600000 - gr.entier(0, 30) * 60000, cle })),
   ].sort((a, b) => a.t - b.t);
   const commandesPro = [];
@@ -721,6 +722,18 @@ export function genererDemo({ id, maintenant, hache, jetons }) {
       c.paiement.statut = 'paye';
       c.paiement.date = iso(instantParis(f.payeeLe, '10:00').getTime());
     }
+  }
+  // Café des Platanes (compte de démonstration) : deux factures à régler au plus, les plus récentes,
+  // pour que la démo de l'espace pro puisse commander.
+  const platanesARegler = facturesPro.filter((c) => c.compteId === comptes.platanes.id && c.facture.statut === 'a-regler' && c !== enRetardChoisie);
+  const veille = ajouterJours(aujourdhui, -1);
+  for (const c of platanesARegler.slice(0, -2)) {
+    const paye = ajouterJours(c.facture.date, 8);
+    c.facture.statut = 'payee';
+    // réglée 8 jours après la facture, hier au plus tard (jamais avant la facture)
+    c.facture.payeeLe = paye <= veille ? paye : veille < c.facture.date ? c.facture.date : veille;
+    c.paiement.statut = 'paye';
+    c.paiement.date = iso(instantParis(c.facture.payeeLe, '10:00').getTime());
   }
   doc.commandes = toutes;
   const idx = index(doc);

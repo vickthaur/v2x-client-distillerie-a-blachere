@@ -265,9 +265,12 @@ describe('commandes', () => {
     const platanes = doc.comptes.find((k) => k.enseigne === 'Café des Platanes');
     const petit = await n.post('crm', 'commande', { compteId: platanes.id, lignes: [ligne('pac-citron', '1000', 6)] });
     assert.equal(petit.json.code, 'minimum');
-    const gros = await n.post('crm', 'commande', { compteId: platanes.id, lignes: [ligne('pac-citron', '1000', 600)] });
+    // encours autorisé abaissé : la commande le dépasse
+    await n.patch('crm', 'compte', { encoursMax: 100 }, { query: { id: platanes.id } });
+    const gros = await n.post('crm', 'commande', { compteId: platanes.id, lignes: [ligne('pac-citron', '1000', 40)] });
     assert.equal(gros.status, 409);
     assert.equal(gros.json.code, 'encours');
+    await n.patch('crm', 'compte', { encoursMax: 4000 }, { query: { id: platanes.id } });
     const ok = await n.post('crm', 'commande', { compteId: platanes.id, lignes: [ligne('pac-citron', '1000', 40)] });
     assert.equal(ok.status, 201);
     assert.match(ok.json.numero, /^PRO-26-\d{5}$/);
@@ -397,14 +400,14 @@ describe('produits, stocks, visites, messages, newsletter, équipe, paramètres'
   });
 
   test('stock : mouvements, pas de stock négatif, motifs cohérents', async () => {
-    const r = await n.post('crm', 'stock', { slug: 'sirop-menthe', varianteId: '1000', delta: -2, motif: 'casse', note: 'Chute' });
+    const r = await n.post('crm', 'stock', { slug: 'pac-citron', varianteId: '1000', delta: -2, motif: 'casse', note: 'Chute' });
     assert.equal(r.status, 201);
     assert.equal(r.json.mouvement.delta, -2);
-    assert.equal((await n.post('crm', 'stock', { slug: 'sirop-menthe', varianteId: '1000', delta: -99999, motif: 'inventaire' })).status, 400);
-    assert.equal((await n.post('crm', 'stock', { slug: 'sirop-menthe', varianteId: '1000', delta: -5000, motif: 'inventaire' })).status, 409);
-    assert.equal((await n.post('crm', 'stock', { slug: 'sirop-menthe', varianteId: '1000', delta: 5, motif: 'casse' })).status, 400);
-    assert.equal((await n.post('crm', 'stock', { slug: 'sirop-menthe', varianteId: '1000', delta: 5, motif: 'vente' })).status, 400);
-    const m = await n.get('crm', 'mouvements', { slug: 'sirop-menthe' });
+    assert.equal((await n.post('crm', 'stock', { slug: 'pac-citron', varianteId: '1000', delta: -99999, motif: 'inventaire' })).status, 400);
+    assert.equal((await n.post('crm', 'stock', { slug: 'pac-citron', varianteId: '1000', delta: -5000, motif: 'inventaire' })).status, 409);
+    assert.equal((await n.post('crm', 'stock', { slug: 'pac-citron', varianteId: '1000', delta: 5, motif: 'casse' })).status, 400);
+    assert.equal((await n.post('crm', 'stock', { slug: 'pac-citron', varianteId: '1000', delta: 5, motif: 'vente' })).status, 400);
+    const m = await n.get('crm', 'mouvements', { slug: 'pac-citron' });
     assert.equal(m.json.elements[0].note, 'Chute');
   });
 
