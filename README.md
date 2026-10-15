@@ -378,6 +378,7 @@ npm run dev            # http://localhost:5173 (traite d'abord photos/)
 npm run build          # dist/ (traite d'abord photos/, ~1 min pour 63 bouteilles)
 npm run preview        # http://localhost:4173
 npm run qa             # recette complète sur le build
+npm run recette:vercel # en-têtes de vercel.json (CSP…), CRM, espace pro, parcours par l'API
 npm run test:photos    # preuve du pipeline photo
 node scripts/rendus.mjs --base http://localhost:5173   # rendus des menus et cartes (serveur dev lancé)
 ```
@@ -395,6 +396,13 @@ trace d'alcool pour une personne mineure ; 404, `robots.txt`. Playwright et Chro
 machine (`PLAYWRIGHT_MODULE`, `PLAYWRIGHT_CHROMIUM`, SwiftShader) ; aucune dépendance ajoutée. Les
 captures pleine page de plus de 6 000 px sont prises par tranches puis assemblées (au-delà de
 8 192 px, le rendu logiciel recopierait le haut de la page).
+
+`npm run recette:vercel` (`scripts/recette-vercel.mjs`, `--shots <dossier>`, `--seulement 1,2,5`)
+rejoue sur le build les en-têtes de `vercel.json` que `vite preview` ignore (CSP stricte du CRM et de
+l'espace pro, `X-Frame-Options`) et relève violations CSP, erreurs de console et requêtes en échec : site
+public, chaque rubrique du CRM et de l'espace pro (390 et 1440 px), refus attendus de l'API, puis un
+parcours complet par l'API (commande en ligne → CRM jusqu'au retrait, visite, contact, lettre, demande
+pro, commande pro, export CSV). Avec `--base https://…`, il teste le site en ligne (en-têtes réels).
 
 Adresses propres : réécritures de Vite en développement (`vite.config.js`), `cleanUrls`, réécriture
 `/boutique/:slug` → `produit.html` et redirection `/la-distillerie` → `/la-maison` dans `vercel.json`.

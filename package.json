@@ -15,6 +15,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "qa": "node scripts/qa.mjs",
+    "recette:vercel": "node scripts/recette-vercel.mjs .",
     "test:photos": "node scripts/test-packshot.mjs",
     "test": "BLACHERE_STORE=memoire node --test 'test/*.test.js'"
   },
