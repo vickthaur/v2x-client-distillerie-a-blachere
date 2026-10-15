@@ -1,8 +1,6 @@
-// CRM de la distillerie (Preact). Voir docs/crm-espace-pro.md.
+// CRM de la distillerie (Preact). Voir docs/crm-espace-pro.md, § 8.
 import { render } from 'preact';
-
-function App() {
-  return <p>CRM en construction.</p>;
-}
+import '../styles/crm.css';
+import { App } from './app.jsx';
 
 render(<App />, document.getElementById('app'));
