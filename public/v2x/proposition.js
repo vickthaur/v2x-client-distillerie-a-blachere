@@ -54,7 +54,7 @@
       </button>
       <div class="v2x-panneau" id="v2x-panneau" role="dialog" aria-label="À propos de cette maquette" hidden>
         <p class="v2x-k">Maquette non officielle · proposition pour ${CONFIG.client}</p>
-        <p class="v2x-t">Ce site est une proposition de V2X Studio, studio web à Cavaillon, sans lien avec ${CONFIG.client} à ce stade. Vos textes, photos et marques y sont repris tels qu’ils sont publiés, uniquement pour vous présenter cette proposition&nbsp;: ils restent votre propriété et celle de leurs auteurs. Les bouteilles en 3D sont construites à partir de vos photos. Accès privé, réservé aux destinataires du lien&nbsp;; retrait sur simple demande. À voir&nbsp;: les deux univers (sirops pour tous, spiritueux après vérification de l’âge), la boutique, la réservation de visites et l’espace pro.</p>
+        <p class="v2x-t">Ce site est une proposition de V2X Studio, studio web à Cavaillon, sans lien avec ${CONFIG.client} à ce stade. Vos textes, photos et marques y sont repris tels qu’ils sont publiés, uniquement pour vous présenter cette proposition&nbsp;: ils restent votre propriété et celle de leurs auteurs. Les bouteilles en 3D sont construites à partir de vos photos. Maquette non référencée par les moteurs de recherche, retirée sur simple demande. À voir&nbsp;: les deux univers (sirops pour tous, spiritueux après vérification de l’âge), la boutique, la réservation de visites et l’espace pro.</p>
         <div class="v2x-boutons">
           <a href="${CONFIG.siteActuel}" target="_blank" rel="noopener">Comparer avec le site actuel</a>
           <a class="v2x-plein" href="${TEL_LIEN}">Appeler Victor · ${TEL}</a>

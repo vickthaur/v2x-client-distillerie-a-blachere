@@ -1,6 +1,10 @@
-// Accès privé de la maquette (Routing Middleware Vercel : middleware.js ; en local : vite.config.js).
+// Accès à la maquette (Routing Middleware Vercel : middleware.js ; en local : vite.config.js).
 //
-// La maquette n'est visible qu'avec le lien personnel transmis par V2X Studio :
+// Par défaut la maquette est publique (lien simple, non référencée) ; MAQUETTE_RETIREE=1 la retire
+// pour tout le monde (410), sur simple demande de la distillerie.
+//
+// Accès privé, désactivé par défaut (MAQUETTE_PRIVEE=1 pour l'activer) : la maquette n'est alors
+// visible qu'avec le lien personnel transmis par V2X Studio :
 //   https://v2x-client-<slug>.vercel.app/?acces=<jeton>
 // Le jeton est dérivé du secret partagé MAQUETTES_SECRET (le même dans le projet Vercel de V2X Studio,
 // dont le CRM ajoute ce jeton à chaque lien de maquette envoyé). Une visite avec le bon jeton pose un
@@ -9,8 +13,7 @@
 //
 // Restent publics : /robots.txt (tout interdit) et l'image d'aperçu des liens (/og-v4.jpg, pour
 // l'aperçu du message qui contient le lien). /api/menage garde sa propre protection (CRON_SECRET).
-// MAQUETTE_RETIREE=1 retire la maquette pour tout le monde (410). Sans MAQUETTES_SECRET, tout est
-// refusé : la maquette ne s'ouvre jamais par erreur.
+// En accès privé, sans MAQUETTES_SECRET, tout est refusé : la maquette ne s'ouvre jamais par erreur.
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
 export const SLUG = 'distillerie-a-blachere';
@@ -113,13 +116,14 @@ function refus(chemin, accept, statut, html) {
 
 /**
  * Sort d'une requête.
- * @param {{ url: string, cookie?: string, accept?: string, secret?: string, retiree?: boolean, slug?: string }} r
+ * @param {{ url: string, cookie?: string, accept?: string, secret?: string, prive?: boolean, retiree?: boolean, slug?: string }} r
  * @returns {{ type: 'passer', cookie?: string } | { type: 'reponse', status: number, headers: Record<string, string>, body: string }}
  */
-export function decider({ url, cookie = '', accept = '', secret = '', retiree = false, slug = SLUG }) {
+export function decider({ url, cookie = '', accept = '', secret = '', prive = false, retiree = false, slug = SLUG }) {
   const { pathname, searchParams } = new URL(url, 'http://localhost');
   if (pathname === '/robots.txt') return { type: 'passer' };
   if (retiree) return refus(pathname, accept, 410, RETIREE);
+  if (!prive) return { type: 'passer' };
   if (PUBLICS.has(pathname) || LIBRES.some((re) => re.test(pathname))) return { type: 'passer' };
   if (!secret) return refus(pathname, accept, 401, PRIVEE);
   const attendu = valeurCookie(secret, slug);

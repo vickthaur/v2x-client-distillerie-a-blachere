@@ -1,4 +1,5 @@
-// Accès privé de la maquette, avant toute page, image ou appel d'API (Routing Middleware Vercel).
+// Accès à la maquette, avant toute page, image ou appel d'API (Routing Middleware Vercel) : retrait
+// sur demande (MAQUETTE_RETIREE=1) et, si on l'active, accès privé par lien (MAQUETTE_PRIVEE=1).
 // La décision est dans server/portail.js (testée par test/portail.test.js, rejouée en local par
 // vite.config.js quand MAQUETTES_SECRET est défini).
 import { next } from '@vercel/functions/middleware';
@@ -14,6 +15,7 @@ export default function middleware(request) {
       cookie: request.headers.get('cookie') || '',
       accept: request.headers.get('accept') || '',
       secret: process.env.MAQUETTES_SECRET || '',
+      prive: process.env.MAQUETTE_PRIVEE === '1',
       retiree: process.env.MAQUETTE_RETIREE === '1',
     });
   } catch (e) {
