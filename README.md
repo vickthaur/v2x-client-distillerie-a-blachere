@@ -173,6 +173,21 @@ Labo de réglage (développement seulement, non versionné) : `labo.html?scene=d
 - `scripts/import-catalogue.mjs` (catalogue de la recherche) est gardé pour l'historique.
 - Les images de presse ne sont jamais reprises : titre, date et lien seulement.
 
+## Opérations du moment (Octobre Rose)
+
+- `src/data/operation.js` décrit les opérations de la distillerie (dates en heure de Paris, produits
+  concernés, montant reversé, bénéficiaire, conditions) ; `src/lib/operation.js` les affiche pendant
+  leur période et les retire ensuite d'eux-mêmes : bandeau sous le héros de l'accueil et de la page
+  PAC Citron (`#octobre-rose`), pastille dans le héros de l'accueil, pastille « Octobre Rose » sur
+  les cartes produit, encart sur la fiche du produit concerné. `?operation=octobre-rose-2026` montre
+  l'opération hors période (présentation de la maquette après le 31 octobre).
+- **Octobre Rose 2026** : « Pour chaque bouteille de PAC CITRON vendue* 1€ sera reversé à » l'Institut
+  du Cancer Avignon-Provence (logo « Sainte Catherine »), « Du 1/10 au 31/10 », « * Offre valable
+  uniquement sur le site web et en boutique d'usine ». Texte relevé mot pour mot sur la bannière de
+  l'accueil du site officiel le 15 octobre 2026 : `photos/operation-octobre-rose/RELEVE.md` et
+  l'image d'origine. Le site officiel ne précise ni les contenances (seul le 1 L est vendu en ligne)
+  ni un plafond : rien n'est ajouté à ce sujet.
+
 ## À confirmer avec la distillerie
 
 - **Naissance du PAC Citron** : 1960 sur la page Histoire, « voit le jour en 1963 » sur la fiche,
