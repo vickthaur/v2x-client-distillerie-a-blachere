@@ -38,8 +38,8 @@ clean['/la-distillerie'] = 'la-maison.html';
 
 // <!-- @include header.html --> → contenu de src/partials/header.html (en-tête, pied de page,
 // fenêtres communes) : un seul exemplaire pour toutes les pages, en HTML statique.
-// Accès privé (même décision que middleware.js sur Vercel), en local seulement si MAQUETTES_SECRET
-// est défini : MAQUETTES_SECRET=… npm run preview, pour essayer le lien d'accès et la page privée.
+// Accès (même décision que middleware.js sur Vercel), en local seulement si MAQUETTES_SECRET est
+// défini : MAQUETTE_PRIVEE=1 MAQUETTES_SECRET=… npm run preview, pour essayer le lien d'accès.
 function portail() {
   const secret = process.env.MAQUETTES_SECRET;
   const garde = (req, res, next) => {
@@ -48,6 +48,7 @@ function portail() {
       cookie: req.headers.cookie || '',
       accept: req.headers.accept || '',
       secret,
+      prive: process.env.MAQUETTE_PRIVEE === '1',
       retiree: process.env.MAQUETTE_RETIREE === '1',
     });
     if (d.type === 'passer') {
