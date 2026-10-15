@@ -38,15 +38,15 @@ $('#booking-formules').innerHTML = reservables
 
 $('#infos').innerHTML = `
   <div class="info-card"><h3>${icons.pin}Adresse</h3><p>${infos.adresse.map(esc).join('<br />')}</p><p><a class="link" href="${infos.itineraire}" target="_blank" rel="noopener">Itinéraire<span class="sr-only"> (nouvel onglet)</span></a></p><p>La distillerie a sa fiche sur le site La Provence à Vélo.</p></div>
-  <div class="info-card"><h3>${icons.clock}Magasin</h3><p>${esc(infos.jours)}</p>${infos.horaires.map((h) => `<p><strong>${esc(h.periode)}</strong> : ${esc(h.heures)}</p>`).join('')}<p>Bureaux et entrepôts : ${esc(infos.bureauxHoraires.jours.toLowerCase())}, ${esc(infos.bureauxHoraires.heures)}.</p><p class="note">${esc(infos.horairesNote)} Visites fermées le dimanche.</p></div>
-  <div class="info-card"><h3>${icons.phone}Contact</h3><p>Magasin : <a href="${infos.magasin.telLien}">${infos.magasin.tel}</a><br /><a href="mailto:${infos.magasin.email}">${infos.magasin.email}</a></p><p>Bureaux : <a href="${infos.bureaux.telLien}">${infos.bureaux.tel}</a><br /><a href="mailto:${infos.bureaux.email}">${infos.bureaux.email}</a></p></div>`;
+  <div class="info-card"><h3>${icons.clock}Magasin</h3><p>${esc(infos.jours)}</p>${infos.horaires.map((h) => `<p><strong>${esc(h.periode)}</strong>\u00a0: ${esc(h.heures)}</p>`).join('')}<p>Bureaux et entrepôts\u00a0: ${esc(infos.bureauxHoraires.jours.toLowerCase())}, ${esc(infos.bureauxHoraires.heures)}.</p><p class="note">${esc(infos.horairesNote)} Visites fermées le dimanche.</p></div>
+  <div class="info-card"><h3>${icons.phone}Contact</h3><p>Magasin\u00a0: <a href="${infos.magasin.telLien}">${infos.magasin.tel}</a><br /><a href="mailto:${infos.magasin.email}">${infos.magasin.email}</a></p><p>Bureaux\u00a0: <a href="${infos.bureaux.telLien}">${infos.bureaux.tel}</a><br /><a href="mailto:${infos.bureaux.email}">${infos.bureaux.email}</a></p></div>`;
 
 const faq = [
-  ['Faut-il réserver ?', 'Pas pour passer à la boutique et goûter. La visite guidée de la distillerie, elle, se fait uniquement sur réservation.'],
-  ['Combien de temps dure la visite guidée ?', 'Une heure, dégustation comprise, par groupes de 25 personnes au plus. Le parcours passe par la zone de stockage, l’herboristerie, la salle d’étiquetage, le vieux chai et la production, visible derrière les vitres.'],
-  ['Peut-on venir avec des enfants ?', 'Oui : les mineurs dégustent les sirops. Les alcools sont réservés aux personnes majeures.'],
-  ['Est-ce ouvert le dimanche ?', 'Les visites sont fermées le dimanche. La saison 2026 court du 12 février au 31 décembre.'],
-  ['Quel est le tarif ?', 'La dégustation en boutique est gratuite. Le tarif de la visite guidée est à confirmer : les sources ne donnent pas toutes le même.'],
+  ['Faut-il réserver\u202f?', 'Pas pour passer à la boutique et goûter. La visite guidée de la distillerie, elle, se fait uniquement sur réservation.'],
+  ['Combien de temps dure la visite guidée\u202f?', 'Une heure, dégustation comprise, par groupes de 25 personnes au plus. Le parcours passe par la zone de stockage, l’herboristerie, la salle d’étiquetage, le vieux chai et la production, visible derrière les vitres.'],
+  ['Peut-on venir avec des enfants\u202f?', 'Oui : les mineurs dégustent les sirops. Les alcools sont réservés aux personnes majeures.'],
+  ['Est-ce ouvert le dimanche\u202f?', 'Les visites sont fermées le dimanche. La saison 2026 court du 12 février au 31 décembre.'],
+  ['Quel est le tarif\u202f?', 'La dégustation en boutique est gratuite. Le tarif de la visite guidée est à confirmer : les sources ne donnent pas toutes le même.'],
 ];
 $('#faq').innerHTML = faq.map(([q, a]) => `<details><summary>${esc(q)}${icons.chevron}</summary><p>${esc(a)}</p></details>`).join('');
 
@@ -63,7 +63,7 @@ const min = iso(tomorrow) > saison.debut ? iso(tomorrow) : saison.debut;
 dateInput.min = min;
 dateInput.max = saison.fin;
 const seasonOver = min > saison.fin;
-$('#date-hint').textContent = seasonOver ? 'La saison 2026 est terminée : les dates de 2027 sont à annoncer.' : `Du ${new Date(min).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} au 31 décembre 2026, sauf le dimanche. Choisissez dans le calendrier ou saisissez la date.`;
+$('#date-hint').textContent = seasonOver ? 'La saison 2026 est terminée\u00a0: les dates de 2027 sont à annoncer.' : `Du ${new Date(min).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} au 31 décembre 2026, sauf le dimanche. Choisissez dans le calendrier ou saisissez la date.`;
 const MOMENTS = { matin: 'Matin', 'apres-midi': 'Après-midi' };
 const LANGUES = { fr: 'Français', en: 'Anglais', de: 'Allemand' };
 const heureFr = (h) => (h ? h.replace(/^0/, '').replace(':00', `${NB}h`).replace(':', `${NB}h${NB}`) : '');
@@ -141,7 +141,7 @@ function renderCal(focusDay = null) {
     const e = etatJour(d);
     const j = jours.get(d);
     const off = e === 'passe' || e === 'ferme' || e === 'complet';
-    const dots = j?.ouvert
+    const dots = j?.ouvert && e !== 'passe'
       ? ['matin', 'apres-midi'].map((m) => `<i class="cal-dot${restantes(j, m) ? (restantes(j, m) <= 5 ? ' cal-dot--few' : '') : ' cal-dot--full'}"></i>`).join('')
       : '';
     const label = `${jourFr(d)}${e === 'passe' ? ', non réservable' : e === 'ferme' ? ', fermé' : e === 'complet' ? ', complet' : j ? `, matin${NB}: ${restantes(j, 'matin') ? `${restantes(j, 'matin')} places` : 'complet'}, après-midi${NB}: ${restantes(j, 'apres-midi') ? `${restantes(j, 'apres-midi')} places` : 'complet'}` : ''}`;
@@ -255,10 +255,10 @@ function check() {
     errs.push('Cette date est hors de la saison des visites.');
     bad.add('date');
   } else if (new Date(`${d.date}T12:00:00`).getDay() === 0) {
-    errs.push('Les visites sont fermées le dimanche : choisissez un autre jour.');
+    errs.push('Les visites sont fermées le dimanche\u00a0: choisissez un autre jour.');
     bad.add('date');
   } else if (etatJour(d.date) === 'ferme') {
-    errs.push('La distillerie ne fait pas de visite ce jour-là : choisissez un autre jour.');
+    errs.push('La distillerie ne fait pas de visite ce jour-là\u00a0: choisissez un autre jour.');
     bad.add('date');
   }
   const n = Number(d.personnes);
@@ -268,11 +268,11 @@ function check() {
     bad.add('personnes');
   }
   if (!Number.isInteger(m) || m < 0 || m >= n) {
-    errs.push('Au moins un adulte accompagne le groupe : les mineurs sont comptés dans le nombre de personnes.');
+    errs.push('Au moins un adulte accompagne le groupe\u00a0: les mineurs sont comptés dans le nombre de personnes.');
     bad.add('mineurs');
   }
   if (!d.moment) {
-    errs.push('Ce jour est complet : choisissez un autre jour.');
+    errs.push('Ce jour est complet\u00a0: choisissez un autre jour.');
     bad.add('date');
   }
   if (!d.nom?.trim()) {
@@ -313,7 +313,7 @@ function alternatives(list, texte) {
               `<button type="button" class="chip vis-alt__btn" data-alt-d="${esc(x.date)}" data-alt-m="${esc(x.moment)}">${esc(jourFr(x.date, { weekday: 'short', day: 'numeric', month: 'short' }))} · ${esc(MOMENTS[x.moment] || x.moment)}${x.heure ? ` ${esc(heureFr(x.heure))}` : ''}${x.restantes != null ? ` · ${x.restantes} pl.` : ''}</button>`,
           )
           .join('')}</div>`
-      : '<p class="vis-alt__none">Aucune autre séance ce jour-là : choisissez un autre jour dans le calendrier.</p>'
+      : '<p class="vis-alt__none">Aucune autre séance disponible\u00a0: choisissez un autre jour dans le calendrier.</p>'
   }`;
   box.hidden = false;
   box.querySelector('button')?.focus();
@@ -360,7 +360,7 @@ form.addEventListener('submit', async (e) => {
   if (j && restantes(j, d.moment) < n) {
     msg.className = 'form-msg err';
     msg.textContent = `Il ne reste pas ${n} places ${d.moment === 'matin' ? 'le matin' : 'l’après-midi'} ce jour-là.`;
-    return alternatives(autresSeances(d.date, d.moment, n), 'Autres séances disponibles :');
+    return alternatives(autresSeances(d.date, d.moment, n), 'Autres séances disponibles\u00a0:');
   }
   const f = formules.find((x) => x.id === d.formule);
   const btn = form.querySelector('button[type="submit"]');
@@ -394,7 +394,7 @@ form.addEventListener('submit', async (e) => {
       // Séance complète entre-temps : disponibilités relues, autres séances du jour proposées.
       mois.delete(moisDe(d.date));
       voir(moisDe(d.date));
-      return alternatives(x.data?.disponibilites || autresSeances(d.date, d.moment, n), 'Autres séances disponibles :');
+      return alternatives(x.data?.disponibilites || autresSeances(d.date, d.moment, n), 'Autres séances disponibles\u00a0:');
     }
     const champ = { telephone: 'tel', date: 'date', personnes: 'personnes', mineurs: 'mineurs', email: 'email', nom: 'nom', rgpd: 'rgpd' }[String(x?.champ || '').split('.').pop()];
     if (champ) {

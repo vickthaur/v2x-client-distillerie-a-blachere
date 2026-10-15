@@ -132,6 +132,8 @@ body[data-step='panier'] .co { grid-template-columns: minmax(0, 1fr); }
 .co-done__recap small { color: var(--ink-3); }
 .co-done .op-cart { width: 100%; margin: 0; }
 .co-done .btn { white-space: normal; text-align: center; line-height: 1.2; }
+.co-nowrap { white-space: nowrap; }
+.co-card .link { padding: 0; border: 0; background: none; font-size: 0.92rem; cursor: pointer; }
 
 @media (max-width: 960px) {
   .co { grid-template-columns: minmax(0, 1fr); }

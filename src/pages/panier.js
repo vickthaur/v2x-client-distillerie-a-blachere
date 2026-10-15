@@ -145,7 +145,7 @@ function checkCoord(c = order.coord || {}, alcohol = cart.totals().alcohol) {
   if (!(c.nom || '').trim()) bad.push(['nom', 'Indiquez votre nom.']);
   if (!isEmail(c.email)) bad.push(['email', 'Indiquez une adresse e-mail valide (ex. prenom@exemple.fr).']);
   if (!isPhone(c.tel)) bad.push(['tel', 'Indiquez un numéro de téléphone français valide (ex. 06 12 34 56 78).']);
-  if (alcohol && !c.majeur) bad.push(['majeur', 'Votre panier contient de l’alcool : cochez « J’ai 18 ans ou plus ».']);
+  if (alcohol && !c.majeur) bad.push(['majeur', 'Votre panier contient de l’alcool\u00a0: cochez «\u00a0J’ai 18 ans ou plus\u00a0».']);
   return bad;
 }
 function checkMode(m = order) {
@@ -156,7 +156,7 @@ function checkMode(m = order) {
     if (!d) bad.push(['date', 'Choisissez le jour de retrait.']);
     else if (d < tomorrow()) bad.push(['date', 'Choisissez une date à partir de demain.']);
     else if (d > maxRetrait()) bad.push(['date', 'Choisissez un jour dans les 30 prochains jours.']);
-    else if (new Date(`${d}T12:00:00`).getDay() === 0) bad.push(['date', 'La boutique est fermée le dimanche : choisissez un autre jour.']);
+    else if (new Date(`${d}T12:00:00`).getDay() === 0) bad.push(['date', 'La boutique est fermée le dimanche\u00a0: choisissez un autre jour.']);
   }
   if (m.mode === 'livraison') {
     const l = m.livraison || {};
@@ -221,11 +221,11 @@ function modeSummary() {
 }
 
 // Totaux du récapitulatif et du paiement : articles, code promo, livraison (calculés par le serveur).
-function totalsFull(t) {
+function totalsFull(t, { compact = false } = {}) {
   const m = montants(t);
   const rows = [`<div class="totals__row"><span>Articles${t.unpriced ? ' (prix affichés en ligne)' : ''}</span><strong>${euro(m.articles)}</strong></div>`];
   if (t.unpriced) rows.push(`<div class="totals__row"><span>${plural(t.unpriced, 'article')} au prix de la boutique</span><span>confirmé par la distillerie</span></div>`);
-  if (order.promo) rows.push(`<div class="totals__row totals__row--promo"><span>Code ${esc(order.promo.code)}${order.promo.libelle && order.promo.libelle !== order.promo.code ? ` <small>· ${esc(order.promo.libelle)}</small>` : ''}</span><strong>${m.remise ? `−${euro(m.remise)}` : order.promo.livraisonOfferte ? 'livraison offerte' : '—'}</strong></div>`);
+  if (order.promo) rows.push(`<div class="totals__row totals__row--promo"><span>Code ${esc(order.promo.code)}${!compact && order.promo.libelle && order.promo.libelle !== order.promo.code ? ` <small>· ${esc(order.promo.libelle)}</small>` : ''}</span><strong>${m.remise ? `−${euro(m.remise)}` : 'appliqué'}</strong></div>`);
   if (order.mode === 'retrait') rows.push('<div class="totals__row"><span>Retrait à la distillerie</span><span>gratuit</span></div>');
   if (order.mode === 'livraison') {
     const tr = TRANSPORTS[order.transport] || TRANSPORTS.colissimo;
@@ -246,7 +246,7 @@ function sideHTML() {
   return `<div class="co-card">
     <h2 class="co-card__title">Récapitulatif</h2>
     <ul class="co-mini">${t.lines.map((l) => `<li><span>${esc(l.product.nom)} <small>× ${l.qty}</small></span><span>${l.total !== null ? euro(l.total) : '—'}</span></li>`).join('')}</ul>
-    ${step === 'panier' ? totalsHTML(t) : totalsFull(t)}
+    ${step === 'panier' ? totalsHTML(t) : totalsFull(t, { compact: true })}
     ${donHTML(t.lines)}
     ${step !== 'panier' ? modeSummary() : ''}
     ${t.alcohol ? `<p class="evin">${esc(EVIN)} ${esc(MINEURS)}</p>` : ''}
@@ -277,7 +277,7 @@ const VIEWS = {
       <div class="form-row">${field('email', 'E-mail', c.email, 'type="email" autocomplete="email" required inputmode="email"')}${field('tel', 'Téléphone', c.tel, 'type="tel" autocomplete="tel" required inputmode="tel"', 'Pour vous prévenir quand la commande est prête.')}</div>
       ${
         alcohol
-          ? `<div class="co-age"><label class="check"><input type="checkbox" name="majeur" value="1"${c.majeur ? ' checked' : ''} required /><span><strong>J’ai 18 ans ou plus.</strong> Votre panier contient de l’alcool : la vente d’alcool est interdite aux mineurs de moins de 18 ans.</span></label><small class="field__err" data-err="majeur"></small><p class="evin">${esc(EVIN)}</p></div>`
+          ? `<div class="co-age"><label class="check"><input type="checkbox" name="majeur" value="1"${c.majeur ? ' checked' : ''} required /><span><strong>J’ai 18 ans ou plus.</strong> Votre panier contient de l’alcool\u00a0: la vente d’alcool est interdite aux mineurs de moins de 18 ans.</span></label><small class="field__err" data-err="majeur"></small><p class="evin">${esc(EVIN)}</p></div>`
           : ''
       }
       <label class="check co-news"><input type="checkbox" name="newsletter" value="1"${c.newsletter ? ' checked' : ''} /><span>Je souhaite recevoir la lettre de la distillerie (facultatif).</span></label>
@@ -302,7 +302,7 @@ const VIEWS = {
         <legend class="sr-only">Mode de remise</legend>
         <label class="mode">
           <input type="radio" name="mode" value="retrait"${order.mode === 'retrait' ? ' checked' : ''} />
-          <span class="mode__card">${icons.store}<span><strong>Retrait à la distillerie</strong><span>${esc(infos.adresseLigne)}</span><span>Horaires de retrait : ${esc(infos.retrait)}, du lundi au samedi</span></span><b class="mode__price">Gratuit</b></span>
+          <span class="mode__card">${icons.store}<span><strong>Retrait à la distillerie</strong><span>${esc(infos.adresseLigne)}</span><span>Horaires de retrait\u00a0: ${esc(infos.retrait)}, du lundi au samedi</span></span><b class="mode__price">Gratuit</b></span>
         </label>
         <label class="mode">
           <input type="radio" name="mode" value="livraison"${order.mode === 'livraison' ? ' checked' : ''} />
@@ -342,9 +342,9 @@ const VIEWS = {
       ${promoHTML()}
       <div id="co-totals">${totalsFull(t)}</div>
       ${donHTML(t.lines)}
-      ${t.unpriced ? `<p class="co-note">${plural(t.unpriced, 'article n’a', 'articles n’ont')} pas de prix affiché en ligne : la distillerie vous confirme le montant avant de préparer la commande.</p>` : ''}
+      ${t.unpriced ? `<p class="co-note">${plural(t.unpriced, 'article n’a', 'articles n’ont')} pas de prix affiché en ligne\u00a0: la distillerie vous confirme le montant avant de préparer la commande.</p>` : ''}
       ${order.mode === 'livraison' ? '<p class="co-note">Livraison en France métropolitaine. Les frais de livraison suivent le barème de démonstration et sont offerts dès 120,00 € d’articles.</p>' : ''}
-      <p class="co-note">Droit de rétractation : quatorze jours francs à compter de la réception, pour des articles intacts et non ouverts. Colis endommagé : le refuser ou l’indiquer sur le récépissé ; la distillerie réexpédie ou rembourse.</p>
+      <p class="co-note">Droit de rétractation\u00a0: quatorze jours francs à compter de la réception, pour des articles intacts et non ouverts. Colis endommagé\u00a0: le refuser ou l’indiquer sur le récépissé\u202f; la distillerie réexpédie ou rembourse.</p>
       <div class="co-actions"><button type="button" class="btn btn--ghost" data-prev>Retour</button><button type="button" class="btn btn--primary" data-next>Passer au paiement</button></div>
     </div>`;
   },
@@ -352,7 +352,7 @@ const VIEWS = {
     const t = cart.totals();
     const pay = order.paiement || 'carte';
     return `<form class="co-form" id="co-form" novalidate>
-      ${t.alcohol ? `<div class="co-mineurs" role="note"><strong>Vente interdite aux mineurs</strong><span>Votre commande contient de l’alcool : la vente d’alcool est interdite aux mineurs de moins de 18 ans.</span><span class="evin">${esc(EVIN)}</span></div>` : ''}
+      ${t.alcohol ? `<div class="co-mineurs" role="note"><strong>Vente interdite aux mineurs</strong><span>Votre commande contient de l’alcool\u00a0: la vente d’alcool est interdite aux mineurs de moins de 18 ans.</span><span class="evin">${esc(EVIN)}</span></div>` : ''}
       <div class="co-sim">
         <p class="co-sim__badge">Paiement simulé</p>
         <p>Démonstration${NB}: aucun paiement n’est demandé. Sur le site en ligne, cette étape ouvrira le paiement sécurisé.</p>
@@ -361,7 +361,7 @@ const VIEWS = {
         <legend class="sr-only">Moyen de paiement</legend>
         <label class="mode"><input type="radio" name="paiement" value="carte"${pay === 'carte' ? ' checked' : ''} /><span class="mode__card">${icons.card}<span><strong>Carte bancaire</strong><span>CB, Visa, Mastercard (simulation)</span></span></span></label>
         <label class="mode"><input type="radio" name="paiement" value="paypal"${pay === 'paypal' ? ' checked' : ''} /><span class="mode__card">${icons.card}<span><strong>PayPal</strong><span>Simulation</span></span></span></label>
-        <label class="mode"><input type="radio" name="paiement" value="virement"${pay === 'virement' ? ' checked' : ''} /><span class="mode__card">${icons.card}<span><strong>Virement bancaire</strong><span>Simulation : les coordonnées bancaires seraient envoyées par e-mail ; la commande est préparée à réception du virement</span></span></span></label>
+        <label class="mode"><input type="radio" name="paiement" value="virement"${pay === 'virement' ? ' checked' : ''} /><span class="mode__card">${icons.card}<span><strong>Virement bancaire</strong><span>Simulation\u00a0: les coordonnées bancaires seraient envoyées par e-mail\u202f; la commande est préparée à réception du virement</span></span></span></label>
       </fieldset>
       <label class="check co-cgv"><input type="checkbox" name="cgv" required /><span>J’ai lu et j’accepte les <a class="link" href="/conditions-de-vente" target="_blank" rel="noopener">conditions générales de vente</a>.</span></label>
       <p class="form-msg" role="alert" id="co-msg"></p>
@@ -377,15 +377,15 @@ const VIEWS = {
     // Commande avec alcool : cadre maison (jamais l'univers PAC à côté d'un spiritueux).
     return `<div class="co-done${d.alcohol ? ' co-done--maison' : ''}">
       <p class="co-done__seal" aria-hidden="true">${icons.check}</p>
-      <p class="co-done__lead">Merci ${esc(d.prenom)}${NNB}! Votre commande <strong>${esc(d.numero)}</strong> est enregistrée.</p>
+      <p class="co-done__lead">Merci ${esc(d.prenom)}${NNB}! Votre commande <strong class="co-nowrap">${esc(d.numero)}</strong> est enregistrée.</p>
       <dl class="co-done__recap">
-        <div><dt>Montant</dt><dd>${euro(d.totalTTC)}${d.remise ? ` <small>(code ${esc(d.code)} : −${euro(d.remise)})</small>` : ''}</dd></div>
+        <div><dt>Montant</dt><dd>${euro(d.totalTTC)}${d.remise ? ` <small>(code ${esc(d.code)}\u00a0: −${euro(d.remise)})</small>` : ''}</dd></div>
         <div><dt>Paiement</dt><dd>${pay}</dd></div>
         <div><dt>Remise</dt><dd>${d.mode === 'retrait' ? `Retrait à la distillerie${d.date ? `, ${esc(frDate(d.date))}` : ''}` : `${esc(TRANSPORTS[d.transport]?.label || 'Livraison')} · ${d.livraison ? euro(d.livraison) : 'offerte'}`}</dd></div>
       </dl>
       <p>${
         d.mode === 'retrait'
-          ? `Vous la retirerez à la distillerie, ${esc(infos.adresseLigne)}, ${esc(infos.retrait)}, du lundi au samedi${d.date ? ` (jour souhaité : ${esc(frDate(d.date))})` : ''}.`
+          ? `Vous la retirerez à la distillerie, ${esc(infos.adresseLigne)}, ${esc(infos.retrait)}, du lundi au samedi${d.date ? ` (jour souhaité\u00a0: ${esc(frDate(d.date))})` : ''}.`
           : statut === 'en-attente'
             ? 'Elle sera expédiée sous 3 jours ouvrés au plus après la réception du virement, à l’adresse indiquée.'
             : 'Elle sera expédiée sous 3 jours ouvrés au plus, à l’adresse indiquée.'
@@ -511,6 +511,7 @@ function fillQuote(form) {
       if (des) des.textContent = prices.length ? (Math.min(...prices) ? `dès ${euro(Math.min(...prices))}` : 'Offerte') : '';
       const franco = $('#co-franco', form);
       if (franco) franco.textContent = q.francoRestantTTC > 0 ? `Livraison offerte dès 120,00${NB}€ d’articles${NB}: plus que ${euro(q.francoRestantTTC)}.` : 'Livraison offerte pour ce panier.';
+      $('#co-side').innerHTML = sideHTML();
     })
     .catch((e) => {
       if (!form.isConnected) return;
@@ -547,19 +548,32 @@ function bindStep() {
       const tr = form.elements.transport.value || 'colissimo';
       $('[data-relais]', form).hidden = tr !== 'relais';
     };
+    // Le récapitulatif suit les choix : mode, transporteur, code postal (frais du serveur).
+    const remember = () => {
+      const fd = new FormData(form);
+      order.mode = fd.get('mode') || order.mode || null;
+      order.transport = fd.get('transport') || order.transport || 'colissimo';
+      order.retrait = { date: fd.get('date') || '' };
+      order.livraison = { adresse: fd.get('adresse') || '', complement: fd.get('complement') || '', cp: fd.get('cp') || '', ville: fd.get('ville') || '' };
+      save();
+    };
     form.addEventListener('change', (e) => {
       sync();
-      if (e.target.name === 'transport') {
-        order.transport = e.target.value;
-        save();
-      }
+      remember();
+      if (e.target.name === 'mode' || e.target.name === 'transport') fillQuote(form);
+      $('#co-side').innerHTML = sideHTML();
     });
     if (!order.transport) order.transport = 'colissimo';
     fillQuote(form);
     let cpTimer;
     form.elements.cp.addEventListener('input', () => {
       clearTimeout(cpTimer);
-      if (isCP(form.elements.cp.value)) cpTimer = setTimeout(() => fillQuote(form), 250);
+      if (isCP(form.elements.cp.value))
+        cpTimer = setTimeout(() => {
+          order.livraison = { ...(order.livraison || {}), cp: form.elements.cp.value };
+          save();
+          fillQuote(form);
+        }, 250);
     });
     form.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -572,7 +586,7 @@ function bindStep() {
       save();
       const bad = checkMode();
       const o = option(order.transport);
-      if (order.mode === 'livraison' && o && o.disponible === false) bad.push(['cp', o.raison || 'Livraison impossible à cette adresse : choisissez le retrait à la distillerie.']);
+      if (order.mode === 'livraison' && o && o.disponible === false) bad.push(['cp', o.raison || 'Livraison impossible à cette adresse\u00a0: choisissez le retrait à la distillerie.']);
       showErrors(form, bad);
       if (!bad.length) go('recapitulatif');
     });
@@ -724,7 +738,7 @@ function orderError(form, x) {
   const msg = $('#co-msg', form);
   if (x?.code === 'stock' || x?.status === 409) {
     // Les stocks ont changé : prix et états de la démo relus, retour au panier avec le message.
-    stockMsg = x.message || 'Un article n’est plus disponible en quantité suffisante : ajustez le panier.';
+    stockMsg = x.message || 'Un article n’est plus disponible en quantité suffisante\u00a0: ajustez le panier.';
     go('panier');
     loadDemoPrices({ force: true });
     return;
