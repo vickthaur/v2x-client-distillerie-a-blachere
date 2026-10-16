@@ -15,7 +15,9 @@
 //   - deuxième vague : pas de double marge sous l'en-tête, barre d'achat des fiches, 3D sobre des
 //     fiches, mode revue, méga-menus au clavier et fenêtres modales, focus du panier, prix au litre,
 //     frais de port, erreurs par champ, balises, cache des images, feuille de la pastille, pause des
-//     animations, impression.
+//     animations, impression ;
+//   - fiche produit : nom, prix et bouton d'ajout dans le premier écran du téléphone ; fil d'Ariane
+//     sans redite, une recette par photo, « Vous aimerez aussi » sans colonne vide.
 //
 //   npm run build && node scripts/qa.mjs [--sortie <dossier>] [--port 4173] [--rapide]
 //
@@ -262,11 +264,15 @@ for (const vp of ['bureau', 'mobile']) {
     check(`${vp} : sous l’en-tête, pas de double marge (premier texte à ${max} px au plus de l’en-tête, ${ecarts.length} pages)`, !trop.length, (trop.length ? trop : ecarts.slice(0, 4)).map((e) => `${e.path} ${e.ecart} px (h1 à ${e.h1})`).join(' ; '));
     await ctx.close();
   }
-  // Fiche au téléphone : plateau à 56 % de l'écran au plus, nom et prix remontés ; au bureau, h1 haut.
+  // Fiche au téléphone : plateau à 56 % de l'écran au plus ; le nom, le prix et le bouton d'ajout
+  // dans le premier écran (390 × 844) ; au bureau, h1 haut.
   const ctxm = await context('mobile', 'sirops');
   const { page: fm } = await open(ctxm, '/boutique/pac-citron', { wait: 2500, label: 'fiche téléphone' });
-  const f = await fm.evaluate(() => ({ h1: Math.round(document.querySelector('.pp__name').getBoundingClientRect().top), stage: Math.round(document.querySelector('.pp__stage').getBoundingClientRect().height), vh: innerHeight, prix: Math.round(document.querySelector('.pp__price').getBoundingClientRect().top) }));
-  check('Fiche au téléphone : plateau à 56 svh au plus, nom du produit à 620 px au plus', f.stage <= Math.ceil(f.vh * 0.56) + 1 && f.h1 <= 620, `plateau ${f.stage} px pour ${f.vh} px, h1 à ${f.h1} px, prix à ${f.prix} px`);
+  const f = await fm.evaluate(() => {
+    const r = (s) => document.querySelector(s).getBoundingClientRect();
+    return { h1: Math.round(r('.pp__name').top), stage: Math.round(r('.pp__stage').height), vh: innerHeight, prix: Math.round(r('.pp__price').bottom), achat: Math.round(r('#buy .pp__row').bottom) };
+  });
+  check('Fiche au téléphone : plateau à 56 svh au plus ; nom, prix et bouton d’ajout dans le premier écran', f.stage <= Math.ceil(f.vh * 0.56) + 1 && f.h1 <= 620 && f.prix <= f.vh && f.achat <= f.vh, `plateau ${f.stage} px pour ${f.vh} px, h1 à ${f.h1} px, bas du prix à ${f.prix} px, bas du bouton d’ajout à ${f.achat} px`);
   // Barre d'achat collante : absente tant que le bouton est à l'écran, présente quand il est passé
   // sous l'en-tête, effacée au pied de page ; son bouton ajoute au panier (tiroir ouvert).
   const etatBarre = () => fm.evaluate(() => {
@@ -306,6 +312,25 @@ for (const vp of ['bureau', 'mobile']) {
   const { page: fb } = await open(ctxb, '/boutique/pac-citron', { wait: 2000, label: 'fiche bureau' });
   const fbm = await fb.evaluate(() => Math.round(document.querySelector('.pp__name').getBoundingClientRect().top));
   check('Fiche au bureau : nom du produit à 260 px au plus', fbm <= 260, `h1 à ${fbm} px`);
+  // Chaque information une fois : fil d'Ariane sans le produit en double (« Boutique / PAC Citron® »),
+  // une carte de recette par photo (« Blue mojito » et sa version sans alcool : une seule), « Vous
+  // aimerez aussi » en une rangée pleine (pas de colonne vide à droite).
+  const redites = await fb.evaluate(() => {
+    const cle = (s) => s.toLowerCase().replace(/[®\s]+/g, ' ').trim();
+    const fil = [...document.querySelectorAll('.crumbs li')].map((li) => cle(li.textContent));
+    const photos = [...document.querySelectorAll('.pp-recipes .rcard__img img')].map((i) => new URL(i.src).pathname.replace(/-sans-alcool(?=\.\w+$)/, ''));
+    const grille = document.querySelector('#related-grid').getBoundingClientRect();
+    const cartes = [...document.querySelectorAll('#related-grid > .card')].map((c) => c.getBoundingClientRect());
+    return {
+      fil,
+      courant: !!document.querySelector('.crumbs [aria-current="page"]'),
+      photos,
+      cartes: cartes.length,
+      rangees: new Set(cartes.map((c) => Math.round(c.top))).size,
+      vide: cartes.length ? Math.round(grille.right - Math.max(...cartes.map((c) => c.right))) : null,
+    };
+  });
+  check('Fiche : fil d’Ariane sans redite, une recette par photo, « Vous aimerez aussi » en rangée pleine', new Set(redites.fil).size === redites.fil.length && redites.courant && redites.photos.length > 0 && new Set(redites.photos).size === redites.photos.length && redites.cartes >= 4 && redites.rangees === 1 && redites.vide !== null && redites.vide <= 2, JSON.stringify(redites));
   await fb.close();
   const { page: bo } = await open(ctxb, '/boutique', { wait: 2000, label: 'boutique bureau' });
   const bom = await bo.evaluate(() => ({ h1: Math.round(document.querySelector('h1').getBoundingClientRect().top), carte: Math.round(document.querySelector('#shop-grid .card')?.getBoundingClientRect().top ?? -1), barre: Math.round(document.querySelector('.shop__bar').getBoundingClientRect().height) }));
