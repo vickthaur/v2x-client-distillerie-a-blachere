@@ -1,16 +1,26 @@
-/* Fiche produit : plateau de studio neutre à gauche (3D), informations et détails à droite. */
+/* Fiche produit : plateau de studio neutre à gauche (3D), informations et détails à droite. Au
+   téléphone, le plateau un peu moins haut, puis le nom, une ligne de type, le prix et l'achat : tout
+   tient dans le premier écran (390 × 844), l'accroche et les détails viennent ensuite. */
 /* body porte déjà la marge de l'en-tête fixe : la page n'en rajoute pas (QUAL-6, UX-1). */
 .product-page { background: var(--paper); }
 .product-loading { display: grid; place-items: center; min-height: 60vh; color: var(--ink-3); }
-.crumbs { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 22px; padding-bottom: 18px; font-size: 0.84rem; color: var(--ink-3); }
-.crumbs a { color: var(--ink-2); text-decoration: none; }
-.crumbs a:hover { color: var(--ink); text-decoration: underline; }
-.crumbs [aria-current] { color: var(--ink-3); }
 
-.pp { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr); gap: clamp(28px, 4.6vw, 80px); align-items: start; padding-bottom: clamp(56px, 7vw, 110px); }
+/* ---------- Fil d'Ariane : une ligne, le dernier élément raccourci s'il le faut ---------- */
+.crumbs { padding-top: 16px; padding-bottom: 14px; font-size: 0.84rem; line-height: 1.3; color: var(--ink-3); }
+.crumbs ol { display: flex; align-items: center; min-width: 0; margin: 0; padding: 0; list-style: none; }
+.crumbs li { display: flex; flex: none; align-items: center; min-width: 0; white-space: nowrap; }
+.crumbs li:last-child { flex: 0 1 auto; }
+.crumbs li + li::before { content: ''; flex: none; width: 1px; height: 0.95em; margin: 0 11px; background: currentColor; opacity: 0.5; transform: rotate(22deg); }
+.crumbs a { display: inline-block; padding-block: 4px; color: var(--ink-2); text-decoration: none; }
+.crumbs a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 0.2em; }
+.crumbs [aria-current] { min-width: 0; overflow: hidden; padding-block: 4px; text-overflow: ellipsis; color: var(--ink-3); }
+
+.pp { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr); gap: clamp(28px, 4.6vw, 80px); align-items: start; padding-bottom: clamp(56px, 6.5vw, 100px); }
 
 /* ---------- Plateau ---------- */
-.pp__stage { position: sticky; top: calc(var(--main-h) + 18px); width: 100%; aspect-ratio: 4 / 5; max-height: calc(100svh - var(--main-h) - 36px); overflow: hidden; border-radius: var(--r-l); background: radial-gradient(120% 90% at 50% 38%, #f4f1eb 0%, #e8e3da 62%, #ddd6ca 100%); isolation: isolate; }
+/* Au bureau, le plateau tient entier dans le premier écran (sous l'en-tête et le fil d'Ariane), puis
+   reste collé sous l'en-tête, au-dessus de la barre d'achat et de la pastille qui la surmonte. */
+.pp__stage { position: sticky; top: calc(var(--main-h) + 18px); width: 100%; aspect-ratio: 4 / 5; max-height: max(420px, calc(100svh - var(--header-h) - 116px)); overflow: hidden; border-radius: var(--r-l); background: radial-gradient(120% 90% at 50% 38%, #f4f1eb 0%, #e8e3da 62%, #ddd6ca 100%); isolation: isolate; }
 .pp[data-alcool='1'] .pp__stage { background: radial-gradient(120% 90% at 50% 38%, #efebe4 0%, #e1dbd0 62%, #d3cbbd 100%); }
 /* Affiche (photo de face) : la bouteille entière dans le cadre, à peu près à la taille de la bouteille
    3D qui la remplace en fondu ; seule sans WebGL, en mouvement réduit, en économie de données. */
@@ -24,81 +34,91 @@
 .pp__stage.is-live .pp__canvas { opacity: 1; }
 .pp__stage.is-live .pp__poster { opacity: 0; }
 /* consigne et boutons face / dos : seulement quand la 3D est là (l'affiche ne tourne pas) */
-.pp__stage-ui { position: absolute; left: 16px; right: 16px; bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 8px; pointer-events: none; opacity: 0; visibility: hidden; transition: opacity 0.6s, visibility 0s linear 0.6s; }
+.pp__stage-ui { position: absolute; inset: 0; pointer-events: none; opacity: 0; visibility: hidden; transition: opacity 0.6s, visibility 0s linear 0.6s; }
 .pp__stage.is-live .pp__stage-ui { opacity: 1; visibility: visible; transition: opacity 0.6s; }
 .pp__stage.is-static .pp__stage-ui { display: none; }
 .pp__sides button[aria-busy='true'] { cursor: progress; }
 /* Pause de la rotation automatique (src/lib/pause.js) : en haut à droite de la scène */
 .pp__stage > .anim-pause { position: absolute; top: 16px; right: 16px; z-index: 2; }
 .pp__stage.is-static > .anim-pause { display: none; }
-.pp__hint { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; background: rgba(255, 255, 255, 0.82); color: var(--ink); font-size: 0.8rem; font-weight: 600; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
-.pp__hint svg { width: 16px; height: 16px; }
-.pp__sides { display: inline-flex; padding: 3px; border-radius: 999px; background: rgba(255, 255, 255, 0.82); pointer-events: auto; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
-.pp__sides button { height: 32px; padding: 0 14px; border: 0; border-radius: 999px; background: none; color: var(--ink); font: 650 0.8rem var(--font); }
+.pp__hint { position: absolute; left: 16px; bottom: 16px; display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; background: rgba(255, 255, 255, 0.82); color: var(--ink); font-size: 0.8rem; font-weight: 600; line-height: 1.2; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.pp__hint svg { flex: none; width: 16px; height: 16px; }
+.pp__sides { position: absolute; right: 16px; bottom: 16px; display: inline-flex; padding: 3px; border-radius: 999px; background: rgba(255, 255, 255, 0.82); pointer-events: auto; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.pp__sides button { height: 34px; padding: 0 15px; border: 0; border-radius: 999px; background: none; color: var(--ink); font: 650 0.8rem var(--font); }
 .pp__sides button:hover { background: var(--ink); color: #fff; }
+/* doigt : boutons face / dos de 44 px de haut */
+@media (pointer: coarse) { .pp__sides button { height: 38px; padding: 0 16px; } }
 .pp__source { position: absolute; top: 14px; left: 16px; right: 16px; font-size: 0.72rem; color: var(--ink-3); }
 
 /* ---------- Informations ---------- */
-.pp__info { display: grid; gap: 18px; min-width: 0; padding-top: 6px; }
-.pp__gamme { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font: 650 0.74rem/1.3 var(--font); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); }
-.pp__gamme .badge { letter-spacing: 0.08em; }
-.pp__name { font: 780 clamp(2.1rem, 3.6vw, 3.3rem)/1 var(--font); letter-spacing: -0.035em; }
+.pp__info { display: grid; gap: 26px; min-width: 0; padding-top: 4px; }
+.pp__head { display: grid; gap: 12px; }
+.pp__badges { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.pp__name { font: 780 clamp(2.1rem, 3.6vw, 3.3rem)/1.02 var(--font); letter-spacing: -0.035em; text-wrap: balance; }
 .pp__name sup { font-size: 0.4em; vertical-align: super; letter-spacing: 0; }
-.pp__type { margin-top: -6px; color: var(--ink-2); }
-.pp__lead { max-width: 52ch; font: 400 1.1rem/1.55 var(--font); color: var(--ink-2); }
-.pp__buy { display: grid; gap: 16px; padding: 22px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.pp__type { margin-top: -2px; font-size: 1.04rem; line-height: 1.45; color: var(--ink-2); }
+.pp__dot { color: var(--ink-3); }
+.pp__nb { white-space: nowrap; }
+
+/* Achat : prix, contenances, quantité et bouton, frais de livraison */
+.pp__buy { display: grid; gap: 18px; padding-bottom: 26px; border-bottom: 1px solid var(--line); }
+.pp__price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.pp__price strong { font: 760 2.15rem/1 var(--font); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.pp__ttc { font-size: 0.88rem; font-weight: 600; color: var(--ink-2); }
+.pp__price .pp__unit { font-size: 0.86rem; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.pp__price--none strong { font-size: 1.3rem; }
+.pp__price--none > span { flex-basis: 100%; font-size: 0.88rem; color: var(--ink-2); }
 .pp__volumes { margin: 0; padding: 0; border: 0; min-width: 0; }
-.pp__volumes legend { margin-bottom: 10px; font: 700 0.72rem/1 var(--font); letter-spacing: 0.14em; text-transform: uppercase; }
-.pp__vols { display: flex; flex-wrap: wrap; gap: 8px; }
-.vol { position: relative; }
+.pp__volumes legend { margin-bottom: 10px; padding: 0; font: 700 0.72rem/1 var(--font); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2); }
+.pp__vols { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; }
+.vol { position: relative; display: grid; }
 .vol input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-.vol__in { display: grid; gap: 2px; min-width: 104px; padding: 10px 16px; border: 1px solid var(--line-2); border-radius: 10px; background: #fff; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; }
-.vol__name { font: 650 0.94rem/1.2 var(--font); }
-.vol__price { font-size: 0.84rem; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.vol__in { display: grid; align-content: center; gap: 2px; min-height: 64px; padding: 9px 14px; border: 1px solid var(--line-2); border-radius: 12px; background: #fff; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; }
+.vol__in:hover { border-color: var(--ink-3); }
+.vol__name { font: 680 0.96rem/1.2 var(--font); }
+.vol__price { font-size: 0.84rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .vol__unit { font-size: 0.74rem; color: var(--ink-3); font-variant-numeric: tabular-nums; }
 .vol input:checked + .vol__in { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
 .vol input:focus-visible + .vol__in { outline: 2px solid var(--ink); outline-offset: 2px; }
-.pp__one { font-weight: 650; }
-.pp__price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
-.pp__price strong { font: 760 2rem/1 var(--font); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
-.pp__price > span { font-size: 0.86rem; color: var(--ink-3); }
-.pp__price .pp__unit { color: var(--ink-2); font-variant-numeric: tabular-nums; }
-.pp__price--none strong { font-size: 1.3rem; }
-.pp__price--none > span { flex-basis: 100%; }
-.pp__row { display: flex; flex-wrap: wrap; gap: 10px; }
-.pp__add { flex: 1 1 220px; }
+.pp__row { display: flex; gap: 10px; }
+.pp__row .qty--big { flex: none; }
+.pp__add { flex: 1 1 auto; min-width: 0; }
 .pp__add svg { width: 20px; height: 20px; }
-.qty--big { height: 52px; }
-.qty--big button { width: 46px; }
-.qty--big input { width: 48px; font-size: 1rem; }
+.pp__add span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .pp__muted { color: var(--ink-3); }
 /* frais de livraison pour la contenance et la quantité choisies (UX-4) */
-.pp__ship { display: flex; align-items: flex-start; gap: 10px; margin-top: -2px; font-size: 0.88rem; line-height: 1.5; color: var(--ink-2); }
+.pp__ship { display: flex; align-items: flex-start; gap: 10px; font-size: 0.87rem; line-height: 1.5; color: var(--ink-2); }
 .pp__ship > svg { flex: none; width: 20px; height: 20px; margin-top: 1px; color: var(--ink); }
 .pp__ship strong { color: var(--ink); font-weight: 680; }
-.pp__ailleurs { font-size: 0.9rem; color: var(--ink-2); }
-.pp__ailleurs a { color: var(--ink); }
 .pp__dispo { display: grid; gap: 8px; padding: 18px 20px; border: 1px solid var(--line-2); border-radius: var(--r); }
 .pp__dispo-title { display: flex; align-items: center; gap: 10px; }
 .pp__dispo-title svg { width: 20px; height: 20px; }
-.pp__reassure { display: grid; gap: 10px; }
-.pp__reassure li { display: flex; align-items: flex-start; gap: 12px; font-size: 0.9rem; color: var(--ink-2); }
+
+/* Accroche (première phrase utile de la description), puis ce qui rassure */
+.pp__lead { max-width: 46ch; font: italic 400 1.2rem/1.5 var(--serif); letter-spacing: -0.005em; color: var(--ink); font-variation-settings: 'SOFT' 0, 'WONK' 0; }
+.pp__ailleurs { font-size: 0.9rem; color: var(--ink-2); }
+.pp__ailleurs a { color: var(--ink); }
+.pp__reassure { display: grid; padding: 4px 18px; border: 1px solid var(--line); border-radius: var(--r); background: #fff; }
+.pp__reassure li { display: flex; align-items: flex-start; gap: 14px; padding: 13px 0; font-size: 0.9rem; line-height: 1.45; color: var(--ink-2); }
+.pp__reassure li + li { border-top: 1px solid var(--line); }
 .pp__reassure strong { color: var(--ink); font-weight: 650; }
-.pp__reassure svg { flex: none; width: 20px; height: 20px; margin-top: 1px; color: var(--ink); }
-.pp__evin { font-size: 0.82rem; }
+.pp__reassure svg { flex: none; width: 20px; height: 20px; margin-top: 0; color: var(--ink); }
+.pp__evin { margin-top: -8px; font-size: 0.82rem; }
 
 /* Tableau de détails */
 .pp__facts { display: grid; border-top: 1px solid var(--ink); }
 .pp__facts > div { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 0.92rem; }
 .pp__facts dt { color: var(--ink-3); }
 .pp__facts dd { margin: 0; color: var(--ink); font-variant-numeric: tabular-nums; }
-.pp__details { display: grid; border-top: 1px solid var(--line); }
+/* Accordéons : toute la ligne se touche (56 px de haut) */
+.pp__details { display: grid; margin-top: -8px; }
 .pp__acc { border-bottom: 1px solid var(--line); }
-.pp__acc summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 0; font: 680 1rem var(--font); cursor: pointer; list-style: none; }
+.pp__acc summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; padding: 12px 0; font: 680 1rem/1.3 var(--font); cursor: pointer; list-style: none; }
 .pp__acc summary::-webkit-details-marker { display: none; }
-.pp__acc summary svg { width: 18px; height: 18px; transition: transform 0.3s var(--ease); }
+.pp__acc summary svg { flex: none; width: 18px; height: 18px; transition: transform 0.3s var(--ease); }
+.pp__acc summary:hover > span { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.22em; }
 .pp__acc[open] summary svg { transform: rotate(180deg); }
-.pp__acc-body { padding-bottom: 18px; font-size: 0.94rem; color: var(--ink-2); }
+.pp__acc-body { padding-bottom: 20px; font-size: 0.94rem; color: var(--ink-2); }
 .pp__acc-body p + p, .pp__acc-body ul + p, .pp__acc-body p + ul { margin-top: 10px; }
 .pp__acc-body ul { display: grid; gap: 4px; padding-left: 18px; list-style: disc; }
 .pp__sub { font-weight: 650; color: var(--ink); }
@@ -110,67 +130,161 @@
 
 /* ---------- Barre d'achat collante (UX-1) ----------
    En bas de l'écran quand le bouton d'ajout est passé sous l'en-tête ; inerte et hors de l'écran
-   sinon. Les pastilles (V2X, démo), le repère du mode revue et les messages passent au-dessus. */
-.pp-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 70; padding-bottom: env(safe-area-inset-bottom); border-top: 1px solid var(--line); background: #fff; box-shadow: 0 -14px 34px -24px rgba(21, 19, 15, 0.5); transform: translateY(105%); visibility: hidden; transition: transform 0.4s var(--ease), visibility 0s linear 0.4s; }
+   sinon. Elle laisse la zone du bas de l'iPhone libre (safe area) ; les pastilles (V2X, démo), le
+   repère du mode revue et les messages passent au-dessus. Spiritueux : le message sanitaire sur une
+   ligne au bureau, en dessous au téléphone. */
+.pp-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 70; padding-bottom: env(safe-area-inset-bottom); border-top: 1px solid var(--line); background: rgba(255, 255, 255, 0.97); box-shadow: 0 -14px 34px -24px rgba(21, 19, 15, 0.5); -webkit-backdrop-filter: saturate(160%) blur(12px); backdrop-filter: saturate(160%) blur(12px); transform: translateY(105%); visibility: hidden; transition: transform 0.4s var(--ease), visibility 0s linear 0.4s; }
 .pp-bar:empty { display: none; }
 .pp-bar.is-on { transform: none; visibility: visible; transition: transform 0.4s var(--ease), visibility 0s; }
-.pp-bar__in { display: flex; align-items: center; gap: 14px; min-height: 68px; padding-block: 9px; }
+.pp-bar__in { display: flex; align-items: center; gap: 14px; min-height: 68px; padding-block: 10px; padding-left: max(var(--gutter), env(safe-area-inset-left)); padding-right: max(var(--gutter), env(safe-area-inset-right)); }
 .pp-bar__img { display: block; flex: none; width: 38px; height: 50px; overflow: hidden; border-radius: 7px; background: var(--thumb-bg); }
 .pp-bar__img .thumb { width: 100%; height: 100%; object-fit: contain; padding: 3px 0; }
-.pp-bar__txt { display: grid; flex: 1; gap: 1px; min-width: 0; }
+.pp-bar__txt { display: grid; flex: 1 1 auto; gap: 1px; min-width: 0; }
 .pp-bar__name { overflow: hidden; font: 700 0.98rem/1.3 var(--font); letter-spacing: -0.01em; white-space: nowrap; text-overflow: ellipsis; }
 .pp-bar__name sup { font-size: 0.5em; }
 .pp-bar__name .wm--pac { width: 2.1em; height: 1.72em; vertical-align: -0.6em; }
 .pp-bar__name .wm--fb { width: 3.9em; height: 2em; vertical-align: -0.68em; }
 .pp-bar__meta { overflow: hidden; font-size: 0.86rem; color: var(--ink-2); white-space: nowrap; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.pp-bar__evin { flex: 0 1 auto; min-width: 0; font-size: 0.76rem; line-height: 1.35; color: var(--ink-3); text-align: right; text-wrap: balance; }
 .pp-bar__add { flex: none; min-height: 46px; padding: 0 22px; }
 .pp-bar__add svg { width: 18px; height: 18px; }
-.pp-bar__evin { padding-bottom: 8px; font-size: 0.72rem; line-height: 1.35; color: var(--ink-3); }
 body.pp-bar-on .v2x, body.pp-bar-on .demo-bar, body.pp-bar-on .revue-tag { bottom: calc(var(--pp-bar-h, 68px) + 12px); }
 body.pp-bar-on .toast { bottom: calc(var(--pp-bar-h, 68px) + 18px); }
+/* Message sanitaire sous le produit et le bouton, centré, sur deux lignes égales au plus */
+@media (max-width: 1099px) {
+  .pp-bar__in--evin { flex-wrap: wrap; row-gap: 0; padding-bottom: 8px; }
+  .pp-bar__in--evin .pp-bar__evin { flex: 1 0 100%; order: 3; margin-top: 9px; padding-top: 7px; border-top: 1px solid var(--line); font-size: 0.7rem; text-align: center; }
+}
 @media (max-width: 760px) {
   body.pp-bar-on.demo-on .toast { bottom: calc(var(--pp-bar-h, 68px) + 66px); }
 }
 @media (max-width: 560px) {
-  .pp-bar__in { gap: 12px; }
+  .pp-bar__in { gap: 12px; min-height: 62px; padding-block: 8px; }
+  .pp-bar__img { width: 34px; height: 46px; }
+  .pp-bar__name { font-size: 0.94rem; }
+  .pp-bar__meta { font-size: 0.82rem; }
   .pp-bar__long { display: none; }
-  .pp-bar__add { padding: 0 18px; }
+  .pp-bar__add { min-height: 44px; padding: 0 18px; }
+  .pp-bar__in--evin { padding-bottom: 6px; }
+  .pp-bar__in--evin .pp-bar__evin { margin-top: 6px; padding-top: 5px; font-size: 0.68rem; line-height: 1.3; }
   body.pp-bar-on .revue-tag { bottom: calc(var(--pp-bar-h, 68px) + 62px); }
 }
 
-/* Recettes et « vous aimerez aussi » */
-.pp-recipes { padding-bottom: clamp(48px, 6vw, 88px); }
-.pp-recipes__list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(14px, 2vw, 24px); }
-.rcard a { display: grid; gap: 10px; color: inherit; text-decoration: none; }
-.rcard__img { display: block; aspect-ratio: 4 / 3; overflow: hidden; border-radius: var(--r); background: var(--paper-2); }
+/* ---------- Recettes de la maison ----------
+   Une carte par photo. Trois ou quatre recettes : une rangée de cartes ; une ou deux : des cartes en
+   largeur avec les premiers ingrédients. Au téléphone : une rangée qui défile (une carte et demie à
+   l'écran), ou la carte en largeur s'il n'y en a qu'une. */
+.pp-recipes { padding-bottom: clamp(56px, 6.5vw, 100px); }
+.pp-recipes__list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(16px, 2vw, 28px); }
+.pp-recipes[data-n='4'] .pp-recipes__list { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.rcard { position: relative; display: grid; align-content: start; gap: 14px; min-width: 0; }
+.rcard__img { display: block; aspect-ratio: 5 / 4; overflow: hidden; border-radius: var(--r); background: var(--paper-2); }
 .rcard__img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s var(--ease); }
-.rcard a:hover .rcard__img img { transform: scale(1.04); }
-.rcard__title { font: 700 1.08rem/1.25 var(--font); letter-spacing: -0.01em; }
-.rcard__meta { font-size: 0.82rem; color: var(--ink-3); }
+.rcard:hover .rcard__img img { transform: scale(1.04); }
+.rcard__body { display: grid; justify-items: start; align-content: start; gap: 6px; min-width: 0; }
+.rcard__meta { font: 650 0.7rem/1.3 var(--font); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
 .rcard .badge { justify-self: start; }
-.related { padding-bottom: clamp(56px, 7vw, 110px); }
-.related .h-section { margin-bottom: 26px; }
+.rcard__title { font: 700 1.08rem/1.25 var(--font); letter-spacing: -0.005em; overflow-wrap: anywhere; }
+.rcard__title a { color: inherit; text-decoration: none; }
+/* toute la carte est le lien du titre */
+.rcard__title a::after { content: ''; position: absolute; inset: 0; z-index: 1; border-radius: var(--r); }
+.rcard:hover .rcard__title a { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
+.rcard__title a:focus-visible { outline: none; box-shadow: none; }
+.rcard__title a:focus-visible::after { outline: 2px solid var(--focus); outline-offset: 3px; box-shadow: 0 0 0 5px var(--focus-halo); }
+.rcard__ingr { display: grid; gap: 3px; margin-top: 6px; padding-left: 18px; list-style: disc; font-size: 0.9rem; line-height: 1.45; color: var(--ink-2); }
+.rcard__cta { display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; font-weight: 650; font-size: 0.94rem; }
+.rcard__cta svg { width: 17px; height: 17px; transition: transform 0.3s var(--ease); }
+.rcard:hover .rcard__cta svg { transform: translateX(4px); }
+@media screen and (min-width: 761px) {
+  .pp-recipes[data-n='1'] .pp-recipes__list { grid-template-columns: minmax(0, 780px); }
+  .pp-recipes[data-n='2'] .pp-recipes__list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pp-recipes:is([data-n='1'], [data-n='2']) .rcard { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr); align-items: center; gap: clamp(20px, 3vw, 40px); }
+  .pp-recipes:is([data-n='1'], [data-n='2']) .rcard__img { aspect-ratio: 4 / 5; }
+  .pp-recipes[data-n='1'] .rcard__title { font-size: clamp(1.25rem, 1.9vw, 1.6rem); line-height: 1.15; }
+}
+/* une seule recette au bureau : le titre de la section à gauche, la recette à droite (rangée pleine) */
+@media screen and (min-width: 1024px) {
+  .pp-recipes[data-n='1'] { display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); align-items: center; gap: clamp(28px, 4.6vw, 80px); }
+  .pp-recipes[data-n='1'] .section__head { flex-direction: column; align-items: flex-start; gap: 22px; margin-bottom: 0; }
+}
+
+/* ---------- Vous aimerez aussi : une rangée pleine de quatre produits (deux au téléphone) ----------
+   Deux classes : shop.css (.grid, colonnes automatiques) est une feuille partagée, chargée après
+   celle de la fiche. */
+.related { padding-bottom: clamp(64px, 7vw, 110px); }
+.related .related__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 900px) { .related .related__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 
 /* Messages (produit introuvable, réservé aux majeurs) */
 .product-msg { display: grid; justify-items: start; gap: 16px; max-width: 760px; padding-block: clamp(56px, 9vw, 120px); }
 .product-msg__icon svg { width: 34px; height: 34px; }
 .product-msg__actions { display: flex; flex-wrap: wrap; gap: 10px; }
 
+/* ---------- Tablette : une colonne, plateau moins haut que large ---------- */
 @media (max-width: 980px) {
-  .pp { grid-template-columns: 1fr; }
-  .pp__stage { position: relative; top: 0; max-height: 62svh; aspect-ratio: 1 / 1.05; }
-  .pp-recipes__list { grid-template-columns: 1fr 1fr; }
+  .pp { grid-template-columns: 1fr; gap: 28px; }
+  .pp__stage { position: relative; top: 0; aspect-ratio: auto; height: clamp(300px, 44svh, 500px); max-height: none; }
+  .pp__info { max-width: 720px; }
+  .pp-recipes[data-n='4'] .pp-recipes__list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-/* Téléphone : plateau carré, jamais plus de 56 % de l'écran ; le nom, le prix et l'achat remontent. */
+/* ---------- Téléphone : le nom, le prix et l'ajout au panier dans le premier écran ----------
+   Plateau à 38 % de l'écran (321 px pour 844), la bouteille entière ; puis les pastilles, le nom, la
+   ligne de type, le prix, les contenances, la quantité et le bouton sur une ligne. */
 @media (max-width: 760px) {
-  .crumbs { padding-top: 14px; padding-bottom: 12px; }
-  .pp { gap: 22px; }
-  .pp__stage { aspect-ratio: 1 / 1; max-height: 56svh; }
+  .crumbs { padding-top: 10px; padding-bottom: 10px; font-size: 0.8rem; }
+  .crumbs li + li::before { margin: 0 9px; }
+  .pp { gap: 20px; padding-bottom: 56px; }
+  .pp__stage { height: clamp(240px, 38svh, 340px); }
+  .pp__info { gap: 22px; padding-top: 0; }
+  .pp__head { gap: 9px; }
+  .pp__name { font-size: clamp(1.95rem, 8.4vw, 2.3rem); }
+  .pp__type { font-size: 0.98rem; }
+  .pp__buy { gap: 16px; padding-bottom: 22px; }
+  .pp__price strong { font-size: 1.95rem; }
+  .pp__volumes legend { margin-bottom: 8px; }
+  .pp__vols { grid-template-columns: repeat(auto-fill, minmax(98px, 1fr)); }
+  .vol__in { min-height: 60px; padding: 8px 12px; }
+  .pp__lead { font-size: 1.12rem; }
+  .pp__reassure { padding: 2px 16px; }
+  .pp__reassure li { padding: 12px 0; font-size: 0.88rem; }
+  .pp-recipes, .related { padding-bottom: 56px; }
+  :is(.pp-recipes, .related) .section__head { gap: 12px 24px; margin-bottom: 22px; }
+}
+/* petits téléphones (360 × 740, iPhone SE) : un peu moins de plateau, le bouton reste dans l'écran */
+@media (max-width: 760px) and (max-height: 760px) {
+  .pp__stage { height: clamp(224px, 36svh, 300px); }
+}
+/* Recettes au téléphone : une rangée qui défile, une carte et demie à l'écran, arrêt sur chaque carte
+   (écran seulement : à l'impression, les vignettes restent en grille) */
+@media screen and (max-width: 760px) {
+  .pp-recipes:not([data-n='1']) .pp-recipes__list { display: flex; gap: 12px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter); margin-inline: calc(-1 * var(--gutter)); padding: 2px var(--gutter) 6px; scrollbar-width: none; }
+  .pp-recipes__list::-webkit-scrollbar { display: none; }
+  .pp-recipes:not([data-n='1']) .rcard { flex: 0 0 min(64%, 280px); gap: 12px; scroll-snap-align: start; }
+  .pp-recipes:not([data-n='1']) .rcard__img { aspect-ratio: 4 / 5; }
+  .pp-recipes:not([data-n='1']) .rcard__title { font-size: 1rem; }
+  .pp-recipes:not([data-n='1']) :is(.rcard__ingr, .rcard__cta) { display: none; }
+  .pp-recipes[data-n='1'] .pp-recipes__list { grid-template-columns: minmax(0, 1fr); }
+  .pp-recipes[data-n='1'] .rcard { grid-template-columns: minmax(0, 0.82fr) minmax(0, 1fr); align-items: start; gap: 16px; }
+  .pp-recipes[data-n='1'] .rcard__img { aspect-ratio: 4 / 5; }
+  .pp-recipes[data-n='1'] .rcard__title { font-size: 1.04rem; }
+  .pp-recipes[data-n='1'] .rcard__ingr { margin-top: 2px; padding-left: 16px; font-size: 0.84rem; }
+  .pp-recipes[data-n='1'] .rcard__ingr li:nth-child(n + 4) { display: none; }
+  .pp-recipes[data-n='1'] .rcard__cta { margin-top: 4px; font-size: 0.9rem; }
 }
 @media (max-width: 560px) {
+  /* plateau d'un bord à l'autre ; la consigne en haut à gauche, sur deux lignes, à côté du goulot
+     (la bouteille, centrée, n'est jamais recouverte) ; face / dos en bas à droite */
   .pp__stage { margin-inline: calc(-1 * var(--gutter)); width: auto; border-radius: 0; }
-  .pp__facts > div { grid-template-columns: 1fr; gap: 2px; }
-  .pp-recipes__list { grid-template-columns: 1fr; }
+  .pp__stage > .anim-pause { top: 12px; right: 12px; }
+  .pp__hint { top: 12px; bottom: auto; left: 12px; gap: 7px; padding: 6px 12px 6px 10px; border-radius: 14px; font-size: 0.72rem; }
+  .pp__hint span { max-width: 7.4em; text-wrap: balance; }
+  .pp__sides { right: 12px; bottom: 12px; }
+  .pp__source { top: auto; bottom: 12px; left: 12px; right: auto; max-width: 36%; }
+  .pp__row { gap: 8px; }
+  .pp__row .qty--big button { width: 42px; }
+  .pp__row .qty--big input { width: 34px; }
+  .pp__add { padding-inline: 16px; gap: 8px; }
+  .pp__facts > div { grid-template-columns: minmax(92px, 34%) minmax(0, 1fr); gap: 12px; }
 }
 
 /* Démo : stock de la contenance choisie (prix et stocks modifiés dans le CRM de démonstration) */

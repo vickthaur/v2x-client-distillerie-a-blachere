@@ -1,7 +1,9 @@
 // Fiche produit /boutique/<slug> : la bouteille en 3D (tirée de la vraie photo, sur un plateau de
-// studio neutre) qu'on fait tourner, les contenances avec leur prix, l'ajout au panier, puis les
-// textes officiels de la fiche (description, ingrédients, valeurs nutritionnelles, conseils, « le
-// saviez-vous ? ») dans un tableau de détails, les conditions d'expédition et les recettes.
+// studio neutre) qu'on fait tourner ; le nom, une ligne de type (« Sirop de citron · 1 L »), le prix,
+// les contenances et l'ajout au panier (au téléphone, tout cela dans le premier écran) ; puis
+// l'accroche, les textes officiels de la fiche (description, ingrédients, valeurs nutritionnelles,
+// conseils, « le saviez-vous ? ») dans un tableau de détails, les conditions d'expédition, les
+// recettes (une carte par photo) et les suggestions.
 // Spiritueux : rien du produit n'est affiché (ni nom, ni visuel, ni prix) avant la vérification
 // de l'âge ; une personne mineure voit seulement un message et le lien vers les sirops. Sur les
 // fiches de sirops, les conseils qui mentionnent de l'alcool ne sont montrés qu'aux majeurs.
@@ -15,7 +17,7 @@ import { bySlug, products, visibleProducts, recettes, FAMILLES, EVIN, MINEURS, e
 import { devis, devisLocal } from '../lib/livraison.js';
 import { boutonPause, pauseVoulue } from '../lib/pause.js';
 import { infos } from '../data/site.js';
-import { $, $$, esc, calm, hasWebGL, idle, sobre, whenVisible } from '../lib/dom.js';
+import { $, $$, esc, fold, calm, hasWebGL, idle, sobre, whenVisible } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
 import { thumbHTML, upgradeThumbs } from '../lib/thumbs.js';
 import { photoOf } from '../lib/photos.js';
@@ -37,6 +39,24 @@ let demo = null;
 const etatDe = (c) => (demo && c ? etatDemo(demo, p.slug, c.id) : null);
 
 const famille = (x) => FAMILLES.find((f) => f.id === x.famille)?.nom;
+
+// ---------- Chaque information une fois ----------
+// Noms comparés sans casse ni accents, sans marque déposée ni guillemets, au pluriel simple près :
+// « PAC Citron® » est la gamme « PAC Citron ». La gamme est dans le fil d'Ariane (seulement si elle
+// n'est pas le produit lui-même) ; au-dessus du nom, les seules pastilles (meilleure vente,
+// opération, 18+) ; sous le nom, ce qu'est le produit (« Sirop de citron », « Sirop Couleur
+// Provence® », « Liqueur des gardians »), sauf s'il redit le nom.
+const mots = (s) =>
+  fold(s)
+    .replace(/[®™©«»"“”]/g, ' ')
+    .split(/[^a-z0-9%]+/)
+    .filter(Boolean)
+    .map((m) => (m.length > 3 ? m.replace(/s$/, '') : m));
+const memeNom = (a, b) => !!a && !!b && mots(a).join(' ') === mots(b).join(' ');
+const gammeUtile = (x) => !!x.gammeNom && !memeNom(x.gammeNom, x.nom);
+// Type sous le nom (« Sirop de citron ») ; rien quand il redit le nom.
+const typeUtile = (x) => (x.type && !memeNom(x.type, x.nom) ? x.type : null);
+const degreTexte = (x) => (x.alcool && x.degre ? `${String(x.degre).replace('.', ',')}\u202f%\u00a0vol.` : null);
 
 // ---------- Textes officiels ----------
 // Mots de l'alcool : une ligne (ou un élément de liste) qui en contient n'est montrée qu'aux majeurs.
@@ -148,9 +168,11 @@ function priceHTML() {
   const c = p.contenances[selected];
   const etat = etatDe(c);
   const stock = etat && etat !== 'disponible' ? `<span class="pp__stock pp__stock--${etat}">${esc(ETATS[etat])}${etat === 'stock-bas' ? ' · dernières bouteilles' : etat === 'rupture' ? ' · réassort à venir' : ''}</span>` : '';
-  // prix au litre à côté du prix, sauf en 1 L (UX-5)
+  // prix au litre à côté du prix, sauf en 1 L (UX-5) ; la contenance n'est rappelée que s'il y a
+  // un choix (une seule contenance : elle est déjà sous le nom, « Sirop de citron · 1 L »)
   const unite = prixAuLitreTexte(c);
-  if (c?.prix != null) return `<p class="pp__price"><strong>${euro(c.prix)}</strong><span>TTC · ${esc(c.volume)}</span>${unite ? `<span class="pp__unit">soit ${unite}</span>` : ''}${stock}</p>`;
+  const contenance = p.contenances.length > 1 ? ` · <span class="pp__nb">${esc(c.volume)}</span>` : '';
+  if (c?.prix != null) return `<p class="pp__price"><strong>${euro(c.prix)}</strong><span class="pp__ttc">TTC${contenance}</span>${unite ? `<span class="pp__unit">soit ${unite}</span>` : ''}${stock}</p>`;
   return `<p class="pp__price pp__price--none"><strong>Prix en boutique</strong><span>Ce prix n’est pas affiché en ligne : la distillerie vous le donne au magasin ou par téléphone (${infos.magasin.tel}).</span></p>`;
 }
 
@@ -170,6 +192,32 @@ function accroche() {
     .filter(Boolean)
     .filter((l) => !/^dilution/i.test(l));
   return lines.find((l) => l !== l.toUpperCase() && l.length > 20) || null;
+}
+
+// Accroche sous l'achat : la première phrase utile, sans redire en tête ce que dit déjà la ligne de
+// type (« Sirop de citron 100% naturel… » sous « Sirop de citron · 1 L » : « 100% naturel… »), et
+// seulement si elle apprend quelque chose (deux mots pleins qui ne sont ni dans le nom, ni dans le
+// type, ni dans la gamme). Sinon rien : la description complète est juste en dessous.
+const VIDES = new Set(mots('les des une aux par pour avec sans sur dans qui que notre nos votre vos est son ses cette plus tout tous très bien elle nous vous'));
+function leadUtile() {
+  let a = accroche();
+  if (!a) return null;
+  for (const deja of [typeUtile(p), p.nom]) {
+    if (deja && fold(a).startsWith(fold(deja))) a = a.slice(deja.length).replace(/^[\s,.;:!?–—-]+/, '');
+  }
+  // une accroche, pas un paragraphe : au-delà de 150 signes, la première phrase (« J.C BLACHERE »,
+  // « A.BLACHERE » ne coupent pas : la phrase finit après une minuscule)
+  if (a.length > 150) {
+    const fin = /[a-zà-ÿ»")]\s?[.!?…](?=\s+["«A-ZÀ-Ý0-9])/g;
+    for (let m; (m = fin.exec(a)); ) {
+      if (m.index < 40) continue;
+      a = a.slice(0, m.index + m[0].length);
+      break;
+    }
+  }
+  const connus = new Set(mots(`${p.nom} ${p.type || ''} ${p.gammeNom}`));
+  const neufs = mots(a).filter((m) => m.length > 2 && !VIDES.has(m) && !connus.has(m));
+  return neufs.length >= 2 ? a.charAt(0).toUpperCase() + a.slice(1) : null;
 }
 
 function detailsHTML() {
@@ -209,6 +257,34 @@ function livraisonHTML() {
   <p><a class="link" href="/conditions-de-vente">Conditions générales de vente</a></p>`;
 }
 
+// Recettes du produit : une carte par photo. Une recette et sa version sans alcool partagent la
+// même photo (« Blue mojito » et « Blue mojito sans alcool ») : une seule carte, la version sans
+// alcool de préférence ; les recettes avec alcool, seulement pour les personnes majeures.
+function recettesDuProduit(majeur) {
+  const parPhoto = new Map();
+  for (const r of recettes.filter((x) => x.produits?.includes(p.slug) && (!x.alcool || majeur))) {
+    const photo = (r.image || r.id).replace(/-sans-alcool(?=\.\w+$|$)/, '');
+    const deja = parPhoto.get(photo);
+    if (!deja || (deja.alcool && !r.alcool)) parPhoto.set(photo, r);
+  }
+  return [...parPhoto.values()];
+}
+
+// Carte de recette : le titre est le lien (toute la carte est cliquable) ; une ou deux recettes :
+// carte en largeur avec les premiers ingrédients (sans mot d'alcool pour qui n'est pas majeur).
+function recetteHTML(r, riche) {
+  const ingr = riche && r.ingredients?.length ? r.ingredients.filter((x) => site.majeur || !ALCOOL.test(x)).slice(0, 4) : [];
+  return `<li class="rcard">
+    ${r.image ? `<span class="rcard__img"><img src="${r.image}" alt="" width="619" height="1100" loading="lazy" decoding="async" /></span>` : ''}
+    <div class="rcard__body">
+      ${r.alcool ? '<span class="badge badge--age">18+</span>' : '<span class="rcard__meta">Sans alcool</span>'}
+      <h3 class="rcard__title"><a href="/recettes#${r.id}">${esc(r.titre)}</a></h3>
+      ${ingr.length ? `<ul class="rcard__ingr">${ingr.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+      ${riche ? `<span class="rcard__cta" aria-hidden="true">Voir la recette${icons.arrow}</span>` : ''}
+    </div>
+  </li>`;
+}
+
 function render() {
   document.title = `${p.nom} · Boutique · Distillerie A. Blachère`;
   // accroche courte (« La liqueur de Camargue ! ») : complétée par le type et la maison
@@ -217,16 +293,24 @@ function render() {
   balises({ titre: document.title, description: a ? (a.length < 80 ? `${a} ${signature}` : a) : signature });
   const majeur = site.majeur;
   const notes = p.notes.filter((n) => (!n.alcool || majeur) && !/^Sa fiche/.test(n.t));
-  const recs = recettes.filter((r) => r.produits?.includes(p.slug) && (!r.alcool || majeur));
-  const lead = accroche();
+  const recs = recettesDuProduit(majeur).slice(0, 4);
+  const lead = leadUtile();
   const ailleurs = formatsAilleursTexte(p);
   const facts = [
     ['Gamme', p.gammeNom],
     ['Arôme', famille(p)],
     ['Contenance', p.contenances.map((c) => c.volume).join(' · ') || null, 'Sur demande à la boutique', 'À confirmer'],
-    p.alcool ? ['Degré d’alcool', p.degre ? `${String(p.degre).replace('.', ',')}\u202f% vol.` : null, 'Sur demande à la boutique', 'À confirmer avec la distillerie'] : ['Alcool', 'Sans alcool'],
+    p.alcool ? ['Degré d’alcool', degreTexte(p), 'Sur demande à la boutique', 'À confirmer avec la distillerie'] : ['Alcool', 'Sans alcool'],
     p.reference ? ['Référence', p.reference] : null,
   ].filter((f) => f && (f[1] || f[2]));
+  // Sous le nom, une ligne : ce qu'est le produit, sa contenance s'il n'y en a qu'une, son degré
+  // (« Sirop de citron · 1 L », « Liqueur des gardians · 43 % vol. »).
+  const typeLigne = [typeUtile(p) && esc(typeUtile(p)), p.contenances.length === 1 && `<span class="pp__nb">${esc(p.contenances[0].volume)}</span>`, degreTexte(p) && `<span class="pp__nb">${esc(degreTexte(p))}</span>`].filter(Boolean);
+  const badges = [
+    p.bestSeller ? '<span class="badge badge--best">Meilleure vente</span>' : '',
+    concerne(operation, p.slug) ? `<span class="badge badge--rose">${esc(operation.nom)}</span>` : '',
+    p.alcool ? '<span class="badge badge--age">18+</span>' : '',
+  ].join('');
   const volumes =
     p.contenances.length > 1
       ? `<fieldset class="pp__volumes"><legend>Contenance</legend><div class="pp__vols">${p.contenances
@@ -236,11 +320,15 @@ function render() {
           )
           .join('')}</div></fieldset>`
       : p.contenances.length
-        ? `<p class="pp__one">${esc(p.contenances[0].volume)}</p>`
+        ? ''
         : '<p class="pp__muted">Contenance à confirmer avec la distillerie.</p>';
   root.innerHTML = `
   <nav class="crumbs wrap" aria-label="Fil d’Ariane">
-    <a href="/boutique">Boutique</a><span aria-hidden="true">/</span><a href="/boutique?gamme=${p.gamme}">${esc(p.gammeNom)}</a><span aria-hidden="true">/</span><span aria-current="page">${esc(p.nom)}</span>
+    <ol>
+      <li><a href="/boutique">Boutique</a></li>
+      ${gammeUtile(p) ? `<li><a href="/boutique?gamme=${p.gamme}">${esc(p.gammeNom)}</a></li>` : ''}
+      <li><span aria-current="page">${esc(p.nom)}</span></li>
+    </ol>
   </nav>
   <article class="pp wrap" data-alcool="${p.alcool ? '1' : '0'}">
     <div class="pp__stage" id="stage">
@@ -255,28 +343,30 @@ function render() {
       <p class="pp__source" id="source" data-revue hidden></p>
     </div>
     <div class="pp__info">
-      <p class="pp__gamme"><span>${esc(p.gammeNom)}</span>${p.bestSeller ? ' <span class="badge badge--best">Meilleure vente</span>' : ''}${concerne(operation, p.slug) ? ` <span class="badge badge--rose">${esc(operation.nom)}</span>` : ''}${p.alcool ? ' <span class="badge badge--age">18+</span>' : ''}</p>
-      <h1 class="pp__name">${esc(p.nom).replace(/®/g, '<sup>®</sup>')}</h1>
-      <p class="pp__type">${esc(p.type)}${p.alcool && p.degre ? ` · ${String(p.degre).replace('.', ',')}\u202f% vol.` : ''}</p>
-      ${lead ? `<p class="pp__lead">${esc(lead)}</p>` : ''}
+      <div class="pp__head">
+        ${badges ? `<p class="pp__badges">${badges}</p>` : ''}
+        <h1 class="pp__name">${esc(p.nom).replace(/®/g, '<sup>®</sup>')}</h1>
+        ${typeLigne.length ? `<p class="pp__type">${typeLigne.join('\u00a0<span class="pp__dot" aria-hidden="true">·</span> ')}</p>` : ''}
+      </div>
       ${p.enLigne ? '' : boutiqueHTML()}
       <form class="pp__buy" id="buy" novalidate${p.enLigne ? '' : ' hidden'}>
-        ${volumes}
         <div id="price">${priceHTML()}</div>
+        ${volumes}
         <div class="pp__row">
           <span class="qty qty--big" role="group" aria-label="Quantité">
             <button type="button" data-step="-1" aria-label="Une bouteille de moins">${icons.minus}</button>
             <input type="number" id="qty" name="qty" min="1" max="99" value="${qty}" inputmode="numeric" aria-label="Quantité" />
             <button type="button" data-step="1" aria-label="Une bouteille de plus">${icons.plus}</button>
           </span>
-          <button type="submit" class="btn btn--primary pp__add">${icons.bag}Ajouter au panier</button>
+          <button type="submit" class="btn btn--primary pp__add">${icons.bag}<span>Ajouter au panier</span></button>
         </div>
         <p class="pp__ship" id="pp-ship">${icons.truck}<span id="pp-ship-txt"></span></p>
       </form>
+      ${lead ? `<p class="pp__lead">${esc(lead)}</p>` : ''}
       ${concerne(operation, p.slug) ? encartFicheHTML(operation) : ''}
       ${ailleurs ? `<p class="pp__ailleurs">${esc(ailleurs)} — voir <a href="/ou-trouver">Où trouver nos produits</a></p>` : ''}
       <ul class="pp__reassure">
-        <li>${icons.truck}<span><strong>Expédiée sous 3 jours ouvrés</strong> au plus après le règlement</span></li>
+        <li>${icons.clock}<span><strong>Expédiée sous 3 jours ouvrés</strong> au plus après le règlement</span></li>
         <li>${icons.card}<span><strong>Carte bancaire, PayPal ou virement</strong></span></li>
         <li>${icons.store}<span><strong>La boutique de la distillerie</strong> à Châteauneuf-du-Pape, du lundi au samedi</span></li>
       </ul>
@@ -288,18 +378,9 @@ function render() {
   </article>
   ${
     recs.length
-      ? `<section class="pp-recipes wrap" aria-labelledby="pp-rec-title">
+      ? `<section class="pp-recipes wrap" aria-labelledby="pp-rec-title" data-n="${recs.length}">
       <div class="section__head"><div><p class="kicker">Recettes de la maison</p><h2 class="h-section" id="pp-rec-title">Avec ${esc(p.nom)}</h2></div><a class="arrow-link" href="/recettes">Toutes les recettes ${icons.arrow}</a></div>
-      <ul class="pp-recipes__list">${recs
-        .slice(0, 3)
-        .map(
-          (r) => `<li class="rcard"><a href="/recettes#${r.id}">
-            ${r.image ? `<span class="rcard__img"><img src="${r.image}" alt="" loading="lazy" decoding="async" /></span>` : ''}
-            <span class="rcard__title">${esc(r.titre)}</span>
-            ${r.alcool ? '<span class="badge badge--age">18+</span>' : '<span class="rcard__meta">Sans alcool</span>'}
-          </a></li>`,
-        )
-        .join('')}</ul>
+      <ul class="pp-recipes__list">${recs.map((r) => recetteHTML(r, recs.length <= 2)).join('')}</ul>
     </section>`
       : ''
   }`;
@@ -316,7 +397,7 @@ function syncStock() {
   const etat = etatDe(p.contenances[selected]);
   const off = indisponible(etat);
   btn.disabled = off;
-  btn.innerHTML = off ? `${icons.bag}${esc(etat === 'rupture' ? 'En rupture de stock' : 'Indisponible')}` : `${icons.bag}Ajouter au panier`;
+  btn.innerHTML = `${icons.bag}<span>${off ? esc(etat === 'rupture' ? 'En rupture de stock' : 'Indisponible') : 'Ajouter au panier'}</span>`;
   syncBar();
 }
 
@@ -363,12 +444,15 @@ bar.inert = true;
 $('#contenu')?.append(bar);
 let barWanted = false;
 
+// Spiritueux : le message sanitaire reste dans la barre (README, « Âge légal et loi Évin », règle 4),
+// sur une ligne au bureau, en petit sous le produit et le bouton au téléphone.
 function barHTML() {
-  return `<div class="pp-bar__in wrap">
+  return `<div class="pp-bar__in wrap${p.alcool ? ' pp-bar__in--evin' : ''}">
     <span class="pp-bar__img" aria-hidden="true">${thumbHTML(p)}</span>
     <p class="pp-bar__txt"><span class="pp-bar__name" data-wordmark>${esc(p.nom).replace(/®/g, '<sup>®</sup>')}</span><span class="pp-bar__meta" id="pp-bar-meta"></span></p>
+    ${p.alcool ? `<p class="pp-bar__evin">${esc(EVIN)}</p>` : ''}
     <button type="button" class="btn btn--primary pp-bar__add" id="pp-bar-add">${icons.bag}<span class="pp-bar__label"></span></button>
-  </div>${p.alcool ? `<p class="pp-bar__evin wrap">${esc(EVIN)}</p>` : ''}`;
+  </div>`;
 }
 
 // Contenu de la barre : contenance, prix, quantité et état du bouton suivent le formulaire.
@@ -548,6 +632,9 @@ function renderRelated() {
     .slice(0, 4)
     .map(([x]) => x);
   $('#related-grid').innerHTML = picks.map((x) => cardHTML(x)).join('');
+  // « Tous les sirops », « Tous les spiritueux » : la rubrique de la boutique d'où viennent les suggestions
+  $('#related-all').href = `/boutique?univers=${p.univers}`;
+  $('#related-all > span').textContent = p.univers === 'spiritueux' ? 'Tous les spiritueux' : 'Tous les sirops';
   $('#related').hidden = !picks.length;
   upgradeThumbs($('#related-grid'));
 }
