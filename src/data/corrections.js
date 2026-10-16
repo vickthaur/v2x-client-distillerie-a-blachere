@@ -330,7 +330,7 @@ export const LEGAL = [
   ['1695 ROUTE DE SORGUES', '1695 route de Sorgues'],
   ['Distillerie A. Blachère 1695 route de Sorgues 84230 Châteauneuf-du-Pape', 'Distillerie A. Blachère, 1695 route de Sorgues, 84230 Châteauneuf-du-Pape'],
   ['04.90.83.53.81 BOUTIQUE 04.90.83.55.65', '04\u00a090\u00a083\u00a053\u00a081, boutique 04\u00a090\u00a083\u00a055\u00a065'],
-  ['Mme VANNELLE Sandrine Par courrier :', 'Mme Sandrine Vannelle. Par courrier :'],
+  ['Mme VANNELLE Sandrine Par courrier :', 'Mme Vannelle Sandrine. Par courrier :'],
   ['21 Juin 2014', '21 juin 2014'],
   ['l’Economie Numérique', 'l’économie numérique'],
   ['06 Août 2004', '6 août 2004'],
