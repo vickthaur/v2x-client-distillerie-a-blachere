@@ -403,6 +403,9 @@ export class Stage {
     const spread = this.spreadX();
     const v = new THREE.Vector3();
     const tanV = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2));
+    // Écran en hauteur (téléphone) : le texte et les boutons sont au-dessus du cadre des bouteilles ;
+    // les éléments flottants ne montent pas plus haut que ce cadre (jamais sur les boutons).
+    const haut = W / H < 0.9 ? Math.max(0, this.targetRect().y) : 0;
     for (const p of this.garnish.userData.pieces) {
       p.shift = p.shift || new THREE.Vector2();
       p.shift.set(0, 0);
@@ -418,7 +421,7 @@ export class Stage {
       let dy = 0;
       if (px < m) dx = m - px;
       else if (px > W - m) dx = W - m - px;
-      if (py < m) dy = m - py;
+      if (py < haut + m) dy = haut + m - py;
       else if (py > H - m) dy = H - m - py;
       p.shift.set(dx * worldPerPx, -dy * worldPerPx);
     }

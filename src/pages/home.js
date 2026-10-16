@@ -18,6 +18,7 @@ import { icons } from '../lib/icons.js';
 import { noteRevue, selonRevue } from '../lib/revue.js';
 import { renderHTML, upgradeThumbs } from '../lib/thumbs.js';
 import { monterBandeau, pastilleHTML } from '../lib/operation.js';
+import { BAREME } from '../lib/livraison.js';
 
 const site = initSite();
 const heroProducts = [bySlug['pac-citron'], bySlug['fun-blue']];
@@ -63,7 +64,7 @@ function brands() {
     ? `<li class="brand brand--spirits" data-reveal><a href="/spiritueux">
         <span class="brand__render">${renderHTML(['pastis-marra', 'marc-chateauneuf-du-pape-reserve-des-legats'], { bg: '#2b2723', fmt: 'carte' })}</span>
         <span class="brand__txt"><span class="kicker kicker--light">18+</span><span class="brand__name">Spiritueux</span><span class="brand__text">Pastis, liqueurs, crèmes, eaux-de-vie et vieux marcs de la maison.</span><span class="brand__cta">Découvrir ${icons.arrow}</span></span>
-      </a><p class="brand__evin">${esc(EVIN)}</p></li>`
+      </a></li>`
     : `<li class="brand brand--spirits brand--locked" data-reveal><div class="brand__lock">
         <span class="brand__lock-icon">${icons.lock}</span>
         <span class="kicker kicker--light">18+</span>
@@ -80,9 +81,29 @@ function brands() {
       </a></li>`,
       )
       .join('') + spirits;
+  // message sanitaire une fois, sous le carrousel (et non sous la seule carte des spiritueux, où il
+  // allongeait toute la rangée au téléphone)
+  const evin = $('#brands-evin');
+  if (evin) {
+    evin.textContent = EVIN;
+    evin.hidden = !majeur;
+  }
   $('[data-verify]', $('#brands'))?.addEventListener('click', () => site.requireAge());
   upgradeThumbs($('#brands'));
   reveal($('#brands'));
+}
+
+// ---------- 3 bis. Commander à la distillerie ----------
+function assurance() {
+  const box = $('#assure');
+  if (!box) return;
+  const items = [
+    [icons.truck, `Livraison offerte dès ${euro(BAREME.francoTTC).replace(',00', '')}`, 'Colissimo, à domicile ou en point relais'],
+    [icons.store, 'Retrait gratuit à la distillerie', 'À Châteauneuf-du-Pape, du lundi au samedi'],
+    [icons.card, 'Carte bancaire, PayPal ou virement', 'Paiement en ligne sécurisé'],
+    [icons.sun, 'Fabriqué à Châteauneuf-du-Pape', 'Distillerie familiale depuis 1835'],
+  ];
+  box.innerHTML = items.map(([svg, t, s]) => `<li>${svg}<p><strong>${esc(t)}</strong><span>${esc(s)}</span></p></li>`).join('');
 }
 
 // ---------- 3. La boutique ----------
@@ -148,12 +169,15 @@ function visit() {
 }
 
 // ---------- 8. Presse : la rubrique « On parle de nous » du site officiel ----------
+// Pictogrammes du type (lecture d'une vidéo, journal) devant la rubrique de chaque carte.
+const PICTO_VIDEO = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="1.6" /><path d="M10 8.6v6.8l5.6-3.4z" fill="currentColor" /></svg>';
+const PICTO_PRESSE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 5.5h12.5v13H6a2 2 0 0 1-2-2z" /><path d="M16.5 9H20v7.5a2 2 0 0 1-2 2h-1.5" /><path d="M7 9h6.5M7 12h6.5M7 15h4" stroke-linecap="round" /></svg>';
 function news() {
   const items = textes.presse.slice(0, 3);
   $('#newsgrid').innerHTML = items
     .map(
-      (a) => `<li class="newscard" data-reveal>
-        <p class="newscard__meta"><span>${a.type === 'video' ? 'Vidéo' : 'Presse'}</span><span>${esc(a.date)}</span></p>
+      (a) => `<li class="newscard newscard--${a.type === 'video' ? 'video' : 'presse'}" data-reveal>
+        <p class="newscard__meta"><span>${a.type === 'video' ? PICTO_VIDEO : PICTO_PRESSE}${a.type === 'video' ? 'Vidéo' : 'Presse'}</span><span>${esc(a.date)}</span></p>
         <h3 class="newscard__title">${esc(a.titre)}</h3>
         <a class="newscard__src" href="${a.url}" target="_blank" rel="noopener">${a.type === 'video' ? 'Voir la vidéo' : 'Lire l’article'}${noteRevue(' sur le site de la distillerie')}<span class="sr-only"> (nouvel onglet)</span></a>
       </li>`,
@@ -170,6 +194,7 @@ heroTags();
 mountHero();
 brands();
 shelf();
+assurance();
 savoir();
 pieces();
 visit();

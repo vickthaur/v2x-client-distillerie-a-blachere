@@ -10,7 +10,20 @@
 }
 .v2x p { margin: 0; }
 .v2x-pastille { display: inline-flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 16px 0 6px; border: 1px solid rgb(242 236 226 / .16); border-radius: 99px; background: rgb(17 15 14 / .86); color: var(--ivoire); font-size: 13px; font-weight: 500; cursor: pointer; box-shadow: 0 10px 30px -12px rgb(0 0 0 / .6); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
-.v2x-marque { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--ivoire); color: var(--nuit); font-size: 9.5px; font-weight: 700; }
+.v2x-marque { display: grid; place-items: center; flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--ivoire); color: var(--nuit); font-size: 9.5px; font-weight: 700; }
+/* Repli (proposition.js) : la mention reste dans le nom accessible du bouton, seul le texte visible se
+   referme ; un rond de 40 px qui ne couvre plus le contenu. */
+.v2x-pastille { transition: gap .45s cubic-bezier(.22, 1, .36, 1), padding .45s cubic-bezier(.22, 1, .36, 1); }
+.v2x-pastille-txt { display: inline-block; max-width: 240px; overflow: hidden; white-space: nowrap; transition: max-width .45s cubic-bezier(.22, 1, .36, 1), opacity .3s ease; }
+.v2x--compacte .v2x-pastille { gap: 0; padding: 0 5px; }
+.v2x--compacte .v2x-pastille-txt { max-width: 0; opacity: 0; }
+.v2x--compacte .v2x-pastille:focus-visible, .v2x--compacte .v2x-pastille[aria-expanded="true"] { gap: 10px; padding: 0 16px 0 6px; }
+.v2x--compacte .v2x-pastille:focus-visible .v2x-pastille-txt, .v2x--compacte .v2x-pastille[aria-expanded="true"] .v2x-pastille-txt { max-width: 240px; opacity: 1; }
+@media (hover: hover) {
+  .v2x--compacte .v2x-pastille:hover { gap: 10px; padding: 0 16px 0 6px; }
+  .v2x--compacte .v2x-pastille:hover .v2x-pastille-txt { max-width: 240px; opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .v2x-pastille, .v2x-pastille-txt { transition: none; } }
 .v2x-panneau { position: absolute; left: 0; bottom: 52px; width: min(380px, calc(100vw - 28px)); max-height: calc(100svh - 90px); overflow-y: auto; background: #fff; color: var(--encre); padding: 22px; border-radius: 18px; box-shadow: 0 30px 70px -20px rgb(0 0 0 / .55); color-scheme: light; }
 .v2x-k { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: #7a7068; margin-bottom: 8px; }
 .v2x-t { font-size: 14.5px; line-height: 1.55; color: var(--encre-2); }

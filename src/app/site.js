@@ -658,6 +658,23 @@ function bindPrint() {
   );
 }
 
+// Pied de page : les groupes de liens (<details>, ouverts dans le HTML) restent ouverts au bureau, où
+// leur titre n'est pas un interrupteur ; au téléphone ils se replient en une ligne chacun.
+function bindFooter() {
+  const groupes = $$('[data-ft-col]');
+  if (!groupes.length) return;
+  const tel = matchMedia('(max-width: 760px)');
+  const regler = () =>
+    groupes.forEach((d) => {
+      d.open = !tel.matches;
+      const titre = $('summary', d);
+      if (titre) titre.tabIndex = tel.matches ? 0 : -1;
+    });
+  regler();
+  tel.addEventListener('change', regler);
+  groupes.forEach((d) => $('summary', d)?.addEventListener('click', (e) => !tel.matches && e.preventDefault()));
+}
+
 export function initSite({ askAge = true } = {}) {
   document.documentElement.dataset.age = age || 'inconnu';
   // PAC et Fun Blue : logotypes dans les titres, police et couleur de marque dans le texte
@@ -670,6 +687,7 @@ export function initSite({ askAge = true } = {}) {
   bindCart();
   bindNewsletter();
   bindPrint();
+  bindFooter();
   // Démo active dans ce navigateur : pastille d'accès au CRM et à l'espace pro (en bas à droite).
   mountDemoBar({ toast });
   $$('[data-year]').forEach((el) => (el.textContent = new Date().getFullYear()));
