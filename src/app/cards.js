@@ -53,9 +53,9 @@ export function surtitreCourt(p, { variante = 'gamme' } = {}) {
 function metaHTML(p) {
   const vols = p.contenances.map((k) => k.volume).filter(Boolean);
   if (!vols.length) return noteRevue(p.enLigne ? 'Contenance à confirmer' : 'Contenance et degré à confirmer');
-  const degre = p.alcool && p.degre ? ` · ${p.degre} % vol.` : '';
+  const degre = p.alcool && p.degre ? ` · ${p.degre}\u202f% vol.` : '';
   if (vols.length === 1) return esc(`${vols[0]}${degre}`);
-  return `${vols.length} formats<span class="sr-only"> (${esc(vols.join(', '))})</span>${esc(degre)}`;
+  return `${vols.length}\u00a0formats<span class="sr-only"> (${esc(vols.join(', '))})</span>${esc(degre)}`;
 }
 
 // ---------- Prix ----------
