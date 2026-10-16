@@ -55,16 +55,16 @@ Octobre Rose utilise la largeur 74 % (graisse 820).
 | `/` | Campagne 3D (PAC Citron et Fun Blue, étiquettes réelles), nos marques, carrousel avec prix, la maison en chiffres, savoir-faire, archives, visite, presse, où acheter et espace pro |
 | `/pac-citron`, `/fun-blue` | Campagne 3D sur l'aplat de la marque, carte de prix, l'histoire racontée par la fiche officielle et la page Histoire, le rituel, la composition, les recettes, les étiquettes d'archives, la presse (PAC), les formats |
 | `/couleur-provence` | Trois bouteilles en 3D sur le plateau crème, les 26 parfums rangés par contenance avec leurs prix, recettes, sirops d'hier |
-| `/recettes` | Les 26 recettes du site (textes exacts, photos) ; sans alcool par défaut, « Toutes · 18+ » après vérification de l'âge |
+| `/recettes` | Les 26 recettes du site (textes et photos ; titres en casse de phrase, coquilles corrigées) ; sans alcool par défaut, « Toutes · 18+ » après vérification de l'âge |
 | `/spiritueux` | Porte d'âge ; les quatre rayons officiels (apéritifs et pastis, liqueurs, crèmes et eaux-de-vie, vieux marcs) |
-| `/la-maison` | L'histoire officielle en quatre époques (texte exact), archives de chaque époque, savoir-faire, papiers de la rue Molière, chantier (`/la-distillerie` y redirige) |
+| `/la-maison` | L'histoire officielle en quatre époques (texte officiel, capitales et coquilles corrigées), archives de chaque époque, savoir-faire, papiers de la rue Molière, chantier (`/la-distillerie` y redirige) |
 | `/musee` | Les archives : 46 pièces en trois ailes (sirops, maison, spiritueux 18+), pièce en grand, pièces sans visuel |
 | `/visiter` | Formules, réservation en mode maquette, horaires officiels, accès, questions fréquentes |
 | `/boutique`, `/boutique/<slug>` | Boutique filtrée et fiches produits avec bouteille 3D et textes officiels |
 | `/panier` | Panier et commande en mode maquette (CGV officielles) |
 | `/actualites` | Nouvelles datées et sourcées ; « On parle de nous » du site officiel (20 articles et vidéos) |
 | `/ou-trouver`, `/espace-pro` | Points de vente (liste indicative) ; connexion et demande de compte (maquette) |
-| `/mentions-legales`, `/conditions-de-vente`, 404 | Textes officiels repris tels quels ; page « évaporée » (statut 404) |
+| `/mentions-legales`, `/conditions-de-vente`, 404 | Textes officiels repris tels quels (typographie seulement) ; page « évaporée » (statut 404) |
 
 ## Bouteilles « scan 3D »
 
@@ -199,6 +199,28 @@ Labo de réglage (développement seulement, non versionné) : `labo.html?scene=d
   `-800.webp`, non versionnées) pour le `srcset` des cadres.
 - `src/data/products.js` : présentation (noms d'affichage, familles d'arômes, couleurs de secours,
   notes sourcées) ; `src/data/site.js` : contacts, horaires, visites, actualités, points de vente.
+- **Corrections des textes repris** (`src/data/corrections.js`) : les JSON gardent les textes officiels
+  tels qu'ils ont été relevés, le site les corrige au chargement (`src/data/products.js` pour les
+  fiches et les recettes, `src/data/textes.js` pour l'histoire, la presse, les CGV et les mentions
+  légales, `src/app/pieces.js` pour les cartels). Un nouvel `npm run import-site` ne perd donc aucune
+  correction, et `test/corrections.test.js` signale une correction dont le texte d'origine a disparu
+  (texte changé sur le site officiel : mettre la table à jour). Tables écrites à la main, jamais de
+  mise en minuscules aveugle : capitales des sources en casse de phrase (titres des recettes et de la
+  presse, première ligne des descriptions, citation de la page Histoire, marques comme « Le
+  Camarguais® » ou « L’Origan du Comtat® »), coquilles évidentes (« À consommer », « du côté de »,
+  « Menthe « Aurélie » », « flamants roses », « L’Isle-sur-la-Sorgue », « J.-C. Blachère », renvois
+  « (lien vers le produit) » restés dans les textes officiels…), typographie (guillemets « »,
+  apostrophes ’, « 2 cl », « 1 c. à c. », « XVIIIe », « 100 % »). Le sens ne change jamais, aucune
+  phrase n'est réécrite ni raccourcie, les ® restent ; dans les CGV et les mentions légales, la
+  typographie seulement. Le serveur (catalogue de l'API, CRM, espace pro) garde les textes
+  officiels : `scripts/server-catalogue.mjs` lit `produitsOfficiels`, pas `products`.
+- **Typographie** (`src/lib/typo.js`, QUAL-10) : espace insécable (U+00A0) avant « : », dans les
+  guillemets, avant « € » (« 6,70 € » : la fine ne se voyait presque pas avec Archivo), entre un
+  nombre et son unité (« 70 cl », « 1,75 L ») et dans « 43 % vol. » ; fine insécable (U+202F) avant
+  « ; ! ? », avant « % » et entre les milliers (« 6 000 »). Les textes écrits pour la maquette les
+  portent directement (`\u00a0`, `\u202f`, `&nbsp;`, `&#8239;`). La recherche ramène ces
+  espaces à des espaces ordinaires (`fold()`, `src/lib/dom.js`) : « 70 cl » tapé au clavier trouve
+  « 70 cl ».
 - `scripts/import-catalogue.mjs` (catalogue de la recherche) est gardé pour l'historique.
 - Les images de presse ne sont jamais reprises : titre, date et lien seulement.
 
@@ -272,8 +294,13 @@ les données et la liste « À confirmer » ci-dessous. Restent visibles : la pa
 - **Chiffres de presse** affichés comme tels : 800 000 bouteilles de PAC par an (L'Écho du Mardi,
   décembre 2025) ou un million (Made in Marseille) ; 4,9/5 sur TripAdvisor (environ 354 avis, relevé
   d'octobre 2026).
-- **Textes repris tels quels**, coquilles comprises (« Mente « Aurélie » », « Ajoutez les des deux
-  sirops ») : à corriger sur le site officiel d'abord.
+- **Textes du site officiel** : capitales, coquilles et typographie corrigées à l'affichage
+  (`src/data/corrections.js`), à reporter sur le site officiel. Laissés tels quels, faute de
+  certitude : « V.L. Blachère » (« V.-L. » si le prénom est composé), la verveine fabriquée « dès
+  1876 » (fiche Auguste) ou « dès 1870 » (autres fiches), le jus d'ananas de la préparation
+  d'« El Miquel » (jus d'orange dans les ingrédients), le mélange du « tu » et du « vous » dans la
+  recette des madeleines ; dans les textes légaux (mots inchangés) : « Loi du 21 juin 2014 pour la
+  confiance dans l'économie numérique » (loi de 2004), « doivent être intactes », « Code Postale ».
 - **Directeur de la publication**, licence de vente à emporter, transporteur et frais réels, liste
   officielle des points de vente, dates du festival 2027.
 
@@ -409,10 +436,12 @@ Adresses propres : réécritures de Vite en développement (`vite.config.js`), `
 
 ## Code
 
-- `src/data/` : catalogue officiel importé, données du site (`site/`), présentation des produits.
+- `src/data/` : catalogue officiel importé, données du site (`site/`), présentation des produits,
+  corrections des textes repris (`corrections.js`, `textes.js`).
 - `src/partials/` : en-tête (barre utilitaire, méga-menus, recherche, menu), pied de page, fenêtres.
 - `src/app/` : site commun (âge, en-tête, panier latéral), cartes, pièces d'archives, blocs de marque.
 - `src/pages/` : un module par page (dont `contact.js`). `src/lib/` : panier, filtres, marques, alcool,
+  typographie (`typo.js`),
   vignettes, photos, campagnes (affiche puis 3D), mode revue, client d'API (`api.js`), démo (`demo.js` : barre de démo, prix et stocks de la
   démo sur la boutique).
 - `src/pro/` : application de l'espace professionnel (`pro.html`, Preact) : routeur, données, commande

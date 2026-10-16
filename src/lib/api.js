@@ -15,12 +15,12 @@ export class ApiError extends Error {
 
 const PAR_DEFAUT = {
   400: 'Vérifiez les informations saisies.',
-  401: 'Votre session a expiré : reconnectez-vous.',
+  401: 'Votre session a expiré\u00a0: reconnectez-vous.',
   403: 'Votre profil ne permet pas cette action.',
   404: 'Élément introuvable.',
   409: 'L’opération n’a pas pu aboutir (données modifiées entre-temps).',
   423: 'Compte verrouillé quelques minutes après plusieurs essais.',
-  429: 'Trop de tentatives : réessayez dans un instant.',
+  429: 'Trop de tentatives\u00a0: réessayez dans un instant.',
 };
 
 // Adresse d'un appel (utile aussi pour les liens de téléchargement CSV).
@@ -49,7 +49,7 @@ export async function api(fonction, ressource, { method = 'GET', query, body, si
     });
   } catch (e) {
     if (e?.name === 'AbortError') throw e;
-    throw new ApiError('Connexion impossible : vérifiez votre réseau et réessayez.', 0);
+    throw new ApiError('Connexion impossible\u00a0: vérifiez votre réseau et réessayez.', 0);
   }
   if (res.status === 204) return null;
   const type = res.headers.get('content-type') || '';

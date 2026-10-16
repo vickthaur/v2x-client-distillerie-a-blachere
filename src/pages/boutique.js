@@ -71,7 +71,7 @@ const opt = (type, name, value, label, n, checked, extra = '') =>
 
 // Curseurs d'un intervalle : la valeur est annoncée en clair (« 4,40 € », « 40 % vol. »), pas
 // « 4.4 » (aria-valuetext, A11Y-9).
-const fmtRange = (name) => (name === 'prix' ? (n) => euro(Number(n)) : (n) => `${n}\u202f% vol.`);
+const fmtRange = (name) => (name === 'prix' ? (n) => euro(Number(n)) : (n) => `${n}\u202f%\u00a0vol.`);
 function rangeHTML(name, title, [min, max], value, fmt, step) {
   const [a, b] = value || [min, max];
   return `<fieldset class="fgroup fgroup--range" data-range="${name}" data-min="${min}" data-max="${max}">
@@ -234,7 +234,7 @@ function stocks(grid) {
       btn.disabled = true;
       btn.classList.add('is-off');
       btn.innerHTML = `<span>${esc(ETATS[etat])}</span>`;
-      btn.setAttribute('aria-label', `${p.nom} : ${ETATS[etat].toLowerCase()}`);
+      btn.setAttribute('aria-label', `${p.nom}\u00a0: ${ETATS[etat].toLowerCase()}`);
       card.classList.add('is-rupture');
     }
   });
@@ -244,13 +244,13 @@ function renderChips() {
   const chips = [];
   const gName = Object.fromEntries(GAMMES.map((g) => [g.id, g.nom]));
   const fam = Object.fromEntries((facetData?.familles || []).map((f) => [f.id, f.nom]));
-  if (state.q.trim()) chips.push(['q', '', `« ${state.q.trim()} »`]);
+  if (state.q.trim()) chips.push(['q', '', `«\u00a0${state.q.trim()}\u00a0»`]);
   if (state.univers !== 'tous') chips.push(['univers', '', state.univers === 'sirops' ? 'Sirops' : 'Spiritueux']);
   state.gammes.forEach((g) => chips.push(['gamme', g, gName[g]]));
   state.familles.forEach((f) => chips.push(['arome', f, fam[f] || f]));
   state.volumes.forEach((v) => chips.push(['contenance', v, volumeLabel(v)]));
   if (state.prix) chips.push(['prix', '', `${euro(state.prix[0])} – ${euro(state.prix[1])}`]);
-  if (state.degre) chips.push(['degre', '', `${state.degre[0]} – ${state.degre[1]}\u202f% vol.`]);
+  if (state.degre) chips.push(['degre', '', `${state.degre[0]} – ${state.degre[1]}\u202f%\u00a0vol.`]);
   if (state.best) chips.push(['meilleures', '', 'Meilleures ventes']);
   $('#shop-chips').innerHTML = chips.length
     ? chips.map(([k, v, label]) => `<button type="button" class="chip" data-chip="${k}" data-value="${esc(v)}" aria-label="Retirer le filtre ${esc(label)}">${esc(label)}${icons.close}</button>`).join('') +

@@ -4,7 +4,7 @@
 import { addToCart, reveal } from './site.js';
 import { pieceById, pieceHTML } from './pieces.js';
 import { bySlug, recettes, euro, minPrice, formatsAilleursTexte } from '../data/products.js';
-import textes from '../data/site/textes.json';
+import textes from '../data/textes.js';
 import { monterCampagne } from '../lib/campagne.js';
 import { $, esc } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
@@ -51,7 +51,7 @@ export function compositionHTML(p) {
     <div><dt>Ingrédients</dt><dd>${esc(p.ingredients || '—')}</dd></div>
     ${rows.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}
   </dl>
-  <p class="bnote">Valeurs pour 100 ml de sirop non dilué${noteRevue(', d’après la fiche du produit sur le site de la distillerie')}.</p>`;
+  <p class="bnote">Valeurs pour 100\u00a0ml de sirop non dilué${noteRevue(', d’après la fiche du produit sur le site de la distillerie')}.</p>`;
 }
 
 // Recettes officielles avec ce produit (les recettes avec alcool seulement pour les majeurs).

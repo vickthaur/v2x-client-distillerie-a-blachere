@@ -25,7 +25,7 @@ const steps = (items) =>
 
 function render() {
   const sans = recettes.filter((r) => !r.alcool).length;
-  $('#rec-lead').textContent = `Les ${recettes.length} recettes publiées par la distillerie : cocktails, boissons et desserts. Les ${sans} recettes sans alcool s’affichent d’abord ; celles qui contiennent de l’alcool sont réservées aux personnes majeures.`;
+  $('#rec-lead').textContent = `Les ${recettes.length} recettes publiées par la distillerie\u00a0: cocktails, boissons et desserts. Les ${sans} recettes sans alcool s’affichent d’abord\u202f; celles qui contiennent de l’alcool sont réservées aux personnes majeures.`;
   $('#rec-filtre').innerHTML = `<button type="button" class="cat${filtre === 'sans' ? ' is-on' : ''}" data-f="sans" aria-pressed="${filtre === 'sans'}">Sans alcool<span class="cat__n">${sans}</span></button>
     <button type="button" class="cat${filtre === 'toutes' ? ' is-on' : ''}" data-f="toutes" aria-pressed="${filtre === 'toutes'}">Toutes les recettes · 18+<span class="cat__n">${site.majeur ? recettes.length : ''}</span></button>`;
   const items = visibles();

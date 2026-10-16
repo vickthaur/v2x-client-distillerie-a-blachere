@@ -8,8 +8,13 @@
 // - alcool: true → visible seulement après la vérification de l'âge, toujours avec le message
 //   sanitaire (loi Évin). Les notes marquées alcool: true (une recette avec alcool, par exemple)
 //   ne s'affichent qu'aux personnes majeures, même sur la fiche d'un sirop.
+// - le site affiche les textes corrigés (src/data/corrections.js : capitales, coquilles,
+//   typographie) avec leurs espaces insécables (src/lib/typo.js) ; le serveur garde les textes
+//   officiels tels qu'ils ont été relevés (produitsOfficiels).
 import catalogue from './catalogue.json';
 import recettesSite from './site/recettes.json';
+import { corrigerFiche, corrigerRecette } from './corrections.js';
+import { typo } from '../lib/typo.js';
 
 export const EVIN = 'L’abus d’alcool est dangereux pour la santé, à consommer avec modération.';
 export const MINEURS = 'La vente d’alcool est interdite aux mineurs de moins de 18 ans.';
@@ -436,9 +441,10 @@ function palette(liquide) {
 }
 
 const THEME_GAMME = Object.fromEntries(GAMMES.map((g) => [g.id, g.theme]));
-// Prix à la française : virgule décimale, espace fine insécable avant « € » (le prix ne se coupe
-// jamais en fin de ligne, QUAL-10).
-export const euro = (n) => `${n.toFixed(2).replace('.', ',')}\u202f€`;
+// Prix à la française : virgule décimale, espace insécable avant « € » (le prix ne se coupe jamais
+// en fin de ligne, QUAL-10). Une espace insécable entière (U+00A0) : la fine (U+202F) ne se voyait
+// presque pas avec Archivo (« 6,70€ »).
+export const euro = (n) => `${n.toFixed(2).replace('.', ',')}\u00a0€`;
 
 // Prix au litre (directive 98/6/CE, arrêté du 16 novembre 1999) : il accompagne le prix d'un produit
 // vendu au volume, sauf s'il lui est identique (1 L). null pour 1 L, un coffret ou un volume inconnu.
@@ -473,7 +479,8 @@ function displayName(c) {
   return c.nomOfficiel;
 }
 
-export const products = catalogue.produits.map((c, index) => {
+// Produit tel que le décrit une fiche du catalogue (textes de la fiche tels quels).
+function versProduit(c, index) {
   const e = P[c.slug] || (ELIXIR.test(c.nomOfficiel) ? P['marc-elixir-millesime'] : {}) || {};
   const gamme = c.gamme;
   const g = GAMMES.find((x) => x.id === gamme);
@@ -532,7 +539,28 @@ export const products = catalogue.produits.map((c, index) => {
     label: e.etiquette || (alcool ? 'maison' : 'provence'),
     garnish: e.garnish || [],
   };
-});
+}
+
+// Textes à l'affichage : espaces insécables (src/lib/typo.js) dans les noms, types, contenances,
+// accroches et notes ; les textes de la fiche sont déjà corrigés par corrigerFiche().
+function pourAffichage(p) {
+  return {
+    ...p,
+    nom: typo(p.nom),
+    type: typo(p.type),
+    phrase: typo(p.phrase),
+    conseil: typo(p.conseil),
+    contenances: p.contenances.map((k) => ({ ...k, volume: typo(k.volume) })),
+    notes: p.notes.map((n) => ({ ...n, t: typo(n.t), ...(n.revue ? { revue: typo(n.revue) } : {}) })),
+  };
+}
+
+// Catalogue officiel, textes tels qu'ils ont été relevés : le catalogue du serveur en est tiré
+// (scripts/server-catalogue.mjs) ; ses courriels, exports et tests en dépendent.
+export const produitsOfficiels = catalogue.produits.map(versProduit);
+
+// Catalogue du site : textes corrigés (src/data/corrections.js), typographie française.
+export const products = catalogue.produits.map((c, index) => pourAffichage(versProduit(corrigerFiche(c), index)));
 
 export const bySlug = Object.fromEntries(products.map((p) => [p.slug, p]));
 
@@ -548,9 +576,11 @@ export function formatsAilleursTexte(p) {
   if (!p.formatsAilleurs?.length) return null;
   const groups = {};
   p.formatsAilleurs.forEach((f) => (groups[f.ou] ||= []).push(f.volume));
-  return Object.entries(groups)
-    .map(([ou, v]) => `${p.enLigne ? 'Aussi' : 'Vu'} en ${v.join(' et en ')} ${ou}`)
-    .join(' ; ');
+  return typo(
+    Object.entries(groups)
+      .map(([ou, v]) => `${p.enLigne ? 'Aussi' : 'Vu'} en ${v.join(' et en ')} ${ou}`)
+      .join(' ; '),
+  );
 }
 
 // Plus petit prix officiel connu (« à partir de »), ou null.
@@ -562,6 +592,7 @@ export const minPrice = (p) => {
 // Produits visibles selon la réponse à la vérification de l'âge.
 export const visibleProducts = (age) => products.filter((p) => !p.alcool || age === 'majeur');
 
-// Recettes et cocktails : les fiches officielles (textes exacts et photos, src/data/site/recettes.json).
+// Recettes et cocktails : les fiches officielles (textes et photos, src/data/site/recettes.json),
+// titres en casse de phrase et coquilles corrigées (src/data/corrections.js).
 // alcool: true → réservées aux personnes majeures.
-export const recettes = recettesSite.recettes;
+export const recettes = recettesSite.recettes.map(corrigerRecette);

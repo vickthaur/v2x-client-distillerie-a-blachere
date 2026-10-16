@@ -7,9 +7,10 @@ import { initSite } from '../app/site.js';
 import { cardHTML } from '../app/cards.js';
 import { mountBrandHero, recipesHTML, piecesHTML, bindAdd, bySlug, reveal } from '../app/brand.js';
 import { products } from '../data/products.js';
-import textes from '../data/site/textes.json';
+import textes from '../data/textes.js';
 import { $, esc, plural } from '../lib/dom.js';
 import { selonRevue } from '../lib/revue.js';
+import { typo } from '../lib/typo.js';
 import { upgradeThumbs } from '../lib/thumbs.js';
 
 const site = initSite();
@@ -17,8 +18,8 @@ const cp = products.filter((p) => p.gamme === 'couleur-provence');
 
 // La page Histoire : « je lance la gamme « Couleur Provence », déclinée en douze parfums… »
 const histoire = textes.histoire.periodes.flatMap((x) => x.paragraphes).find((x) => /Couleur Provence/.test(x));
-const phrase = histoire ? /je lance la gamme « Couleur Provence ».*?réglisse/.exec(histoire)?.[0] : null;
-$('#cp-lead').innerHTML = `${phrase ? `« Fidèle à mon âme provençale et guidée par l’innovation, ${esc(phrase.replace(/\s+$/, ''))} », raconte ${selonRevue('la maison', 'la page Histoire de la maison')}. ` : ''}Aujourd’hui, ${plural(cp.length, 'sirop')} dans la boutique.`;
+const phrase = histoire ? /je lance la gamme «\s*Couleur Provence\s*».*?réglisse/.exec(histoire)?.[0] : null;
+$('#cp-lead').innerHTML = `${phrase ? `«\u00a0Fidèle à mon âme provençale et guidée par l’innovation, ${esc(phrase.replace(/\s+$/, ''))}\u00a0», raconte ${selonRevue('la maison', 'la page Histoire de la maison')}. ` : ''}Aujourd’hui, ${plural(cp.length, 'sirop')} dans la boutique.`;
 
 // La gamme, par contenance (celle de la fiche officielle)
 const groups = new Map();
@@ -26,7 +27,7 @@ for (const p of cp) {
   const v = p.contenances[0]?.volume || 'Autres';
   groups.set(v, [...(groups.get(v) || []), p]);
 }
-const order = ['1 L', '70 cl', '50 cl'];
+const order = ['1 L', '70 cl', '50 cl'].map(typo);
 $('#cp-groups').innerHTML = [...groups.entries()]
   .sort((a, b) => (order.indexOf(a[0]) + 99) % 99 - ((order.indexOf(b[0]) + 99) % 99))
   .map(

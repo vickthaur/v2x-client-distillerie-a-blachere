@@ -25,7 +25,7 @@ export function cardHTML(p, { tag = 'li' } = {}) {
     <div class="card__body">
       <p class="card__gamme">${esc(surtitre(p))}</p>
       <h3 class="card__name"><a href="/boutique/${p.slug}">${esc(p.nom)}</a></h3>
-      <p class="card__meta">${volumes ? esc(p.alcool && p.degre ? `${volumes} · ${p.degre}\u202f% vol.` : volumes) : noteRevue(p.enLigne ? 'Contenance à confirmer' : 'Contenance et degré à confirmer')}</p>
+      <p class="card__meta">${volumes ? esc(p.alcool && p.degre ? `${volumes} · ${p.degre}\u202f%\u00a0vol.` : volumes) : noteRevue(p.enLigne ? 'Contenance à confirmer' : 'Contenance et degré à confirmer')}</p>
       ${
         p.enLigne
           ? `<div class="card__row">

@@ -140,4 +140,4 @@ export function activeCount(s) {
   return (s.q.trim() ? 1 : 0) + (s.univers !== 'tous' ? 1 : 0) + s.gammes.size + s.familles.size + s.volumes.size + (s.prix ? 1 : 0) + (s.degre ? 1 : 0) + (s.best ? 1 : 0);
 }
 
-export const volumeLabel = (id) => (id === 'coffrets' ? 'Coffret' : Number(id) >= 1000 ? `${String(Number(id) / 1000).replace('.', ',')} L` : `${Number(id) / 10} cl`);
+export const volumeLabel = (id) => (id === 'coffrets' ? 'Coffret' : Number(id) >= 1000 ? `${String(Number(id) / 1000).replace('.', ',')}\u00a0L` : `${Number(id) / 10}\u00a0cl`);

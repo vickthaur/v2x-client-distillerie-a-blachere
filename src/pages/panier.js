@@ -25,8 +25,9 @@ import { erreursParChamp } from '../lib/formulaire.js';
 const site = initSite();
 const NB = ' ';
 const NNB = ' ';
-// Montants : espace fine insécable avant l'euro (« 14,90 € »), comme partout sur le site.
-const euro = (n) => `${Number(n || 0).toFixed(2).replace('.', ',')}${NNB}€`;
+// Montants : espace insécable avant l'euro (« 14,90 € »), comme partout sur le site (la fine ne se
+// voyait presque pas avec Archivo).
+const euro = (n) => `${Number(n || 0).toFixed(2).replace('.', ',')}${NB}€`;
 const STEPS = [
   { id: 'panier', label: 'Panier', title: 'Votre panier' },
   { id: 'coordonnees', label: 'Coordonnées', title: 'Vos coordonnées' },
@@ -350,7 +351,7 @@ const VIEWS = {
       <div id="co-totals">${totalsFull(t)}</div>
       ${donHTML(t.lines)}
       ${t.unpriced ? `<p class="co-note">${plural(t.unpriced, 'article n’a', 'articles n’ont')} pas de prix affiché en ligne\u00a0: la distillerie vous confirme le montant avant de préparer la commande.</p>` : ''}
-      ${order.mode === 'livraison' ? '<p class="co-note">Livraison en France métropolitaine. Les frais de livraison suivent le barème de démonstration et sont offerts dès 120,00 € d’articles.</p>' : ''}
+      ${order.mode === 'livraison' ? '<p class="co-note">Livraison en France métropolitaine. Les frais de livraison suivent le barème de démonstration et sont offerts dès 120,00\u00a0€ d’articles.</p>' : ''}
       <p class="co-note">Droit de rétractation\u00a0: quatorze jours francs à compter de la réception, pour des articles intacts et non ouverts. Colis endommagé\u00a0: le refuser ou l’indiquer sur le récépissé\u202f; la distillerie réexpédie ou rembourse.</p>
       <div class="co-actions"><button type="button" class="btn btn--ghost" data-prev>Retour</button><button type="button" class="btn btn--primary" data-next>Passer au paiement</button></div>
     </div>`;

@@ -8,8 +8,8 @@ import '../styles/brand.css';
 import { initSite, reveal } from '../app/site.js';
 import { fillPlaces } from '../app/lieux.js';
 import { imgPiece, pieceById, pieceHTML } from '../app/pieces.js';
-import textes from '../data/site/textes.json';
-import { phrasesSansAlcool, hasAlcool } from '../lib/alcool.js';
+import textes from '../data/textes.js';
+import { phrasesSansAlcool, hasAlcool, resserrer } from '../lib/alcool.js';
 import { $, esc } from '../lib/dom.js';
 
 const site = initSite();
@@ -32,7 +32,7 @@ function render() {
         .map((x) => {
           if (majeur) return x;
           const t = phrasesSansAlcool(x);
-          if (t !== x.replace(/\s+/g, ' ').trim()) retirees++;
+          if (t !== resserrer(x)) retirees++;
           return t;
         })
         .filter(Boolean);
@@ -47,7 +47,7 @@ function render() {
     .join('');
   // Note neutre : elle ne nomme aucun alcool (une personne mineure la lit aussi)
   $('#histoire-note').textContent =
-    majeur || !retirees ? '' : site.age === 'mineur' ? 'Certains passages de l’histoire sont réservés aux personnes majeures.' : 'Certains passages de l’histoire sont réservés aux personnes majeures : ils s’affichent après la vérification de l’âge.';
+    majeur || !retirees ? '' : site.age === 'mineur' ? 'Certains passages de l’histoire sont réservés aux personnes majeures.' : 'Certains passages de l’histoire sont réservés aux personnes majeures\u00a0: ils s’affichent après la vérification de l’âge.';
 
   // Savoir-faire : la page Histoire (plantes et secrets de la maison), puis le parcours de la visite
   const all = h.periodes.flatMap((p) => p.paragraphes);

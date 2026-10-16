@@ -6,7 +6,7 @@ import '../styles/home.css';
 import '../styles/brand.css';
 import { initSite } from '../app/site.js';
 import { mountBrandHero, priceCardHTML, compositionHTML, recipesHTML, piecesHTML, ailleursHTML, bindAdd, bySlug, reveal } from '../app/brand.js';
-import textes from '../data/site/textes.json';
+import textes from '../data/textes.js';
 import { $, esc } from '../lib/dom.js';
 import { selonRevue } from '../lib/revue.js';
 
@@ -17,7 +17,7 @@ $('#bhero-price').innerHTML = priceCardHTML(p);
 
 // « Le saviez-vous ? » de la fiche, puis la page Histoire (« le digne petit frère du PAC Citron »).
 const histoire = textes.histoire.periodes.flatMap((x) => x.paragraphes).find((x) => /Fun Blue/.test(x));
-const frere = histoire ? /donnant naissance au « Fun Blue »[^.]*\./.exec(histoire)?.[0] : null;
+const frere = histoire ? /donnant naissance au «\s*Fun Blue\s*»[^.]*\./.exec(histoire)?.[0] : null;
 $('#fb-saviez').innerHTML = [
   ...(p.saviezVous || '')
     .split(/\n\s*\n/)
@@ -42,7 +42,7 @@ $('#fb-facts').innerHTML = compositionHTML(p);
 const recipes = () => ($('#fb-recipes').innerHTML = recipesHTML(['fun-blue'], site.majeur, 3) || '<p class="lead">Les recettes de la maison sont dans la rubrique Recettes.</p>');
 recipes();
 $('#fb-pieces').innerHTML = piecesHTML(['aurelie', 'menthe-glaciale', 'fun-blue-70cl', 'menthe-special-bar']);
-$('#fb-ailleurs').innerHTML = `<p class="lead">À la boutique de la distillerie, à Châteauneuf-du-Pape, et dans la boutique en ligne : ${esc(p.contenances.map((c) => c.volume).join(', '))}.</p>${ailleursHTML(p)}`;
+$('#fb-ailleurs').innerHTML = `<p class="lead">À la boutique de la distillerie, à Châteauneuf-du-Pape, et dans la boutique en ligne\u00a0: ${esc(p.contenances.map((c) => c.volume).join(', '))}.</p>${ailleursHTML(p)}`;
 
 mountBrandHero('funblue', [p]);
 bindAdd();

@@ -5,12 +5,11 @@ export const ALCOOL = /\b(bières?|pastis|tequila|vodka|rhums?|gin|whiskys?|vins
 
 export const hasAlcool = (t) => ALCOOL.test(t || '');
 
+// Espaces ordinaires regroupées ; les insécables de la typographie (src/lib/typo.js) restent.
+export const resserrer = (t) => (t || '').replace(/[^\S\u00a0\u202f]+/g, ' ').trim();
+
 // Phrases d'un texte sans celles qui parlent d'alcool.
 export function phrasesSansAlcool(text) {
   const parts = (text || '').match(/[^.!?…]+(?:[.!?…]+[»”]?|$)/g) || [];
-  return parts
-    .filter((x) => !ALCOOL.test(x))
-    .join('')
-    .replace(/\s+/g, ' ')
-    .trim();
+  return resserrer(parts.filter((x) => !ALCOOL.test(x)).join(''));
 }

@@ -173,7 +173,7 @@ function priceHTML() {
   const unite = prixAuLitreTexte(c);
   const contenance = p.contenances.length > 1 ? ` · <span class="pp__nb">${esc(c.volume)}</span>` : '';
   if (c?.prix != null) return `<p class="pp__price"><strong>${euro(c.prix)}</strong><span class="pp__ttc">TTC${contenance}</span>${unite ? `<span class="pp__unit">soit ${unite}</span>` : ''}${stock}</p>`;
-  return `<p class="pp__price pp__price--none"><strong>Prix en boutique</strong><span>Ce prix n’est pas affiché en ligne : la distillerie vous le donne au magasin ou par téléphone (${infos.magasin.tel}).</span></p>`;
+  return `<p class="pp__price pp__price--none"><strong>Prix en boutique</strong><span>Ce prix n’est pas affiché en ligne\u00a0: la distillerie vous le donne au magasin ou par téléphone (${infos.magasin.tel}).</span></p>`;
 }
 
 function boutiqueHTML() {
@@ -231,7 +231,7 @@ function detailsHTML() {
   }
   if (p.saviezVous) {
     const html = rich(p.saviezVous);
-    if (html) sections.push(['histoire', 'Le saviez-vous ?', html]);
+    if (html) sections.push(['histoire', 'Le saviez-vous\u202f?', html]);
   }
   sections.push(['livraison', 'Expédition et paiement', livraisonHTML()]);
   return sections
@@ -248,11 +248,11 @@ function detailsHTML() {
 // « Modalité de paiement », « Délais de rétractation », « Casse au cours de la livraison »).
 function livraisonHTML() {
   return `<ul class="pp__terms">
-    <li><strong>Expédition</strong> sous 3 jours ouvrés au plus après la réception du règlement, si les produits sont disponibles ; livraison dans les 30 jours au plus.</li>
+    <li><strong>Expédition</strong> sous 3\u00a0jours ouvrés au plus après la réception du règlement, si les produits sont disponibles\u202f; livraison dans les 30\u00a0jours au plus.</li>
     <li><strong>Frais de livraison</strong> indiqués avant la validation de la commande.</li>
-    <li><strong>Paiement</strong> à la commande : carte bancaire (CB, Visa, Mastercard), PayPal ou virement.</li>
-    <li><strong>Rétractation</strong> : quatorze jours francs à compter de la réception ; articles intacts et non ouverts.</li>
-    <li><strong>Casse</strong> : refuser le colis endommagé ou l’indiquer sur le récépissé ; la distillerie réexpédie ou rembourse.</li>
+    <li><strong>Paiement</strong> à la commande\u00a0: carte bancaire (CB, Visa, Mastercard), PayPal ou virement.</li>
+    <li><strong>Rétractation</strong>\u00a0: quatorze jours francs à compter de la réception\u202f; articles intacts et non ouverts.</li>
+    <li><strong>Casse</strong>\u00a0: refuser le colis endommagé ou l’indiquer sur le récépissé\u202f; la distillerie réexpédie ou rembourse.</li>
   </ul>
   <p><a class="link" href="/conditions-de-vente">Conditions générales de vente</a></p>`;
 }
@@ -333,7 +333,7 @@ function render() {
   <article class="pp wrap" data-alcool="${p.alcool ? '1' : '0'}">
     <div class="pp__stage" id="stage">
       <div class="pp__poster" id="poster">${thumbHTML(p, { eager: true })}</div>
-      <canvas class="pp__canvas" id="viewer" tabindex="0" aria-label="Bouteille ${esc(p.nom)} en 3D : faites-la tourner en la faisant glisser, ou avec les flèches gauche et droite"></canvas>
+      <canvas class="pp__canvas" id="viewer" tabindex="0" aria-label="Bouteille ${esc(p.nom)} en 3D\u00a0: faites-la tourner en la faisant glisser, ou avec les flèches gauche et droite"></canvas>
       <div class="pp__stage-ui">
         <p class="pp__hint">${icons.rotate}<span>Glissez pour faire tourner</span></p>
         <div class="pp__sides" role="group" aria-label="Voir la bouteille" hidden>

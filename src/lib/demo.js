@@ -97,7 +97,7 @@ export function mountDemoBar({ toast } = {}) {
       </div>
     </div>
     <div class="demo-bar__pill">
-      <button type="button" class="demo-bar__tag" aria-expanded="false" aria-controls="demo-bar-links" title="Démonstration : afficher ou masquer les liens">
+      <button type="button" class="demo-bar__tag" aria-expanded="false" aria-controls="demo-bar-links" title="Démonstration\u00a0: afficher ou masquer les liens">
         <span class="demo-bar__dot" aria-hidden="true"></span><span>Démo</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 15l6-6 6 6" /></svg>
       </button>

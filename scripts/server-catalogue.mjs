@@ -70,7 +70,9 @@ async function chargerProduits() {
   });
   const code = res.outputFiles[0].text;
   const mod = await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
-  return { products: mod.products, gammes: mod.GAMMES };
+  // Textes officiels tels qu'ils ont été relevés : les corrections d'affichage du site
+  // (src/data/corrections.js, src/lib/typo.js) ne changent rien au serveur.
+  return { products: mod.produitsOfficiels, gammes: mod.GAMMES };
 }
 
 export async function genererCatalogueServeur() {
