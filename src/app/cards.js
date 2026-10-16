@@ -10,7 +10,8 @@
 //
 // Message sanitaire (loi Évin) : il n'est plus répété sous chaque spiritueux. Il accompagne
 // l'ensemble qui en montre (une ligne sous la grille ou le carrousel : evinCartesHTML ; bande
-// collante dans le rayon Spiritueux de la boutique) ; les cartes d'alcool portent data-alcool.
+// collante dans le rayon Spiritueux de la boutique ; à défaut, le filet de sécurité plus bas) ; les
+// cartes d'alcool portent data-alcool.
 import { EVIN, FAMILLES, GAMMES, products, minPrice, euro, DISPO_BOUTIQUE, prixAuLitreHTML } from '../data/products.js';
 import { esc, plural } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
@@ -71,6 +72,7 @@ function priceHTML(p, price) {
 // (Appelée aussi par Array.map : le deuxième argument peut être un index, ignoré.)
 export function cardHTML(p, options = {}) {
   const { tag = 'li', surtitre = 'gamme' } = typeof options === 'object' && options ? options : {};
+  verifierEvin();
   const price = minPrice(p);
   const c = p.contenances[0];
   const op = operationAffichee();
@@ -102,6 +104,26 @@ export function cardHTML(p, options = {}) {
 // Une ligne sous la grille ou le carrousel, seulement s'il montre un alcool (README, « Âge légal et
 // loi Évin », règle 4) ; rien sinon.
 export const evinCartesHTML = (items, { cls = '' } = {}) => (items.some((p) => p?.alcool) ? `<p class="evin evin--cartes${cls ? ` ${cls}` : ''}">${esc(EVIN)}</p>` : '');
+
+// Filet de sécurité de la règle 4 : une page qui pose des cartes d'alcool sans le message de
+// l'ensemble (aujourd'hui « Vous aimerez aussi » sur la fiche d'un spiritueux, src/pages/produit.js)
+// le reçoit quand même. Juste après le rendu des cartes (microtâche), chaque section qui montre une
+// carte d'alcool sans message en reçoit une ligne sous sa grille ; la ligne ajoutée part si la
+// section n'en montre plus. Une page qui appelle evinCartesHTML n'est pas touchée.
+let aVerifier = false;
+function verifierEvin() {
+  if (aVerifier || typeof document === 'undefined' || typeof queueMicrotask !== 'function') return;
+  aVerifier = true;
+  queueMicrotask(() => {
+    aVerifier = false;
+    const zone = (el) => el.closest('section') || el.parentElement;
+    document.querySelectorAll('[data-evin-filet]').forEach((p) => zone(p)?.querySelector('.card[data-alcool]') || p.remove());
+    for (const grille of new Set([...document.querySelectorAll('.card[data-alcool]')].map((c) => c.parentElement))) {
+      const z = zone(grille);
+      if (z && !z.querySelector('.evin, .shop-evin')) grille.insertAdjacentHTML('afterend', `<p class="evin evin--cartes" data-evin-filet>${esc(EVIN)}</p>`);
+    }
+  });
+}
 
 const spiritsCount = products.filter((p) => p.alcool).length;
 

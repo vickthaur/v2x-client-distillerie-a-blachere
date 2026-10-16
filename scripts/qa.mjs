@@ -891,7 +891,7 @@ for (const vp of ['bureau', 'mobile']) {
 {
   const EVIN = 'L’abus d’alcool est dangereux pour la santé, à consommer avec modération.';
   const ctx = await context('mobile', 'majeur');
-  const attendu = { '/': true, '/boutique': true, '/boutique?univers=spiritueux': true, '/boutique?q=marc': true, '/spiritueux': true, '/couleur-provence': false };
+  const attendu = { '/': true, '/boutique': true, '/boutique?univers=spiritueux': true, '/boutique?q=marc': true, '/spiritueux': true, '/boutique/pastis-marra': true, '/couleur-provence': false, '/boutique/pac-citron': false };
   const vues = [];
   for (const path of Object.keys(attendu)) {
     const { page } = await open(ctx, path, { wait: 1500, label: `message sanitaire ${path}` });
