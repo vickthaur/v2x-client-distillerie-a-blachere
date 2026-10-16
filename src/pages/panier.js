@@ -25,8 +25,9 @@ import { erreursParChamp } from '../lib/formulaire.js';
 const site = initSite();
 const NB = ' ';
 const NNB = ' ';
-// Montants : espace fine insécable avant l'euro (« 14,90 € »), comme partout sur le site.
-const euro = (n) => `${Number(n || 0).toFixed(2).replace('.', ',')}${NNB}€`;
+// Montants : espace insécable avant l'euro (« 14,90 € »), comme partout sur le site (la fine ne se
+// voyait presque pas avec Archivo).
+const euro = (n) => `${Number(n || 0).toFixed(2).replace('.', ',')}${NB}€`;
 const STEPS = [
   { id: 'panier', label: 'Panier', title: 'Votre panier' },
   { id: 'coordonnees', label: 'Coordonnées', title: 'Vos coordonnées' },

@@ -9,6 +9,7 @@ import { evinHTML, lockHTML } from '../app/blocks.js';
 import { AILES, STATUT, dateHTML, pieces, pieceById, pieceHTML } from '../app/pieces.js';
 import { $, $$, esc, calm, plural } from '../lib/dom.js';
 import { noteRevue, selonRevue } from '../lib/revue.js';
+import { typo } from '../lib/typo.js';
 
 const site = initSite();
 
@@ -32,7 +33,7 @@ const SANS_VISUEL = [
     titre: 'Les objets du PAC',
     date: 'Date à préciser',
     technique: 'Objets',
-    texte: 'Le T-shirt noir « Le seul, l’unique PAC », les gobelets « Summer PAC », les verres « pac » à fleurs, vus sur des photographies de presse.',
+    texte: typo('Le T-shirt noir « Le seul, l’unique PAC », les gobelets « Summer PAC », les verres « pac » à fleurs, vus sur des photographies de presse.'),
     note: 'À photographier à la distillerie.',
   },
 ];

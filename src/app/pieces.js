@@ -5,13 +5,15 @@
 // note « Date à préciser » (archives.json) reste visible en mode revue (src/lib/revue.js).
 // Aile « spiritueux » : réservée aux personnes majeures (comme tout ce qui touche à l'alcool).
 import data from '../data/site/archives.json';
+import { corrigerPiece } from '../data/corrections.js';
 import { esc } from '../lib/dom.js';
 import { selonRevue } from '../lib/revue.js';
 
-export const pieces = data.pieces;
+// cartels avec leurs espaces insécables (« Tampon « 16 mai 1962 » », « 40 % vol. »)
+export const pieces = data.pieces.map(corrigerPiece);
 export const pieceById = Object.fromEntries(pieces.map((p) => [p.id, p]));
 export const AILES = [
-  { id: 'sirops', nom: 'L’aile des sirops', texte: 'Les étiquettes du PAC, de la menthe bleue « Aurélie » et des sirops pur sucre.' },
+  { id: 'sirops', nom: 'L’aile des sirops', texte: 'Les étiquettes du PAC, de la menthe bleue «\u00a0Aurélie\u00a0» et des sirops pur sucre.' },
   { id: 'maison', nom: 'La maison', texte: 'Cartes postales et papiers à en-tête de la rue Molière, à Avignon.' },
   { id: 'spiritueux', nom: 'L’aile des spiritueux', texte: 'Affiches, étiquettes et documents des liqueurs, des apéritifs et des marcs.', majeur: true },
 ];

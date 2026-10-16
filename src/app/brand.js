@@ -4,7 +4,7 @@
 import { addToCart, reveal } from './site.js';
 import { pieceById, pieceHTML } from './pieces.js';
 import { bySlug, recettes, euro, minPrice, formatsAilleursTexte } from '../data/products.js';
-import textes from '../data/site/textes.json';
+import textes from '../data/textes.js';
 import { monterCampagne } from '../lib/campagne.js';
 import { $, esc } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';

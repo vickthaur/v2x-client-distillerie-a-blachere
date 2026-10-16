@@ -12,7 +12,7 @@ import { evinHTML, lockHTML } from '../app/blocks.js';
 import { cardHTML } from '../app/cards.js';
 import { imgPiece, pieceById, pieceHTML } from '../app/pieces.js';
 import { GAMMES, products } from '../data/products.js';
-import textes from '../data/site/textes.json';
+import textes from '../data/textes.js';
 import { $, esc, calm, plural } from '../lib/dom.js';
 import { noteRevue } from '../lib/revue.js';
 import { upgradeThumbs } from '../lib/thumbs.js';
@@ -49,7 +49,7 @@ const RAYONS = [
   {
     gamme: 'cremes-eaux-de-vie',
     titre: 'Les crèmes et les eaux-de-vie',
-    texte: [sentence(find(/l’Ardéchoise/), /l’Ardéchoise/).replace(/^.*?(j’élabore)/, 'J’élabore'), 'Et des eaux-de-vie de fruits (poire, framboise…), comme Flirt®, eau-de-vie de poires Williams.'],
+    texte: [sentence(find(/l’Ardéchoise/i), /l’Ardéchoise/i).replace(/^.*?(j’élabore)/, 'J’élabore'), 'Et des eaux-de-vie de fruits (poire, framboise…), comme Flirt®, eau-de-vie de poires Williams.'],
     pieces: ['ardechoise-chataigne', 'creme-banane', 'creme-cacao'],
   },
   {
@@ -73,7 +73,7 @@ function render() {
   document.title = 'Nos spiritueux · Distillerie A. Blachère';
   const n = products.filter((p) => p.alcool).length;
   const garrigue = sentence(find(/Thym, romarin/), /J’y puise/);
-  $('#spirits-lead').innerHTML = `<p class="lead">${esc(garrigue ? `« ${garrigue} »` : '')} ${plural(n, 'référence')} dans la boutique : apéritifs et pastis, liqueurs, crèmes, eaux-de-vie et vieux marcs.</p>`;
+  $('#spirits-lead').innerHTML = `<p class="lead">${esc(garrigue ? `«\u00a0${garrigue}\u00a0»` : '')} ${plural(n, 'référence')} dans la boutique\u00a0: apéritifs et pastis, liqueurs, crèmes, eaux-de-vie et vieux marcs.</p>`;
   const chai = pieceById['chai-lumiere'];
   $('#spirits-photo').hidden = false;
   $('#spirits-photo').innerHTML = `${imgPiece(chai, { sizes: '(max-width: 900px) 92vw, 42vw', eager: true })}<figcaption>${esc(chai.titre)} · ${esc(chai.technique)}, archive de la distillerie</figcaption>`;

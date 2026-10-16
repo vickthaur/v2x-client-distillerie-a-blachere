@@ -11,7 +11,7 @@ import { fillPlaces } from '../app/lieux.js';
 import { imgPiece, pieceById, pieceHTML } from '../app/pieces.js';
 import { products, bySlug, minPrice, euro, EVIN } from '../data/products.js';
 import { infos, formules, saison } from '../data/site.js';
-import textes from '../data/site/textes.json';
+import textes from '../data/textes.js';
 import { monterCampagne } from '../lib/campagne.js';
 import { $, $$, esc, calm } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
@@ -56,7 +56,7 @@ function brands() {
   const cp = products.filter((p) => p.gamme === 'couleur-provence').length;
   const cards = [
     { cls: 'pac', href: '/pac-citron', slugs: ['pac-citron'], bg: '#c2177f', k: 'Depuis plus de 60 ans', name: 'PAC Citron<sup>®</sup>', text: 'Le sirop de citron sans colorant, devenu le produit phare de la maison.' },
-    { cls: 'fb', href: '/fun-blue', slugs: ['fun-blue'], bg: '#1f56a8', k: 'Le petit frère du PAC', name: 'Fun Blue<sup>®</sup>', text: 'Sucre et essence de menthe, couleur « bleu Méditerranée », goût chlorophylle.' },
+    { cls: 'fb', href: '/fun-blue', slugs: ['fun-blue'], bg: '#1f56a8', k: 'Le petit frère du PAC', name: 'Fun Blue<sup>®</sup>', text: 'Sucre et essence de menthe, couleur «\u00a0bleu Méditerranée\u00a0», goût chlorophylle.' },
     { cls: 'provence', href: '/couleur-provence', slugs: ['sirop-couleur-provence-grenadine', 'sirop-menthe', 'sirop-lavande'], bg: '#e9dfc8', k: `${cp} parfums`, name: 'Couleur Provence<sup>®</sup>', text: 'Les sirops de fruits, de fleurs et de plantes de la maison.' },
   ];
   const spirits = majeur
@@ -68,7 +68,7 @@ function brands() {
         <span class="brand__lock-icon">${icons.lock}</span>
         <span class="kicker kicker--light">18+</span>
         <span class="brand__name">Spiritueux</span>
-        <span class="brand__text">${site.age === 'mineur' ? 'Cette partie du site est réservée aux personnes majeures.' : 'Réservés aux personnes majeures : indiquez votre date de naissance pour les voir.'}</span>
+        <span class="brand__text">${site.age === 'mineur' ? 'Cette partie du site est réservée aux personnes majeures.' : 'Réservés aux personnes majeures\u00a0: indiquez votre date de naissance pour les voir.'}</span>
         ${site.age === 'mineur' ? '' : '<button type="button" class="btn btn--light btn--sm" data-verify>Vérifier mon âge</button>'}
       </div></li>`;
   $('#brands').innerHTML =
@@ -133,11 +133,11 @@ function pieces() {
 function visit() {
   const g = formules.find((f) => f.id === 'guidee');
   const facts = [
-    [icons.clock, `<strong>Boutique :</strong> du lundi au samedi, ${infos.horaires.map((h) => `${esc(h.heures)} ${esc(h.periode.toLowerCase().replace('d’', 'd’'))}`).join(', ')} (hors jours fériés)`],
-    [icons.route, `<strong>Visite guidée :</strong> ${esc(g.duree)}, groupes de ${saison.groupeMax} personnes au plus, sur réservation`],
+    [icons.clock, `<strong>Boutique\u00a0:</strong> du lundi au samedi, ${infos.horaires.map((h) => `${esc(h.heures)} ${esc(h.periode.toLowerCase().replace('d’', 'd’'))}`).join(', ')} (hors jours fériés)`],
+    [icons.route, `<strong>Visite guidée\u00a0:</strong> ${esc(g.duree)}, groupes de ${saison.groupeMax} personnes au plus, sur réservation`],
     [icons.pin, esc(infos.adresseLigne)],
     // tarif inconnu (les sources se contredisent) : contourné, la note reste visible en revue
-    [icons.card, selonRevue(`<strong>Tarifs :</strong> sur demande à la boutique, au <a href="${infos.magasin.telLien}">${esc(infos.magasin.tel)}</a>`, 'Tarif de la visite guidée à confirmer avec la distillerie')],
+    [icons.card, selonRevue(`<strong>Tarifs\u00a0:</strong> sur demande à la boutique, au <a href="${infos.magasin.telLien}">${esc(infos.magasin.tel)}</a>`, 'Tarif de la visite guidée à confirmer avec la distillerie')],
   ];
   $('#visit-facts').innerHTML = facts.map(([i, t]) => `<li>${i}<span>${t}</span></li>`).join('');
   const stand = pieceById['stand-palais-des-papes'];

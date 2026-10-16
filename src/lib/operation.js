@@ -45,14 +45,14 @@ export function pastilleHTML(op, { href = op.page } = {}) {
 
 // Encart de fiche produit (sous le prix) pour un produit concerné.
 export function encartFicheHTML(op) {
-  return `<aside class="op-note" aria-label="${esc(op.nom)}">${ruban('rose', 'op-note__ruban')}<div><p class="op-note__titre">${esc(op.nom)} · ${esc(op.periode)}</p><p>${accroche(op)}</p><p class="op-note__fine">${esc(op.conditions)}</p></div></aside>`;
+  return `<aside class="op-note" aria-label="${esc(op.nom)}">${ruban('rose', 'op-note__ruban')}<div><p class="op-note__titre">${esc(op.nom)} · ${esc(op.periode).replace(/1er/, '1<sup>er</sup>')}</p><p>${accroche(op)}</p><p class="op-note__fine">${esc(op.conditions)}</p></div></aside>`;
 }
 
 // Ligne du panier : « Octobre Rose : 3 € reversés à … grâce à votre commande ».
 export function lignePanierHTML(op, lignes) {
   const { bouteilles, montant } = donPour(op, lignes);
   if (!bouteilles) return '';
-  return `<p class="op-cart">${ruban('rose', 'op-cart__ruban')}<span><strong>${esc(op.nom)}</strong> : ${euros(montant)} ${montant > 1 ? 'seront reversés' : 'sera reversé'} ${esc(op.beneficiaireAvecArticle)} grâce à ${bouteilles > 1 ? `vos ${bouteilles} bouteilles` : 'votre bouteille'} de ${esc(op.produitNom)}.</span></p>`;
+  return `<p class="op-cart">${ruban('rose', 'op-cart__ruban')}<span><strong>${esc(op.nom)}</strong>\u00a0: ${euros(montant)} ${montant > 1 ? 'seront reversés' : 'sera reversé'} ${esc(op.beneficiaireAvecArticle)} grâce à ${bouteilles > 1 ? `vos ${bouteilles} bouteilles` : 'votre bouteille'} de ${esc(op.produitNom)}.</span></p>`;
 }
 
 // Grand ruban du bandeau : dégradés, ombre portée du brin de devant sur le croisement ; chaque brin

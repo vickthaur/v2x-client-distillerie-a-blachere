@@ -16,14 +16,14 @@ export const infos = {
   // Horaires du magasin : page Contact du site officiel (relevée le 14 octobre 2026), qui fait
   // référence ; elle tranche les versions différentes des autres pages.
   horaires: [
-    { periode: 'D’octobre à mars', heures: '10 h – 18 h' },
-    { periode: 'D’avril à septembre', heures: '9 h – 19 h' },
+    { periode: 'D’octobre à mars', heures: '10\u00a0h – 18\u00a0h' },
+    { periode: 'D’avril à septembre', heures: '9\u00a0h – 19\u00a0h' },
   ],
   jours: 'Du lundi au samedi, hors jours fériés',
   horairesNote: 'Horaires de la page Contact du site de la distillerie.',
-  bureauxHoraires: { jours: 'Du lundi au vendredi, hors jours fériés', heures: '8 h – 12 h, 14 h – 18 h' },
+  bureauxHoraires: { jours: 'Du lundi au vendredi, hors jours fériés', heures: '8\u00a0h – 12\u00a0h, 14\u00a0h – 18\u00a0h' },
   // Horaires de retrait indiqués par la page « Achat express » du site actuel.
-  retrait: '9 h – 12 h et 14 h – 17 h',
+  retrait: '9\u00a0h – 12\u00a0h et 14\u00a0h – 17\u00a0h',
   itineraire: 'https://www.openstreetmap.org/search?query=1695%20route%20de%20Sorgues%2C%2084230%20Ch%C3%A2teauneuf-du-Pape',
   instagram: 'https://www.instagram.com/distillerieablachere/',
 };
@@ -63,11 +63,11 @@ export const formules = [
     nom: 'Visite guidée de la distillerie',
     sous: 'La séance en boutique, puis l’usine',
     voir: ['La zone de stockage', 'L’herboristerie', 'La salle d’étiquetage', 'Le vieux chai', 'La production, derrière les vitres', 'La dégustation'],
-    duree: '1 h, dégustation comprise',
+    duree: '1\u00a0h, dégustation comprise',
     capacite: '25 personnes au plus',
     reservation: 'Toute l’année, sur réservation\u202f; fermé le dimanche',
     prix: 'Tarif sur demande',
-    revue: { prix: 'Tarif à confirmer', prixNote: 'Gratuit, 4 €, 5 €, 7 € ou 10 € selon les sources\u00a0: à trancher avec la distillerie.' },
+    revue: { prix: 'Tarif à confirmer', prixNote: 'Gratuit, 4\u00a0€, 5\u00a0€, 7\u00a0€ ou 10\u00a0€ selon les sources\u00a0: à trancher avec la distillerie.' },
     reservable: true,
   },
   {
@@ -117,7 +117,7 @@ export const actualites = [
     quand: 'Date à confirmer',
     rubrique: 'Production',
     titre: 'Une nouvelle ligne d’embouteillage',
-    texte: 'Un investissement d’environ 500 000 €, soutenu à 20 % par France Relance, pour atteindre à terme 6 000 bouteilles à l’heure.',
+    texte: 'Un investissement d’environ 500\u202f000\u00a0€, soutenu à 20\u202f% par France Relance, pour atteindre à terme 6\u202f000 bouteilles à l’heure.',
     source: { nom: 'L’Écho du Mardi', url: 'https://www.echodumardi.com/tag/distillerie-blachere/?print=print-search' },
   },
   {
@@ -145,15 +145,15 @@ export const actualites = [
 // seront cités qu'avec leur accord. produits : slugs ; un point de vente qui ne propose que des
 // spiritueux n'apparaît qu'aux personnes majeures.
 export const couches = [
-  { id: 'gms', nom: 'Grandes surfaces', texte: 'Environ 90 % des ventes de la maison passent par la grande distribution.' },
+  { id: 'gms', nom: 'Grandes surfaces', texte: 'Environ 90\u202f% des ventes de la maison passent par la grande distribution.' },
   { id: 'cavistes', nom: 'Cavistes et épiceries fines', texte: 'À Paris, en Provence et en ligne.' },
   { id: 'cafes', nom: 'Cafés', texte: 'Où commander un PAC à l’eau.' },
 ];
 
 export const pointsDeVente = [
   { couche: 'gms', nom: 'Auchan', lieu: 'En ligne', produits: ['pac-citron', 'fun-blue'], url: 'https://www.auchan.fr/pac-sirop-au-citron-sans-colorant/pr-C1214038' },
-  { couche: 'gms', nom: 'Carrefour', lieu: 'En ligne', produits: ['pac-citron'], detail: 'PAC Citron en 70 cl', url: 'https://www.carrefour.fr/p/sirop-citron-sans-colorant-pac-3365340000057' },
-  { couche: 'gms', nom: 'Courses U', lieu: 'En ligne', produits: ['pac-citron'], detail: 'PAC Citron en 70 cl', url: 'https://www.coursesu.com/p/sirop-pac-citron-blachere-70cl/6819753.html' },
+  { couche: 'gms', nom: 'Carrefour', lieu: 'En ligne', produits: ['pac-citron'], detail: 'PAC Citron en 70\u00a0cl', url: 'https://www.carrefour.fr/p/sirop-citron-sans-colorant-pac-3365340000057' },
+  { couche: 'gms', nom: 'Courses U', lieu: 'En ligne', produits: ['pac-citron'], detail: 'PAC Citron en 70\u00a0cl', url: 'https://www.coursesu.com/p/sirop-pac-citron-blachere-70cl/6819753.html' },
   { couche: 'cavistes', nom: 'Les Caves du Roy', lieu: 'Paris', produits: ['pac-citron', 'pastis-marra', 'verveine-auguste-vieilli'], url: 'https://www.cavesduroy.fr/' },
   { couche: 'cavistes', nom: 'Arts & Vin', lieu: 'Saumane', produits: ['pac-citron'], url: 'https://arts-et-vin.fr/boutique/epicerie-fine-locale/distillerie-blachere/pac-citron-1-litre-distillerie-blachere/' },
   { couche: 'cavistes', nom: 'Cave La Petite Reine', lieu: 'En ligne', produits: ['pac-citron', 'pastis-marra', 'marc-chateauneuf-du-pape-reserve-des-legats'], url: 'https://cavelapetitereine.fr/produit/distillerie-a-blachere-sirop-pac-citron-100-cl/' },

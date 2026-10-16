@@ -1,10 +1,12 @@
 // Mentions légales et conditions générales de vente : les textes du site de la distillerie
-// (src/data/site/textes.json), repris tels quels, avec un sommaire.
+// (src/data/site/textes.json), repris tels quels (typographie seulement : capitales, accents,
+// espaces insécables, src/data/corrections.js), avec un sommaire.
 import '../styles/base.css';
 import '../styles/brand.css';
 import { initSite } from '../app/site.js';
-import textes from '../data/site/textes.json';
+import textes from '../data/textes.js';
 import { $, esc } from '../lib/dom.js';
+import { espacesOrdinaires } from '../lib/typo.js';
 import { REVUE, noteRevue } from '../lib/revue.js';
 
 initSite({ askAge: false });
@@ -32,14 +34,14 @@ if ($('#legal-official')) {
   let html = '';
   let open = false;
   for (const l of lines) {
-    if (TITRES.includes(l)) {
+    if (TITRES.includes(espacesOrdinaires(l))) {
       if (open) html += '</dl>';
       const t = l.replace(/\s*:$/, '');
       html += `<h2 id="${slug(t)}">${esc(t === 'Informations Légales' ? 'Informations légales' : t === 'Hébergement' ? 'Hébergement du site de la distillerie' : t)}</h2><dl class="legal-dl">`;
       open = true;
       continue;
     }
-    const m = /^([^:]{2,40}) : (.+)$/.exec(l);
+    const m = /^([^:]{2,40})\s:\s(.+)$/.exec(l);
     html += m ? `<div><dt>${esc(m[1])}</dt><dd>${esc(m[2])}</dd></div>` : `<div class="legal-dl__p"><dd>${esc(l)}</dd></div>`;
   }
   if (open) html += '</dl>';

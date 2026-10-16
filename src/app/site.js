@@ -113,7 +113,7 @@ function bindGate() {
     const years = ageFrom(d.jour, d.mois, d.annee);
     fields.forEach((f) => f.classList.toggle('is-invalid', !f.value));
     if (years === null) {
-      $('#gate-err').textContent = 'Cette date n’est pas valide : vérifiez le jour, le mois et l’année (ex. 07 / 03 / 1985).';
+      $('#gate-err').textContent = 'Cette date n’est pas valide\u00a0: vérifiez le jour, le mois et l’année (ex. 07 / 03 / 1985).';
       return;
     }
     form.reset();
@@ -489,7 +489,7 @@ export function affinerLivraison(root, t = cart.totals()) {
 export function totalsHTML(t, { mode = 'panier' } = {}) {
   const rows = [`<div class="totals__row"><span>Sous-total${t.unpriced ? ' (prix connus)' : ''}</span><strong data-subtotal>${euro(t.subtotal)}</strong></div>`];
   if (t.unpriced)
-    rows.push(`<p class="totals__note">+ ${plural(t.unpriced, 'article')} au prix de la boutique : le montant vous est confirmé par la distillerie.</p>`);
+    rows.push(`<p class="totals__note">+ ${plural(t.unpriced, 'article')} au prix de la boutique\u00a0: le montant vous est confirmé par la distillerie.</p>`);
   if (mode === 'panier') rows.push(`<p class="totals__note" data-livraison>${livraisonTexte(devisDuPanier(t))}</p>`);
   return `<div class="totals">${rows.join('')}</div>`;
 }

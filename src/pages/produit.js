@@ -151,7 +151,7 @@ function priceHTML() {
   // prix au litre à côté du prix, sauf en 1 L (UX-5)
   const unite = prixAuLitreTexte(c);
   if (c?.prix != null) return `<p class="pp__price"><strong>${euro(c.prix)}</strong><span>TTC · ${esc(c.volume)}</span>${unite ? `<span class="pp__unit">soit ${unite}</span>` : ''}${stock}</p>`;
-  return `<p class="pp__price pp__price--none"><strong>Prix en boutique</strong><span>Ce prix n’est pas affiché en ligne : la distillerie vous le donne au magasin ou par téléphone (${infos.magasin.tel}).</span></p>`;
+  return `<p class="pp__price pp__price--none"><strong>Prix en boutique</strong><span>Ce prix n’est pas affiché en ligne\u00a0: la distillerie vous le donne au magasin ou par téléphone (${infos.magasin.tel}).</span></p>`;
 }
 
 function boutiqueHTML() {
@@ -183,7 +183,7 @@ function detailsHTML() {
   }
   if (p.saviezVous) {
     const html = rich(p.saviezVous);
-    if (html) sections.push(['histoire', 'Le saviez-vous ?', html]);
+    if (html) sections.push(['histoire', 'Le saviez-vous\u202f?', html]);
   }
   sections.push(['livraison', 'Expédition et paiement', livraisonHTML()]);
   return sections
@@ -200,11 +200,11 @@ function detailsHTML() {
 // « Modalité de paiement », « Délais de rétractation », « Casse au cours de la livraison »).
 function livraisonHTML() {
   return `<ul class="pp__terms">
-    <li><strong>Expédition</strong> sous 3 jours ouvrés au plus après la réception du règlement, si les produits sont disponibles ; livraison dans les 30 jours au plus.</li>
+    <li><strong>Expédition</strong> sous 3\u00a0jours ouvrés au plus après la réception du règlement, si les produits sont disponibles\u202f; livraison dans les 30\u00a0jours au plus.</li>
     <li><strong>Frais de livraison</strong> indiqués avant la validation de la commande.</li>
-    <li><strong>Paiement</strong> à la commande : carte bancaire (CB, Visa, Mastercard), PayPal ou virement.</li>
-    <li><strong>Rétractation</strong> : quatorze jours francs à compter de la réception ; articles intacts et non ouverts.</li>
-    <li><strong>Casse</strong> : refuser le colis endommagé ou l’indiquer sur le récépissé ; la distillerie réexpédie ou rembourse.</li>
+    <li><strong>Paiement</strong> à la commande\u00a0: carte bancaire (CB, Visa, Mastercard), PayPal ou virement.</li>
+    <li><strong>Rétractation</strong>\u00a0: quatorze jours francs à compter de la réception\u202f; articles intacts et non ouverts.</li>
+    <li><strong>Casse</strong>\u00a0: refuser le colis endommagé ou l’indiquer sur le récépissé\u202f; la distillerie réexpédie ou rembourse.</li>
   </ul>
   <p><a class="link" href="/conditions-de-vente">Conditions générales de vente</a></p>`;
 }
@@ -224,7 +224,7 @@ function render() {
     ['Gamme', p.gammeNom],
     ['Arôme', famille(p)],
     ['Contenance', p.contenances.map((c) => c.volume).join(' · ') || null, 'Sur demande à la boutique', 'À confirmer'],
-    p.alcool ? ['Degré d’alcool', p.degre ? `${String(p.degre).replace('.', ',')}\u202f% vol.` : null, 'Sur demande à la boutique', 'À confirmer avec la distillerie'] : ['Alcool', 'Sans alcool'],
+    p.alcool ? ['Degré d’alcool', p.degre ? `${String(p.degre).replace('.', ',')}\u202f%\u00a0vol.` : null, 'Sur demande à la boutique', 'À confirmer avec la distillerie'] : ['Alcool', 'Sans alcool'],
     p.reference ? ['Référence', p.reference] : null,
   ].filter((f) => f && (f[1] || f[2]));
   const volumes =
@@ -257,7 +257,7 @@ function render() {
     <div class="pp__info">
       <p class="pp__gamme"><span>${esc(p.gammeNom)}</span>${p.bestSeller ? ' <span class="badge badge--best">Meilleure vente</span>' : ''}${concerne(operation, p.slug) ? ` <span class="badge badge--rose">${esc(operation.nom)}</span>` : ''}${p.alcool ? ' <span class="badge badge--age">18+</span>' : ''}</p>
       <h1 class="pp__name">${esc(p.nom).replace(/®/g, '<sup>®</sup>')}</h1>
-      <p class="pp__type">${esc(p.type)}${p.alcool && p.degre ? ` · ${String(p.degre).replace('.', ',')}\u202f% vol.` : ''}</p>
+      <p class="pp__type">${esc(p.type)}${p.alcool && p.degre ? ` · ${String(p.degre).replace('.', ',')}\u202f%\u00a0vol.` : ''}</p>
       ${lead ? `<p class="pp__lead">${esc(lead)}</p>` : ''}
       ${p.enLigne ? '' : boutiqueHTML()}
       <form class="pp__buy" id="buy" novalidate${p.enLigne ? '' : ' hidden'}>

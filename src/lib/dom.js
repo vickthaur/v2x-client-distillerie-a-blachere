@@ -1,13 +1,16 @@
 // Petits utilitaires DOM et texte.
+import { espacesOrdinaires } from './typo.js';
+
 export const $ = (s, el = document) => el.querySelector(s);
 export const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 export const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 export const esc = (s) =>
   String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
-// Comparaison sans accents ni majuscules (« creme » trouve « Crème »).
+// Comparaison sans accents ni majuscules (« creme » trouve « Crème »), espaces insécables des textes
+// (src/lib/typo.js) ramenées à des espaces ordinaires : « 70 cl » tapé au clavier trouve « 70 cl ».
 export const fold = (s) =>
-  String(s ?? '')
+  espacesOrdinaires(s)
     .toLowerCase()
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
