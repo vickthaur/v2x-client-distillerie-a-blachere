@@ -47,3 +47,24 @@ export function typo(s) {
       .replace(/(?<![\p{L}\p{N}])(\p{Lu})\. (?=\p{Lu})/gu, '$1.\u00a0')
   );
 }
+
+// Nom d'un produit dans une phrase (« Avec … ») : un nom commun prend l'article et la minuscule
+// (« avec le sirop de grenadine », « avec la liqueur de lavande « A. Blachère® » ») ; une marque
+// reste telle quelle (« avec PAC Citron® », « avec L’Élixir du Mont Ventoux® »).
+const ARTICLES = [
+  [/^Sirop\b/, 'le '],
+  [/^Sucre\b/, 'le '],
+  [/^Pastis\b/, 'le '],
+  [/^Vieux marc\b/, 'le '],
+  [/^Marc\b/, 'le '],
+  [/^Liqueur\b/, 'la '],
+  [/^Crème\b/, 'la '],
+  [/^Verveine\b/, 'la '],
+  [/^Apéritif\b/, 'l’'],
+  [/^Eau-de-vie\b/, 'l’'],
+];
+export function nomDansPhrase(nom) {
+  const s = String(nom ?? '');
+  const a = ARTICLES.find(([re]) => re.test(s));
+  return a ? a[1] + s[0].toLowerCase() + s.slice(1) : s;
+}

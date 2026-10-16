@@ -12,7 +12,8 @@ import '../styles/shop.css';
 import '../styles/product.css';
 import '../styles/operation.css';
 import { initSite, addToCart } from '../app/site.js';
-import { cardHTML } from '../app/cards.js';
+import { cardHTML, evinCartesHTML } from '../app/cards.js';
+import { nomDansPhrase } from '../lib/typo.js';
 import { bySlug, products, visibleProducts, recettes, FAMILLES, EVIN, MINEURS, euro, DISPO_BOUTIQUE, formatsAilleursTexte, prixAuLitreTexte, prixAuLitreHTML } from '../data/products.js';
 import { devis, devisLocal } from '../lib/livraison.js';
 import { boutonPause, pauseVoulue } from '../lib/pause.js';
@@ -379,7 +380,7 @@ function render() {
   ${
     recs.length
       ? `<section class="pp-recipes wrap" aria-labelledby="pp-rec-title" data-n="${recs.length}">
-      <div class="section__head"><div><p class="kicker">Recettes de la maison</p><h2 class="h-section" id="pp-rec-title">Avec ${esc(p.nom)}</h2></div><a class="arrow-link" href="/recettes">Toutes les recettes ${icons.arrow}</a></div>
+      <div class="section__head"><div><p class="kicker">Recettes de la maison</p><h2 class="h-section" id="pp-rec-title">Avec ${esc(nomDansPhrase(p.nom))}</h2></div><a class="arrow-link" href="/recettes">Toutes les recettes ${icons.arrow}</a></div>
       <ul class="pp-recipes__list">${recs.map((r) => recetteHTML(r, recs.length <= 2)).join('')}</ul>
     </section>`
       : ''
@@ -632,6 +633,8 @@ function renderRelated() {
     .slice(0, 4)
     .map(([x]) => x);
   $('#related-grid').innerHTML = picks.map((x) => cardHTML(x)).join('');
+  // spiritueux : le message sanitaire une fois, sous la grille (README, « Âge légal et loi Évin »)
+  $('#related-evin').innerHTML = evinCartesHTML(picks);
   // « Tous les sirops », « Tous les spiritueux » : la rubrique de la boutique d'où viennent les suggestions
   $('#related-all').href = `/boutique?univers=${p.univers}`;
   $('#related-all > span').textContent = p.univers === 'spiritueux' ? 'Tous les spiritueux' : 'Tous les sirops';

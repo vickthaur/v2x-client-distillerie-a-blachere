@@ -9,6 +9,7 @@ import { evinHTML } from '../app/blocks.js';
 import { bySlug, recettes } from '../data/products.js';
 import { $, esc, plural } from '../lib/dom.js';
 import { noteRevue } from '../lib/revue.js';
+import { nomDansPhrase } from '../lib/typo.js';
 
 // Photos des recettes : 619 × 1 100 px (618 pour deux), réduites à l'import (scripts/import-site.mjs).
 const IMG = 'width="619" height="1100"';
@@ -23,6 +24,14 @@ const steps = (items) =>
     ? `<ol class="rec-steps">${items.map((x) => (/:\s*$/.test(x) && x.length < 60 ? `<li class="rec-steps__sub">${esc(x)}</li>` : `<li>${esc(x)}</li>`)).join('')}</ol>`
     : '';
 
+// Sous le titre d'une carte : les produits de la maison qu'elle utilise (« PAC Citron®, Fun Blue® ») ;
+// « Sans alcool » n'est rappelé que dans la liste qui mêle les deux.
+function metaCarte(r) {
+  const noms = (r.produits || []).filter((s) => bySlug[s] && (!bySlug[s].alcool || site.majeur)).map((s) => bySlug[s].nom);
+  const texte = [filtre === 'toutes' ? 'Sans alcool' : '', noms.slice(0, 2).join(', ')].filter(Boolean).join(' · ');
+  return texte ? `<span class="rcard__meta">${esc(texte)}</span>` : '';
+}
+
 function render() {
   const sans = recettes.filter((r) => !r.alcool).length;
   $('#rec-lead').textContent = `Les ${recettes.length} recettes publiées par la distillerie\u00a0: cocktails, boissons et desserts. Les ${sans} recettes sans alcool s’affichent d’abord\u202f; celles qui contiennent de l’alcool sont réservées aux personnes majeures.`;
@@ -34,7 +43,7 @@ function render() {
       (r) => `<li class="rcard"><a href="#${r.id}">
         <span class="rcard__img"><img src="${r.image}" alt="" ${IMG} loading="lazy" decoding="async" /></span>
         <span class="rcard__title">${esc(r.titre)}</span>
-        ${r.alcool ? '<span class="badge badge--age">18+</span>' : '<span class="rcard__meta">Sans alcool</span>'}
+        ${r.alcool ? '<span class="badge badge--age">18+</span>' : metaCarte(r)}
       </a></li>`,
     )
     .join('');
@@ -46,7 +55,7 @@ function render() {
           <div class="rec__body">
             <p class="kicker">${r.alcool ? 'Avec alcool · 18+' : 'Sans alcool'}</p>
             <h2 class="h-section rec__title" id="t-${r.id}">${esc(r.titre)}</h2>
-            ${r.produits?.length ? `<p class="rec__products">Avec ${r.produits.filter((s) => bySlug[s] && (!bySlug[s].alcool || site.majeur)).map((s) => `<a class="link" href="/boutique/${s}">${esc(bySlug[s].nom)}</a>`).join(', ')}</p>` : ''}
+            ${r.produits?.length ? `<p class="rec__products">Avec ${r.produits.filter((s) => bySlug[s] && (!bySlug[s].alcool || site.majeur)).map((s) => `<a class="link" href="/boutique/${s}">${esc(nomDansPhrase(bySlug[s].nom))}</a>`).join(', ')}</p>` : ''}
             <div class="rec__cols">
               ${r.ingredients?.length ? `<div><h3 class="rec__h">Ingrédients</h3>${list(r.ingredients)}</div>` : ''}
               ${r.decoration?.length ? `<div><h3 class="rec__h">Décoration</h3>${list(r.decoration)}</div>` : ''}
