@@ -175,13 +175,19 @@ function render({ scroll = false } = {}) {
   const sirops = results.filter((p) => !p.alcool);
   const spirits = results.filter((p) => p.alcool);
   const list = (items, locked = false) => `<ul class="grid">${items.map(cardHTML).join('')}${locked ? lockedCardHTML() : ''}</ul>`;
-  const group = (id, title, body, extra = '') =>
-    `<section class="shop-group shop-group--${id}"><div class="shop-group__head"><h2 class="shop-group__title">${title}</h2>${extra}</div>${body}</section>`;
+  const group = (id, title, body) =>
+    `<section class="shop-group shop-group--${id}">${title ? `<div class="shop-group__head"><h2 class="shop-group__title">${title}</h2></div>` : ''}${body}</section>`;
+  // Message sanitaire (loi Évin) : une bande fine, collée sous l'en-tête tant que des spiritueux
+  // sont à l'écran, au lieu d'une mention sous chaque carte.
+  const evin = spirits.length ? `<p class="shop-evin">${esc(EVIN)}</p>` : '';
   if (lockedOnly) grid.innerHTML = site.age === 'mineur' ? '' : list([], true);
   else if (sirops.length && (spirits.length || showLocked))
     grid.innerHTML =
       group('sirops', `Sirops <span>${plural(sirops.length, 'produit')}</span>`, list(sirops)) +
-      group('spiritueux', `Spiritueux · 18+ <span>${spirits.length ? plural(spirits.length, 'produit') : ''}</span>`, list(spirits, showLocked), spirits.length ? `<p class="evin">${esc(EVIN)}</p>` : '');
+      group('spiritueux', `Spiritueux · 18+ <span>${spirits.length ? plural(spirits.length, 'produit') : ''}</span>`, evin + list(spirits, showLocked));
+  // que des spiritueux (rayon Spiritueux, recherche, gamme) : le même rayon, sans titre (le compteur
+  // le dit déjà)
+  else if (spirits.length) grid.innerHTML = group('spiritueux', '', evin + list(results, showLocked));
   else grid.innerHTML = list(results, showLocked);
   $('#shop-empty').hidden = lockedOnly || results.length > 0;
   const n = lockedOnly ? 0 : results.length;
@@ -233,7 +239,8 @@ function stocks(grid) {
     if (indisponible(etat)) {
       btn.disabled = true;
       btn.classList.add('is-off');
-      btn.innerHTML = `<span>${esc(ETATS[etat])}</span>`;
+      // au téléphone, le bouton rond garde un signe (le libellé est dans la pastille de la vignette)
+      btn.innerHTML = `${icons.minus}<span>${esc(ETATS[etat])}</span>`;
       btn.setAttribute('aria-label', `${p.nom} : ${ETATS[etat].toLowerCase()}`);
       card.classList.add('is-rupture');
     }

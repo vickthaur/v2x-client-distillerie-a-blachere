@@ -3,7 +3,8 @@
 // officielle (apéritifs et pastis, liqueurs, crèmes et eaux-de-vie, vieux marcs), chacun raconté
 // par la page Histoire de la maison et ses archives (affiches, étiquettes, photographies du chai),
 // avec les produits sur fond neutre. Mentions de la loi Évin seulement (degré, origine, composition,
-// fabricant, élaboration, mode de consommation), le message sanitaire dans chaque rayon.
+// fabricant, élaboration, mode de consommation), le message sanitaire une fois par rayon, sous sa
+// grille (pas sous chaque carte).
 import '../styles/base.css';
 import '../styles/home.css';
 import '../styles/brand.css';
@@ -92,7 +93,7 @@ function render() {
           <ul class="pieces sp-rayon__pieces">${r.pieces.map((id) => pieceById[id]).filter(Boolean).map((p) => pieceHTML(p)).join('')}</ul>
         </div>
         <ul class="grid sp-rayon__grid">${items.map((p) => cardHTML(p)).join('')}</ul>
-        ${evinHTML('sp-rayon__evin')}
+        ${evinHTML('sp-rayon__evin evin--cartes')}
       </div>
     </section>`;
   }).join('');

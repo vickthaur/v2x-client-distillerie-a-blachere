@@ -177,8 +177,10 @@ Labo de réglage (développement seulement, non versionné) : `labo.html?scene=d
    qui parlent d'alcool sont retirées (jamais réécrites) ; sur les fiches de sirops, les conseils qui
    en parlent (« Monaco : grenadine + bière »…) aussi ; photos de la boutique (des bouteilles d'alcool
    y sont visibles) remplacées par des archives de la maison. La recette le vérifie sur dix-huit pages.
-4. Message sanitaire partout où un alcool apparaît ; bandeau « vente interdite aux mineurs » au
-   paiement.
+4. Message sanitaire partout où un alcool apparaît, une fois par section plutôt que sous chaque
+   produit : bande collée sous l'en-tête dans le rayon Spiritueux de la boutique, une ligne sous
+   chaque grille ou carrousel qui montre un alcool (la recette le vérifie). Bandeau « vente
+   interdite aux mineurs » au paiement.
 5. Fiches d'alcool limitées aux mentions autorisées. Les remèdes anciens sont de l'histoire.
 6. Un juriste valide l'ensemble (porte d'âge, patrimoine, photos où un alcool est visible).
 
