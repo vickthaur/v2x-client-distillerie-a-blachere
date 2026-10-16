@@ -44,7 +44,7 @@ export function pieceHTML(p, { link = true, eager = false, legende = false, tag 
   const img = `<img src="${p.image}"${srcset ? ` srcset="${srcset}" sizes="${sizes}"` : ''} alt="${esc(p.titre)}" width="${p.largeur}" height="${p.hauteur}" ${eager ? '' : 'loading="lazy"'} decoding="async" />`;
   const photo = /photographie/i.test(p.technique) && !/étiquette/i.test(p.technique);
   const frame = zoom
-    ? `<button type="button" class="piece__frame piece__zoom${photo ? ' piece__frame--photo' : ''}" aria-haspopup="dialog" aria-label="Voir en grand : ${esc(p.titre)}"><span class="piece__mat">${img}</span></button>`
+    ? `<button type="button" class="piece__frame piece__zoom${photo ? ' piece__frame--photo' : ''}" aria-haspopup="dialog" aria-label="Voir en grand\u00a0: ${esc(p.titre)}"><span class="piece__mat">${img}</span></button>`
     : `<span class="piece__frame${photo ? ' piece__frame--photo' : ''}"><span class="piece__mat">${img}</span></span>`;
   const cartel = `<span class="cartel">
       <span class="cartel__title">${esc(p.titre)}</span>

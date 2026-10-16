@@ -580,7 +580,7 @@ export function addToCart(slug, v = null, qty = 1, { open = false } = {}) {
     return false;
   }
   if (!p.enLigne) {
-    toast(`${p.nom} : ${DISPO_BOUTIQUE.charAt(0).toLowerCase()}${DISPO_BOUTIQUE.slice(1)}`);
+    toast(`${p.nom}\u00a0: ${DISPO_BOUTIQUE.charAt(0).toLowerCase()}${DISPO_BOUTIQUE.slice(1)}`);
     return false;
   }
   if (!v) v = p.contenances[0]?.id ?? null;

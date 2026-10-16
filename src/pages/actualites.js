@@ -24,7 +24,7 @@ function render() {
         <p class="newscard__text">${esc(a.texte)}</p>
         ${a.suite ? (aConfirmer(a.suite) ? noteRevue(esc(a.suite), { tag: 'p', cls: 'newscard__text' }) : `<p class="newscard__text">${esc(a.suite)}</p>`) : ''}
         ${a.lien ? `<a class="newscard__src" href="${a.lien.href}">${esc(a.lien.texte)}</a>` : ''}
-        ${a.source ? noteRevue(`<a class="newscard__src newscard__src--ext" href="${a.source.url}" target="_blank" rel="noopener">Source : ${esc(a.source.nom)}<span class="sr-only"> (nouvel onglet)</span></a>`, { tag: 'p' }) : ''}
+        ${a.source ? noteRevue(`<a class="newscard__src newscard__src--ext" href="${a.source.url}" target="_blank" rel="noopener">Source\u00a0: ${esc(a.source.nom)}<span class="sr-only"> (nouvel onglet)</span></a>`, { tag: 'p' }) : ''}
       </li>`,
     )
     .join('');

@@ -351,7 +351,7 @@ const VIEWS = {
       <div id="co-totals">${totalsFull(t)}</div>
       ${donHTML(t.lines)}
       ${t.unpriced ? `<p class="co-note">${plural(t.unpriced, 'article n’a', 'articles n’ont')} pas de prix affiché en ligne\u00a0: la distillerie vous confirme le montant avant de préparer la commande.</p>` : ''}
-      ${order.mode === 'livraison' ? '<p class="co-note">Livraison en France métropolitaine. Les frais de livraison suivent le barème de démonstration et sont offerts dès 120,00 € d’articles.</p>' : ''}
+      ${order.mode === 'livraison' ? '<p class="co-note">Livraison en France métropolitaine. Les frais de livraison suivent le barème de démonstration et sont offerts dès 120,00\u00a0€ d’articles.</p>' : ''}
       <p class="co-note">Droit de rétractation\u00a0: quatorze jours francs à compter de la réception, pour des articles intacts et non ouverts. Colis endommagé\u00a0: le refuser ou l’indiquer sur le récépissé\u202f; la distillerie réexpédie ou rembourse.</p>
       <div class="co-actions"><button type="button" class="btn btn--ghost" data-prev>Retour</button><button type="button" class="btn btn--primary" data-next>Passer au paiement</button></div>
     </div>`;
