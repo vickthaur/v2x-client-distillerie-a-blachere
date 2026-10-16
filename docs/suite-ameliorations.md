@@ -15,6 +15,28 @@ attend le pré-rendu (fiches et grille pré-rendues, affiche des fiches dans le 
 juriste) et le domaine définitif ; et deux points du 7 (pause des animations, impression) : voir
 « Deuxième vague : fait » ci-dessous. Les sections 1 à 7 restent la liste d'origine.
 
+## Troisième vague : finitions design (16 octobre 2026)
+
+Revue de toutes les pages publiques et de leurs états (menus, recherche, panier, porte d'âge,
+commande) à 390 × 844 et 1 440 × 900, puis corrections (branche `design`, chantiers `design-textes`,
+`design-cartes`, `design-fiche`). Recette rapide 198/198, `recette:vercel` sans problème.
+
+| Point | Avant | Après |
+|---|---|---|
+| Recherche au téléphone | deux colonnes serrées, images sur les textes, bouton coupé | une colonne, vignettes réduites |
+| Pastille « Maquette non officielle » | 200 × 40 px sur le contenu de chaque écran | mention à l'arrivée, puis rond « V2X » de 40 px |
+| Campagnes au téléphone | étiquettes de prix empilées sous la pastille ; citron 3D sur les boutons | étiquettes côte à côte dans le premier écran ; éléments flottants dans le cadre des bouteilles |
+| Fiche au téléphone : prix / bouton d'achat | sous la ligne de flottaison | 616 / 684 px (PAC) |
+| Cartes produit | surtitre sur 2 lignes, rangées irrégulières, message sanitaire sous chaque spiritueux | surtitre court, rangées alignées, bouton rond au téléphone, message une fois par section |
+| Boutique au bureau : CLS | 0,691 | 0 |
+| Typographie | « 6,70€ », guillemets et « % vol. » coupés, titres en capitales, fautes reprises | espaces insécables, casse de phrase, corrections (`src/data/corrections.js`, `src/lib/typo.js`) |
+| Pied de page au téléphone | 2,5 écrans de liens | groupes repliables (environ 650 px de moins sur chaque page) |
+| Hauteur des pages au téléphone | accueil 10 824, boutique 17 931, recettes 23 992 px | 10 118, 15 036, 18 252 px |
+
+Ajouts : bandeau « Commander à la distillerie » (livraison offerte dès 120 €, retrait gratuit,
+paiement, fabrication) sur l'accueil, cartes de presse avec pictogramme, photos du savoir-faire
+recadrées, recettes cadrées en paysage au téléphone, produits utilisés sous chaque recette.
+
 ## Deuxième vague : fait (avant → après)
 
 Même méthode que pour la première vague : build de production servi par `vite preview`, Chromium sans
