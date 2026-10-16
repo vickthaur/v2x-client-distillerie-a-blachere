@@ -46,7 +46,13 @@
 
   function calque() {
     const racine = document.createElement('div');
-    racine.className = 'v2x';
+    // La mention en entier une fois par visite (première page) ; ensuite la pastille arrive repliée.
+    let dejaVue = false;
+    try {
+      dejaVue = sessionStorage.getItem('v2x_pastille_vue') === '1';
+      sessionStorage.setItem('v2x_pastille_vue', '1');
+    } catch { /* stockage bloqué : mention en entier à chaque page */ }
+    racine.className = dejaVue ? 'v2x v2x--compacte' : 'v2x';
     racine.lang = 'fr'; // le calque reste en français, y compris sur les pages anglaises : il s'adresse au propriétaire
     racine.innerHTML = `
       <button class="v2x-pastille" type="button" aria-expanded="false" aria-controls="v2x-panneau">
@@ -81,16 +87,19 @@
     const panneau = racine.querySelector('.v2x-panneau');
     const ouvrir = (o) => { panneau.hidden = !o; pastille.setAttribute('aria-expanded', String(o)); };
 
-    // La mention « Maquette non officielle » s'affiche en entier à l'arrivée sur chaque page, puis la
-    // pastille se replie en rond « V2X » (au premier défilement ou après quelques secondes) pour ne
-    // plus couvrir le contenu ; elle se déplie au survol et au focus, et le panneau reste à un toucher.
+    // La mention « Maquette non officielle » s'affiche en entier à l'arrivée (première page de la
+    // visite), puis la pastille se replie en rond « V2X » (au premier défilement ou après quelques
+    // secondes) pour ne plus couvrir le contenu ; elle se déplie au survol et au focus, et le panneau
+    // reste à un toucher. La mention complète reste aussi en pied de page et dans les mentions légales.
     const replier = () => {
       racine.classList.add('v2x--compacte');
       removeEventListener('scroll', auDefilement);
     };
     const auDefilement = () => { if (scrollY > 80) replier(); };
-    addEventListener('scroll', auDefilement, { passive: true });
-    setTimeout(replier, 4500);
+    if (!dejaVue) {
+      addEventListener('scroll', auDefilement, { passive: true });
+      setTimeout(replier, 4000);
+    }
     pastille.addEventListener('click', () => ouvrir(panneau.hidden));
     racine.querySelector('.v2x-fermer').addEventListener('click', () => ouvrir(false));
     addEventListener('keydown', (e) => { if (e.key === 'Escape') ouvrir(false); });
