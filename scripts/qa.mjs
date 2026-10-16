@@ -10,6 +10,8 @@
 //     la remise à zéro, les variantes et leurs prix ;
 //   - les totaux du panier, la case « 18 ans », l'acceptation des CGV, le parcours de commande ;
 //   - qu'une personne mineure ne voit aucun alcool (texte, libellés, liens, recettes) ;
+//   - le message sanitaire une fois par section qui montre des cartes d'alcool, jamais sous chaque
+//     carte, et la bande collante du rayon Spiritueux de la boutique ;
 //   - les logotypes PAC et Fun Blue dans les titres, la police de marque dans le texte ;
 //   - la page 404 (statut 404), noindex, robots.txt ;
 //   - deuxième vague : pas de double marge sous l'en-tête, barre d'achat des fiches, 3D sobre des
@@ -492,7 +494,7 @@ for (const vp of ['bureau', 'mobile']) {
   await shot(p2, 'mobile-30-porte-age', false);
   await p2.click('#gate-skip');
   await p2.waitForTimeout(400);
-  const skip = await p2.evaluate(() => ({ open: document.querySelector('#gate').open, alcohol: document.querySelectorAll('.card:not(.card--locked) .card__evin').length }));
+  const skip = await p2.evaluate(() => ({ open: document.querySelector('#gate').open, alcohol: document.querySelectorAll('.card[data-alcool]').length }));
   check('« Continuer avec les sirops seulement » : aucun spiritueux affiché', !skip.open && skip.alcohol === 0);
   await ctx2.close();
 }
@@ -905,6 +907,54 @@ for (const vp of ['bureau', 'mobile']) {
   }
   check(`Mineur : aucun nom, lien ou visuel d’alcool sur ${paths.length} pages`, all);
   await ctx.close();
+}
+
+// ---------- 9 bis. Message sanitaire : une fois par ensemble de cartes (README, règle 4) ----------
+// Plus de mention sous chaque carte : toute section qui montre des cartes d'alcool (data-alcool)
+// porte le message sanitaire (bande du rayon Spiritueux de la boutique, ligne sous le carrousel de
+// l'accueil et sous chaque rayon de la page Spiritueux). Dans la boutique, la bande reste collée
+// sous l'en-tête tant que des spiritueux sont à l'écran, et n'apparaît pas devant les sirops.
+{
+  const EVIN = 'L’abus d’alcool est dangereux pour la santé, à consommer avec modération.';
+  const ctx = await context('mobile', 'majeur');
+  const attendu = { '/': true, '/boutique': true, '/boutique?univers=spiritueux': true, '/boutique?q=marc': true, '/spiritueux': true, '/boutique/pastis-marra': true, '/couleur-provence': false, '/boutique/pac-citron': false };
+  const vues = [];
+  for (const path of Object.keys(attendu)) {
+    const { page } = await open(ctx, path, { wait: 1500, label: `message sanitaire ${path}` });
+    const v = await page.evaluate((evin) => {
+      const cartes = [...document.querySelectorAll('.card[data-alcool]')];
+      const sections = [...new Set(cartes.map((c) => c.closest('section')))];
+      const porte = (s) => !!s && [...s.querySelectorAll('p, span, div')].some((e) => !e.closest('.card') && e.getClientRects().length > 0 && e.textContent.includes(evin));
+      return { cartes: cartes.length, sections: sections.length, sans: sections.filter((s) => !porte(s)).map((s) => s?.id || s?.className || 'hors section'), parCarte: document.querySelectorAll('.card .evin, .card__evin').length };
+    }, EVIN);
+    vues.push({ path, ...v });
+    await page.close();
+  }
+  await ctx.close();
+  const fautes = vues.filter((v) => v.sans.length || v.parCarte || !v.cartes !== !attendu[v.path]);
+  check(
+    `Message sanitaire une fois par section qui montre un alcool, aucun sous les cartes (${vues.length} pages)`,
+    !fautes.length,
+    (fautes.length ? fautes : vues).map((v) => `${v.path} : ${v.cartes} cartes d’alcool, ${v.sections} section(s)${v.sans.length ? `, sans message : ${v.sans.join(', ')}` : ''}${v.parCarte ? `, ${v.parCarte} sous les cartes` : ''}`).join(' ; '),
+  );
+  for (const vp of ['mobile', 'bureau']) {
+    const c = await context(vp, 'majeur');
+    const { page } = await open(c, '/boutique', { wait: 1500, label: `bande sanitaire ${vp}` });
+    // la bande, une fois la carte voulue au milieu de l'écran (l'en-tête réduit suit le défilement)
+    const bandeDevant = (sel) =>
+      page.evaluate(async (s) => {
+        document.querySelector(s)?.scrollIntoView({ block: 'center' });
+        await new Promise((r) => setTimeout(r, 500));
+        const b = document.querySelector('.shop-evin')?.getBoundingClientRect();
+        const hd = document.querySelector('.hd__main').getBoundingClientRect();
+        return b ? { haut: Math.round(b.top), entete: Math.round(hd.bottom), ecran: innerHeight } : null;
+      }, sel);
+    const milieu = await bandeDevant('.shop-group--spiritueux .card:nth-child(13)');
+    if (vp === 'mobile') await shot(page, 'mobile-50-boutique-bande-sanitaire', false);
+    const sirops = await bandeDevant('.shop-group--sirops .card');
+    check(`${vp} : bande du message sanitaire collée sous l’en-tête au milieu des spiritueux, absente de l’écran devant les sirops`, !!milieu && Math.abs(milieu.haut - milieu.entete) <= 2 && !!sirops && sirops.haut >= sirops.ecran, JSON.stringify({ milieu, sirops }));
+    await c.close();
+  }
 }
 
 // ---------- 10. 404, robots.txt ----------

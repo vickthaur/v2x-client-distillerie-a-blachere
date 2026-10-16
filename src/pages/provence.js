@@ -4,7 +4,7 @@ import '../styles/base.css';
 import '../styles/home.css';
 import '../styles/brand.css';
 import { initSite } from '../app/site.js';
-import { cardHTML } from '../app/cards.js';
+import { cardHTML, evinCartesHTML } from '../app/cards.js';
 import { mountBrandHero, recipesHTML, piecesHTML, bindAdd, bySlug, reveal } from '../app/brand.js';
 import { products } from '../data/products.js';
 import textes from '../data/textes.js';
@@ -21,7 +21,8 @@ const histoire = textes.histoire.periodes.flatMap((x) => x.paragraphes).find((x)
 const phrase = histoire ? /je lance la gamme «\s*Couleur Provence\s*».*?réglisse/.exec(histoire)?.[0] : null;
 $('#cp-lead').innerHTML = `${phrase ? `«\u00a0Fidèle à mon âme provençale et guidée par l’innovation, ${esc(phrase.replace(/\s+$/, ''))}\u00a0», raconte ${selonRevue('la maison', 'la page Histoire de la maison')}. ` : ''}Aujourd’hui, ${plural(cp.length, 'sirop')} dans la boutique.`;
 
-// La gamme, par contenance (celle de la fiche officielle)
+// La gamme, par contenance (celle de la fiche officielle). Toutes les cartes sont de la gamme : leur
+// surtitre dit la famille d'arômes (« Fruits rouges », « Agrumes ») plutôt que « Couleur Provence® ».
 const groups = new Map();
 for (const p of cp) {
   const v = p.contenances[0]?.volume || 'Autres';
@@ -33,7 +34,7 @@ $('#cp-groups').innerHTML = [...groups.entries()]
   .map(
     ([v, items]) => `<section class="bgamme__group" aria-label="Sirops en ${esc(v)}">
       <div class="bgamme__head"><h3 class="bgamme__title">En ${esc(v)}<span>${plural(items.length, 'parfum')}</span></h3></div>
-      <ul class="grid">${items.map((p) => cardHTML(p)).join('')}</ul>
+      <ul class="grid">${items.map((p) => cardHTML(p, { surtitre: 'famille' })).join('')}</ul>${evinCartesHTML(items)}
     </section>`,
   )
   .join('');

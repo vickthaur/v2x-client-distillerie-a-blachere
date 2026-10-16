@@ -6,7 +6,7 @@ import '../styles/base.css';
 import '../styles/home.css';
 import '../styles/operation.css';
 import { initSite, addToCart, reveal } from '../app/site.js';
-import { cardHTML } from '../app/cards.js';
+import { cardHTML, evinCartesHTML } from '../app/cards.js';
 import { fillPlaces } from '../app/lieux.js';
 import { imgPiece, pieceById, pieceHTML } from '../app/pieces.js';
 import { products, bySlug, minPrice, euro, EVIN } from '../data/products.js';
@@ -108,12 +108,16 @@ function assurance() {
 
 // ---------- 3. La boutique ----------
 // Meilleures ventes du site officiel, puis des sirops ; les spiritueux seulement pour les majeurs.
+// Message sanitaire : une ligne sous le carrousel quand il montre un alcool (pas sous chaque carte).
 function shelf() {
   const ok = (p) => p.enLigne && minPrice(p) !== null && (!p.alcool || site.majeur);
   const best = products.filter((p) => p.bestSeller && ok(p));
   const more = products.filter((p) => !p.bestSeller && p.gamme === 'couleur-provence' && ok(p));
   const picks = [...best, ...more].slice(0, 12);
   $('#shelf-track').innerHTML = picks.map((p) => cardHTML(p)).join('');
+  $('#shelf-evin')?.remove();
+  const evin = evinCartesHTML(picks);
+  if (evin) $('#shelf').insertAdjacentHTML('afterend', `<div class="wrap" id="shelf-evin">${evin}</div>`);
   upgradeThumbs($('#shelf-track'));
 }
 const vp = $('#shelf');

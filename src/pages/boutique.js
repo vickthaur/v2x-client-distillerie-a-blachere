@@ -30,19 +30,21 @@ function renderTiles() {
     { id: 'fun-blue', label: 'Fun Blue<sup>®</sup>' },
     { id: 'couleur-provence', label: 'Couleur Provence<sup>®</sup>' },
   ];
-  const all = `<a class="cat" href="/boutique" data-tile="tout">Tout<span class="cat__n">${base.length}</span></a>`;
+  // Le nom dans un seul élément (le ® reste en exposant, collé au nom : l'onglet est en flex), le
+  // nombre à part, plus discret.
+  const all = `<a class="cat" href="/boutique" data-tile="tout"><span class="cat__label">Tout</span><span class="cat__n">${base.length}</span></a>`;
   const html = tiles
     .map((t) => {
       const n = base.filter((p) => p.gamme === t.id).length;
-      return `<a class="cat" href="/boutique?gamme=${t.id}" data-tile="${t.id}">${t.label}<span class="cat__n">${n}</span></a>`;
+      return `<a class="cat" href="/boutique?gamme=${t.id}" data-tile="${t.id}"><span class="cat__label">${t.label}</span><span class="cat__n">${n}</span></a>`;
     })
     .join('');
   const spirits =
     site.age === 'mineur'
       ? ''
       : site.majeur
-        ? `<a class="cat" href="/boutique?univers=spiritueux" data-tile="spiritueux">Spiritueux 18+<span class="cat__n">${spiritsCount}</span></a>`
-        : `<button type="button" class="cat cat--locked" data-verify>${icons.lock}Spiritueux 18+<span class="cat__n">vérifier mon âge</span></button>`;
+        ? `<a class="cat" href="/boutique?univers=spiritueux" data-tile="spiritueux"><span class="cat__label">Spiritueux 18+</span><span class="cat__n">${spiritsCount}</span></a>`
+        : `<button type="button" class="cat cat--locked" data-verify>${icons.lock}<span class="cat__label">Spiritueux 18+</span><span class="cat__n">vérifier mon âge</span></button>`;
   $('#shop-tiles').innerHTML = all + html + spirits;
   ajusterBarre();
 }
@@ -66,6 +68,8 @@ if ('ResizeObserver' in window) new ResizeObserver(() => ajusterBarre()).observe
 document.fonts?.ready.then(ajusterBarre);
 
 // ---------- Formulaire de filtres ----------
+// ® en exposant dans les libellés (« Sirops Couleur Provence® »), comme dans les rayons.
+const deposee = (html) => html.replace(/®/g, '<sup>®</sup>');
 const opt = (type, name, value, label, n, checked, extra = '') =>
   `<label class="opt${n === 0 && !checked ? ' is-empty' : ''}"><input type="${type}" name="${name}" value="${esc(value)}"${checked ? ' checked' : ''}${n === 0 && !checked ? ' disabled' : ''} ${extra}/><span class="opt__label">${label}</span><span class="opt__n" data-n="${name}:${esc(value)}">${n}</span></label>`;
 
@@ -96,7 +100,7 @@ function buildForm() {
   else if (site.age !== 'mineur') uni.push(`<button type="button" class="opt opt--locked" data-verify>${icons.lock}<span class="opt__label">Spiritueux <small>18+ · vérifier mon âge</small></span></button>`);
   groups.push(`<fieldset class="fgroup"><legend>Univers</legend>${uni.join('')}</fieldset>`);
   if (f.gammes.length > 1)
-    groups.push(`<fieldset class="fgroup"><legend>Gamme</legend>${f.gammes.map((g) => opt('checkbox', 'gamme', g.id, esc(g.nom), g.n, state.gammes.has(g.id))).join('')}</fieldset>`);
+    groups.push(`<fieldset class="fgroup"><legend>Gamme</legend>${f.gammes.map((g) => opt('checkbox', 'gamme', g.id, deposee(esc(g.nom)), g.n, state.gammes.has(g.id))).join('')}</fieldset>`);
   if (f.familles.length > 1)
     groups.push(`<fieldset class="fgroup"><legend>Arôme</legend>${f.familles.map((x) => opt('checkbox', 'arome', x.id, esc(x.nom), x.n, state.familles.has(x.id))).join('')}</fieldset>`);
   if (f.volumes.length > 1)
@@ -175,13 +179,19 @@ function render({ scroll = false } = {}) {
   const sirops = results.filter((p) => !p.alcool);
   const spirits = results.filter((p) => p.alcool);
   const list = (items, locked = false) => `<ul class="grid">${items.map(cardHTML).join('')}${locked ? lockedCardHTML() : ''}</ul>`;
-  const group = (id, title, body, extra = '') =>
-    `<section class="shop-group shop-group--${id}"><div class="shop-group__head"><h2 class="shop-group__title">${title}</h2>${extra}</div>${body}</section>`;
+  const group = (id, title, body) =>
+    `<section class="shop-group shop-group--${id}">${title ? `<div class="shop-group__head"><h2 class="shop-group__title">${title}</h2></div>` : ''}${body}</section>`;
+  // Message sanitaire (loi Évin) : une bande fine, collée sous l'en-tête tant que des spiritueux
+  // sont à l'écran, au lieu d'une mention sous chaque carte.
+  const evin = spirits.length ? `<p class="shop-evin">${esc(EVIN)}</p>` : '';
   if (lockedOnly) grid.innerHTML = site.age === 'mineur' ? '' : list([], true);
   else if (sirops.length && (spirits.length || showLocked))
     grid.innerHTML =
       group('sirops', `Sirops <span>${plural(sirops.length, 'produit')}</span>`, list(sirops)) +
-      group('spiritueux', `Spiritueux · 18+ <span>${spirits.length ? plural(spirits.length, 'produit') : ''}</span>`, list(spirits, showLocked), spirits.length ? `<p class="evin">${esc(EVIN)}</p>` : '');
+      group('spiritueux', `Spiritueux · 18+ <span>${spirits.length ? plural(spirits.length, 'produit') : ''}</span>`, evin + list(spirits, showLocked));
+  // que des spiritueux (rayon Spiritueux, recherche, gamme) : le même rayon, sans titre (le compteur
+  // le dit déjà)
+  else if (spirits.length) grid.innerHTML = group('spiritueux', '', evin + list(results, showLocked));
   else grid.innerHTML = list(results, showLocked);
   $('#shop-empty').hidden = lockedOnly || results.length > 0;
   const n = lockedOnly ? 0 : results.length;
@@ -233,7 +243,8 @@ function stocks(grid) {
     if (indisponible(etat)) {
       btn.disabled = true;
       btn.classList.add('is-off');
-      btn.innerHTML = `<span>${esc(ETATS[etat])}</span>`;
+      // au téléphone, le bouton rond garde un signe (le libellé est dans la pastille de la vignette)
+      btn.innerHTML = `${icons.minus}<span>${esc(ETATS[etat])}</span>`;
       btn.setAttribute('aria-label', `${p.nom}\u00a0: ${ETATS[etat].toLowerCase()}`);
       card.classList.add('is-rupture');
     }
@@ -253,7 +264,7 @@ function renderChips() {
   if (state.degre) chips.push(['degre', '', `${state.degre[0]} – ${state.degre[1]}\u202f%\u00a0vol.`]);
   if (state.best) chips.push(['meilleures', '', 'Meilleures ventes']);
   $('#shop-chips').innerHTML = chips.length
-    ? chips.map(([k, v, label]) => `<button type="button" class="chip" data-chip="${k}" data-value="${esc(v)}" aria-label="Retirer le filtre ${esc(label)}">${esc(label)}${icons.close}</button>`).join('') +
+    ? chips.map(([k, v, label]) => `<button type="button" class="chip" data-chip="${k}" data-value="${esc(v)}" aria-label="Retirer le filtre ${esc(label)}"><span>${deposee(esc(label))}</span>${icons.close}</button>`).join('') +
       '<button type="button" class="chip chip--reset" data-reset>Tout effacer</button>'
     : '';
 }
