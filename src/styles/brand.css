@@ -250,6 +250,13 @@
 .rec__evin { font-size: 0.82rem; }
 @media (max-width: 1000px) { .rec-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 900px) { .rec__in { grid-template-columns: 1fr; } .rec__img { position: relative; top: 0; } }
+/* Téléphone : les photos des recettes (en hauteur, 619 × 1 100) cadrées en paysage au-dessus de la
+   recette, au lieu d'un écran entier de photo par recette */
+@media (max-width: 640px) {
+  .rec__in { gap: 20px; }
+  .rec__img { aspect-ratio: 4 / 3; }
+  .rec__img img { height: 100%; object-fit: cover; object-position: 50% 58%; }
+}
 
 /* ---------- Mentions légales, conditions de vente ---------- */
 .legal-head { max-width: 860px; }

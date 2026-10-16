@@ -428,7 +428,8 @@ body[data-page='panier'] .ft__news { display: none; }
   .ft__cols { grid-template-columns: minmax(0, 1fr); gap: 0; border-top: 1px solid rgba(244, 239, 230, 0.12); }
   .ft__contact { grid-column: auto; }
   .ft__col { border-bottom: 1px solid rgba(244, 239, 230, 0.12); }
-  .ft__col > summary { position: relative; display: flex; align-items: center; min-height: 56px; margin: 0; padding-right: 32px; cursor: pointer; }
+  /* bloc et marges plutôt que flex : un <summary> ne devient pas toujours un conteneur flex (Safari) */
+  .ft__col > summary { position: relative; display: block; margin: 0; padding: 21px 32px 21px 0; cursor: pointer; }
   .ft__col > summary::after { content: ''; position: absolute; right: 6px; top: 50%; width: 9px; height: 9px; border-right: 1.6px solid currentColor; border-bottom: 1.6px solid currentColor; transform: translateY(-70%) rotate(45deg); transition: transform 0.3s var(--ease); }
   .ft__col[open] > summary::after { transform: translateY(-30%) rotate(-135deg); }
   .ft__col-in { gap: 0; padding-bottom: 14px; }
