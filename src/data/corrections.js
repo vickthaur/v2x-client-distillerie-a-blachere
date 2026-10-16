@@ -5,7 +5,9 @@
 // src/data/textes.js, src/app/pieces.js). Les JSON générés par scripts/import-site.mjs gardent les
 // textes officiels tels qu'ils ont été relevés : un nouvel import ne perd donc aucune correction, et
 // test/corrections.test.js signale une correction dont le texte d'origine a disparu (texte changé
-// sur le site officiel). Le serveur (catalogue de l'API, CRM, espace pro) garde les textes officiels.
+// sur le site officiel). Le serveur garde les textes officiels (catalogue de l'API : commandes,
+// courriels, exports du CRM, données de l'espace pro) : scripts/server-catalogue.mjs lit
+// produitsOfficiels.
 //
 // Règles : jamais de mise en minuscules aveugle, chaque correction est écrite à la main ; le sens
 // ne change pas, aucune phrase n'est réécrite ni raccourcie ; les symboles ® restent ; dans les
@@ -36,7 +38,7 @@ export const NETTOYAGE = [
   [/\.{3,}/g, '…'],
   [/ +…/g, '…'],
   [/…(?=[\p{L}(])/gu, '… '],
-  // espaces en trop : avant ®, avant une virgule ou un point, doublées ; « d’ écorce »
+  // espaces en trop : avant ®, avant une virgule ou un point, doublées
   [/ +®/g, '®'],
   [/ +([.,])(?=\s|$|[)»])/g, '$1'],
   [/ {2,}/g, ' '],

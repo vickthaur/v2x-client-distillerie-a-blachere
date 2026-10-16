@@ -850,7 +850,8 @@ for (const vp of ['bureau', 'mobile']) {
 
 // ---------- 9. Une personne mineure ne voit aucun alcool ----------
 {
-  const FORBIDDEN = /Marra|Camarguais|Camarguaise|Lou Gardian|Verveine « Auguste|Ardéchoise|Flirt|Légats|Legats|Gros Calan|Origan|Comtadine|Magistrale|Bronzini|Elixir|Élixir|pastis|liqueur|eaux?-de-vie|vieux marc|Mauresque|Tequila|bière|arquebuse|millésime/i;
+  // « Verveine « Auguste® » » : espace insécable après le guillemet (src/lib/typo.js)
+  const FORBIDDEN = /Marra|Camarguais|Camarguaise|Lou Gardian|Verveine «\s*Auguste|Ardéchoise|Flirt|Légats|Legats|Gros Calan|Origan|Comtadine|Magistrale|Bronzini|Elixir|Élixir|pastis|liqueur|eaux?-de-vie|vieux marc|Mauresque|Tequila|bière|arquebuse|millésime/i;
   const SLUGS = ALCOOLS.map((p) => p.slug);
   const RECIPES = recettes.filter((r) => r.alcool).map((r) => `#${r.id}`);
   const paths = ['/', '/pac-citron', '/fun-blue', '/couleur-provence', '/recettes', '/spiritueux', '/la-maison', '/musee', '/visiter', '/boutique', '/boutique?univers=spiritueux', '/boutique/pastis-marra', '/boutique/sirop-anis', '/boutique/sirop-couleur-provence-grenadine', '/boutique/pac-citron', '/ou-trouver', '/actualites', '/panier'];
