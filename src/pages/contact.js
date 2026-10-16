@@ -11,6 +11,7 @@ import { api } from '../lib/api.js';
 import { mountDemoBar } from '../lib/demo.js';
 import { $, $$, esc } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
+import { noteRevue } from '../lib/revue.js';
 
 const site = initSite({ askAge: false });
 const NB = ' ';
@@ -49,7 +50,7 @@ $('#contact-coord').innerHTML = `
     <li><a class="arrow-link" href="/espace-pro">Espace professionnel ${icons.arrow}</a></li>
     <li><a class="arrow-link" href="/ou-trouver">Où trouver nos produits ${icons.arrow}</a></li>
   </ul>
-  <p class="note">${esc(infos.horairesNote)}</p>`;
+  ${noteRevue(`<p class="note">${esc(infos.horairesNote)}</p>`, { tag: 'div' })}`;
 
 // ---------- Formulaire ----------
 const form = $('#contact-form');
