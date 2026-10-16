@@ -51,7 +51,7 @@ export function compositionHTML(p) {
     <div><dt>Ingrédients</dt><dd>${esc(p.ingredients || '—')}</dd></div>
     ${rows.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}
   </dl>
-  <p class="bnote">Valeurs pour 100 ml de sirop non dilué${noteRevue(', d’après la fiche du produit sur le site de la distillerie')}.</p>`;
+  <p class="bnote">Valeurs pour 100\u00a0ml de sirop non dilué${noteRevue(', d’après la fiche du produit sur le site de la distillerie')}.</p>`;
 }
 
 // Recettes officielles avec ce produit (les recettes avec alcool seulement pour les majeurs).

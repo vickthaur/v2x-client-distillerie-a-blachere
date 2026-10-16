@@ -245,7 +245,7 @@ function render() {
   <article class="pp wrap" data-alcool="${p.alcool ? '1' : '0'}">
     <div class="pp__stage" id="stage">
       <div class="pp__poster" id="poster">${thumbHTML(p, { eager: true })}</div>
-      <canvas class="pp__canvas" id="viewer" tabindex="0" aria-label="Bouteille ${esc(p.nom)} en 3D : faites-la tourner en la faisant glisser, ou avec les flèches gauche et droite"></canvas>
+      <canvas class="pp__canvas" id="viewer" tabindex="0" aria-label="Bouteille ${esc(p.nom)} en 3D\u00a0: faites-la tourner en la faisant glisser, ou avec les flèches gauche et droite"></canvas>
       <div class="pp__stage-ui">
         <p class="pp__hint">${icons.rotate}<span>Glissez pour faire tourner</span></p>
         <div class="pp__sides" role="group" aria-label="Voir la bouteille" hidden>
