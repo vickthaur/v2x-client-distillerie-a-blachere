@@ -19,10 +19,13 @@
    et téléphone : une colonne. */
 .shop__bar { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'cats tools' 'status status'; align-items: end; column-gap: clamp(16px, 2vw, 28px); }
 .shop__bar.is-serre { grid-template-areas: 'cats cats' 'status tools'; }
-.shop__cats { grid-area: cats; flex-wrap: nowrap; min-width: 0; }
+/* Place réservée avant que le script ne remplisse les rayons, le compteur et la grille : rien ne
+   bouge au chargement (CLS). 49 px : la hauteur d'une rangée de rayons ; 46 px (56 au bureau, voir
+   plus bas) : celle du compteur. */
+.shop__cats { grid-area: cats; flex-wrap: nowrap; min-width: 0; min-height: 49px; }
 .shop__cats .cat { flex: none; }
 .shop__tools { grid-area: tools; display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding-bottom: 3px; }
-.shop__bar.is-serre .shop__tools { align-self: center; padding: 10px 0; }
+.shop__bar.is-serre .shop__tools { align-self: center; padding: 6px 0; }
 .shop__tools .shop-search { flex: none; width: 250px; min-width: 0; }
 /* au bureau, le texte d'exemple « Citron, menthe, grenadine… » tient entier dans les 250 px */
 .shop__tools .shop-search input { min-height: 44px; border: 1px solid var(--line-2); border-radius: 999px; padding: 0 12px 0 40px; background: #fff; font-size: 0.94rem; }
@@ -37,8 +40,11 @@
 .shop__filters-btn { display: none; }
 .shop__filters-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
 .shop__filters-n { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: #fff; color: var(--ink); font-size: 0.72rem; font-weight: 800; }
-.shop__status { grid-area: status; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; min-height: 34px; padding: 10px 0 12px; scroll-margin-top: calc(var(--main-h) + 12px); }
+.shop__status { grid-area: status; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; min-height: 46px; padding: 10px 0 12px; scroll-margin-top: calc(var(--main-h) + 12px); }
 .shop__bar.is-serre .shop__status { align-self: center; padding-block: 10px; }
+/* Bureau : la barre a la même hauteur sur une ou deux rangées (compteur de 56 px, outils de 44 px
+   et 6 px de marge) : quand le script passe la recherche et le tri sous les rayons, rien ne bouge. */
+@media (min-width: 1024px) { .shop__status { min-height: 56px; padding-block: 10px; } }
 .shop__count { font-size: 0.92rem; color: var(--ink-2); }
 .shop__count strong { color: var(--ink); }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -96,6 +102,9 @@
 .filters__note { padding-top: 12px; font-size: 0.78rem; line-height: 1.45; color: var(--ink-3); }
 
 /* ---------- Grille ---------- */
+/* avant le premier rendu du script : la grille tient déjà la hauteur d'un écran (la note et le pied
+   de page ne remontent pas dans l'écran pour en être chassés aussitôt) */
+.shop-groups:empty { min-height: 100vh; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(214px, 1fr)); gap: clamp(28px, 2.6vw, 40px) clamp(14px, 1.6vw, 24px); }
 .shop-group + .shop-group { margin-top: 64px; }
 .shop-group__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 20px; margin-bottom: 18px; padding-bottom: 10px; border-bottom: 1px solid var(--ink); }

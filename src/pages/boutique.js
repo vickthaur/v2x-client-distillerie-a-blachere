@@ -30,19 +30,21 @@ function renderTiles() {
     { id: 'fun-blue', label: 'Fun Blue<sup>®</sup>' },
     { id: 'couleur-provence', label: 'Couleur Provence<sup>®</sup>' },
   ];
-  const all = `<a class="cat" href="/boutique" data-tile="tout">Tout<span class="cat__n">${base.length}</span></a>`;
+  // Le nom dans un seul élément (le ® reste en exposant, collé au nom : l'onglet est en flex), le
+  // nombre à part, plus discret.
+  const all = `<a class="cat" href="/boutique" data-tile="tout"><span class="cat__label">Tout</span><span class="cat__n">${base.length}</span></a>`;
   const html = tiles
     .map((t) => {
       const n = base.filter((p) => p.gamme === t.id).length;
-      return `<a class="cat" href="/boutique?gamme=${t.id}" data-tile="${t.id}">${t.label}<span class="cat__n">${n}</span></a>`;
+      return `<a class="cat" href="/boutique?gamme=${t.id}" data-tile="${t.id}"><span class="cat__label">${t.label}</span><span class="cat__n">${n}</span></a>`;
     })
     .join('');
   const spirits =
     site.age === 'mineur'
       ? ''
       : site.majeur
-        ? `<a class="cat" href="/boutique?univers=spiritueux" data-tile="spiritueux">Spiritueux 18+<span class="cat__n">${spiritsCount}</span></a>`
-        : `<button type="button" class="cat cat--locked" data-verify>${icons.lock}Spiritueux 18+<span class="cat__n">vérifier mon âge</span></button>`;
+        ? `<a class="cat" href="/boutique?univers=spiritueux" data-tile="spiritueux"><span class="cat__label">Spiritueux 18+</span><span class="cat__n">${spiritsCount}</span></a>`
+        : `<button type="button" class="cat cat--locked" data-verify>${icons.lock}<span class="cat__label">Spiritueux 18+</span><span class="cat__n">vérifier mon âge</span></button>`;
   $('#shop-tiles').innerHTML = all + html + spirits;
   ajusterBarre();
 }
@@ -66,6 +68,8 @@ if ('ResizeObserver' in window) new ResizeObserver(() => ajusterBarre()).observe
 document.fonts?.ready.then(ajusterBarre);
 
 // ---------- Formulaire de filtres ----------
+// ® en exposant dans les libellés (« Sirops Couleur Provence® »), comme dans les rayons.
+const deposee = (html) => html.replace(/®/g, '<sup>®</sup>');
 const opt = (type, name, value, label, n, checked, extra = '') =>
   `<label class="opt${n === 0 && !checked ? ' is-empty' : ''}"><input type="${type}" name="${name}" value="${esc(value)}"${checked ? ' checked' : ''}${n === 0 && !checked ? ' disabled' : ''} ${extra}/><span class="opt__label">${label}</span><span class="opt__n" data-n="${name}:${esc(value)}">${n}</span></label>`;
 
@@ -96,7 +100,7 @@ function buildForm() {
   else if (site.age !== 'mineur') uni.push(`<button type="button" class="opt opt--locked" data-verify>${icons.lock}<span class="opt__label">Spiritueux <small>18+ · vérifier mon âge</small></span></button>`);
   groups.push(`<fieldset class="fgroup"><legend>Univers</legend>${uni.join('')}</fieldset>`);
   if (f.gammes.length > 1)
-    groups.push(`<fieldset class="fgroup"><legend>Gamme</legend>${f.gammes.map((g) => opt('checkbox', 'gamme', g.id, esc(g.nom), g.n, state.gammes.has(g.id))).join('')}</fieldset>`);
+    groups.push(`<fieldset class="fgroup"><legend>Gamme</legend>${f.gammes.map((g) => opt('checkbox', 'gamme', g.id, deposee(esc(g.nom)), g.n, state.gammes.has(g.id))).join('')}</fieldset>`);
   if (f.familles.length > 1)
     groups.push(`<fieldset class="fgroup"><legend>Arôme</legend>${f.familles.map((x) => opt('checkbox', 'arome', x.id, esc(x.nom), x.n, state.familles.has(x.id))).join('')}</fieldset>`);
   if (f.volumes.length > 1)
@@ -260,7 +264,7 @@ function renderChips() {
   if (state.degre) chips.push(['degre', '', `${state.degre[0]} – ${state.degre[1]}\u202f% vol.`]);
   if (state.best) chips.push(['meilleures', '', 'Meilleures ventes']);
   $('#shop-chips').innerHTML = chips.length
-    ? chips.map(([k, v, label]) => `<button type="button" class="chip" data-chip="${k}" data-value="${esc(v)}" aria-label="Retirer le filtre ${esc(label)}">${esc(label)}${icons.close}</button>`).join('') +
+    ? chips.map(([k, v, label]) => `<button type="button" class="chip" data-chip="${k}" data-value="${esc(v)}" aria-label="Retirer le filtre ${esc(label)}"><span>${deposee(esc(label))}</span>${icons.close}</button>`).join('') +
       '<button type="button" class="chip chip--reset" data-reset>Tout effacer</button>'
     : '';
 }
