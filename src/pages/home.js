@@ -100,8 +100,7 @@ function assurance() {
   const items = [
     [icons.truck, `Livraison offerte dès ${euro(BAREME.francoTTC).replace(',00', '')}`, 'Colissimo, à domicile ou en point relais'],
     [icons.store, 'Retrait gratuit à la distillerie', 'À Châteauneuf-du-Pape, du lundi au samedi'],
-    [icons.card, 'Carte bancaire, PayPal ou virement', 'Paiement en ligne sécurisé'],
-    [icons.sun, 'Fabriqué à Châteauneuf-du-Pape', 'Distillerie familiale depuis 1835'],
+    [icons.card, 'Carte bancaire, PayPal ou virement', 'Paiement en ligne'],
   ];
   box.innerHTML = items.map(([svg, t, s]) => `<li>${svg}<p><strong>${esc(t)}</strong><span>${esc(s)}</span></p></li>`).join('');
 }
