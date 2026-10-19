@@ -150,7 +150,7 @@ function groupeCardHTML(g, { tag = 'li', href = null } = {}) {
   const p = items[items.length - 1];
   const lien = href || `/boutique?q=${encodeURIComponent(RECHERCHE_ELIXIR)}`;
   const unite = min !== null ? prixAuLitreHTML(moinsCher.contenances.find((k) => k.prix === min)) : '';
-  return `<${tag} class="card card--groupe" data-theme="${p.theme}" data-groupe="${g.groupe}" data-alcool style="--c:${p.color};--l:${p.light};--d:${p.deep}">
+  return `<${tag} class="card card--groupe" data-theme="${p.theme}" data-groupe="${g.groupe}" data-n="${g.items.length}" data-alcool style="--c:${p.color};--l:${p.light};--d:${p.deep}">
     <a class="card__media" href="${lien}" tabindex="-1" aria-hidden="true">${thumbHTML(p)}</a>
     <div class="card__body">
       <p class="card__gamme">${esc(surtitreCourt(p))}</p>

@@ -640,7 +640,8 @@ for (const vp of ['bureau', 'mobile']) {
 {
   const ctx = await context('bureau', 'majeur');
   const count = async (page) => page.evaluate(() => Number(document.querySelector('#shop-count strong')?.textContent.match(/\d+/)?.[0] || -1));
-  const cards = async (page) => page.evaluate(() => document.querySelectorAll('#shop-grid .card:not(.card--locked)').length);
+  // une carte de groupe (millésimes de l'Elixir®) compte pour ses produits
+  const cards = async (page) => page.evaluate(() => [...document.querySelectorAll('#shop-grid .card:not(.card--locked)')].reduce((n, e) => n + Number(e.dataset.n || 1), 0));
   const cases = [
     ['/boutique', N.tous],
     ['/boutique?univers=sirops', N.sirops],

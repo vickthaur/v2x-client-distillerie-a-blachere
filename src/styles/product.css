@@ -98,11 +98,6 @@
 .pp__lead { max-width: 46ch; font: italic 400 1.2rem/1.5 var(--serif); letter-spacing: -0.005em; color: var(--ink); font-variation-settings: 'SOFT' 0, 'WONK' 0; }
 .pp__ailleurs { font-size: 0.9rem; color: var(--ink-2); }
 .pp__ailleurs a { color: var(--ink); }
-.pp__reassure { display: grid; padding: 4px 18px; border: 1px solid var(--line); border-radius: var(--r); background: #fff; }
-.pp__reassure li { display: flex; align-items: flex-start; gap: 14px; padding: 13px 0; font-size: 0.9rem; line-height: 1.45; color: var(--ink-2); }
-.pp__reassure li + li { border-top: 1px solid var(--line); }
-.pp__reassure strong { color: var(--ink); font-weight: 650; }
-.pp__reassure svg { flex: none; width: 20px; height: 20px; margin-top: 0; color: var(--ink); }
 .pp__evin { margin-top: -8px; font-size: 0.82rem; }
 
 /* Tableau de détails */
@@ -245,8 +240,6 @@ body.pp-bar-on .toast { bottom: calc(var(--pp-bar-h, 68px) + 18px); }
   .pp__vols { grid-template-columns: repeat(auto-fill, minmax(98px, 1fr)); }
   .vol__in { min-height: 60px; padding: 8px 12px; }
   .pp__lead { font-size: 1.12rem; }
-  .pp__reassure { padding: 2px 16px; }
-  .pp__reassure li { padding: 12px 0; font-size: 0.88rem; }
   .pp-recipes, .related { padding-bottom: 56px; }
   :is(.pp-recipes, .related) .section__head { gap: 12px 24px; margin-bottom: 22px; }
 }
