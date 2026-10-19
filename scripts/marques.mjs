@@ -371,7 +371,7 @@ const bboxOf = (mask, W, H) => {
   const bb = bboxOf(U, W, H);
   const m = 2;
   const vb = [bb.x0 - m, bb.y0 - m, bb.x1 - bb.x0 + 2 * m, bb.y1 - bb.y0 + 2 * m].map((v) => Math.round(v));
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb.join(' ')}" width="${vb[2]}" height="${vb[3]}"><path fill="${marine}" d="${dU}"/><path fill="#fff" d="${dW}"/></svg>\n`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb.join(' ')}" width="${vb[2]}" height="${vb[3]}"><path fill="${marine}" fill-rule="evenodd" d="${dU}"/><path fill="#fff" fill-rule="evenodd" d="${dW}"/></svg>\n`;
   writeFileSync(join(OUT, 'fun-blue.svg'), svg);
   writeFileSync(join(OUT, 'fun-blue.json'), `${JSON.stringify({ source: 'photos/site/produits/fun-blue-2.jpg (étiquette à plat du site officiel)', marine, lettres: '#ffffff', ratio: +(vb[2] / vb[3]).toFixed(4) }, null, 1)}\n`);
   log(`fun blue : public/marques/fun-blue.svg (${(svg.length / 1024).toFixed(1)} Ko), marine ${marine}`);
