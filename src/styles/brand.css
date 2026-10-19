@@ -232,11 +232,15 @@
 @media (max-width: 900px) { .newsgrid--all { grid-template-columns: 1fr; } }
 
 /* ---------- Recettes ---------- */
+/* les onglets ferment l'en-tête : la grille suit de près */
+.mh-hero:has(#rec-filtre) { padding-bottom: clamp(8px, 1.5vw, 24px); }
 .rec-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .rec { padding-block: clamp(40px, 5vw, 72px); border-top: 1px solid var(--line); scroll-margin-top: calc(var(--main-h) + 16px); }
 .rec__in { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: clamp(28px, 5vw, 80px); align-items: start; }
-.rec__img { position: sticky; top: calc(var(--main-h) + 20px); overflow: hidden; border-radius: var(--r); background: var(--paper-2); }
-.rec__img img { display: block; width: 100%; height: auto; }
+/* Photos (619 × 1 100) cadrées en 4/5, à 72 % de la hauteur de l'écran au plus (la largeur suit, le
+   cadre garde ses proportions) : le verre entier, sans dépasser la colonne de la recette. */
+.rec__img { position: sticky; top: calc(var(--main-h) + 20px); aspect-ratio: 4 / 5; width: 100%; max-width: calc(72vh * 0.8); max-height: 72vh; overflow: hidden; border-radius: var(--r); background: var(--paper-2); }
+.rec__img img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 42%; }
 .rec__body { display: grid; gap: 18px; }
 .rec__title { letter-spacing: 0.005em; }
 .rec__products { color: var(--ink-2); }
@@ -248,15 +252,16 @@
 .rec-steps__sub { font-weight: 650; color: var(--ink); }
 .rec-steps__sub:not(:first-child) { margin-top: 8px; }
 .rec__notes { color: var(--ink-2); font-size: 0.92rem; }
+.rec__signature { margin-top: 14px; font: italic 420 1rem/1.5 var(--serif); color: var(--ink-2); }
 .rec__evin { font-size: 0.82rem; }
 @media (max-width: 1000px) { .rec-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 900px) { .rec__in { grid-template-columns: 1fr; } .rec__img { position: relative; top: 0; } }
-/* Téléphone : les photos des recettes (en hauteur, 619 × 1 100) cadrées en paysage au-dessus de la
-   recette, au lieu d'un écran entier de photo par recette */
+/* Téléphone : les photos des recettes (en hauteur, 619 × 1 100) cadrées en 3/4 au-dessus de la
+   recette : le verre entier (garniture comprise), sans un écran entier de photo par recette */
 @media (max-width: 640px) {
   .rec__in { gap: 20px; }
-  .rec__img { aspect-ratio: 4 / 3; }
-  .rec__img img { height: 100%; object-fit: cover; object-position: 50% 58%; }
+  .rec__img { aspect-ratio: 3 / 4; max-width: none; max-height: none; }
+  .rec__img img { object-position: 50% 40%; }
 }
 
 /* ---------- Mentions légales, conditions de vente ---------- */
