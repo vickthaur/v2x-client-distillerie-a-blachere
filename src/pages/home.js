@@ -109,12 +109,14 @@ function assurance() {
 // ---------- 3. La boutique ----------
 // Meilleures ventes du site officiel, puis des sirops ; les spiritueux seulement pour les majeurs.
 // Message sanitaire : une ligne sous le carrousel quand il montre un alcool (pas sous chaque carte).
+// Le surtitre dit « Meilleures ventes » : pas de pastille « Meilleure vente » répétée sur les cartes
+// (option `best` de cardHTML, src/app/cards.js).
 function shelf() {
   const ok = (p) => p.enLigne && minPrice(p) !== null && (!p.alcool || site.majeur);
   const best = products.filter((p) => p.bestSeller && ok(p));
   const more = products.filter((p) => !p.bestSeller && p.gamme === 'couleur-provence' && ok(p));
   const picks = [...best, ...more].slice(0, 12);
-  $('#shelf-track').innerHTML = picks.map((p) => cardHTML(p)).join('');
+  $('#shelf-track').innerHTML = picks.map((p) => cardHTML(p, { best: false })).join('');
   $('#shelf-evin')?.remove();
   const evin = evinCartesHTML(picks);
   if (evin) $('#shelf').insertAdjacentHTML('afterend', `<div class="wrap" id="shelf-evin">${evin}</div>`);
