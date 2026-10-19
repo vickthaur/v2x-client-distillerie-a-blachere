@@ -123,8 +123,9 @@ function shelf() {
 const vp = $('#shelf');
 $$('[data-shelf]').forEach((b) => b.addEventListener('click', () => vp.scrollBy({ left: Number(b.dataset.shelf) * vp.clientWidth * 0.8, behavior: calm() ? 'auto' : 'smooth' })));
 
-// ---------- 5. Savoir-faire : photos de la boutique (pour les majeurs : des bouteilles d'alcool
-// y sont visibles), archives de la maison sinon ----------
+// ---------- 5. Savoir-faire : photos de la boutique et du chai (pour les majeurs : des bouteilles
+// d'alcool y sont visibles), archives de la maison et étiquette de sirop sinon. Chaque visuel ne
+// paraît qu'une fois sur la page (le stand du Palais des Papes est aux archives ou à la visite). ----------
 function savoir() {
   const box = $('#savoir-photos');
   if (!box) return;
@@ -132,12 +133,12 @@ function savoir() {
     ? [
         ['savoir__ph--a', '<figure class="ph"><span class="ph__slot" data-lieu="boutique-rayons"></span><figcaption>La boutique de la distillerie, à Châteauneuf-du-Pape</figcaption></figure>'],
         ['savoir__ph--b', '<figure class="ph"><span class="ph__slot" data-lieu="boutique-salon"></span><figcaption>Le salon de la boutique</figcaption></figure>'],
-        ['savoir__ph--c', `<figure class="ph ph--archive">${imgPiece(pieceById['stand-palais-des-papes'], { sizes: '(max-width: 900px) 45vw, 22vw' })}<figcaption>Le stand de la maison au Palais des Papes (carte postale)</figcaption></figure>`],
+        ['savoir__ph--c', `<figure class="ph">${imgPiece(pieceById['chai-futs'], { sizes: '(max-width: 900px) 45vw, 22vw' })}<figcaption>Les fûts du chai</figcaption></figure>`],
       ]
     : [
-        ['savoir__ph--a', `<figure class="ph ph--archive">${imgPiece(pieceById['stand-palais-des-papes'], { sizes: '(max-width: 900px) 50vw, 26vw' })}<figcaption>Le stand de la maison au Palais des Papes (carte postale)</figcaption></figure>`],
-        ['savoir__ph--b', `<figure class="ph ph--archive ph--paper">${imgPiece(pieceById['lettre-14-rue-moliere'], { sizes: '(max-width: 900px) 45vw, 22vw' })}<figcaption>Papier à en-tête, 14 rue Molière, Avignon</figcaption></figure>`],
-        ['savoir__ph--c', `<figure class="ph ph--archive">${imgPiece(pieceById['avenue-de-la-gare'], { sizes: '(max-width: 900px) 45vw, 22vw' })}<figcaption>Avignon, avenue de la Gare (carte postale)</figcaption></figure>`],
+        ['savoir__ph--a', `<figure class="ph ph--archive ph--paper">${imgPiece(pieceById['lettre-14-rue-moliere'], { sizes: '(max-width: 900px) 50vw, 26vw' })}<figcaption>Papier à en-tête, 14 rue Molière, Avignon</figcaption></figure>`],
+        ['savoir__ph--b', `<figure class="ph ph--archive">${imgPiece(pieceById['avenue-de-la-gare'], { sizes: '(max-width: 900px) 45vw, 22vw' })}<figcaption>Avignon, avenue de la Gare (carte postale)</figcaption></figure>`],
+        ['savoir__ph--c', `<figure class="ph ph--archive">${imgPiece(pieceById['grenadine-pur-sucre'], { sizes: '(max-width: 900px) 45vw, 22vw' })}<figcaption>Étiquette «\u00a0Grenadine, sirop pur sucre\u00a0»</figcaption></figure>`],
       ];
   box.innerHTML = items.map(([cls, html]) => html.replace('<figure class="ph', `<figure class="${cls} ph`)).join('');
   fillPlaces(box);
@@ -145,7 +146,7 @@ function savoir() {
 
 // ---------- 6. Les archives ----------
 function pieces() {
-  const ids = site.majeur ? ['pac-1962', 'aurelie', 'magistrale-affiche', 'stand-palais-des-papes'] : ['pac-1962', 'aurelie', 'fun-blue-70cl', 'stand-palais-des-papes'];
+  const ids = site.majeur ? ['pac-1962', 'aurelie', 'magistrale-affiche', 'stand-palais-des-papes'] : ['pac-1962', 'aurelie', 'fun-blue-70cl', 'orgeat-fantaisie'];
   $('#pieces').innerHTML = ids
     .map((id) => pieceById[id])
     .filter(Boolean)
@@ -167,7 +168,7 @@ function visit() {
   $('#visit-facts').innerHTML = facts.map(([i, t]) => `<li>${i}<span>${t}</span></li>`).join('');
   const stand = pieceById['stand-palais-des-papes'];
   $('#visit-photo').innerHTML = site.majeur
-    ? '<span class="ph__slot" data-lieu="boutique-rayons"></span><figcaption>La boutique de la distillerie</figcaption>'
+    ? `${imgPiece(pieceById['chai-lumiere'], { sizes: '(max-width: 900px) 92vw, 50vw' })}<figcaption>Le chai, fûts de chêne</figcaption>`
     : `${imgPiece(stand, { sizes: '(max-width: 900px) 92vw, 50vw' })}<figcaption>Le stand de la maison au Palais des Papes (carte postale ancienne)</figcaption>`;
   fillPlaces($('#visit-photo'));
 }
