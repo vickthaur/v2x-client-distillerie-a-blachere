@@ -2,10 +2,12 @@
    aplat de couleur de marque. Les bouteilles ne sont jamais recadrées. */
 .checkout-page { min-height: 80vh; padding-top: clamp(20px, 3vw, 40px); padding-bottom: clamp(56px, 8vw, 100px); background: var(--paper); }
 .co-head { display: grid; gap: 10px; padding: clamp(12px, 2vw, 24px) 0 clamp(20px, 3vw, 32px); }
-.co-head .h-serif { font-size: clamp(2.4rem, 5vw, 4rem); line-height: 1; }
+/* titre de l'étape : comme celui de la boutique (Archivo, sans italique) */
+.co-head__title { font: 780 clamp(2rem, 1.2rem + 2vw, 2.4rem)/1 var(--font); font-stretch: 102%; letter-spacing: -0.035em; }
 
-/* Étapes : numéros cerclés, l'étape en cours en encre */
-.steps { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--line); counter-reset: s; }
+/* Étapes : numéros cerclés, l'étape en cours en encre ; pas de filet dessous (la liste du panier
+   porte le sien) */
+.steps { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: 14px; counter-reset: s; }
 .steps__item { display: inline-flex; align-items: center; gap: 9px; min-height: 32px; font: 600 0.88rem/1.2 var(--font); color: var(--ink-3); }
 .steps__n { display: grid; place-items: center; width: 26px; height: 26px; border: 1px solid var(--line-2); border-radius: 50%; background: #fff; color: var(--ink-2); font-size: 0.76rem; font-weight: 750; font-variant-numeric: tabular-nums; }
 .steps__n svg { width: 14px; height: 14px; }
@@ -52,6 +54,11 @@ body[data-step='panier'] .co { grid-template-columns: minmax(0, 1fr); }
 .co-actions { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin-top: 28px; }
 .co-empty { display: grid; justify-items: start; gap: 12px; max-width: 560px; padding: clamp(24px, 3vw, 36px); border: 1px solid var(--line); border-radius: var(--r-l); background: #fff; color: var(--ink-2); }
 .co-empty__title { font: 720 1.5rem/1.2 var(--font); letter-spacing: -0.015em; color: var(--ink); }
+/* panier vide : les meilleures ventes, sur une rangée */
+.co-best { margin-top: clamp(40px, 5vw, 64px); }
+.co-best__title { margin-bottom: clamp(16px, 2vw, 24px); font: 720 1.3rem/1.2 var(--font); letter-spacing: -0.015em; }
+.co-best .co-best__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 960px) { .co-best .co-best__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 /* Formulaires d'étape */
 .co-form { display: grid; gap: 18px; max-width: 760px; }
