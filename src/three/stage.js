@@ -405,7 +405,12 @@ export class Stage {
     const tanV = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2));
     // Écran en hauteur (téléphone) : le texte et les boutons sont au-dessus du cadre des bouteilles ;
     // les éléments flottants ne montent pas plus haut que ce cadre (jamais sur les boutons).
-    const haut = W / H < 0.9 ? Math.max(0, this.targetRect().y) : 0;
+    // Écran large : ils restent sous l'en-tête (jamais sur le menu).
+    const sousEntete = () => {
+      const hd = document.getElementById('site-header');
+      return hd ? hd.getBoundingClientRect().bottom - this.canvas.getBoundingClientRect().top : 0;
+    };
+    const haut = Math.max(0, W / H < 0.9 ? this.targetRect().y : sousEntete());
     for (const p of this.garnish.userData.pieces) {
       p.shift = p.shift || new THREE.Vector2();
       p.shift.set(0, 0);
