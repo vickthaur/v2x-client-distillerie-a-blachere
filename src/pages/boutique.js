@@ -109,7 +109,6 @@ function buildForm() {
   if (site.majeur && f.degre) groups.push(rangeHTML('degre', 'Degré d’alcool', f.degre, state.degre, fmtRange('degre'), 1));
   if (f.best)
     groups.push(`<fieldset class="fgroup"><legend>Sélection</legend><label class="switch"><input type="checkbox" name="meilleures" value="1"${state.best ? ' checked' : ''} /><span class="switch__track" aria-hidden="true"></span><span>Meilleures ventes <span class="opt__n" data-n="meilleures:1">${f.best}</span></span></label></fieldset>`);
-  if (f.prix) groups.push('<p class="filters__note">Le filtre de prix ne garde que les produits dont le prix est affiché en ligne.</p>');
   $('#filters').innerHTML = groups.join('');
   $$('#filters [data-range]').forEach(syncRange);
 }
@@ -199,8 +198,13 @@ function render({ scroll = false } = {}) {
   else if (spirits.length) grid.innerHTML = group('spiritueux', '', evin + list(results, showLocked));
   else grid.innerHTML = list(results, showLocked);
   $('#shop-empty').hidden = lockedOnly || results.length > 0;
+  if (!results.length) videHTML();
   const n = lockedOnly ? 0 : results.length;
-  $('#shop-count').innerHTML = `<strong>${plural(n, 'produit')}</strong>${activeCount(state) ? ' correspondent à votre sélection' : ' dans la boutique'}`;
+  $('#shop-count').innerHTML = !activeCount(state)
+    ? `<strong>${plural(n, 'produit')}</strong> dans la boutique`
+    : n === 0
+      ? '<strong>Aucun produit</strong> ne correspond à votre sélection'
+      : `<strong>${plural(n, 'produit')}</strong> ${n === 1 ? 'correspond' : 'correspondent'} à votre sélection`;
   $('#sheet-apply').textContent = n ? `Voir ${plural(n, 'produit')}` : 'Aucun produit';
   renderChips();
   refreshCounts();
@@ -219,9 +223,7 @@ function render({ scroll = false } = {}) {
   // La source des prix est une note du mode revue ; la démonstration (prix et stocks modifiables,
   // paiement simulé) reste dite à tous.
   $('#shop-note').innerHTML = `<span>${
-    demo
-      ? 'Prix TTC et stocks de la démonstration, modifiables dans le CRM de démonstration. Les produits sans prix en ligne sont vendus au prix de la boutique.'
-      : `Prix TTC.${noteRevue(' Prix du site actuel de la distillerie.')} Les produits sans prix en ligne sont vendus au prix de la boutique.`
+    demo ? 'Prix TTC et stocks de la démonstration, modifiables dans le CRM de démonstration.' : `Prix TTC.${noteRevue(' Prix du site actuel de la distillerie.')}`
   } Démonstration\u00a0: le paiement est simulé.</span>${spiritsShown ? `<span class="evin">${esc(EVIN)} ${esc(MINEURS)}</span>` : ''}`;
   history.replaceState(null, '', `${location.pathname}${serializeState(state)}`);
   stocks(grid);
@@ -255,6 +257,22 @@ function stocks(grid) {
       card.classList.add('is-rupture');
     }
   });
+}
+
+// État vide : une recherche qui ne trouve rien n'appelle pas la même aide que des filtres trop
+// serrés. La recherche seule (sans les autres filtres) ne trouve rien : « Rien pour cette
+// recherche » ; sinon, ce sont les filtres.
+function videHTML() {
+  const q = state.q.trim();
+  const autres = activeCount(state) - (q ? 1 : 0);
+  const recherche = q && !applyFilters(base, { ...emptyState(), q }).length;
+  $('#shop-empty-title').textContent = recherche ? 'Rien pour cette recherche.' : 'Aucun produit ne correspond à ces filtres.';
+  $('#shop-empty-text').textContent = recherche
+    ? 'Vérifiez l’orthographe, ou cherchez un parfum\u00a0: citron, menthe, grenadine.'
+    : q
+      ? 'Retirez un filtre, ou essayez une autre recherche.'
+      : 'Retirez un filtre pour élargir la sélection.';
+  $('#shop-empty-reset').textContent = recherche && !autres ? 'Effacer la recherche' : 'Tout effacer';
 }
 
 function renderChips() {

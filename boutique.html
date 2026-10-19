@@ -20,7 +20,7 @@
           <p class="kicker">Boutique de la distillerie</p>
           <div class="shop-hero__row">
             <h1 id="shop-title">La boutique</h1>
-            <p class="shop-hero__lead">Les sirops pour tout le monde, les spiritueux pour les personnes majeures. Prix TTC<span data-revue> du site de la distillerie</span>, expédition sous trois jours ouvrés.</p>
+            <p class="shop-hero__lead">Sirops et spiritueux de la distillerie, prix TTC<span data-revue> du site de la distillerie</span>. Expédition sous trois jours ouvrés, retrait gratuit à Châteauneuf-du-Pape.</p>
           </div>
         </div>
       </section>
@@ -63,9 +63,10 @@
           <div class="shop__results">
             <div class="shop-groups" id="shop-grid" role="group" aria-label="Produits"></div>
             <div class="empty" id="shop-empty" hidden>
-              <p class="empty__title">Aucun produit ne correspond à ces filtres.</p>
-              <p>Essayez une autre recherche, ou retirez un filtre.</p>
-              <button type="button" class="btn btn--ghost btn--sm" data-reset>Tout effacer</button>
+              <!-- textes selon la cause (recherche ou filtres) : videHTML(), src/pages/boutique.js -->
+              <p class="empty__title" id="shop-empty-title">Aucun produit ne correspond à ces filtres.</p>
+              <p id="shop-empty-text">Retirez un filtre pour élargir la sélection.</p>
+              <button type="button" class="btn btn--ghost btn--sm" id="shop-empty-reset" data-reset>Tout effacer</button>
             </div>
             <p class="shop__note" id="shop-note"></p>
           </div>
