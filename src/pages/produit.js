@@ -44,8 +44,8 @@ const famille = (x) => FAMILLES.find((f) => f.id === x.famille)?.nom;
 // ---------- Chaque information une fois ----------
 // Noms comparés sans casse ni accents, sans marque déposée ni guillemets, au pluriel simple près :
 // « PAC Citron® » est la gamme « PAC Citron ». La gamme est dans le fil d'Ariane (seulement si elle
-// n'est pas le produit lui-même) ; au-dessus du nom, les seules pastilles (meilleure vente,
-// opération, 18+) ; sous le nom, ce qu'est le produit (« Sirop de citron », « Sirop Couleur
+// n'est pas le produit lui-même) ; au-dessus du nom, les seules pastilles (meilleure vente, 18+ ;
+// l'opération du moment a son encart) ; sous le nom, ce qu'est le produit (« Sirop de citron », « Sirop Couleur
 // Provence® », « Liqueur des gardians »), sauf s'il redit le nom.
 const mots = (s) =>
   fold(s)
@@ -307,11 +307,8 @@ function render() {
   // Sous le nom, une ligne : ce qu'est le produit, sa contenance s'il n'y en a qu'une, son degré
   // (« Sirop de citron · 1 L », « Liqueur des gardians · 43 % vol. »).
   const typeLigne = [typeUtile(p) && esc(typeUtile(p)), p.contenances.length === 1 && `<span class="pp__nb">${esc(p.contenances[0].volume)}</span>`, degreTexte(p) && `<span class="pp__nb">${esc(degreTexte(p))}</span>`].filter(Boolean);
-  const badges = [
-    p.bestSeller ? '<span class="badge badge--best">Meilleure vente</span>' : '',
-    concerne(operation, p.slug) ? `<span class="badge badge--rose">${esc(operation.nom)}</span>` : '',
-    p.alcool ? '<span class="badge badge--age">18+</span>' : '',
-  ].join('');
+  // pas de pastille de l'opération du moment : son encart est affiché sous l'achat
+  const badges = [p.bestSeller ? '<span class="badge badge--best">Meilleure vente</span>' : '', p.alcool ? '<span class="badge badge--age">18+</span>' : ''].join('');
   const volumes =
     p.contenances.length > 1
       ? `<fieldset class="pp__volumes"><legend>Contenance</legend><div class="pp__vols">${p.contenances
@@ -365,12 +362,7 @@ function render() {
       </form>
       ${lead ? `<p class="pp__lead">${esc(lead)}</p>` : ''}
       ${concerne(operation, p.slug) ? encartFicheHTML(operation) : ''}
-      ${ailleurs ? `<p class="pp__ailleurs">${esc(ailleurs)} — voir <a href="/ou-trouver">Où trouver nos produits</a></p>` : ''}
-      <ul class="pp__reassure">
-        <li>${icons.clock}<span><strong>Expédiée sous 3 jours ouvrés</strong> au plus après le règlement</span></li>
-        <li>${icons.card}<span><strong>Carte bancaire, PayPal ou virement</strong></span></li>
-        <li>${icons.store}<span><strong>La boutique de la distillerie</strong> à Châteauneuf-du-Pape, du lundi au samedi</span></li>
-      </ul>
+      ${ailleurs ? `<p class="pp__ailleurs">${esc(ailleurs)}\u00a0: voir <a href="/ou-trouver">Où trouver nos produits</a>.</p>` : ''}
       ${p.alcool ? `<p class="evin pp__evin">${esc(EVIN)} ${esc(MINEURS)}</p>` : ''}
       <dl class="pp__facts">${facts.map(([k, v, sinon, revue]) => `<div><dt>${esc(k)}</dt><dd>${v ? esc(v) : selonRevue(esc(sinon), esc(revue))}</dd></div>`).join('')}</dl>
       <div class="pp__details">${detailsHTML()}</div>
@@ -406,6 +398,9 @@ function syncStock() {
 // Pour la contenance et la quantité choisies : Colissimo en point relais et à domicile, franco,
 // retrait gratuit. Le barème de démonstration s'affiche tout de suite ; la route de la démo (barème
 // réglable dans le CRM) le confirme ou le corrige.
+// Délai et moyens de paiement des CGV, dans la même ligne (plus de liste de réassurance qui les
+// redisait) ; le détail est dans « Expédition et paiement ».
+const CONDITIONS = 'Expédition sous 3\u00a0jours ouvrés\u202f; carte bancaire, PayPal ou virement.';
 let shipTimer = 0;
 let shipToken = 0;
 function syncShip() {
@@ -422,8 +417,8 @@ function syncShip() {
     const n = qty === 1 ? 'd’une bouteille' : `de ${qty}\u00a0bouteilles`;
     out.innerHTML =
       d.relais || d.colissimo
-        ? `Livraison ${n}\u00a0: <strong>${euro(d.relais)}</strong> en point relais, ${euro(d.colissimo)} à domicile, offerte dès ${euro(d.francoTTC)} d’achats. Retrait gratuit à la distillerie.${note}`
-        : `Livraison ${n} offerte. Retrait gratuit à la distillerie.${note}`;
+        ? `Livraison ${n}\u00a0: <strong>${euro(d.relais)}</strong> en point relais, ${euro(d.colissimo)} à domicile, offerte dès ${euro(d.francoTTC)} d’achats. Retrait gratuit à la distillerie. ${CONDITIONS}${note}`
+        : `Livraison ${n} offerte. Retrait gratuit à la distillerie. ${CONDITIONS}${note}`;
   };
   ecrire(local);
   const t = ++shipToken;
