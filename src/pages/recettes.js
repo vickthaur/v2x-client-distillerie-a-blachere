@@ -18,17 +18,28 @@ const site = initSite();
 let filtre = 'sans';
 const visibles = () => recettes.filter((r) => !r.alcool || (site.majeur && filtre === 'toutes'));
 const list = (items) => (items?.length ? `<ul>${items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : '');
-// Lignes « Pour 2 personnes : », « Dans un verre de 50 cl : » : intertitres
-const steps = (items) =>
-  items?.length
-    ? `<ol class="rec-steps">${items.map((x) => (/:\s*$/.test(x) && x.length < 60 ? `<li class="rec-steps__sub">${esc(x)}</li>` : `<li>${esc(x)}</li>`)).join('')}</ol>`
-    : '';
+// Lignes « Pour 2 personnes : », « Dans un verre de 50 cl : », « Suggestions d’accompagnements »,
+// « Astuces gourmandes » : intertitres. La signature (« Notre stagiaire Clara Henache-Michels / et la
+// Distillerie A. Blachère ») : une note en italique sous les étapes, mots inchangés.
+const intertitre = (x) => (/:\s*$/.test(x) && x.length < 60) || /^(Suggestions d’accompagnements|Astuces gourmandes)$/.test(x);
+function steps(items) {
+  if (!items?.length) return '';
+  const i = items.findIndex((x) => /^Notre stagiaire\b/.test(x));
+  const etapes = i >= 0 ? items.slice(0, i) : items;
+  const signature = i >= 0 ? items.slice(i) : [];
+  return `<ol class="rec-steps">${etapes.map((x) => (intertitre(x) ? `<li class="rec-steps__sub">${esc(x)}</li>` : `<li>${esc(x)}</li>`)).join('')}</ol>${
+    signature.length ? `<p class="rec__signature">${signature.map(esc).join('<br />')}</p>` : ''
+  }`;
+}
+// Dans une liste de noms : « Sirop de banane, sirop de vanille » (un nom commun prend la minuscule
+// après le premier ; les marques restent telles quelles).
+const suite = (n, i) => (i && nomDansPhrase(n) !== n ? n[0].toLowerCase() + n.slice(1) : n);
 
 // Sous le titre d'une carte : les produits de la maison qu'elle utilise (« PAC Citron®, Fun Blue® ») ;
 // « Sans alcool » n'est rappelé que dans la liste qui mêle les deux.
 function metaCarte(r) {
   const noms = (r.produits || []).filter((s) => bySlug[s] && (!bySlug[s].alcool || site.majeur)).map((s) => bySlug[s].nom);
-  const texte = [filtre === 'toutes' ? 'Sans alcool' : '', noms.slice(0, 2).join(', ')].filter(Boolean).join(' · ');
+  const texte = [filtre === 'toutes' ? 'Sans alcool' : '', noms.slice(0, 2).map(suite).join(', ')].filter(Boolean).join(' · ');
   return texte ? `<span class="rcard__meta">${esc(texte)}</span>` : '';
 }
 
@@ -36,7 +47,7 @@ function render() {
   const sans = recettes.filter((r) => !r.alcool).length;
   $('#rec-lead').textContent = `Les ${recettes.length} recettes publiées par la distillerie\u00a0: cocktails, boissons et desserts. Les ${sans} recettes sans alcool s’affichent d’abord\u202f; celles qui contiennent de l’alcool sont réservées aux personnes majeures.`;
   $('#rec-filtre').innerHTML = `<button type="button" class="cat${filtre === 'sans' ? ' is-on' : ''}" data-f="sans" aria-pressed="${filtre === 'sans'}">Sans alcool<span class="cat__n">${sans}</span></button>
-    <button type="button" class="cat${filtre === 'toutes' ? ' is-on' : ''}" data-f="toutes" aria-pressed="${filtre === 'toutes'}">Toutes les recettes · 18+<span class="cat__n">${site.majeur ? recettes.length : ''}</span></button>`;
+    <button type="button" class="cat${filtre === 'toutes' ? ' is-on' : ''}" data-f="toutes" aria-pressed="${filtre === 'toutes'}">Toutes · 18+<span class="cat__n">${site.majeur ? recettes.length : ''}</span></button>`;
   const items = visibles();
   $('#rec-grid').innerHTML = items
     .map(

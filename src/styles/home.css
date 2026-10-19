@@ -223,15 +223,17 @@
 
 /* ---------- 8. Presse ---------- */
 .newsgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(14px, 2vw, 24px); }
-.newscard { position: relative; display: grid; grid-template-rows: auto 1fr auto; align-content: start; gap: 14px; padding: clamp(22px, 2.4vw, 30px); border-radius: var(--r); background: #fff; box-shadow: var(--shadow-1); transition: transform 0.4s var(--ease), box-shadow 0.4s var(--ease); }
-.newscard:hover { transform: translateY(-3px); box-shadow: var(--shadow-2); }
+/* Colonne souple : le lien en bas de la carte, sans vide sous le titre ; le survol seulement sur les
+   cartes qui ouvrent quelque chose. Rubrique à l'encre (le fuchsia est celui des chapitres PAC). */
+.newscard { position: relative; display: flex; flex-direction: column; gap: 14px; padding: clamp(22px, 2.4vw, 30px); border-radius: var(--r); background: #fff; box-shadow: var(--shadow-1); transition: transform 0.4s var(--ease), box-shadow 0.4s var(--ease); }
+.newscard:has(> a.newscard__src):hover { transform: translateY(-3px); box-shadow: var(--shadow-2); }
 .newscard__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; font: 650 0.72rem/1.3 var(--font); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
-.newscard__meta > span:first-child { display: inline-flex; align-items: center; gap: 8px; color: var(--pac); }
+.newscard__meta > span:first-child { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); }
 .newscard__meta svg { width: 18px; height: 18px; flex: none; }
 .newscard__title { font: 720 1.24rem/1.22 var(--font); letter-spacing: -0.015em; text-wrap: balance; }
 .newscard__text { color: var(--ink-2); font-size: 0.95rem; }
 /* toute la carte ouvre l'article ou la vidéo */
-.newscard__src { justify-self: start; font-size: 0.86rem; font-weight: 600; color: var(--ink); }
+.newscard__src { align-self: flex-start; margin-top: auto; font-size: 0.86rem; font-weight: 600; color: var(--ink); }
 .newscard__src::after { content: ''; position: absolute; inset: 0; border-radius: inherit; }
 @media (max-width: 900px) { .newsgrid { grid-template-columns: 1fr; } }
 
