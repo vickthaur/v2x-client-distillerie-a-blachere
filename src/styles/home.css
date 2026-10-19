@@ -149,18 +149,17 @@
 
 /* ---------- 3 bis. Commander à la distillerie ---------- */
 .assure { border-block: 1px solid var(--line); background: var(--paper); }
-.assure__list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px clamp(20px, 3vw, 44px); padding-block: clamp(22px, 3vw, 34px); }
+.assure__list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px clamp(20px, 3vw, 44px); padding-block: clamp(22px, 3vw, 34px); }
 .assure__list li { display: flex; align-items: flex-start; gap: 14px; }
 .assure__list svg { flex: none; width: 26px; height: 26px; margin-top: 1px; color: var(--ink); }
 .assure__list p { display: grid; gap: 3px; }
 .assure__list strong { font: 650 0.98rem/1.3 var(--font); letter-spacing: -0.005em; }
 .assure__list span { font-size: 0.86rem; line-height: 1.4; color: var(--ink-3); }
-@media (max-width: 1000px) { .assure__list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 480px) {
-  .assure__list { gap: 18px 14px; }
-  .assure__list li { flex-direction: column; gap: 10px; }
-  .assure__list strong { font-size: 0.92rem; }
-  .assure__list span { font-size: 0.82rem; }
+/* trois engagements : une rangée de trois, puis une colonne (jamais deux plus un) */
+@media (max-width: 760px) {
+  .assure__list { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .assure__list strong { font-size: 0.94rem; }
+  .assure__list span { font-size: 0.84rem; }
 }
 
 /* ---------- 4. Chiffres ---------- */
@@ -188,6 +187,10 @@
 .savoir__photos { display: grid; grid-template-columns: 1.15fr 1fr; grid-template-rows: 1fr 1fr; gap: 14px; aspect-ratio: 6 / 5; }
 .savoir__photos .ph { min-height: 0; }
 .savoir__ph--a { grid-row: 1 / 3; }
+/* Pièce d'archives : l'image se réduit pour que la légende reste dans le cadre (une étiquette en
+   hauteur dans une case basse dépassait et perdait sa légende) */
+.savoir__photos .ph--archive { grid-template-rows: minmax(0, 1fr) auto; }
+.savoir__photos .ph--archive > img { width: 100%; height: 100%; object-fit: contain; box-shadow: none; filter: drop-shadow(0 10px 16px rgba(21, 19, 15, 0.3)); }
 @media (max-width: 900px) { .savoir__in { grid-template-columns: 1fr; } }
 /* Téléphone : la grande photo sur toute la largeur, les deux autres côte à côte (la carte postale
    n'est plus une vignette perdue dans un grand cadre) */

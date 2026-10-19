@@ -41,7 +41,7 @@ usages();
 $('#fb-facts').innerHTML = compositionHTML(p);
 const recipes = () => ($('#fb-recipes').innerHTML = recipesHTML(['fun-blue'], site.majeur, 3) || '<p class="lead">Les recettes de la maison sont dans la rubrique Recettes.</p>');
 recipes();
-$('#fb-pieces').innerHTML = piecesHTML(['aurelie', 'menthe-glaciale', 'fun-blue-70cl', 'menthe-special-bar']);
+$('#fb-pieces').innerHTML = piecesHTML(['menthe-glaciale', 'menthe-special-bar']);
 $('#fb-ailleurs').innerHTML = `<p class="lead">À la boutique de la distillerie, à Châteauneuf-du-Pape, et dans la boutique en ligne\u00a0: ${esc(p.contenances.map((c) => c.volume).join(', '))}.</p>${ailleursHTML(p)}`;
 
 mountBrandHero('funblue', [p]);

@@ -45,7 +45,7 @@ usages();
 $('#pac-facts').innerHTML = compositionHTML(p);
 const recipes = () => ($('#pac-recipes').innerHTML = recipesHTML(['pac-citron'], site.majeur, 3) || '<p class="lead">Les recettes de la maison sont dans la rubrique Recettes.</p>');
 recipes();
-$('#pac-pieces').innerHTML = piecesHTML(['pac-1962', 'pac-boisson-1971', 'pac-fuchsia', 'pac-art-deco']);
+$('#pac-pieces').innerHTML = piecesHTML(['pac-fuchsia', 'pac-art-deco']);
 
 // Les étiquettes collector des 60 ans : vues seulement dans la presse (aucune image reprise) ;
 // les faits et la source viennent de src/data/site.js (actualités).

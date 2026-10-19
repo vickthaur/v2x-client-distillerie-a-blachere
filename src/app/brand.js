@@ -54,9 +54,17 @@ export function compositionHTML(p) {
   <p class="bnote">Valeurs pour 100\u00a0ml de sirop non dilué${noteRevue(', d’après la fiche du produit sur le site de la distillerie')}.</p>`;
 }
 
-// Recettes officielles avec ce produit (les recettes avec alcool seulement pour les majeurs).
+// Recettes officielles avec ce produit (les recettes avec alcool seulement pour les majeurs). Les
+// recettes sans alcool d'abord (pages de sirops) ; une recette et sa version sans alcool ne sont
+// jamais côte à côte (le site publie souvent la même photo pour les deux) : une seule des deux.
+const famille = (r) => r.id.replace(/-sans-alcool$/, '');
 export function recipesHTML(slugs, majeur, max = 3) {
-  const list = recettes.filter((r) => r.produits?.some((s) => slugs.includes(s)) && (!r.alcool || majeur)).slice(0, max);
+  const vus = new Set();
+  const list = recettes
+    .filter((r) => r.produits?.some((s) => slugs.includes(s)) && (!r.alcool || majeur))
+    .sort((a, b) => Number(!!a.alcool) - Number(!!b.alcool))
+    .filter((r) => !vus.has(famille(r)) && vus.add(famille(r)))
+    .slice(0, max);
   if (!list.length) return '';
   return `<ul class="brecipes">${list
     .map(
@@ -94,7 +102,7 @@ export function pressHTML(test, max = 6) {
 
 export function ailleursHTML(p) {
   const t = formatsAilleursTexte(p);
-  return t ? `<p class="bnote">${esc(t)} — voir <a href="/ou-trouver">Où trouver nos produits</a>.</p>` : '';
+  return t ? `<p class="bnote">${esc(t)} (voir <a href="/ou-trouver">Où trouver nos produits</a>).</p>` : '';
 }
 
 export function bindAdd() {

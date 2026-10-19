@@ -100,8 +100,7 @@ function assurance() {
   const items = [
     [icons.truck, `Livraison offerte dès ${euro(BAREME.francoTTC).replace(',00', '')}`, 'Colissimo, à domicile ou en point relais'],
     [icons.store, 'Retrait gratuit à la distillerie', 'À Châteauneuf-du-Pape, du lundi au samedi'],
-    [icons.card, 'Carte bancaire, PayPal ou virement', 'Paiement en ligne sécurisé'],
-    [icons.sun, 'Fabriqué à Châteauneuf-du-Pape', 'Distillerie familiale depuis 1835'],
+    [icons.card, 'Carte bancaire, PayPal ou virement', 'Paiement en ligne'],
   ];
   box.innerHTML = items.map(([svg, t, s]) => `<li>${svg}<p><strong>${esc(t)}</strong><span>${esc(s)}</span></p></li>`).join('');
 }
@@ -109,12 +108,14 @@ function assurance() {
 // ---------- 3. La boutique ----------
 // Meilleures ventes du site officiel, puis des sirops ; les spiritueux seulement pour les majeurs.
 // Message sanitaire : une ligne sous le carrousel quand il montre un alcool (pas sous chaque carte).
+// Le surtitre dit « Meilleures ventes » : pas de pastille « Meilleure vente » répétée sur les cartes
+// (option `best` de cardHTML, src/app/cards.js).
 function shelf() {
   const ok = (p) => p.enLigne && minPrice(p) !== null && (!p.alcool || site.majeur);
   const best = products.filter((p) => p.bestSeller && ok(p));
   const more = products.filter((p) => !p.bestSeller && p.gamme === 'couleur-provence' && ok(p));
   const picks = [...best, ...more].slice(0, 12);
-  $('#shelf-track').innerHTML = picks.map((p) => cardHTML(p)).join('');
+  $('#shelf-track').innerHTML = picks.map((p) => cardHTML(p, { best: false })).join('');
   $('#shelf-evin')?.remove();
   const evin = evinCartesHTML(picks);
   if (evin) $('#shelf').insertAdjacentHTML('afterend', `<div class="wrap" id="shelf-evin">${evin}</div>`);
@@ -123,20 +124,23 @@ function shelf() {
 const vp = $('#shelf');
 $$('[data-shelf]').forEach((b) => b.addEventListener('click', () => vp.scrollBy({ left: Number(b.dataset.shelf) * vp.clientWidth * 0.8, behavior: calm() ? 'auto' : 'smooth' })));
 
-// ---------- 5. Savoir-faire : photos de la boutique (pour les majeurs : des bouteilles d'alcool
-// y sont visibles), archives de la maison sinon ----------
+// ---------- 5. Savoir-faire : photos du chai, de la cave et de la boutique (pour les majeurs : des
+// bouteilles d'alcool y sont visibles) ; sinon une carte postale et deux étiquettes de sirop (le
+// papier à en-tête de la rue Molière parle d'une liqueur et d'un rhum : pas pour les mineurs). Chaque
+// visuel ne paraît qu'une fois sur la page (rayons de la boutique à la visite ; stand du Palais des
+// Papes aux archives, ou à la visite pour une personne mineure). ----------
 function savoir() {
   const box = $('#savoir-photos');
   if (!box) return;
   const items = site.majeur
     ? [
-        ['savoir__ph--a', '<figure class="ph"><span class="ph__slot" data-lieu="boutique-rayons"></span><figcaption>La boutique de la distillerie, à Châteauneuf-du-Pape</figcaption></figure>'],
+        ['savoir__ph--a', `<figure class="ph">${imgPiece(pieceById['chai-lumiere'], { sizes: '(max-width: 900px) 92vw, 26vw' })}<figcaption>Le chai, fûts de chêne</figcaption></figure>`],
         ['savoir__ph--b', '<figure class="ph"><span class="ph__slot" data-lieu="boutique-salon"></span><figcaption>Le salon de la boutique</figcaption></figure>'],
-        ['savoir__ph--c', `<figure class="ph ph--archive">${imgPiece(pieceById['stand-palais-des-papes'], { sizes: '(max-width: 900px) 45vw, 22vw' })}<figcaption>Le stand de la maison au Palais des Papes (carte postale)</figcaption></figure>`],
+        ['savoir__ph--c', `<figure class="ph">${imgPiece(pieceById['cave-bouteilles'], { sizes: '(max-width: 900px) 45vw, 22vw' })}<figcaption>Bouteilles en cave</figcaption></figure>`],
       ]
     : [
-        ['savoir__ph--a', `<figure class="ph ph--archive">${imgPiece(pieceById['stand-palais-des-papes'], { sizes: '(max-width: 900px) 50vw, 26vw' })}<figcaption>Le stand de la maison au Palais des Papes (carte postale)</figcaption></figure>`],
-        ['savoir__ph--b', `<figure class="ph ph--archive ph--paper">${imgPiece(pieceById['lettre-14-rue-moliere'], { sizes: '(max-width: 900px) 45vw, 22vw' })}<figcaption>Papier à en-tête, 14 rue Molière, Avignon</figcaption></figure>`],
+        ['savoir__ph--a', `<figure class="ph ph--archive">${imgPiece(pieceById['grenadine-pur-sucre'], { sizes: '(max-width: 900px) 50vw, 26vw' })}<figcaption>Étiquette «\u00a0Grenadine, sirop pur sucre\u00a0»</figcaption></figure>`],
+        ['savoir__ph--b', `<figure class="ph ph--archive">${imgPiece(pieceById['fraise-special-bar'], { sizes: '(max-width: 900px) 45vw, 22vw' })}<figcaption>Étiquette «\u00a0Sirop fraise, Special Bar\u00a0»</figcaption></figure>`],
         ['savoir__ph--c', `<figure class="ph ph--archive">${imgPiece(pieceById['avenue-de-la-gare'], { sizes: '(max-width: 900px) 45vw, 22vw' })}<figcaption>Avignon, avenue de la Gare (carte postale)</figcaption></figure>`],
       ];
   box.innerHTML = items.map(([cls, html]) => html.replace('<figure class="ph', `<figure class="${cls} ph`)).join('');
@@ -145,7 +149,7 @@ function savoir() {
 
 // ---------- 6. Les archives ----------
 function pieces() {
-  const ids = site.majeur ? ['pac-1962', 'aurelie', 'magistrale-affiche', 'stand-palais-des-papes'] : ['pac-1962', 'aurelie', 'fun-blue-70cl', 'stand-palais-des-papes'];
+  const ids = site.majeur ? ['pac-1962', 'aurelie', 'magistrale-affiche', 'stand-palais-des-papes'] : ['pac-1962', 'aurelie', 'fun-blue-70cl', 'orgeat-fantaisie'];
   $('#pieces').innerHTML = ids
     .map((id) => pieceById[id])
     .filter(Boolean)
