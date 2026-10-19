@@ -599,15 +599,18 @@ const BUILD = { lemon, lemonSlice, lemonHalf, ice: () => ice(1), ice2: () => ice
 
 // x, y, z en unités de scène autour du centre du groupe de bouteilles (sol en y = −1,6).
 // s : échelle ; r : rotation initiale ; ground : posé au sol (immobile) ; depth : parallaxe.
+// Glaçons des campagnes PAC et duo derrière les bouteilles (z négatif) : devant l'étiquette fuchsia,
+// la glace translucide prenait sa couleur et faisait plastique (surtout au téléphone, où la
+// composition se resserre sur les bouteilles).
 export const LAYOUTS = {
   duo: [
     { k: 'lemonSlice', p: [-1.85, 0.95, 0.55], s: 0.62, r: [1.15, 0.2, 0.3] },
     { k: 'lemon', p: [-2.15, -0.45, -0.75], s: 0.92, r: [0.4, 0.5, 1.35] },
     { k: 'lemonSlice', p: [-1.25, 1.95, -1.45], s: 0.5, r: [1.25, 0.5, -0.3] },
-    { k: 'ice', p: [-1.45, -0.95, 1.2], s: 0.95, r: [0.4, 0.7, 0.2] },
+    { k: 'ice', p: [-1.6, -0.85, -1.15], s: 0.95, r: [0.4, 0.7, 0.2] },
     { k: 'mint', p: [-2.55, 1.55, -0.3], s: 0.8, r: [0.3, 0.6, 0.9] },
     { k: 'lemonHalf', p: [-1.55, -1.6, 0.85], s: 0.9, r: [0, 0.6, 0], ground: true },
-    { k: 'ice2', p: [1.75, 1.15, 0.45], s: 0.9, r: [0.6, 0.3, 0.5] },
+    { k: 'ice2', p: [1.8, 1.15, -1.0], s: 0.9, r: [0.6, 0.3, 0.5] },
     { k: 'ice', p: [2.2, -0.35, -0.95], s: 0.8, r: [0.2, 1.1, 0.4] },
     { k: 'mint', p: [1.45, 1.95, -0.85], s: 0.9, r: [-0.5, -0.4, -0.7] },
     { k: 'mint', p: [2.45, 0.65, 0.95], s: 0.75, r: [0.9, -0.6, 0.4] },
@@ -620,9 +623,9 @@ export const LAYOUTS = {
     { k: 'lemonSlice', p: [-1.25, 1.0, 0.6], s: 0.62, r: [1.15, 0.2, 0.3] },
     { k: 'lemon', p: [1.35, -0.2, -0.6], s: 0.95, r: [0.4, 0.5, 1.2] },
     { k: 'lemonSlice', p: [1.05, 1.55, -0.2], s: 0.55, r: [0.5, -0.3, -0.6] },
-    { k: 'ice', p: [-1.2, -0.85, 1.0], s: 0.9, r: [0.4, 0.7, 0.2] },
+    { k: 'ice', p: [-1.35, -0.8, -1.0], s: 0.9, r: [0.4, 0.7, 0.2] },
     { k: 'lemonSlice', p: [-0.6, 2.0, -1.5], s: 0.45, r: [0.9, 0.4, 1.2] },
-    { k: 'ice2', p: [1.5, -1.0, 1.0], s: 0.8, r: [0.3, 0.2, 0.6] },
+    { k: 'ice2', p: [1.5, -1.0, -0.9], s: 0.8, r: [0.3, 0.2, 0.6] },
     { k: 'lemonHalf', p: [-0.95, -1.6, 1.0], s: 0.9, r: [0, 0.3, 0], ground: true },
     { k: 'lemon', p: [-1.75, 0.2, -1.6], s: 0.8, r: [1.2, 0.2, 0.4] },
   ],
