@@ -25,10 +25,12 @@ export const GAMMES = [
   { id: 'pac', nom: 'PAC Citron', univers: 'sirops', theme: 'pac' },
   { id: 'fun-blue', nom: 'Fun Blue', univers: 'sirops', theme: 'funblue' },
   { id: 'couleur-provence', nom: 'Sirops Couleur Provence®', court: 'Couleur Provence®', univers: 'sirops', theme: 'provence' },
-  { id: 'pastis-aperitifs', nom: 'Les Apéritifs et Pastis', univers: 'spiritueux', theme: 'maison' },
-  { id: 'liqueurs', nom: 'Les Liqueurs', univers: 'spiritueux', theme: 'maison' },
-  { id: 'cremes-eaux-de-vie', nom: 'Les Crèmes et Eaux de Vie', univers: 'spiritueux', theme: 'marcs' },
-  { id: 'marcs', nom: 'Les Vieux Marcs', univers: 'spiritueux', theme: 'marcs' },
+  // noms des rayons officiels en casse de phrase (« Les Apéritifs et Pastis », « Les Crèmes et Eaux
+  // de Vie » sur le site de la distillerie : typographie seulement)
+  { id: 'pastis-aperitifs', nom: 'Les apéritifs et pastis', univers: 'spiritueux', theme: 'maison' },
+  { id: 'liqueurs', nom: 'Les liqueurs', univers: 'spiritueux', theme: 'maison' },
+  { id: 'cremes-eaux-de-vie', nom: 'Les crèmes et eaux-de-vie', univers: 'spiritueux', theme: 'marcs' },
+  { id: 'marcs', nom: 'Les vieux marcs', univers: 'spiritueux', theme: 'marcs' },
 ];
 
 // Les neuf univers de la maison (étude d'identité). Couleurs : PAC, Fun Blue et collectors sont

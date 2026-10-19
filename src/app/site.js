@@ -176,10 +176,10 @@ function spiritsMenu() {
   }
   // Les quatre rayons de la boutique officielle, chacun avec l'un de ses produits
   const picks = [
-    ['pastis-marra', 'Les Apéritifs et Pastis', '/spiritueux#pastis-aperitifs'],
-    ['la-camarguaise', 'Les Liqueurs', '/spiritueux#liqueurs'],
-    ['creme-de-chataigne', 'Les Crèmes et Eaux de Vie', '/spiritueux#cremes-eaux-de-vie'],
-    ['marc-chateauneuf-du-pape-reserve-des-legats', 'Les Vieux Marcs', '/spiritueux#marcs'],
+    ['pastis-marra', 'Les apéritifs et pastis', '/spiritueux#pastis-aperitifs'],
+    ['la-camarguaise', 'Les liqueurs', '/spiritueux#liqueurs'],
+    ['creme-de-chataigne', 'Les crèmes et eaux-de-vie', '/spiritueux#cremes-eaux-de-vie'],
+    ['marc-chateauneuf-du-pape-reserve-des-legats', 'Les vieux marcs', '/spiritueux#marcs'],
   ];
   box.innerHTML = `<ul class="mega__brands mega__brands--4">${picks
     .map(([slug, label, href]) => {

@@ -178,10 +178,10 @@ export const GAMMES = {
   pac: { nom: 'PAC Citron', ordre: 1 },
   'fun-blue': { nom: 'Fun Blue', ordre: 2 },
   'couleur-provence': { nom: 'Sirops Couleur Provence®', ordre: 3 },
-  'pastis-aperitifs': { nom: 'Les Apéritifs et Pastis', ordre: 4 },
-  liqueurs: { nom: 'Les Liqueurs', ordre: 5 },
-  'cremes-eaux-de-vie': { nom: 'Les Crèmes et Eaux de Vie', ordre: 6 },
-  marcs: { nom: 'Les Vieux Marcs', ordre: 7 },
+  'pastis-aperitifs': { nom: 'Les apéritifs et pastis', ordre: 4 },
+  liqueurs: { nom: 'Les liqueurs', ordre: 5 },
+  'cremes-eaux-de-vie': { nom: 'Les crèmes et eaux-de-vie', ordre: 6 },
+  marcs: { nom: 'Les vieux marcs', ordre: 7 },
 };
 
 export const libelle = (table, v) => {
