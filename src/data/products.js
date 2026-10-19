@@ -224,8 +224,8 @@ const P = {
   'sirop-caramel': { nom: 'Sirop caramel', lignes: ['Caramel', ''], famille: 'gourmands', liquide: '#b2622a' },
   'sirop-caramel-fleur-de-sel-camargue': {
     nom: 'Sirop caramel à la fleur de sel de Camargue',
-    // son étiquette et sa fiche : « LE CAMARGUAIS® » (rangé avec les Couleur Provence®)
-    surtitre: 'Le Camarguais®',
+    // son étiquette et sa fiche disent « LE CAMARGUAIS® », mais c'est aussi le nom d'un pastis :
+    // pas de surtitre à ce nom (jamais de nom d'alcool pour une personne mineure)
     lignes: ['Caramel', 'fleur de sel'],
     famille: 'gourmands',
     liquide: '#9a5226',
