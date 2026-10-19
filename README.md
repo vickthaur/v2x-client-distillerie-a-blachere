@@ -3,7 +3,7 @@
 Proposition de nouveau site pour la **Distillerie A. Blachère** (Avignon 1835, Châteauneuf-du-Pape
 depuis 1993), préparée par V2X Studio. Maquette non indexée (`noindex` dans les pages et les en-têtes
 Vercel, `robots.txt` qui interdit tout), avec la pastille « Proposition de refonte » de V2X
-(`public/v2x/`, inchangée).
+(`public/v2x/` : mention en entier à l'arrivée, puis rond « V2X » qui s'efface quand on descend dans la page et revient quand on remonte).
 
 - Site actuel : https://www.distillerieablachere.com/
 - **Source de vérité depuis la v3** : les visuels et le catalogue officiels relevés sur le site le
@@ -58,7 +58,7 @@ Octobre Rose utilise la largeur 74 % (graisse 820).
 | `/recettes` | Les 26 recettes du site (textes et photos ; titres en casse de phrase, coquilles corrigées) ; sans alcool par défaut, « Toutes · 18+ » après vérification de l'âge |
 | `/spiritueux` | Porte d'âge ; les quatre rayons officiels (apéritifs et pastis, liqueurs, crèmes et eaux-de-vie, vieux marcs) |
 | `/la-maison` | L'histoire officielle en quatre époques (texte officiel, capitales et coquilles corrigées), archives de chaque époque, savoir-faire, papiers de la rue Molière, chantier (`/la-distillerie` y redirige) |
-| `/musee` | Les archives : 46 pièces en trois ailes (sirops, maison, spiritueux 18+), pièce en grand, pièces sans visuel |
+| `/musee` | Les archives : 39 pièces exposées en trois ailes (sirops, maison, spiritueux 18+), pièce en grand, pièces non exposées en cartels |
 | `/visiter` | Formules, réservation en mode maquette, horaires officiels, accès, questions fréquentes |
 | `/boutique`, `/boutique/<slug>` | Boutique filtrée et fiches produits avec bouteille 3D et textes officiels |
 | `/panier` | Panier et commande en mode maquette (CGV officielles) |
@@ -194,7 +194,7 @@ Labo de réglage (développement seulement, non versionné) : `labo.html?scene=d
   nettes sur écran Retina : relancer l'import remet les petits originaux ; à remplacer par de vraies
   photos HD de la distillerie), `public/archives`,
   `public/recettes`, `public/logos`, `public/favicon.svg`. Les images sont réduites (build léger).
-- `scripts/archives-site.json` : les 46 pièces choisies, avec leur cartel. **Dates des cartels** :
+- `scripts/archives-site.json` : les pièces choisies, avec leur cartel (`musee: false` : montrée ailleurs, pas accrochée au musée). **Dates des cartels** :
   seulement ce qui est imprimé sur la pièce (« Tampon « 16 mai 1962 » », « Nice, Exposition
   internationale, 1884, médaille d'or ») ; sinon « Sans date » (« Date à préciser » en mode revue).
   `scripts/photos.mjs` en tire des tailles réduites (`public/archives-tailles/<id>-400.webp` et

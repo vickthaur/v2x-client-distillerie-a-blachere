@@ -57,6 +57,7 @@
 .britual__steps li { display: grid; align-content: start; gap: 10px; padding: 28px clamp(14px, 2vw, 28px) 10px 0; border-right: 1px solid var(--u-line); }
 .britual__steps li + li { padding-left: clamp(14px, 2vw, 28px); }
 .britual__steps li:last-child { border-right: 0; }
+.britual__steps:has(> li:nth-child(2):last-child) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .britual__n { font: 800 clamp(2.6rem, 5vw, 4.6rem)/0.95 var(--font); letter-spacing: -0.045em; }
 .britual__t { max-width: 26ch; color: var(--u-soft); }
 .britual__more { max-width: 70ch; margin-top: 36px; color: var(--u-soft); }
@@ -93,6 +94,8 @@
 /* ---------- Archives ---------- */
 .barch { background: var(--u-bg); }
 .barch .pieces { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+/* Deux pièces seulement (PAC, Fun Blue) : deux colonnes, sans demi-rangée vide */
+.barch .pieces:has(> :nth-child(2):last-child) { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 760px; }
 /* Les collectors des 60 ans (page PAC) : un cartel sans image, sous les étiquettes */
 .bcollec { display: grid; gap: 10px; justify-items: start; max-width: 62ch; margin-top: clamp(36px, 4vw, 56px); padding-top: 28px; border-top: 1px solid var(--line-2); scroll-margin-top: calc(var(--main-h) + 24px); }
 .bcollec:empty { display: none; }
