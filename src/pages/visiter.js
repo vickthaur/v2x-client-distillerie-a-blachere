@@ -1,7 +1,8 @@
 // Visiter : les quatre formules (tarifs « à confirmer »), la réservation branchée sur l'API de la
 // démo (docs/crm-espace-pro.md, § 5 et § 7 : disponibilités par jour et par moment, réservation
 // confirmée sur la séance du matin ou de l'après-midi s'il reste de la place, sinon les autres
-// disponibilités du jour), les infos pratiques et les questions fréquentes.
+// disponibilités du jour) et les infos pratiques. Pas de questions fréquentes : elles redisaient les
+// formules et la saison ; le numéro à appeler pour le tarif est sous le prix des formules.
 import '../styles/base.css';
 import '../styles/brand.css';
 import '../styles/pratique.css';
@@ -41,23 +42,9 @@ $('#booking-formules').innerHTML = reservables
   .join('');
 
 $('#infos').innerHTML = `
-  <div class="info-card"><h3>${icons.pin}Adresse</h3><p>${infos.adresse.map(esc).join('<br />')}</p><p><a class="link" href="${infos.itineraire}" target="_blank" rel="noopener">Itinéraire<span class="sr-only"> (nouvel onglet)</span></a></p><p>La distillerie a sa fiche sur le site La Provence à Vélo.</p></div>
+  <div class="info-card"><h3>${icons.pin}Adresse</h3><p>${infos.adresse.map(esc).join('<br />')}</p><p><a class="link" href="${infos.itineraire}" target="_blank" rel="noopener">Itinéraire<span class="sr-only"> (nouvel onglet)</span></a></p></div>
   <div class="info-card"><h3>${icons.clock}Magasin</h3><p>${esc(infos.jours)}</p>${infos.horaires.map((h) => `<p><strong>${esc(h.periode)}</strong>\u00a0: ${esc(h.heures)}</p>`).join('')}<p>Bureaux et entrepôts\u00a0: ${esc(infos.bureauxHoraires.jours.toLowerCase())}, ${esc(infos.bureauxHoraires.heures)}.</p><p class="note">${noteRevue(`${esc(infos.horairesNote)} `)}Visites fermées le dimanche.</p></div>
   <div class="info-card"><h3>${icons.phone}Contact</h3><p>Magasin\u00a0: <a href="${infos.magasin.telLien}">${infos.magasin.tel}</a><br /><a href="mailto:${infos.magasin.email}">${infos.magasin.email}</a></p><p>Bureaux\u00a0: <a href="${infos.bureaux.telLien}">${infos.bureaux.tel}</a><br /><a href="mailto:${infos.bureaux.email}">${infos.bureaux.email}</a></p></div>`;
-
-// Réponses en HTML (texte échappé) : le tarif de la visite guidée reste « sur demande » ; l'écart
-// entre les sources est une note du mode revue.
-const faq = [
-  ['Faut-il réserver\u202f?', esc('Pas pour passer à la boutique et goûter. La visite guidée de la distillerie, elle, se fait uniquement sur réservation.')],
-  ['Combien de temps dure la visite guidée\u202f?', esc('Une heure, dégustation comprise, par groupes de 25 personnes au plus. Le parcours passe par la zone de stockage, l’herboristerie, la salle d’étiquetage, le vieux chai et la production, visible derrière les vitres.')],
-  ['Peut-on venir avec des enfants\u202f?', esc('Oui\u00a0: les mineurs dégustent les sirops. Les alcools sont réservés aux personnes majeures.')],
-  ['Est-ce ouvert le dimanche\u202f?', esc('Les visites sont fermées le dimanche. La saison 2026 court du 12 février au 31 décembre.')],
-  [
-    'Quel est le tarif\u202f?',
-    `La dégustation en boutique est gratuite. Le tarif de la visite guidée est donné sur demande, au <a href="${infos.magasin.telLien}">${esc(infos.magasin.tel)}</a>.${noteRevue(' Tarif à confirmer\u00a0: les sources ne donnent pas toutes le même.')}`,
-  ],
-];
-$('#faq').innerHTML = faq.map(([q, a]) => `<details><summary>${esc(q)}${icons.chevron}</summary><p>${a}</p></details>`).join('');
 
 // ---------- Réservation ----------
 const NB = ' ';

@@ -29,6 +29,8 @@ export const infos = {
 };
 
 // ---------- Visites ----------
+// Tarif inconnu : la boutique le donne au téléphone (numéro insécable, jamais coupé).
+const TARIF = `Tarif sur demande au ${infos.magasin.tel.replace(/ /g, '\u00a0')}`;
 // Saison 2026 : Provence-Alpes-Côte d'Azur Tourisme. Parcours : Pop Tourisme. Durée, taille des
 // groupes : Provence Guide. Les tarifs se contredisent d'une source à l'autre : « sur demande » pour
 // le visiteur, « à confirmer » (revue) pour la distillerie.
@@ -54,7 +56,7 @@ export const formules = [
     voir: ['L’histoire de la maison, racontée en boutique', 'La dégustation'],
     duree: 'Sur demande',
     reservation: 'Sur réservation',
-    prix: 'Tarif sur demande',
+    prix: TARIF,
     revue: { duree: 'Durée à confirmer', prix: 'Tarif à confirmer' },
     reservable: true,
   },
@@ -65,8 +67,8 @@ export const formules = [
     voir: ['La zone de stockage', 'L’herboristerie', 'La salle d’étiquetage', 'Le vieux chai', 'La production, derrière les vitres', 'La dégustation'],
     duree: '1\u00a0h, dégustation comprise',
     capacite: '25 personnes au plus',
-    reservation: 'Toute l’année, sur réservation\u202f; fermé le dimanche',
-    prix: 'Tarif sur demande',
+    reservation: 'Sur réservation, du lundi au samedi',
+    prix: TARIF,
     revue: { prix: 'Tarif à confirmer', prixNote: 'Gratuit, 4\u00a0€, 5\u00a0€, 7\u00a0€ ou 10\u00a0€ selon les sources\u00a0: à trancher avec la distillerie.' },
     reservable: true,
   },
@@ -78,7 +80,7 @@ export const formules = [
     duree: 'Sur demande',
     capacite: 'Jusqu’à 25 personnes',
     reservation: 'Sur réservation',
-    prix: 'Tarif sur demande',
+    prix: TARIF,
     revue: { duree: 'Durée à confirmer', reservation: 'Délai de réservation à fixer', prix: 'Tarif à confirmer' },
     reservable: true,
   },
@@ -100,7 +102,7 @@ export const actualites = [
     quand: 'Du 12 février au 31 décembre 2026',
     rubrique: 'Visites',
     titre: 'La saison des visites',
-    texte: 'Visites guidées toute l’année sur réservation, par groupes de 25 personnes au plus\u202f; fermé le dimanche.',
+    texte: 'Visites guidées sur réservation, du lundi au samedi, par groupes de 25 personnes au plus.',
     lien: { texte: 'Réserver une visite', href: '/visiter#reserver' },
     source: { nom: 'Provence-Alpes-Côte d’Azur Tourisme', url: 'https://provence-alpes-cotedazur.com/en/offres/visit-to-the-blachere-distillery-chateauneuf-du-pape-en-4707053/' },
   },
