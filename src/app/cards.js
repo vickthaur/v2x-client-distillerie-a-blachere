@@ -40,8 +40,11 @@ const ALCOOL_PAR_GAMME = { 'pastis-aperitifs': 'Apéritif', liqueurs: 'Liqueur',
 const NOM_FAMILLE = Object.fromEntries(FAMILLES.map((f) => [f.id, f.nom]));
 const GAMME = Object.fromEntries(GAMMES.map((g) => [g.id, g]));
 
+// Un produit peut porter son propre surtitre, celui de son étiquette (src/data/products.js :
+// le sirop caramel à la fleur de sel est un « Le Camarguais® »), à la place du nom de la gamme.
 export function surtitreCourt(p, { variante = 'gamme' } = {}) {
   if (variante === 'famille' && !p.alcool && NOM_FAMILLE[p.famille]) return NOM_FAMILLE[p.famille];
+  if (p.surtitre) return p.surtitre;
   if (p.alcool) return FAMILLE_ALCOOL.find(([rx]) => rx.test(p.type || ''))?.[1] || ALCOOL_PAR_GAMME[p.gamme] || 'Spiritueux';
   const g = GAMME[p.gamme];
   return g?.court || p.type || g?.nom || '';
