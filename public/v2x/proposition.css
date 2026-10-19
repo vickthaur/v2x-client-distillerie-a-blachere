@@ -23,7 +23,9 @@
   .v2x--compacte .v2x-pastille:hover { gap: 10px; padding: 0 16px 0 6px; }
   .v2x--compacte .v2x-pastille:hover .v2x-pastille-txt { max-width: 240px; opacity: 1; }
 }
-@media (prefers-reduced-motion: reduce) { .v2x-pastille, .v2x-pastille-txt { transition: none; } }
+.v2x { transition: transform .35s cubic-bezier(.22, 1, .36, 1), opacity .25s ease; }
+.v2x--effacee { transform: translateY(calc(100% + 20px)); opacity: 0; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .v2x, .v2x-pastille, .v2x-pastille-txt { transition: none; } }
 .v2x-panneau { position: absolute; left: 0; bottom: 52px; width: min(380px, calc(100vw - 28px)); max-height: calc(100svh - 90px); overflow-y: auto; background: #fff; color: var(--encre); padding: 22px; border-radius: 18px; box-shadow: 0 30px 70px -20px rgb(0 0 0 / .55); color-scheme: light; }
 .v2x-k { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: #7a7068; margin-bottom: 8px; }
 .v2x-t { font-size: 14.5px; line-height: 1.55; color: var(--encre-2); }

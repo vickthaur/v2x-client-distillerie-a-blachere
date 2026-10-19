@@ -100,6 +100,18 @@
       addEventListener('scroll', auDefilement, { passive: true });
       setTimeout(replier, 4000);
     }
+    // Repliée, la pastille s'efface quand on descend dans la page (elle passerait sur les prix et les
+    // boutons) et revient dès qu'on remonte, en haut de page, au focus ou quand le panneau est ouvert.
+    let dernierY = scrollY;
+    addEventListener('scroll', () => {
+      const y = scrollY;
+      const ecart = y - dernierY;
+      if (Math.abs(ecart) < 6) return;
+      dernierY = y;
+      const effacer = ecart > 0 && y > 120 && racine.classList.contains('v2x--compacte') && panneau.hidden && !racine.contains(document.activeElement);
+      racine.classList.toggle('v2x--effacee', effacer);
+    }, { passive: true });
+    racine.addEventListener('focusin', () => racine.classList.remove('v2x--effacee'));
     pastille.addEventListener('click', () => ouvrir(panneau.hidden));
     racine.querySelector('.v2x-fermer').addEventListener('click', () => ouvrir(false));
     addEventListener('keydown', (e) => { if (e.key === 'Escape') ouvrir(false); });
