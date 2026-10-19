@@ -7,7 +7,7 @@ import '../styles/base.css';
 import '../styles/shop.css';
 import { initSite, addToCart } from '../app/site.js';
 import { EVIN, MINEURS, GAMMES, products, visibleProducts, euro, bySlug } from '../data/products.js';
-import { cardHTML, lockedCardHTML } from '../app/cards.js';
+import { cardHTML, lockedCardHTML, regrouperMillesimes } from '../app/cards.js';
 import { $, $$, esc, debounce, plural } from '../lib/dom.js';
 import { applyFilters, facets, matches, parseState, serializeState, activeCount, emptyState, volumeLabel } from '../lib/filters.js';
 import { icons } from '../lib/icons.js';
@@ -178,7 +178,12 @@ function render({ scroll = false } = {}) {
   // une même grille ; quand les deux sont affichés, ils forment deux rayons séparés.
   const sirops = results.filter((p) => !p.alcool);
   const spirits = results.filter((p) => p.alcool);
-  const list = (items, locked = false) => `<ul class="grid">${items.map(cardHTML).join('')}${locked ? lockedCardHTML() : ''}</ul>`;
+  // Les millésimes du Vieux marc « Elixir® » : une carte quand la grille montre tout un rayon (ni
+  // recherche ni gamme) ; elle mène à la recherche qui les liste. Dans la sélection « Meilleures
+  // ventes », pas de pastille « Meilleure vente » sur chaque carte.
+  const regrouper = !state.q.trim() && !state.gammes.size;
+  const list = (items, locked = false) =>
+    `<ul class="grid">${(regrouper ? regrouperMillesimes(items) : items).map((p) => cardHTML(p, { best: !state.best })).join('')}${locked ? lockedCardHTML() : ''}</ul>`;
   const group = (id, title, body) =>
     `<section class="shop-group shop-group--${id}">${title ? `<div class="shop-group__head"><h2 class="shop-group__title">${title}</h2></div>` : ''}${body}</section>`;
   // Message sanitaire (loi Évin) : une bande fine, collée sous l'en-tête tant que des spiritueux
@@ -233,13 +238,14 @@ function stocks(grid) {
     if (!p || !btn) return;
     const etat = etatDemo(demo, p.slug, btn.dataset.v);
     if (!etat || etat === 'disponible') return;
+    // une pastille par carte : l'état du stock prend la place de « Meilleure vente »
     let badges = $('.card__badges', card);
     if (!badges) {
       badges = document.createElement('div');
       badges.className = 'card__badges';
       $('.card__media', card).after(badges);
     }
-    badges.insertAdjacentHTML('beforeend', `<span class="badge badge--stock badge--${etat}">${esc(ETATS[etat])}</span>`);
+    badges.innerHTML = `<span class="badge badge--stock badge--${etat}">${esc(ETATS[etat])}</span>`;
     if (indisponible(etat)) {
       btn.disabled = true;
       btn.classList.add('is-off');
@@ -379,6 +385,15 @@ document.addEventListener('click', (e) => {
     reset();
     // bouton disparu (filtres actifs, état vide) : le focus va au compteur de résultats
     if (!raz.isConnected || raz.closest('[hidden]')) $('#shop-count').focus();
+    return;
+  }
+  // carte des millésimes de l'Elixir® : la recherche qui les liste, sans recharger la page
+  const groupe = e.target.closest('a[data-groupe-lien], .card--groupe .card__media');
+  if (groupe && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
+    e.preventDefault();
+    state.q = new URL(groupe.href).searchParams.get('q') || '';
+    $('#shop-q').value = state.q;
+    render({ scroll: true });
     return;
   }
   const tile = e.target.closest('[data-tile]');

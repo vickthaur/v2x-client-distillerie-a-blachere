@@ -68,19 +68,24 @@ function priceHTML(p, price) {
   return `<p class="card__price"><span class="card__amount">${des}${euro(price)}</span>${unite ? `<span class="card__unit">${unite}</span>` : ''}</p>`;
 }
 
-// options : tag (élément de la carte), surtitre ('gamme' par défaut, ou 'famille').
+// options :
+// - tag : élément de la carte ('li' par défaut) ;
+// - surtitre : 'gamme' (par défaut) ou 'famille' ;
+// - best : false dans un ensemble de meilleures ventes (carrousel de l'accueil, filtre « Meilleures
+//   ventes ») : la pastille « Meilleure vente » y redirait le titre de l'ensemble.
+// Une pastille au plus, au-dessus de la bouteille (la vignette lui réserve une bande, base.css) :
+// l'opération du moment (Octobre Rose), sinon « Meilleure vente ». Pas de « 18+ » sur les cartes :
+// les spiritueux ne sont montrés qu'après la vérification de l'âge, la fiche le rappelle.
+// Un groupe de millésimes (regrouperMillesimes) donne sa carte de groupe.
 // (Appelée aussi par Array.map : le deuxième argument peut être un index, ignoré.)
 export function cardHTML(p, options = {}) {
-  const { tag = 'li', surtitre = 'gamme' } = typeof options === 'object' && options ? options : {};
+  const { tag = 'li', surtitre = 'gamme', best = true, href = null } = typeof options === 'object' && options ? options : {};
+  if (p.groupe) return groupeCardHTML(p, { tag, href });
   verifierEvin();
   const price = minPrice(p);
   const c = p.contenances[0];
   const op = operationAffichee();
-  const badges = [
-    p.bestSeller ? '<span class="badge badge--best">Meilleure vente</span>' : '',
-    concerne(op, p.slug) ? `<span class="badge badge--rose">${esc(op.nom)}</span>` : '',
-    p.alcool ? '<span class="badge badge--age">18+</span>' : '',
-  ].join('');
+  const badges = concerne(op, p.slug) ? `<span class="badge badge--rose">${esc(op.nom)}</span>` : best && p.bestSeller ? '<span class="badge badge--best">Meilleure vente</span>' : '';
   return `<${tag} class="card" data-theme="${p.theme}" data-slug="${p.slug}"${p.alcool ? ' data-alcool' : ''} style="--c:${p.color};--l:${p.light};--d:${p.deep}">
     <a class="card__media" href="/boutique/${p.slug}" tabindex="-1" aria-hidden="true">${thumbHTML(p)}</a>
     ${badges ? `<div class="card__badges">${badges}</div>` : ''}
@@ -96,6 +101,62 @@ export function cardHTML(p, options = {}) {
       </div>`
           : `<p class="card__dispo">${icons.store}<span>${esc(DISPO_BOUTIQUE)}</span></p>`
       }
+    </div>
+  </${tag}>`;
+}
+
+// ---------- Millésimes regroupés ----------
+// Les millésimes du Vieux marc « Elixir® » (une fiche par année, la même carafe en photo) forment une
+// seule carte dans les grilles qui montrent tout un rayon (boutique sans recherche ni gamme, rayon
+// des vieux marcs de /spiritueux). Les fiches restent séparées ; la carte mène à la liste des
+// millésimes (href). Nombre, années, contenance, degré et prix sont tirés des fiches.
+export const estMillesimeElixir = (p) => !!p?.millesime && p.slug.startsWith('marc-elixir-millesime');
+// Recherche de la boutique qui liste les millésimes (et pas l'Élixir du Mont Ventoux).
+export const RECHERCHE_ELIXIR = 'Elixir millésimé';
+export const NOM_ELIXIR = 'Vieux marc « Elixir® » millésimé';
+
+export function regrouperMillesimes(items) {
+  const elixirs = items.filter(estMillesimeElixir);
+  if (elixirs.length < 2) return items;
+  const groupe = { groupe: 'elixir', items: [...elixirs].sort((a, b) => Number(a.millesime) - Number(b.millesime)) };
+  return items.flatMap((p) => (!estMillesimeElixir(p) ? [p] : p === elixirs[0] ? [groupe] : []));
+}
+
+// « 15 millésimes, de 1958 à 2010 · 50 cl · 43 % vol. » (contenance et degré seulement s'ils sont
+// communs à tous)
+export function millesimesMeta(items) {
+  const ans = items.map((p) => Number(p.millesime)).filter(Boolean);
+  const commun = (vals) => (new Set(vals).size === 1 ? vals[0] : null);
+  const vol = commun(items.flatMap((p) => p.contenances.map((k) => k.volume)));
+  const deg = commun(items.map((p) => p.degre));
+  return [
+    `${items.length} millésimes, de ${Math.min(...ans)} à ${Math.max(...ans)}`,
+    vol,
+    deg ? `${String(deg).replace('.', ',')} % vol.` : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+}
+
+function groupeCardHTML(g, { tag = 'li', href = null } = {}) {
+  verifierEvin();
+  const items = g.items;
+  const prix = items.map(minPrice).filter((x) => x !== null);
+  const min = prix.length ? Math.min(...prix) : null;
+  const moinsCher = items.find((p) => minPrice(p) === min) || items[items.length - 1];
+  const p = items[items.length - 1];
+  const lien = href || `/boutique?q=${encodeURIComponent(RECHERCHE_ELIXIR)}`;
+  const unite = min !== null ? prixAuLitreHTML(moinsCher.contenances.find((k) => k.prix === min)) : '';
+  return `<${tag} class="card card--groupe" data-theme="${p.theme}" data-groupe="${g.groupe}" data-alcool style="--c:${p.color};--l:${p.light};--d:${p.deep}">
+    <a class="card__media" href="${lien}" tabindex="-1" aria-hidden="true">${thumbHTML(p)}</a>
+    <div class="card__body">
+      <p class="card__gamme">${esc(surtitreCourt(p))}</p>
+      <h3 class="card__name"><a href="${lien}" data-groupe-lien>${esc(NOM_ELIXIR)}</a></h3>
+      <p class="card__meta">${esc(millesimesMeta(items))}</p>
+      <div class="card__row">
+        ${min !== null ? `<p class="card__price"><span class="card__amount"><span class="card__from">dès </span>${euro(min)}</span>${unite ? `<span class="card__unit">${unite}</span>` : ''}</p>` : '<p class="card__price card__price--none">Prix en boutique</p>'}
+        <span class="card__add card__add--voir" aria-hidden="true">${icons.arrow}<span>Voir</span></span>
+      </div>
     </div>
   </${tag}>`;
 }
