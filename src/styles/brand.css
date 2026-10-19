@@ -214,6 +214,9 @@
 .mh-savoir .bsource { color: rgba(255, 255, 255, 0.55); }
 .mh-savoir__photos { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .mh-savoir__photos .ph { aspect-ratio: 4 / 5; }
+/* Pages d'information (contact, espace pro, où trouver, textes légaux, recettes, visiter…) : l'en-tête
+   a déjà sa marge du bas, la section qui suit n'en remet qu'une petite. */
+.mh-hero + .section, .vis-hero + .section { padding-top: clamp(24px, 3vw, 48px); }
 .mh-chantier__in { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: clamp(28px, 5vw, 88px); align-items: start; }
 @media (max-width: 1000px) {
   .mh-periode { grid-template-columns: 1fr; }
@@ -273,8 +276,9 @@
 .legal-toc ol { display: grid; gap: 6px; padding-left: 18px; list-style: decimal; color: var(--ink-3); }
 .legal-toc a { color: var(--ink-2); text-decoration: none; }
 .legal-toc a:hover { color: var(--ink); text-decoration: underline; }
-.legal-body { max-width: 760px; }
-.legal-body h2 { margin: 36px 0 12px; padding-top: 18px; border-top: 1px solid var(--line); font: 720 1.25rem/1.2 var(--font); letter-spacing: -0.01em; scroll-margin-top: calc(var(--main-h) + 20px); }
+/* même colonne pour les deux textes (la règle .prose, 68ch, passait devant sur les CGV) */
+.legal-doc .legal-body { width: 100%; max-width: 720px; }
+.legal-body h2 { margin: 36px 0 12px; color: var(--ink); padding-top: 18px; border-top: 1px solid var(--line); font: 720 1.25rem/1.2 var(--font); letter-spacing: -0.01em; scroll-margin-top: calc(var(--main-h) + 20px); }
 .legal-body h2:first-child { margin-top: 0; }
 .legal-body p + p { margin-top: 10px; }
 .legal-dl { display: grid; }
