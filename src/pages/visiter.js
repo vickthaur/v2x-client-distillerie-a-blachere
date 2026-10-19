@@ -379,7 +379,10 @@ form.addEventListener('submit', async (ev) => {
       <button type="button" class="btn btn--ghost" id="booking-again">Faire une autre réservation</button>
     </div>
   </div>`;
-  $('#booking-done').focus();
+  // La carte de confirmation, plus courte que le formulaire, remonterait sous l'en-tête collant :
+  // alignée sous l'en-tête (scroll-padding-top de la page), le focus ne fait pas défiler.
+  $('#booking-done').focus({ preventScroll: true });
+  $('#booking-card').scrollIntoView({ block: 'start', behavior: calm() ? 'auto' : 'smooth' });
   $('#booking-again').addEventListener('click', () => location.reload());
   mountDemoBar({ toast: site.toast });
 });

@@ -127,7 +127,10 @@ function done(d, r) {
       <button type="button" class="btn btn--ghost" id="contact-again">Écrire un autre message</button>
     </div>
   </div>`;
-  $('#contact-done').focus();
+  // La carte, plus courte que le formulaire, remonte sous l'en-tête collant (le focus seul la laissait
+  // à moitié cachée) : alignée sous l'en-tête par le scroll-padding-top de la page.
+  $('#contact-done').focus({ preventScroll: true });
+  $('#contact-card').scrollIntoView({ block: 'start', behavior: calm() ? 'auto' : 'smooth' });
   $('#contact-again').addEventListener('click', () => location.assign('/contact'));
   // La démo vient d'être créée (ou existait) : la pastille de démo apparaît.
   mountDemoBar({ toast: site.toast });
