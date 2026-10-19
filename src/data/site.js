@@ -93,7 +93,7 @@ export const actualites = [
     quand: '13 juin 2026',
     rubrique: 'Festival',
     titre: '«\u00a0Châteauneuf-du-Pape en Bulles\u00a0», le festival de BD',
-    texte: 'Avec Enrico Marini, Olivier Berlion, Marc Bourgne et Christopher, sous le parrainage de Sébastien Philippe. Gratuit, au cœur du village, organisé avec la commune et financé par la distillerie.',
+    texte: 'Avec Enrico Marini, Olivier Berlion, Marc Bourgne et Christopher, sous le parrainage de Sébastien Philippe. Gratuit, dans le village, organisé avec la commune et financé par la distillerie.',
     suite: 'Prochaine édition\u00a0: date à annoncer.',
     source: { nom: 'Pop Tourisme', url: 'https://www.poptourisme.fr/fete-manifestation/festival-de-bd-chateauneuf-du-pape-en-bulles/' },
   },
@@ -111,23 +111,9 @@ export const actualites = [
     quand: 'À partir de 2026',
     rubrique: 'Chantier',
     titre: 'Un grand projet pour la distillerie',
-    texte: 'Moderniser, agrandir et restructurer la production, le stockage, l’accueil et la vente. Pour le rendre possible, la commune a adapté son plan local d’urbanisme\u202f; l’enquête publique s’est tenue du 24 février au 25 mars 2025.',
-    source: { nom: 'L’Écho du Mardi, décembre 2025', url: 'https://www.echodumardi.com/economie/depuis-1835-la-distillerie-a-blachere-saffaire-pour-creer-des-saveurs-seduire-et-fideliser-sa-clientele/' },
-  },
-  {
-    id: 'embouteillage',
-    quand: 'Date à confirmer',
-    rubrique: 'Production',
-    titre: 'Une nouvelle ligne d’embouteillage',
-    texte: 'Un investissement d’environ 500\u202f000\u00a0€, soutenu à 20\u202f% par France Relance, pour atteindre à terme 6\u202f000 bouteilles à l’heure.',
-    source: { nom: 'L’Écho du Mardi', url: 'https://www.echodumardi.com/tag/distillerie-blachere/?print=print-search' },
-  },
-  {
-    id: 'magnums',
-    quand: 'Un été, sans doute 2025',
-    rubrique: 'Édition limitée',
-    titre: 'Une centaine de magnums numérotés',
-    texte: 'Les deux sirops phares de la maison en magnums numérotés, le temps d’un été. Une édition limitée, sans doute épuisée\u00a0: pas de vente en ligne.',
+    texte: 'Moderniser, agrandir et restructurer la production, le stockage, l’accueil et la vente. Pour le rendre possible, la commune a adapté son plan local d’urbanisme\u202f; l’enquête publique s’est tenue du 24 février au 25 mars 2025. Une nouvelle ligne d’embouteillage\u00a0: environ 500\u202f000\u00a0€, soutenus à 20\u202f% par France Relance, pour atteindre à terme 6\u202f000 bouteilles à l’heure.',
+    // La ligne d'embouteillage est aussi citée par L'Écho du Mardi :
+    // https://www.echodumardi.com/tag/distillerie-blachere/?print=print-search (date à confirmer).
     source: { nom: 'L’Écho du Mardi, décembre 2025', url: 'https://www.echodumardi.com/economie/depuis-1835-la-distillerie-a-blachere-saffaire-pour-creer-des-saveurs-seduire-et-fideliser-sa-clientele/' },
   },
   {
