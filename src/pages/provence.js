@@ -23,12 +23,17 @@ $('#cp-lead').innerHTML = `${phrase ? `«\u00a0Fidèle à mon âme provençale e
 
 // La gamme, par contenance (celle de la fiche officielle). Toutes les cartes sont de la gamme : leur
 // surtitre dit la famille d'arômes (« Fruits rouges », « Agrumes ») plutôt que « Couleur Provence® ».
+// Le seul sirop en 50 cl (caramel à la fleur de sel) rejoint les 70 cl : « En 70 cl et 50 cl »
+// plutôt qu'un groupe d'une carte ; chaque carte garde sa contenance.
+const [v70, v50] = ['70 cl', '50 cl'].map(typo);
+const volume = (p) => p.contenances[0]?.volume || 'Autres';
+const fusion = cp.some((p) => volume(p) === v50) ? `${v70} et ${v50}` : v70;
 const groups = new Map();
 for (const p of cp) {
-  const v = p.contenances[0]?.volume || 'Autres';
+  const v = volume(p) === v70 || volume(p) === v50 ? fusion : volume(p);
   groups.set(v, [...(groups.get(v) || []), p]);
 }
-const order = ['1 L', '70 cl', '50 cl'].map(typo);
+const order = [typo('1 L'), fusion];
 $('#cp-groups').innerHTML = [...groups.entries()]
   .sort((a, b) => (order.indexOf(a[0]) + 99) % 99 - ((order.indexOf(b[0]) + 99) % 99))
   .map(
