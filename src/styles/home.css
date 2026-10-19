@@ -187,6 +187,10 @@
 .savoir__photos { display: grid; grid-template-columns: 1.15fr 1fr; grid-template-rows: 1fr 1fr; gap: 14px; aspect-ratio: 6 / 5; }
 .savoir__photos .ph { min-height: 0; }
 .savoir__ph--a { grid-row: 1 / 3; }
+/* Pièce d'archives : l'image se réduit pour que la légende reste dans le cadre (une étiquette en
+   hauteur dans une case basse dépassait et perdait sa légende) */
+.savoir__photos .ph--archive { grid-template-rows: minmax(0, 1fr) auto; }
+.savoir__photos .ph--archive > img { width: 100%; height: 100%; object-fit: contain; box-shadow: none; filter: drop-shadow(0 10px 16px rgba(21, 19, 15, 0.3)); }
 @media (max-width: 900px) { .savoir__in { grid-template-columns: 1fr; } }
 /* Téléphone : la grande photo sur toute la largeur, les deux autres côte à côte (la carte postale
    n'est plus une vignette perdue dans un grand cadre) */
