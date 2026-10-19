@@ -8,8 +8,11 @@ import '../styles/base.css';
 import '../styles/shop.css';
 import '../styles/checkout.css';
 import '../styles/operation.css';
-import { initSite, totalsHTML, affinerLivraison } from '../app/site.js';
-import { EVIN, MINEURS, prixAuLitreHTML } from '../data/products.js';
+import { initSite, totalsHTML, affinerLivraison, addToCart } from '../app/site.js';
+import { cardHTML, evinCartesHTML } from '../app/cards.js';
+import { EVIN, MINEURS, prixAuLitreHTML, products } from '../data/products.js';
+import { sortProducts } from '../lib/filters.js';
+import { BAREME } from '../lib/livraison.js';
 import { infos } from '../data/site.js';
 import { api } from '../lib/api.js';
 import { cart } from '../lib/cart.js';
@@ -195,7 +198,6 @@ function lineHTML(l, editable) {
       <a class="co-line__name" href="/boutique/${p.slug}">${esc(p.nom)}</a>
       <span class="co-line__meta">${esc(l.contenance?.volume || 'Contenance à confirmer')} · ${l.prix !== null ? `${euro(l.prix)} l’unité${prixAuLitreHTML({ ...l.contenance, prix: l.prix }) ? ` · ${prixAuLitreHTML({ ...l.contenance, prix: l.prix })}` : ''}` : 'Prix en boutique'}</span>
       ${etat ? `<span class="co-line__stock co-line__stock--${l.etat}">${esc(etat)}${l.etat === 'stock-bas' ? '' : `${NB}: retirez cet article pour commander`}</span>` : ''}
-      ${p.alcool ? `<span class="co-line__evin">${esc(EVIN)}</span>` : ''}
     </div>
     ${
       editable
@@ -263,11 +265,29 @@ const etoile = '<span class="req" aria-hidden="true"> *</span>';
 const field = (name, label, value = '', attrs = '', hint = '') =>
   `<label class="field"><span>${label}${/\brequired\b/.test(attrs) ? etoile : ''}</span><input name="${name}" value="${esc(value)}" ${attrs} aria-describedby="${hint ? `co-aide-${name} ` : ''}co-err-${name}" />${hint ? `<small class="field__hint" id="co-aide-${name}">${hint}</small>` : ''}<small class="field__err" id="co-err-${name}" data-err="${name}"></small></label>`;
 
+// Panier vide : une rangée de quatre meilleures ventes (le bloc « Best sellers » du site officiel),
+// les sirops d'abord, un spiritueux seulement pour une personne majeure ; complétée au besoin par
+// des sirops Couleur Provence®.
+function meilleuresVentes() {
+  const enLigne = products.filter((p) => p.enLigne);
+  const best = sortProducts(enLigne.filter((p) => p.bestSeller), 'ventes');
+  const spiritueux = site.majeur ? best.filter((p) => p.alcool).slice(0, 1) : [];
+  const autres = sortProducts(enLigne.filter((p) => !p.bestSeller && !p.alcool && p.gamme === 'couleur-provence'), 'ventes');
+  return [...best.filter((p) => !p.alcool).slice(0, 4 - spiritueux.length), ...spiritueux, ...autres].slice(0, 4);
+}
+
 const VIEWS = {
   panier() {
     const t = cart.totals();
-    if (!t.lines.length)
-      return `<div class="co-empty"><p class="co-empty__title" tabindex="-1">Votre panier est vide.</p><p>${site.majeur ? 'Les sirops et les spiritueux de la maison vous attendent dans la boutique.' : 'PAC Citron, Fun Blue et une trentaine de sirops vous attendent dans la boutique.'}</p><a class="btn btn--primary" href="/boutique">Voir la boutique</a></div>`;
+    if (!t.lines.length) {
+      const picks = meilleuresVentes();
+      return `<div class="co-empty"><p class="co-empty__title" tabindex="-1">Votre panier est vide.</p><p>Retrait gratuit à la distillerie, livraison offerte dès ${euro(BAREME.francoTTC)} d’achats.</p><a class="btn btn--primary" href="/boutique">Voir la boutique</a></div>
+      <section class="co-best" aria-labelledby="co-best-title">
+        <h2 class="co-best__title" id="co-best-title">Meilleures ventes</h2>
+        <ul class="grid co-best__grid">${picks.map((p) => cardHTML(p, { best: false })).join('')}</ul>
+        ${evinCartesHTML(picks)}
+      </section>`;
+    }
     const stop = blocked(t);
     return `<ul class="co-lines">${t.lines.map((l) => lineHTML(l, true)).join('')}</ul>
       <div class="co-sum">${totalsHTML(t)}${donHTML(t.lines)}${t.alcohol ? `<p class="evin">${esc(EVIN)} ${esc(MINEURS)}</p>` : ''}</div>
@@ -284,7 +304,7 @@ const VIEWS = {
       <div class="form-row">${field('email', 'E-mail', c.email, 'type="email" autocomplete="email" required inputmode="email"')}${field('tel', 'Téléphone', c.tel, 'type="tel" autocomplete="tel" required inputmode="tel"', 'Pour vous prévenir quand la commande est prête.')}</div>
       ${
         alcohol
-          ? `<div class="co-age"><label class="check"><input type="checkbox" name="majeur" value="1"${c.majeur ? ' checked' : ''} required aria-describedby="co-err-majeur" /><span><strong>J’ai 18 ans ou plus.</strong>${etoile} Votre panier contient de l’alcool\u00a0: la vente d’alcool est interdite aux mineurs de moins de 18 ans.</span></label><small class="field__err" id="co-err-majeur" data-err="majeur"></small><p class="evin">${esc(EVIN)}</p></div>`
+          ? `<div class="co-age"><label class="check"><input type="checkbox" name="majeur" value="1"${c.majeur ? ' checked' : ''} required aria-describedby="co-err-majeur" /><span><strong>J’ai 18 ans ou plus.</strong>${etoile} Votre panier contient de l’alcool\u00a0: la vente d’alcool est interdite aux mineurs de moins de 18 ans.</span></label><small class="field__err" id="co-err-majeur" data-err="majeur"></small></div>`
           : ''
       }
       <label class="check co-news"><input type="checkbox" name="newsletter" value="1"${c.newsletter ? ' checked' : ''} /><span>Je souhaite recevoir la lettre de la distillerie (facultatif).</span></label>
@@ -360,7 +380,7 @@ const VIEWS = {
     const t = cart.totals();
     const pay = order.paiement || 'carte';
     return `<form class="co-form" id="co-form" novalidate>
-      ${t.alcohol ? `<div class="co-mineurs" role="note"><strong>Vente interdite aux mineurs</strong><span>Votre commande contient de l’alcool\u00a0: la vente d’alcool est interdite aux mineurs de moins de 18 ans.</span><span class="evin">${esc(EVIN)}</span></div>` : ''}
+      ${t.alcohol ? `<div class="co-mineurs" role="note"><strong>Vente interdite aux mineurs</strong><span>Votre commande contient de l’alcool\u00a0: la vente d’alcool est interdite aux mineurs de moins de 18 ans.</span></div>` : ''}
       <div class="co-sim">
         <p class="co-sim__badge">Paiement simulé</p>
         <p>Démonstration${NB}: aucun paiement n’est demandé. Sur le site en ligne, cette étape ouvrira le paiement sécurisé.</p>
@@ -780,8 +800,13 @@ function orderError(form, x) {
   (form.elements[target?.[1]] || msg)?.focus?.();
 }
 
-// Panier : quantités et suppression
+// Panier : quantités et suppression (et ajout depuis les meilleures ventes du panier vide)
 document.addEventListener('click', (e) => {
+  const add = e.target.closest('#co-main [data-add]');
+  if (add) {
+    addToCart(add.dataset.add, add.dataset.v || null);
+    return;
+  }
   const li = e.target.closest('.co-line');
   if (!li || step !== 'panier') return;
   const slug = li.dataset.slug;

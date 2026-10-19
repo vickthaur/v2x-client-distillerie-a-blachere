@@ -7,7 +7,7 @@ import '../styles/base.css';
 import '../styles/shop.css';
 import { initSite, addToCart } from '../app/site.js';
 import { EVIN, MINEURS, GAMMES, products, visibleProducts, euro, bySlug } from '../data/products.js';
-import { cardHTML, lockedCardHTML } from '../app/cards.js';
+import { cardHTML, lockedCardHTML, regrouperMillesimes } from '../app/cards.js';
 import { $, $$, esc, debounce, plural } from '../lib/dom.js';
 import { applyFilters, facets, matches, parseState, serializeState, activeCount, emptyState, volumeLabel } from '../lib/filters.js';
 import { icons } from '../lib/icons.js';
@@ -109,7 +109,6 @@ function buildForm() {
   if (site.majeur && f.degre) groups.push(rangeHTML('degre', 'Degré d’alcool', f.degre, state.degre, fmtRange('degre'), 1));
   if (f.best)
     groups.push(`<fieldset class="fgroup"><legend>Sélection</legend><label class="switch"><input type="checkbox" name="meilleures" value="1"${state.best ? ' checked' : ''} /><span class="switch__track" aria-hidden="true"></span><span>Meilleures ventes <span class="opt__n" data-n="meilleures:1">${f.best}</span></span></label></fieldset>`);
-  if (f.prix) groups.push('<p class="filters__note">Le filtre de prix ne garde que les produits dont le prix est affiché en ligne.</p>');
   $('#filters').innerHTML = groups.join('');
   $$('#filters [data-range]').forEach(syncRange);
 }
@@ -178,7 +177,12 @@ function render({ scroll = false } = {}) {
   // une même grille ; quand les deux sont affichés, ils forment deux rayons séparés.
   const sirops = results.filter((p) => !p.alcool);
   const spirits = results.filter((p) => p.alcool);
-  const list = (items, locked = false) => `<ul class="grid">${items.map(cardHTML).join('')}${locked ? lockedCardHTML() : ''}</ul>`;
+  // Les millésimes du Vieux marc « Elixir® » : une carte quand la grille montre tout un rayon (ni
+  // recherche ni gamme) ; elle mène à la recherche qui les liste. Dans la sélection « Meilleures
+  // ventes », pas de pastille « Meilleure vente » sur chaque carte.
+  const regrouper = !state.q.trim() && !state.gammes.size;
+  const list = (items, locked = false) =>
+    `<ul class="grid">${(regrouper ? regrouperMillesimes(items) : items).map((p) => cardHTML(p, { best: !state.best })).join('')}${locked ? lockedCardHTML() : ''}</ul>`;
   const group = (id, title, body) =>
     `<section class="shop-group shop-group--${id}">${title ? `<div class="shop-group__head"><h2 class="shop-group__title">${title}</h2></div>` : ''}${body}</section>`;
   // Message sanitaire (loi Évin) : une bande fine, collée sous l'en-tête tant que des spiritueux
@@ -194,8 +198,13 @@ function render({ scroll = false } = {}) {
   else if (spirits.length) grid.innerHTML = group('spiritueux', '', evin + list(results, showLocked));
   else grid.innerHTML = list(results, showLocked);
   $('#shop-empty').hidden = lockedOnly || results.length > 0;
+  if (!results.length) videHTML();
   const n = lockedOnly ? 0 : results.length;
-  $('#shop-count').innerHTML = `<strong>${plural(n, 'produit')}</strong>${activeCount(state) ? ' correspondent à votre sélection' : ' dans la boutique'}`;
+  $('#shop-count').innerHTML = !activeCount(state)
+    ? `<strong>${plural(n, 'produit')}</strong> dans la boutique`
+    : n === 0
+      ? '<strong>Aucun produit</strong> ne correspond à votre sélection'
+      : `<strong>${plural(n, 'produit')}</strong> ${n === 1 ? 'correspond' : 'correspondent'} à votre sélection`;
   $('#sheet-apply').textContent = n ? `Voir ${plural(n, 'produit')}` : 'Aucun produit';
   renderChips();
   refreshCounts();
@@ -214,9 +223,7 @@ function render({ scroll = false } = {}) {
   // La source des prix est une note du mode revue ; la démonstration (prix et stocks modifiables,
   // paiement simulé) reste dite à tous.
   $('#shop-note').innerHTML = `<span>${
-    demo
-      ? 'Prix TTC et stocks de la démonstration, modifiables dans le CRM de démonstration. Les produits sans prix en ligne sont vendus au prix de la boutique.'
-      : `Prix TTC.${noteRevue(' Prix du site actuel de la distillerie.')} Les produits sans prix en ligne sont vendus au prix de la boutique.`
+    demo ? 'Prix TTC et stocks de la démonstration, modifiables dans le CRM de démonstration.' : `Prix TTC.${noteRevue(' Prix du site actuel de la distillerie.')}`
   } Démonstration\u00a0: le paiement est simulé.</span>${spiritsShown ? `<span class="evin">${esc(EVIN)} ${esc(MINEURS)}</span>` : ''}`;
   history.replaceState(null, '', `${location.pathname}${serializeState(state)}`);
   stocks(grid);
@@ -233,13 +240,14 @@ function stocks(grid) {
     if (!p || !btn) return;
     const etat = etatDemo(demo, p.slug, btn.dataset.v);
     if (!etat || etat === 'disponible') return;
+    // une pastille par carte : l'état du stock prend la place de « Meilleure vente »
     let badges = $('.card__badges', card);
     if (!badges) {
       badges = document.createElement('div');
       badges.className = 'card__badges';
       $('.card__media', card).after(badges);
     }
-    badges.insertAdjacentHTML('beforeend', `<span class="badge badge--stock badge--${etat}">${esc(ETATS[etat])}</span>`);
+    badges.innerHTML = `<span class="badge badge--stock badge--${etat}">${esc(ETATS[etat])}</span>`;
     if (indisponible(etat)) {
       btn.disabled = true;
       btn.classList.add('is-off');
@@ -249,6 +257,22 @@ function stocks(grid) {
       card.classList.add('is-rupture');
     }
   });
+}
+
+// État vide : une recherche qui ne trouve rien n'appelle pas la même aide que des filtres trop
+// serrés. La recherche seule (sans les autres filtres) ne trouve rien : « Rien pour cette
+// recherche » ; sinon, ce sont les filtres.
+function videHTML() {
+  const q = state.q.trim();
+  const autres = activeCount(state) - (q ? 1 : 0);
+  const recherche = q && !applyFilters(base, { ...emptyState(), q }).length;
+  $('#shop-empty-title').textContent = recherche ? 'Rien pour cette recherche.' : 'Aucun produit ne correspond à ces filtres.';
+  $('#shop-empty-text').textContent = recherche
+    ? 'Vérifiez l’orthographe, ou cherchez un parfum\u00a0: citron, menthe, grenadine.'
+    : q
+      ? 'Retirez un filtre, ou essayez une autre recherche.'
+      : 'Retirez un filtre pour élargir la sélection.';
+  $('#shop-empty-reset').textContent = recherche && !autres ? 'Effacer la recherche' : 'Tout effacer';
 }
 
 function renderChips() {
@@ -379,6 +403,15 @@ document.addEventListener('click', (e) => {
     reset();
     // bouton disparu (filtres actifs, état vide) : le focus va au compteur de résultats
     if (!raz.isConnected || raz.closest('[hidden]')) $('#shop-count').focus();
+    return;
+  }
+  // carte des millésimes de l'Elixir® : la recherche qui les liste, sans recharger la page
+  const groupe = e.target.closest('a[data-groupe-lien], .card--groupe .card__media');
+  if (groupe && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
+    e.preventDefault();
+    state.q = new URL(groupe.href).searchParams.get('q') || '';
+    $('#shop-q').value = state.q;
+    render({ scroll: true });
     return;
   }
   const tile = e.target.closest('[data-tile]');

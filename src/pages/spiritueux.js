@@ -10,9 +10,9 @@ import '../styles/home.css';
 import '../styles/brand.css';
 import { initSite, addToCart, reveal } from '../app/site.js';
 import { evinHTML, lockHTML } from '../app/blocks.js';
-import { cardHTML } from '../app/cards.js';
+import { cardHTML, regrouperMillesimes, estMillesimeElixir } from '../app/cards.js';
 import { imgPiece, pieceById, pieceHTML } from '../app/pieces.js';
-import { GAMMES, products } from '../data/products.js';
+import { products, euro } from '../data/products.js';
 import textes from '../data/textes.js';
 import { $, esc, calm, plural } from '../lib/dom.js';
 import { noteRevue } from '../lib/revue.js';
@@ -39,8 +39,8 @@ const RAYONS = [
   {
     gamme: 'liqueurs',
     titre: 'Les liqueurs',
+    // (la phrase « J’y puise… » de la page Histoire ouvre déjà la page, dans le héros)
     texte: [
-      sentence(find(/Thym, romarin/), /J’y puise/),
       sentence(find(/frère Imbert/), /La Magistrale/),
       sentence(find(/Papalines/), /Origan du Comtat/),
       sentence(find(/sérigraphiée/), /sérigraphiée/),
@@ -49,7 +49,8 @@ const RAYONS = [
   },
   {
     gamme: 'cremes-eaux-de-vie',
-    titre: 'Les crèmes et les eaux-de-vie',
+    // traits d'union insécables (U+2011) : « eaux-de-vie » ne se coupe pas en fin de ligne
+    titre: 'Les crèmes et les eaux‑de‑vie',
     texte: [sentence(find(/l’Ardéchoise/i), /l’Ardéchoise/i).replace(/^.*?(j’élabore)/, 'J’élabore'), 'Et des eaux-de-vie de fruits (poire, framboise…), comme Flirt®, eau-de-vie de poires Williams.'],
     pieces: ['ardechoise-chataigne', 'creme-banane', 'creme-cacao'],
   },
@@ -60,6 +61,21 @@ const RAYONS = [
     pieces: ['chai-futs', 'petit-calan', 'cave-bouteilles'],
   },
 ];
+
+// Carte de cave des millésimes de l'Elixir®, sous leur carte : l'année, le prix, le lien vers la
+// fiche (une fiche par millésime).
+function caveHTML(items) {
+  const ordre = [...items].sort((a, b) => Number(a.millesime) - Number(b.millesime));
+  return `<div class="cave" id="millesimes-elixir">
+    <h3 class="cave__title">Les millésimes de l’Elixir<sup>®</sup></h3>
+    <ol class="cave__list">${ordre
+      .map((p) => {
+        const c = p.contenances[0];
+        return `<li><a href="/boutique/${p.slug}"><span class="cave__an">${esc(p.millesime)}</span><span class="cave__fil" aria-hidden="true"></span><span class="cave__prix">${c?.prix != null ? euro(c.prix) : 'Prix en boutique'}</span></a></li>`;
+      })
+      .join('')}</ol>
+  </div>`;
+}
 
 function render() {
   if (site.age !== 'majeur') {
@@ -79,20 +95,22 @@ function render() {
   $('#spirits-photo').hidden = false;
   $('#spirits-photo').innerHTML = `${imgPiece(chai, { sizes: '(max-width: 900px) 92vw, 42vw', eager: true })}<figcaption>${esc(chai.titre)} · ${esc(chai.technique)}, archive de la distillerie</figcaption>`;
   root.innerHTML = RAYONS.map((r) => {
-    const g = GAMMES.find((x) => x.id === r.gamme);
     const items = products.filter((p) => p.gamme === r.gamme);
+    // Vieux marcs : les millésimes de l'Elixir® en une carte, puis leur carte de cave
+    const cartes = regrouperMillesimes(items);
     return `<section class="section sp-rayon" id="${r.gamme}" aria-labelledby="t-${r.gamme}">
       <div class="wrap">
         <div class="sp-rayon__head">
           <div class="sp-rayon__copy" data-reveal>
-            <p class="kicker">${esc(g?.nom || r.titre)} · ${plural(items.length, 'produit')}</p>
+            <p class="kicker">${plural(items.length, 'produit')}</p>
             <h2 class="h-section" id="t-${r.gamme}">${esc(r.titre)}</h2>
             <div class="prose">${r.texte.filter(Boolean).map((t) => `<p>${esc(t)}</p>`).join('')}</div>
             ${noteRevue('D’après la page Histoire du site de la distillerie.', { tag: 'p', cls: 'bsource' })}
           </div>
           <ul class="pieces sp-rayon__pieces">${r.pieces.map((id) => pieceById[id]).filter(Boolean).map((p) => pieceHTML(p)).join('')}</ul>
         </div>
-        <ul class="grid sp-rayon__grid">${items.map((p) => cardHTML(p)).join('')}</ul>
+        <ul class="grid sp-rayon__grid">${cartes.map((p) => cardHTML(p, { href: '#millesimes-elixir' })).join('')}</ul>
+        ${cartes.length < items.length ? caveHTML(items.filter(estMillesimeElixir)) : ''}
         ${evinHTML('sp-rayon__evin evin--cartes')}
       </div>
     </section>`;

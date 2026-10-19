@@ -25,10 +25,12 @@ export const GAMMES = [
   { id: 'pac', nom: 'PAC Citron', univers: 'sirops', theme: 'pac' },
   { id: 'fun-blue', nom: 'Fun Blue', univers: 'sirops', theme: 'funblue' },
   { id: 'couleur-provence', nom: 'Sirops Couleur Provence®', court: 'Couleur Provence®', univers: 'sirops', theme: 'provence' },
-  { id: 'pastis-aperitifs', nom: 'Les Apéritifs et Pastis', univers: 'spiritueux', theme: 'maison' },
-  { id: 'liqueurs', nom: 'Les Liqueurs', univers: 'spiritueux', theme: 'maison' },
-  { id: 'cremes-eaux-de-vie', nom: 'Les Crèmes et Eaux de Vie', univers: 'spiritueux', theme: 'marcs' },
-  { id: 'marcs', nom: 'Les Vieux Marcs', univers: 'spiritueux', theme: 'marcs' },
+  // noms des rayons officiels en casse de phrase (« Les Apéritifs et Pastis », « Les Crèmes et Eaux
+  // de Vie » sur le site de la distillerie : typographie seulement)
+  { id: 'pastis-aperitifs', nom: 'Les apéritifs et pastis', univers: 'spiritueux', theme: 'maison' },
+  { id: 'liqueurs', nom: 'Les liqueurs', univers: 'spiritueux', theme: 'maison' },
+  { id: 'cremes-eaux-de-vie', nom: 'Les crèmes et eaux-de-vie', univers: 'spiritueux', theme: 'marcs' },
+  { id: 'marcs', nom: 'Les vieux marcs', univers: 'spiritueux', theme: 'marcs' },
 ];
 
 // Les neuf univers de la maison (étude d'identité). Couleurs : PAC, Fun Blue et collectors sont
@@ -108,7 +110,7 @@ const P = {
     phrase: '100 % naturel au jus de citron, sans colorant ni conservateur',
     notes: [
       { t: 'Depuis plus de 60 ans, un «\u00a0sirop à base de sucre et de citron, sans colorants\u00a0».', revue: 'Lancé en 1960 selon la page Histoire de la maison (marque déposée en 1962)\u00a0: «\u00a0sirop à base de sucre et de citron, sans colorants\u00a0».' },
-      { t: 'Son nom, Louis Guiot le compose «\u00a0de chaque première lettre du prénom de ses enfants\u00a0: Pierre, Annick, Christian et Colette\u00a0».', revue: 'Louis Guiot le compose «\u00a0de chaque première lettre du prénom de ses enfants\u00a0: Pierre, Annick, Christian et Colette\u00a0» (page Histoire).' },
+      { t: 'Louis Guiot a formé son nom «\u00a0de chaque première lettre du prénom de ses enfants\u00a0: Pierre, Annick, Christian et Colette\u00a0».', revue: 'Louis Guiot le compose «\u00a0de chaque première lettre du prénom de ses enfants\u00a0: Pierre, Annick, Christian et Colette\u00a0» (page Histoire).' },
       { t: 'Toujours fabriqué dans le Vaucluse par la Distillerie A. Blachère.', revue: '«\u00a0Toujours fabriqué dans le Vaucluse par la Distillerie A. Blachère\u00a0», dit sa fiche.' },
       { t: 'Pour ses 60 ans, en 2023\u00a0: quatre étiquettes collector, trois de C215 et une de Claude Viallat.' },
     ],
@@ -222,6 +224,8 @@ const P = {
   'sirop-caramel': { nom: 'Sirop caramel', lignes: ['Caramel', ''], famille: 'gourmands', liquide: '#b2622a' },
   'sirop-caramel-fleur-de-sel-camargue': {
     nom: 'Sirop caramel à la fleur de sel de Camargue',
+    // son étiquette et sa fiche : « LE CAMARGUAIS® » (rangé avec les Couleur Provence®)
+    surtitre: 'Le Camarguais®',
     lignes: ['Caramel', 'fleur de sel'],
     famille: 'gourmands',
     liquide: '#9a5226',
@@ -498,6 +502,7 @@ function versProduit(c, index) {
     nomOfficiel: c.nomOfficiel,
     lignes: e.lignes || (millesime ? ['Elixir®', millesime] : [displayName(c), '']),
     type: e.type || (alcool ? (c.rubrique || '').split('>').pop().trim() || 'Spiritueux' : `Sirop ${g?.court || ''}`.trim()),
+    surtitre: e.surtitre || null,
     categorie: c.categorie,
     rubrique: c.rubrique,
     gamme,
