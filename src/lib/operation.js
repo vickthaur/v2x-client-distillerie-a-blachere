@@ -1,4 +1,4 @@
-// Habillage des opérations du moment (Octobre Rose…) : ruban, pastille, bandeau et encart de fiche.
+// Habillage des opérations du moment (Octobre Rose…) : petit ruban, pastille, bandeau et encart de fiche.
 // Les textes viennent de src/data/operation.js ; hors période, rien n'est affiché.
 import { operationEnCours, concerne, donPour } from '../data/operation.js';
 import { esc } from './dom.js';
@@ -55,26 +55,8 @@ export function lignePanierHTML(op, lignes) {
   return `<p class="op-cart">${ruban('rose', 'op-cart__ruban')}<span><strong>${esc(op.nom)}</strong>\u00a0: ${euros(montant)} ${montant > 1 ? 'seront reversés' : 'sera reversé'} ${esc(op.beneficiaireAvecArticle)} grâce à ${bouteilles > 1 ? `vos ${bouteilles} bouteilles` : 'votre bouteille'} de ${esc(op.produitNom)}.</span></p>`;
 }
 
-// Grand ruban du bandeau : dégradés, ombre portée du brin de devant sur le croisement ; chaque brin
-// se dessine quand le bandeau entre dans l'écran (pathLength = 1, voir operation.css).
-function grandRuban() {
-  const id = `gr-${++nRuban}`;
-  return `<svg class="op-band__ruban" viewBox="0 0 64 96" aria-hidden="true" focusable="false">
-    <defs>
-      <linearGradient id="${id}-dos" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e2569c"/><stop offset="1" stop-color="#a50f68"/></linearGradient>
-      <linearGradient id="${id}-face" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7a8cb"/><stop offset=".55" stop-color="#e8619f"/><stop offset="1" stop-color="#c81f80"/></linearGradient>
-      <filter id="${id}-ombre" x="-30%" y="-10%" width="160%" height="130%"><feDropShadow dx="0" dy="1.4" stdDeviation="1.3" flood-color="#6d0640" flood-opacity=".35"/></filter>
-      <clipPath id="${id}-coupe"><path d="M0 0H64V96H51L45.2 90.5 39.4 96H24.6L18.8 90.5 13 96H0Z"/></clipPath>
-    </defs>
-    <g clip-path="url(#${id}-coupe)" fill="none" stroke-width="10.5">
-      <path class="op-band__brin op-band__brin--dos" pathLength="1" d="M46 98 27 55C22 43 20 14.5 32 14.5" stroke="url(#${id}-dos)"/>
-      <path class="op-band__brin op-band__brin--face" pathLength="1" d="M32 14.5C44 14.5 42 43 37 55L18 98" stroke="url(#${id}-face)" filter="url(#${id}-ombre)"/>
-    </g>
-  </svg>`;
-}
-
 // Bandeau (accueil, page de marque), version moderne : à gauche « 1 € » en très grand, le message
-// et le bénéficiaire ; à droite le grand ruban et la vraie bouteille (photo détourée) devant lui.
+// et le bénéficiaire ; à droite la vraie bouteille (photo détourée), seule et centrée.
 export function bandeauHTML(op, { titreId = 'op-titre', cta = true } = {}) {
   const produit = bySlug[op.produits[0]];
   const prix = produit?.contenances?.[0]?.prix;
@@ -91,7 +73,6 @@ export function bandeauHTML(op, { titreId = 'op-titre', cta = true } = {}) {
       </div>
       <div class="op-band__visuel" aria-hidden="true">
         <span class="op-band__halo"></span>
-        ${grandRuban()}
         <img class="op-band__bouteille" src="${photo}" alt="" width="287" height="1024" loading="lazy" decoding="async" />
       </div>
     </div>`;
@@ -110,8 +91,8 @@ export function monterBandeau(el, options) {
   el.setAttribute('aria-labelledby', options?.titreId || 'op-titre');
   el.setAttribute('data-reveal', '');
   el.hidden = false;
-  // Sans photo traitée (scripts/photos.mjs), le ruban reste seul.
-  el.querySelector('.op-band__bouteille')?.addEventListener('error', (e) => e.target.remove(), { once: true });
+  // Sans photo traitée (scripts/photos.mjs), le visuel est retiré : le texte reste seul.
+  el.querySelector('.op-band__bouteille')?.addEventListener('error', (e) => e.target.closest('.op-band__visuel')?.remove(), { once: true });
   return op;
 }
 
