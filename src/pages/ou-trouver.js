@@ -53,11 +53,14 @@ function render() {
         <p class="pdv__produits">${produits.map((p) => `<span>${esc(p.nom)}</span>`).join('')}</p>
         ${pdv.detail ? `<p class="note">${esc(pdv.detail)}</p>` : ''}
         ${pdv.accord ? noteRevue('Accord du café à demander', { tag: 'p', cls: 'tbc' }) : ''}
-        ${produits.some((p) => p.alcool) ? `<p class="note">${esc(EVIN)}</p>` : ''}
         ${pdv.url ? `<a class="link" href="${pdv.url}" target="_blank" rel="noopener">Voir chez ${esc(pdv.nom)}<span class="sr-only"> (nouvel onglet)</span></a>` : ''}
       </li>`,
       )
       .join('');
+  // Message sanitaire : une fois sous la liste dès qu'un alcool y est nommé (README, règle 4).
+  const evin = $('#ot-evin');
+  evin.hidden = !list.some(({ produits }) => produits.some((p) => p.alcool));
+  evin.textContent = evin.hidden ? '' : EVIN;
   const n = list.length + (home ? 1 : 0);
   $('#ot-count').textContent = n ? `${plural(n, 'point de vente', 'points de vente')}${site.majeur ? '' : ' · les spiritueux s’affichent après la vérification de l’âge'}` : 'Aucun point de vente ne correspond\u00a0: essayez un autre mot, ou la boutique de la distillerie.';
   const url = new URL(location.href);

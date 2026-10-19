@@ -97,6 +97,13 @@ legend.field__label { margin-bottom: 7px; padding: 0; }
 .ot-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 32px; margin-bottom: 24px; }
 .ot-bar .shop-search { flex: 1 1 300px; max-width: 440px; }
 .ot-bar .cats { flex: 1 1 auto; border-bottom: 0; }
+/* Téléphone : les types de points de vente sur une ligne qui défile, jusqu'aux bords de l'écran */
+@media (max-width: 760px) {
+  .ot-bar .cats { flex: 1 1 100%; flex-wrap: nowrap; min-width: 0; margin-inline: calc(-1 * var(--gutter)); padding-inline: var(--gutter); overflow-x: auto; scroll-padding-inline: var(--gutter); scrollbar-width: none; }
+  .ot-bar .cats::-webkit-scrollbar { display: none; }
+  .ot-bar .cat { flex: none; white-space: nowrap; }
+  .ot-bar .cat::after { bottom: 0; }
+}
 .map-ph { display: grid; place-content: center; justify-items: center; gap: 6px; min-height: 220px; margin-bottom: 20px; padding: 28px; border: 1px solid var(--line); border-radius: var(--r-l); background-color: var(--paper-2); background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size: 56px 56px; background-position: center; text-align: center; font-size: 0.92rem; color: var(--ink-2); }
 .map-ph strong { font: 700 1.1rem/1.2 var(--font); color: var(--ink); }
 .map-ph > span { max-width: 52ch; }

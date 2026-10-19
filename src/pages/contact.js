@@ -9,7 +9,8 @@ import { initSite } from '../app/site.js';
 import { infos } from '../data/site.js';
 import { api } from '../lib/api.js';
 import { mountDemoBar } from '../lib/demo.js';
-import { $, $$, esc } from '../lib/dom.js';
+import { $, esc, calm } from '../lib/dom.js';
+import { erreursParChamp } from '../lib/formulaire.js';
 import { icons } from '../lib/icons.js';
 import { noteRevue } from '../lib/revue.js';
 
@@ -69,50 +70,26 @@ form.elements.sujet.addEventListener('change', syncHint);
 // Champ de l'API → champ du formulaire
 const FIELD = { telephone: 'tel', rgpd: 'rgpd', sujet: 'sujet', nom: 'nom', email: 'email', message: 'message' };
 
-function mark(bad) {
-  $$('input, select, textarea', form).forEach((el) => {
-    const on = bad.has(el.name);
-    el.classList.toggle('is-invalid', on);
-    if (on) el.setAttribute('aria-invalid', 'true');
-    else el.removeAttribute('aria-invalid');
-  });
-  form.querySelector('.is-invalid')?.focus();
-}
-
-function error(text) {
-  msg.className = 'form-msg err';
-  msg.textContent = text;
-}
-
+// Une erreur par champ, écrite sous le champ et reliée par aria-describedby (src/lib/formulaire.js),
+// comme sur Visiter et l'espace pro ; le résumé compte les champs à corriger.
 function check(d) {
-  const bad = new Set();
-  const errs = [];
-  if (!d.sujet) bad.add('sujet');
-  if (!d.nom?.trim()) bad.add('nom');
-  if (!EMAIL.test((d.email || '').trim())) bad.add('email');
-  if (!d.message?.trim()) bad.add('message');
-  if (bad.size) errs.push('Complétez les champs en rouge.');
-  if (d.message?.trim() && d.message.trim().length < 10) {
-    bad.add('message');
-    errs.push(`Votre message est un peu court${NB}: dites-nous en quelques mots ce qui vous amène.`);
-  }
-  if (d.tel && !/^[+\d][\d\s.-]{8,}$/.test(d.tel.trim())) {
-    bad.add('tel');
-    errs.push('Ce numéro de téléphone ne semble pas valide.');
-  }
-  if (!d.rgpd) {
-    bad.add('rgpd');
-    errs.push('Cochez la case d’accord pour que la distillerie puisse vous répondre.');
-  }
-  return { bad, errs };
+  const e = new Map();
+  if (!d.sujet) e.set('sujet', 'Choisissez un sujet.');
+  if (!d.nom?.trim()) e.set('nom', 'Indiquez votre nom.');
+  if (!EMAIL.test((d.email || '').trim())) e.set('email', 'Indiquez une adresse e-mail valide (ex. prenom@exemple.fr).');
+  if (d.tel?.trim() && !/^[+\d][\d\s.-]{8,}$/.test(d.tel.trim())) e.set('tel', 'Ce numéro de téléphone ne semble pas valide.');
+  const texte = d.message?.trim() || '';
+  if (!texte) e.set('message', 'Écrivez votre message.');
+  else if (texte.length < 10) e.set('message', `Votre message est un peu court${NB}: dites-nous en quelques mots ce qui vous amène.`);
+  if (!d.rgpd) e.set('rgpd', 'Cochez la case d’accord pour que la distillerie puisse vous répondre.');
+  return e;
 }
 
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
+form.addEventListener('submit', async (ev) => {
+  ev.preventDefault();
   const d = Object.fromEntries(new FormData(form));
-  const { bad, errs } = check(d);
-  mark(bad);
-  if (errs.length) return error(errs.join(' '));
+  msg.className = 'form-msg err';
+  if (erreursParChamp(form, check(d), { resume: msg })) return;
   const btn = form.querySelector('button[type="submit"]');
   btn.disabled = true;
   btn.textContent = 'Envoi…';
@@ -127,9 +104,10 @@ form.addEventListener('submit', async (e) => {
   } catch (x) {
     btn.disabled = false;
     btn.textContent = 'Envoyer le message';
+    msg.className = 'form-msg err';
+    msg.textContent = x?.message || 'Le message n’a pas pu être enregistré. Réessayez.';
     const champ = FIELD[String(x?.champ || '').split('.').pop()];
-    mark(new Set(champ ? [champ] : []));
-    error(x?.message || 'Le message n’a pas pu être enregistré. Réessayez.');
+    if (champ) erreursParChamp(form, { [champ]: x.message });
   }
 });
 
@@ -149,7 +127,10 @@ function done(d, r) {
       <button type="button" class="btn btn--ghost" id="contact-again">Écrire un autre message</button>
     </div>
   </div>`;
-  $('#contact-done').focus();
+  // La carte, plus courte que le formulaire, remonte sous l'en-tête collant (le focus seul la laissait
+  // à moitié cachée) : alignée sous l'en-tête par le scroll-padding-top de la page.
+  $('#contact-done').focus({ preventScroll: true });
+  $('#contact-card').scrollIntoView({ block: 'start', behavior: calm() ? 'auto' : 'smooth' });
   $('#contact-again').addEventListener('click', () => location.assign('/contact'));
   // La démo vient d'être créée (ou existait) : la pastille de démo apparaît.
   mountDemoBar({ toast: site.toast });

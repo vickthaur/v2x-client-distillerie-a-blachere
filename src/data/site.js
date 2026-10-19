@@ -16,19 +16,21 @@ export const infos = {
   // Horaires du magasin : page Contact du site officiel (relevée le 14 octobre 2026), qui fait
   // référence ; elle tranche les versions différentes des autres pages.
   horaires: [
-    { periode: 'D’octobre à mars', heures: '10\u00a0h – 18\u00a0h' },
-    { periode: 'D’avril à septembre', heures: '9\u00a0h – 19\u00a0h' },
+    { periode: 'D’octobre à mars', heures: '10\u00a0h\u00a0–\u00a018\u00a0h' },
+    { periode: 'D’avril à septembre', heures: '9\u00a0h\u00a0–\u00a019\u00a0h' },
   ],
   jours: 'Du lundi au samedi, hors jours fériés',
   horairesNote: 'Horaires de la page Contact du site de la distillerie.',
-  bureauxHoraires: { jours: 'Du lundi au vendredi, hors jours fériés', heures: '8\u00a0h – 12\u00a0h, 14\u00a0h – 18\u00a0h' },
+  bureauxHoraires: { jours: 'Du lundi au vendredi, hors jours fériés', heures: '8\u00a0h\u00a0–\u00a012\u00a0h, 14\u00a0h\u00a0–\u00a018\u00a0h' },
   // Horaires de retrait indiqués par la page « Achat express » du site actuel.
-  retrait: '9\u00a0h – 12\u00a0h et 14\u00a0h – 17\u00a0h',
+  retrait: '9\u00a0h\u00a0–\u00a012\u00a0h et 14\u00a0h\u00a0–\u00a017\u00a0h',
   itineraire: 'https://www.openstreetmap.org/search?query=1695%20route%20de%20Sorgues%2C%2084230%20Ch%C3%A2teauneuf-du-Pape',
   instagram: 'https://www.instagram.com/distillerieablachere/',
 };
 
 // ---------- Visites ----------
+// Tarif inconnu : la boutique le donne au téléphone (numéro insécable, jamais coupé).
+const TARIF = `Tarif sur demande au ${infos.magasin.tel.replace(/ /g, '\u00a0')}`;
 // Saison 2026 : Provence-Alpes-Côte d'Azur Tourisme. Parcours : Pop Tourisme. Durée, taille des
 // groupes : Provence Guide. Les tarifs se contredisent d'une source à l'autre : « sur demande » pour
 // le visiteur, « à confirmer » (revue) pour la distillerie.
@@ -54,7 +56,7 @@ export const formules = [
     voir: ['L’histoire de la maison, racontée en boutique', 'La dégustation'],
     duree: 'Sur demande',
     reservation: 'Sur réservation',
-    prix: 'Tarif sur demande',
+    prix: TARIF,
     revue: { duree: 'Durée à confirmer', prix: 'Tarif à confirmer' },
     reservable: true,
   },
@@ -65,8 +67,8 @@ export const formules = [
     voir: ['La zone de stockage', 'L’herboristerie', 'La salle d’étiquetage', 'Le vieux chai', 'La production, derrière les vitres', 'La dégustation'],
     duree: '1\u00a0h, dégustation comprise',
     capacite: '25 personnes au plus',
-    reservation: 'Toute l’année, sur réservation\u202f; fermé le dimanche',
-    prix: 'Tarif sur demande',
+    reservation: 'Sur réservation, du lundi au samedi',
+    prix: TARIF,
     revue: { prix: 'Tarif à confirmer', prixNote: 'Gratuit, 4\u00a0€, 5\u00a0€, 7\u00a0€ ou 10\u00a0€ selon les sources\u00a0: à trancher avec la distillerie.' },
     reservable: true,
   },
@@ -78,7 +80,7 @@ export const formules = [
     duree: 'Sur demande',
     capacite: 'Jusqu’à 25 personnes',
     reservation: 'Sur réservation',
-    prix: 'Tarif sur demande',
+    prix: TARIF,
     revue: { duree: 'Durée à confirmer', reservation: 'Délai de réservation à fixer', prix: 'Tarif à confirmer' },
     reservable: true,
   },
@@ -91,7 +93,7 @@ export const actualites = [
     quand: '13 juin 2026',
     rubrique: 'Festival',
     titre: '«\u00a0Châteauneuf-du-Pape en Bulles\u00a0», le festival de BD',
-    texte: 'Avec Enrico Marini, Olivier Berlion, Marc Bourgne et Christopher, sous le parrainage de Sébastien Philippe. Gratuit, au cœur du village, organisé avec la commune et financé par la distillerie.',
+    texte: 'Avec Enrico Marini, Olivier Berlion, Marc Bourgne et Christopher, sous le parrainage de Sébastien Philippe. Gratuit, dans le village, organisé avec la commune et financé par la distillerie.',
     suite: 'Prochaine édition\u00a0: date à annoncer.',
     source: { nom: 'Pop Tourisme', url: 'https://www.poptourisme.fr/fete-manifestation/festival-de-bd-chateauneuf-du-pape-en-bulles/' },
   },
@@ -100,7 +102,7 @@ export const actualites = [
     quand: 'Du 12 février au 31 décembre 2026',
     rubrique: 'Visites',
     titre: 'La saison des visites',
-    texte: 'Visites guidées toute l’année sur réservation, par groupes de 25 personnes au plus\u202f; fermé le dimanche.',
+    texte: 'Visites guidées sur réservation, du lundi au samedi, par groupes de 25 personnes au plus.',
     lien: { texte: 'Réserver une visite', href: '/visiter#reserver' },
     source: { nom: 'Provence-Alpes-Côte d’Azur Tourisme', url: 'https://provence-alpes-cotedazur.com/en/offres/visit-to-the-blachere-distillery-chateauneuf-du-pape-en-4707053/' },
   },
@@ -109,23 +111,9 @@ export const actualites = [
     quand: 'À partir de 2026',
     rubrique: 'Chantier',
     titre: 'Un grand projet pour la distillerie',
-    texte: 'Moderniser, agrandir et restructurer la production, le stockage, l’accueil et la vente. Pour le rendre possible, la commune a adapté son plan local d’urbanisme\u202f; l’enquête publique s’est tenue du 24 février au 25 mars 2025.',
-    source: { nom: 'L’Écho du Mardi, décembre 2025', url: 'https://www.echodumardi.com/economie/depuis-1835-la-distillerie-a-blachere-saffaire-pour-creer-des-saveurs-seduire-et-fideliser-sa-clientele/' },
-  },
-  {
-    id: 'embouteillage',
-    quand: 'Date à confirmer',
-    rubrique: 'Production',
-    titre: 'Une nouvelle ligne d’embouteillage',
-    texte: 'Un investissement d’environ 500\u202f000\u00a0€, soutenu à 20\u202f% par France Relance, pour atteindre à terme 6\u202f000 bouteilles à l’heure.',
-    source: { nom: 'L’Écho du Mardi', url: 'https://www.echodumardi.com/tag/distillerie-blachere/?print=print-search' },
-  },
-  {
-    id: 'magnums',
-    quand: 'Un été, sans doute 2025',
-    rubrique: 'Édition limitée',
-    titre: 'Une centaine de magnums numérotés',
-    texte: 'Les deux sirops phares de la maison en magnums numérotés, le temps d’un été. Une édition limitée, sans doute épuisée\u00a0: pas de vente en ligne.',
+    texte: 'Moderniser, agrandir et restructurer la production, le stockage, l’accueil et la vente. Pour le rendre possible, la commune a adapté son plan local d’urbanisme\u202f; l’enquête publique s’est tenue du 24 février au 25 mars 2025. Une nouvelle ligne d’embouteillage\u00a0: environ 500\u202f000\u00a0€, soutenus à 20\u202f% par France Relance, pour atteindre à terme 6\u202f000 bouteilles à l’heure.',
+    // La ligne d'embouteillage est aussi citée par L'Écho du Mardi :
+    // https://www.echodumardi.com/tag/distillerie-blachere/?print=print-search (date à confirmer).
     source: { nom: 'L’Écho du Mardi, décembre 2025', url: 'https://www.echodumardi.com/economie/depuis-1835-la-distillerie-a-blachere-saffaire-pour-creer-des-saveurs-seduire-et-fideliser-sa-clientele/' },
   },
   {
