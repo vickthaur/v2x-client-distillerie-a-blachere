@@ -102,7 +102,7 @@ export function pressHTML(test, max = 6) {
 
 export function ailleursHTML(p) {
   const t = formatsAilleursTexte(p);
-  return t ? `<p class="bnote">${esc(t)} — voir <a href="/ou-trouver">Où trouver nos produits</a>.</p>` : '';
+  return t ? `<p class="bnote">${esc(t)} (voir <a href="/ou-trouver">Où trouver nos produits</a>).</p>` : '';
 }
 
 export function bindAdd() {
