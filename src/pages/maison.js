@@ -1,6 +1,6 @@
 // La maison : l'histoire racontée par la page Histoire du site officiel (quatre époques, texte
-// exact), avec les archives de chaque époque ; le savoir-faire ; les papiers de la rue Molière ;
-// le chantier. Pour les personnes qui n'ont pas vérifié leur âge, les phrases qui parlent d'alcool
+// exact), avec les archives de chaque époque ; le savoir-faire (le parcours de la visite) ; le
+// chantier. Pour les personnes qui n'ont pas vérifié leur âge, les phrases qui parlent d'alcool
 // sont retirées (jamais réécrites) et les archives des spiritueux ne s'affichent pas.
 import '../styles/base.css';
 import '../styles/home.css';
@@ -14,7 +14,7 @@ import { $, esc } from '../lib/dom.js';
 
 const site = initSite();
 const PIECES = [
-  ['lettre-maison-fondee-1835', 'manuscrit-1726', 'entete-aug-blachere'],
+  ['lettre-maison-fondee-1835', 'avenue-de-la-gare', 'manuscrit-1726', 'entete-aug-blachere'],
   ['pac-1962', 'papalines', 'petit-calan'],
   ['camarguaise', 'mauresque'],
   ['fun-blue-70cl', 'lavande-flacons', 'ardechoise-chataigne'],
@@ -49,20 +49,18 @@ function render() {
   $('#histoire-note').textContent =
     majeur || !retirees ? '' : site.age === 'mineur' ? 'Certains passages de l’histoire sont réservés aux personnes majeures.' : 'Certains passages de l’histoire sont réservés aux personnes majeures\u00a0: ils s’affichent après la vérification de l’âge.';
 
-  // Savoir-faire : la page Histoire (plantes et secrets de la maison), puis le parcours de la visite
-  const all = h.periodes.flatMap((p) => p.paragraphes);
-  const secrets = all.find((x) => /garde précieusement mes secrets/.test(x)) || '';
-  const savoir = [majeur ? secrets : phrasesSansAlcool(secrets), 'La visite de la distillerie passe par l’herboristerie, la salle d’étiquetage, le vieux chai et la production, derrière les vitres.'].filter(Boolean);
+  // Savoir-faire : le parcours de la visite (les plantes et les secrets sont déjà dans l'époque 1835).
+  // Sans vérification de l'âge, deux étiquettes de sirops à la place de la boutique et du chai (des
+  // bouteilles d'alcool y sont visibles).
+  const savoir = ['La visite de la distillerie passe par l’herboristerie, la salle d’étiquetage, le vieux chai et la production, derrière les vitres.'];
   $('#savoir-texte').innerHTML = savoir.map((x) => `<p>${esc(x)}</p>`).join('');
   $('#savoir-photos').innerHTML = majeur
     ? `<figure class="ph"><span class="ph__slot" data-lieu="boutique-rayons"></span><figcaption>La boutique de la distillerie</figcaption></figure>
-       <figure class="ph">${imgPiece(pieceById['chai-futs'], { sizes: '(max-width: 1000px) 50vw, 25vw' })}<figcaption>Les fûts du chai (archive de la distillerie)</figcaption></figure>`
-    : `<figure class="ph ph--archive">${imgPiece(pieceById['lettre-14-rue-moliere'], { sizes: '(max-width: 1000px) 40vw, 20vw' })}<figcaption>Papier à en-tête, 14 rue Molière</figcaption></figure>
-       <figure class="ph ph--archive">${imgPiece(pieceById['avenue-de-la-gare'], { sizes: '(max-width: 1000px) 40vw, 20vw' })}<figcaption>Avignon, avenue de la Gare (carte postale)</figcaption></figure>`;
+       <figure class="ph">${imgPiece(pieceById['chai-futs'], { sizes: '(max-width: 1000px) 50vw, 25vw' })}<figcaption>Les fûts du chai</figcaption></figure>`
+    : ['menthe-glaciale', 'citron-pur-sucre']
+        .map((id) => `<figure class="ph ph--archive">${imgPiece(pieceById[id], { sizes: '(max-width: 1000px) 40vw, 20vw' })}<figcaption>${esc(pieceById[id].titre)} (étiquette)</figcaption></figure>`)
+        .join('');
   fillPlaces($('#savoir-photos'));
-  $('#maison-pieces').innerHTML = `<ul class="pieces">${['lettre-maison-fondee-1835', 'lettre-14-rue-moliere', 'avenue-de-la-gare', 'stand-palais-des-papes']
-    .map((id) => pieceHTML(pieceById[id]))
-    .join('')}</ul>`;
   reveal();
 }
 
