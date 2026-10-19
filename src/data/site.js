@@ -16,14 +16,14 @@ export const infos = {
   // Horaires du magasin : page Contact du site officiel (relevée le 14 octobre 2026), qui fait
   // référence ; elle tranche les versions différentes des autres pages.
   horaires: [
-    { periode: 'D’octobre à mars', heures: '10\u00a0h – 18\u00a0h' },
-    { periode: 'D’avril à septembre', heures: '9\u00a0h – 19\u00a0h' },
+    { periode: 'D’octobre à mars', heures: '10\u00a0h\u00a0–\u00a018\u00a0h' },
+    { periode: 'D’avril à septembre', heures: '9\u00a0h\u00a0–\u00a019\u00a0h' },
   ],
   jours: 'Du lundi au samedi, hors jours fériés',
   horairesNote: 'Horaires de la page Contact du site de la distillerie.',
-  bureauxHoraires: { jours: 'Du lundi au vendredi, hors jours fériés', heures: '8\u00a0h – 12\u00a0h, 14\u00a0h – 18\u00a0h' },
+  bureauxHoraires: { jours: 'Du lundi au vendredi, hors jours fériés', heures: '8\u00a0h\u00a0–\u00a012\u00a0h, 14\u00a0h\u00a0–\u00a018\u00a0h' },
   // Horaires de retrait indiqués par la page « Achat express » du site actuel.
-  retrait: '9\u00a0h – 12\u00a0h et 14\u00a0h – 17\u00a0h',
+  retrait: '9\u00a0h\u00a0–\u00a012\u00a0h et 14\u00a0h\u00a0–\u00a017\u00a0h',
   itineraire: 'https://www.openstreetmap.org/search?query=1695%20route%20de%20Sorgues%2C%2084230%20Ch%C3%A2teauneuf-du-Pape',
   instagram: 'https://www.instagram.com/distillerieablachere/',
 };
