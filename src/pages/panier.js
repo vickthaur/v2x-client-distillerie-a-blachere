@@ -195,7 +195,6 @@ function lineHTML(l, editable) {
       <a class="co-line__name" href="/boutique/${p.slug}">${esc(p.nom)}</a>
       <span class="co-line__meta">${esc(l.contenance?.volume || 'Contenance à confirmer')} · ${l.prix !== null ? `${euro(l.prix)} l’unité${prixAuLitreHTML({ ...l.contenance, prix: l.prix }) ? ` · ${prixAuLitreHTML({ ...l.contenance, prix: l.prix })}` : ''}` : 'Prix en boutique'}</span>
       ${etat ? `<span class="co-line__stock co-line__stock--${l.etat}">${esc(etat)}${l.etat === 'stock-bas' ? '' : `${NB}: retirez cet article pour commander`}</span>` : ''}
-      ${p.alcool ? `<span class="co-line__evin">${esc(EVIN)}</span>` : ''}
     </div>
     ${
       editable
@@ -284,7 +283,7 @@ const VIEWS = {
       <div class="form-row">${field('email', 'E-mail', c.email, 'type="email" autocomplete="email" required inputmode="email"')}${field('tel', 'Téléphone', c.tel, 'type="tel" autocomplete="tel" required inputmode="tel"', 'Pour vous prévenir quand la commande est prête.')}</div>
       ${
         alcohol
-          ? `<div class="co-age"><label class="check"><input type="checkbox" name="majeur" value="1"${c.majeur ? ' checked' : ''} required aria-describedby="co-err-majeur" /><span><strong>J’ai 18 ans ou plus.</strong>${etoile} Votre panier contient de l’alcool\u00a0: la vente d’alcool est interdite aux mineurs de moins de 18 ans.</span></label><small class="field__err" id="co-err-majeur" data-err="majeur"></small><p class="evin">${esc(EVIN)}</p></div>`
+          ? `<div class="co-age"><label class="check"><input type="checkbox" name="majeur" value="1"${c.majeur ? ' checked' : ''} required aria-describedby="co-err-majeur" /><span><strong>J’ai 18 ans ou plus.</strong>${etoile} Votre panier contient de l’alcool\u00a0: la vente d’alcool est interdite aux mineurs de moins de 18 ans.</span></label><small class="field__err" id="co-err-majeur" data-err="majeur"></small></div>`
           : ''
       }
       <label class="check co-news"><input type="checkbox" name="newsletter" value="1"${c.newsletter ? ' checked' : ''} /><span>Je souhaite recevoir la lettre de la distillerie (facultatif).</span></label>
@@ -360,7 +359,7 @@ const VIEWS = {
     const t = cart.totals();
     const pay = order.paiement || 'carte';
     return `<form class="co-form" id="co-form" novalidate>
-      ${t.alcohol ? `<div class="co-mineurs" role="note"><strong>Vente interdite aux mineurs</strong><span>Votre commande contient de l’alcool\u00a0: la vente d’alcool est interdite aux mineurs de moins de 18 ans.</span><span class="evin">${esc(EVIN)}</span></div>` : ''}
+      ${t.alcohol ? `<div class="co-mineurs" role="note"><strong>Vente interdite aux mineurs</strong><span>Votre commande contient de l’alcool\u00a0: la vente d’alcool est interdite aux mineurs de moins de 18 ans.</span></div>` : ''}
       <div class="co-sim">
         <p class="co-sim__badge">Paiement simulé</p>
         <p>Démonstration${NB}: aucun paiement n’est demandé. Sur le site en ligne, cette étape ouvrira le paiement sécurisé.</p>

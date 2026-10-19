@@ -454,14 +454,14 @@ function openCart() {
 // Contenance, prix et prix au litre d'une ligne (UX-5).
 const lineMeta = (l) => [l.contenance?.volume ? esc(l.contenance.volume) : 'Contenance à confirmer', l.prix !== null ? euro(l.prix) : 'Prix en boutique', l.prix !== null ? prixAuLitreHTML({ ...l.contenance, prix: l.prix }) : ''].filter(Boolean).join(' · ');
 
-function lineHTML(l, { compact = false } = {}) {
+// Message sanitaire : une fois sous la liste (pied du panier), pas sous chaque ligne d'alcool.
+function lineHTML(l) {
   const p = l.product;
   return `<li class="line" data-slug="${p.slug}" data-v="${l.v ?? ''}">
     <a class="line__img" href="/boutique/${p.slug}" style="--c:${p.light}" tabindex="-1" aria-hidden="true">${thumbHTML(p)}</a>
     <span>
       <a class="line__name" href="/boutique/${p.slug}">${esc(p.nom)}</a>
       <span class="line__meta" data-meta>${lineMeta(l)}</span>
-      ${p.alcool && !compact ? `<span class="line__meta">${esc(EVIN)}</span>` : ''}
     </span>
     <span class="qty" role="group" aria-label="Quantité de ${esc(p.nom)}">
       <button type="button" data-q="-1" aria-label="Retirer un ${esc(p.nom)}">${icons.minus}</button>

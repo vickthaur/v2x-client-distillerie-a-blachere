@@ -41,7 +41,6 @@ body[data-step='panier'] .co { grid-template-columns: minmax(0, 1fr); }
 .co-line__name { font: 680 1.02rem/1.3 var(--font); color: var(--ink); text-decoration: none; }
 .co-line__name:hover { text-decoration: underline; text-underline-offset: 0.2em; }
 .co-line__meta { font-size: 0.86rem; color: var(--ink-3); }
-.co-line__evin { font-size: 0.74rem; line-height: 1.4; color: var(--ink-3); }
 .co-line__del { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 1px solid var(--line-2); border-radius: 50%; background: #fff; color: var(--ink-2); transition: border-color 0.2s, color 0.2s, background 0.2s; }
 .co-line__del:hover { border-color: var(--err); background: #fbecea; color: var(--err); }
 .co-line__del svg { width: 18px; height: 18px; }
