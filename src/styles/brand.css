@@ -285,7 +285,7 @@
 .legal-dl > div { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 16px; padding: 8px 0; border-bottom: 1px solid var(--line); }
 .legal-dl dt { color: var(--ink-3); }
 .legal-dl dd { margin: 0; }
-.legal-dl__p { grid-template-columns: 1fr !important; }
+.legal-dl > div:last-child { border-bottom: 0; }
 @media (max-width: 900px) {
   .legal-doc { grid-template-columns: 1fr; }
   .legal-toc { position: relative; top: 0; }
