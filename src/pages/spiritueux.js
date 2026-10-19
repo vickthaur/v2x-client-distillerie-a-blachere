@@ -39,8 +39,8 @@ const RAYONS = [
   {
     gamme: 'liqueurs',
     titre: 'Les liqueurs',
+    // (la phrase « J’y puise… » de la page Histoire ouvre déjà la page, dans le héros)
     texte: [
-      sentence(find(/Thym, romarin/), /J’y puise/),
       sentence(find(/frère Imbert/), /La Magistrale/),
       sentence(find(/Papalines/), /Origan du Comtat/),
       sentence(find(/sérigraphiée/), /sérigraphiée/),
@@ -49,7 +49,8 @@ const RAYONS = [
   },
   {
     gamme: 'cremes-eaux-de-vie',
-    titre: 'Les crèmes et les eaux-de-vie',
+    // traits d'union insécables (U+2011) : « eaux-de-vie » ne se coupe pas en fin de ligne
+    titre: 'Les crèmes et les eaux‑de‑vie',
     texte: [sentence(find(/l’Ardéchoise/i), /l’Ardéchoise/i).replace(/^.*?(j’élabore)/, 'J’élabore'), 'Et des eaux-de-vie de fruits (poire, framboise…), comme Flirt®, eau-de-vie de poires Williams.'],
     pieces: ['ardechoise-chataigne', 'creme-banane', 'creme-cacao'],
   },
@@ -101,7 +102,7 @@ function render() {
       <div class="wrap">
         <div class="sp-rayon__head">
           <div class="sp-rayon__copy" data-reveal>
-            <p class="kicker">${esc(g?.nom || r.titre)} · ${plural(items.length, 'produit')}</p>
+            <p class="kicker">${plural(items.length, 'produit')}</p>
             <h2 class="h-section" id="t-${r.gamme}">${esc(r.titre)}</h2>
             <div class="prose">${r.texte.filter(Boolean).map((t) => `<p>${esc(t)}</p>`).join('')}</div>
             ${noteRevue('D’après la page Histoire du site de la distillerie.', { tag: 'p', cls: 'bsource' })}
