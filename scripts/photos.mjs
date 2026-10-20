@@ -9,7 +9,8 @@
 //   2. bouteille redressée si la photo penche un peu, puis recadrée ;
 //   3. silhouette mesurée ligne par ligne (demi-largeur autour de l'axe central), lissée, normalisée ;
 //   4. écrit dans public/bouteilles/<slug>/ : face.webp (texture RGBA, 1024 px de haut),
-//      dos.webp (si photo de dos), profil.json (silhouette), vignette.webp (cartes de la boutique).
+//      dos.webp (si photo de dos), profil.json (silhouette), vignette.webp (cartes de la boutique),
+//      detour.webp (la face détourée au vrai bord de la photo, pour le bandeau des opérations).
 // Les photos de lieux photos/lieux/<nom>.jpg sont redimensionnées dans public/lieux/.
 // Les archives (public/archives/<id>.webp, versionnées, jusqu'à 1 400 px de large) reçoivent des
 // tailles réduites pour leur srcset (src/app/pieces.js) : public/archives-tailles/<id>-400.webp et
@@ -25,7 +26,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, wri
 import { basename, dirname, extname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const VERSION = 15; // à incrémenter quand le traitement change (invalide le cache)
+const VERSION = 17; // à incrémenter quand le traitement change (invalide le cache)
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
 const opt = (name, fallback) => {
@@ -419,6 +420,9 @@ function buildTexture(a) {
   const R = Math.ceil(Math.max(...hw)) + 1;
   const W = R * 2;
   const out = Buffer.alloc(W * H * 4);
+  // Même image, détourée au vrai bord de la photo (sans la symétrie de la silhouette 3D) : pour les
+  // usages à plat (vignettes, bandeau), où un côté élargi se verrait comme une bosse.
+  const out2d = Buffer.alloc(W * H * 4);
   const fringe = Math.max(2, Math.round(R * 0.03));
   for (let k = 0; k < H; k++) {
     const y = top + k;
@@ -440,20 +444,34 @@ function buildTexture(a) {
         break;
       }
     }
+    // Vrais bords de l'objet sur la ligne : la silhouette est symétrique, la photo pas toujours
+    // (capsule, col). Entre la silhouette et le vrai bord, la couleur est celle du bord, jamais
+    // celle du fond retiré (noir transparent, qui ressortait en liseré sombre).
+    let vl = Math.round(l);
+    let vr = Math.round(r) - 1;
+    while (vl < cx && !(vl >= 0 && vl < raw.w && mask[y * raw.w + vl])) vl++;
+    while (vr > cx && !(vr >= 0 && vr < raw.w && mask[y * raw.w + vr])) vr--;
     for (let i = 0; i < W; i++) {
       const sx = cx - R + i + 0.5; // centre du pixel dans l'image source
       const inside = half > 0 && sx >= l && sx <= r;
       const cov = half <= 0 ? 0 : Math.min(1, Math.max(0, Math.min(sx - l + 0.5, r - sx + 0.5)));
-      const px = Math.min(raw.w - 1, Math.max(0, Math.round(Math.min(Math.max(sx, l + 1), r - 1))));
+      const px = Math.min(raw.w - 1, Math.max(0, vl, Math.min(vr, Math.round(Math.min(Math.max(sx, l + 1), r - 1)))));
       const si = (y * raw.w + px) * 4;
       const o = (k * W + i) * 4;
       out[o] = raw.data[si];
       out[o + 1] = raw.data[si + 1];
       out[o + 2] = raw.data[si + 2];
       out[o + 3] = inside ? Math.round(cov * 255) : 0;
+      const l2 = Math.max(l, vl);
+      const r2 = Math.min(r, vr + 1);
+      const cov2 = half <= 0 ? 0 : Math.min(1, Math.max(0, Math.min(sx - l2 + 0.5, r2 - sx + 0.5)));
+      out2d[o] = out[o];
+      out2d[o + 1] = out[o + 1];
+      out2d[o + 2] = out[o + 2];
+      out2d[o + 3] = inside && sx >= l2 && sx <= r2 ? Math.round(cov2 * 255) : 0;
     }
   }
-  return { buffer: out, W, H, R };
+  return { buffer: out, buffer2d: out2d, W, H, R };
 }
 
 function profilePoints(hw, R, samples = 180) {
@@ -823,6 +841,7 @@ async function processBottle(sharp, slug, front, back, dest, label = null, plat 
   mkdirSync(dest, { recursive: true });
   const rgba = sharp(tex.buffer, { raw: { width: tex.W, height: tex.H, channels: 4 } });
   await rgba.clone().resize(width, TEX_H, { kernel: 'lanczos3' }).webp({ quality: 88, alphaQuality: 90, effort: 5 }).toFile(join(dest, 'face.webp'));
+  const rgba2d = sharp(tex.buffer2d, { raw: { width: tex.W, height: tex.H, channels: 4 } });
   // Flacon non tourné (carafe et étui, coffret) : la photo elle-même, détourée, sans symétrie.
   let photo = null;
   if (plat) {
@@ -831,12 +850,15 @@ async function processBottle(sharp, slug, front, back, dest, label = null, plat 
     await sharp(trimmed.data).resize({ height: ph, kernel: 'lanczos3' }).webp({ quality: 88, alphaQuality: 90, effort: 5 }).toFile(join(dest, 'photo.webp'));
     await sharp(trimmed.data).resize({ height: THUMB_H, kernel: 'lanczos3' }).webp({ quality: 84, alphaQuality: 85, effort: 5 }).toFile(join(dest, 'vignette.webp'));
     photo = { fichier: 'photo.webp', ratio: +(trimmed.info.width / trimmed.info.height).toFixed(5) };
-  } else
-    await rgba
+  } else {
+    await rgba2d
       .clone()
       .resize(Math.round((tex.W * THUMB_H) / tex.H), THUMB_H, { kernel: 'lanczos3' })
       .webp({ quality: 84, alphaQuality: 85, effort: 5 })
       .toFile(join(dest, 'vignette.webp'));
+    // Photo détourée en grand (bandeau des opérations) : la face, au vrai bord de la photo.
+    await rgba2d.clone().resize(width, TEX_H, { kernel: 'lanczos3' }).webp({ quality: 88, alphaQuality: 90, effort: 5 }).toFile(join(dest, 'detour.webp'));
+  }
   const prof = profilePoints(a.hw, tex.R);
   // Couleur « tout autour » : la bouteille est un solide de révolution ; sur ses côtés et son dos
   // (que la photo ne montre pas), on reprend, ligne par ligne, la couleur médiane du centre de la
