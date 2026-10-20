@@ -6,14 +6,14 @@
 // - La 3D (three.js, plateau, garnitures) n'est chargée que quand le cadre est à l'écran, au premier
 //   moment libre du navigateur ; elle remplace l'affiche en fondu une fois sa première image dessinée.
 import { clamp, hasWebGL, idle, sobre, whenVisible } from './dom.js';
-import { faceURL } from './thumbs.js';
+import { detourURL } from './thumbs.js';
 import { boutonPause, pauseVoulue } from './pause.js';
 
 const TEST = typeof location !== 'undefined' && new URLSearchParams(location.search).has('test');
 
 // Affiche (utilisée si le HTML de la page ne la porte pas déjà).
 export const afficheHTML = (slugs) =>
-  `<div class="poster poster--${slugs.length}">${slugs.map((s) => `<span class="poster__b"><img src="${faceURL(s)}" alt="" width="287" height="1024" fetchpriority="high" decoding="async" /></span>`).join('')}</div>`;
+  `<div class="poster poster--${slugs.length}">${slugs.map((s) => `<span class="poster__b"><img src="${detourURL(s)}" alt="" width="287" height="1024" fetchpriority="high" decoding="async" /></span>`).join('')}</div>`;
 
 // hero : la section ; stage : le cadre des bouteilles ; canvas : le canvas de la 3D ;
 // scene : 'duo' | 'pac' | 'funblue' | 'provence' (src/three/hero.js) ; products : les produits posés.

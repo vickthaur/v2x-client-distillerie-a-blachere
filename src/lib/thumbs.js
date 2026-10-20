@@ -27,6 +27,9 @@ const key = renderKey;
 // Chemins écrits par scripts/photos.mjs pour chaque produit.
 export const vignetteURL = (slug) => `/bouteilles/${slug}/vignette.webp`;
 export const faceURL = (slug) => `/bouteilles/${slug}/face.webp`;
+// la vraie photo, redressée et détourée à son bord (affiches, grande photo d'une fiche) : sans les
+// bosses de la silhouette symétrique de la 3D
+export const detourURL = (slug) => `/bouteilles/${slug}/detour.webp`;
 
 // WebGL n'est testé qu'au premier rendu à faire (pas à chaque chargement de page).
 let gl = null;
@@ -49,7 +52,7 @@ export function renderHTML(slugs, { eager = false, bg = '', fmt = 'portrait', al
   const list = slugs.filter((s) => bySlug[s]);
   // Une bouteille sur fond neutre : la photo détourée (photo de face pour l'affiche d'une fiche).
   if (list.length === 1 && !bg && fmt === 'portrait')
-    return eager ? imgHTML(faceURL(list[0]), { alt, w: 287, h: 1024, eager, cls: 'thumb thumb--photo' }) : imgHTML(vignetteURL(list[0]), { alt, w: 135, h: 480, cls: 'thumb thumb--photo' });
+    return eager ? imgHTML(detourURL(list[0]), { alt, w: 287, h: 1024, eager, cls: 'thumb thumb--photo' }) : imgHTML(vignetteURL(list[0]), { alt, w: 135, h: 480, cls: 'thumb thumb--photo' });
   const k = key(list, bg, fmt);
   const pre = prerendu(k);
   if (pre) return imgHTML(pre.src, { alt, w: pre.w, h: pre.h, eager, srcset: pre.srcset });
