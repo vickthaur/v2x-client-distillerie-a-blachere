@@ -1,5 +1,5 @@
 /* Opérations du moment (Octobre Rose). Bandeau : rose poudré, « 1 € » en très grand dans le rose
-   de l'opération, la vraie bouteille (photo détourée) seule et centrée à côté du texte. */
+   de l'opération, grand ruban derrière la vraie bouteille ; les brins se tracent à l'apparition. */
 .op-band {
   position: relative;
   isolation: isolate;
@@ -42,18 +42,23 @@
 .op-band__fine { max-width: 62ch; margin-top: 4px; font-size: 0.82rem; line-height: 1.5; color: var(--ink-3); }
 
 .op-band__visuel { grid-area: visuel; position: relative; justify-self: center; width: min(100%, 500px); aspect-ratio: 1 / 1; }
-.op-band__halo { position: absolute; inset: 6% 9% 10% 9%; border-radius: 50%; background: radial-gradient(closest-side, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0)); }
-.op-band__visuel::after { content: ''; position: absolute; left: 50%; bottom: 1.5%; width: 30%; height: 5%; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(closest-side, rgba(110, 10, 64, 0.32), rgba(110, 10, 64, 0)); z-index: 0; }
+.op-band__halo { position: absolute; inset: 6% 4% 10% 14%; border-radius: 50%; background: radial-gradient(closest-side, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0)); }
+.op-band__visuel::after { content: ''; position: absolute; left: 67%; bottom: 1.5%; width: 30%; height: 5%; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(closest-side, rgba(110, 10, 64, 0.32), rgba(110, 10, 64, 0)); z-index: 0; }
+.op-band__ruban { position: absolute; left: 38%; top: 0; height: 100%; width: auto; transform: translateX(-50%) rotate(-5deg); transform-origin: 50% 60%; overflow: visible; }
 .op-band__bouteille {
-  position: absolute; z-index: 1; left: 50%; bottom: 3%; height: 84%; width: auto;
-  transform: translateX(-50%);
+  position: absolute; z-index: 1; left: 67%; bottom: 3%; height: 80%; width: auto;
+  transform: translateX(-50%) rotate(3deg);
   filter: drop-shadow(0 26px 22px rgba(110, 10, 64, 0.28)) drop-shadow(0 4px 6px rgba(80, 10, 50, 0.22));
 }
 
-/* Apparition : le montant, puis la bouteille monte (rien si mouvement réduit). */
+/* Apparition : les deux brins se tracent, puis la bouteille monte (rien si mouvement réduit). */
+.op-band__brin { stroke-dasharray: 1; stroke-dashoffset: 0; }
 @media (prefers-reduced-motion: no-preference) {
-  .op-band[data-reveal]:not(.is-in) .op-band__bouteille { opacity: 0; transform: translate(-50%, 28px); }
+  .op-band[data-reveal]:not(.is-in) .op-band__brin { stroke-dashoffset: 1; }
+  .op-band[data-reveal]:not(.is-in) .op-band__bouteille { opacity: 0; transform: translate(-50%, 28px) rotate(3deg); }
   .op-band[data-reveal]:not(.is-in) .op-band__montant { opacity: 0; transform: translateY(18px); }
+  .op-band__brin--dos { transition: stroke-dashoffset 1.1s var(--ease) 0.1s; }
+  .op-band__brin--face { transition: stroke-dashoffset 1.2s var(--ease) 0.55s; }
   .op-band__bouteille { transition: opacity 0.9s var(--ease) 0.7s, transform 1s var(--ease) 0.7s; }
   .op-band__montant { transition: opacity 0.8s var(--ease) 0.15s, transform 0.9s var(--ease) 0.15s; }
 }
