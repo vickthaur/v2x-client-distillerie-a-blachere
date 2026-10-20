@@ -86,6 +86,13 @@ Octobre Rose utilise la largeur 74 % (graisse 820).
    spiritueux gardent leur photo.
 4. **Flacons à plat** (`photos/produits/plats.json` : carafes Elixir millésimées et Camarguaise Luxe
    avec leur étui) : montrés en photo, sans rotation.
+5. **Découpe propre** : un morceau détaché tout entier sous le pied (reflet sur le sol, comme sur la
+   photo de l'Apéritif à l'olive) est écarté ; le liseré clair laissé par le fond blanc sur un ou deux
+   pixels du bord reprend la couleur de la bouteille ; entre la silhouette symétrique de la 3D et le
+   vrai bord de la photo, la texture prend la couleur du bord (plus de liseré noir). Pour tout ce qui
+   s'affiche à plat (vignettes, affiches des campagnes, grande photo des fiches, bandeau des
+   opérations), `vignette.webp` et `detour.webp` sont la vraie photo redressée, détourée à son propre
+   bord, sans la symétrie de la 3D.
 
 Studio (`src/three/stage.js`, `studio.js`) : environnement PMREM fait de panneaux lumineux (gélatines
 colorées sur les campagnes), matières PBR (vernis, rugosité), lumières principale, contre-jour et
@@ -100,7 +107,8 @@ toutes les tailles d'écran (vérifié par la recette, de 390 à 3440 px de larg
 
 **L'affiche d'abord, la 3D en plus** (`src/lib/campagne.js`) : les campagnes (accueil, PAC Citron,
 Fun Blue, Couleur Provence) portent dans leur HTML une affiche faite des vraies photos détourées
-(`/bouteilles/<slug>/face.webp`, la texture de face de la 3D : rien de plus à télécharger), posées
+(`/bouteilles/<slug>/detour.webp`, la vraie photo détourée, sans les bosses de la silhouette
+symétrique de la texture 3D), posées
 là où la 3D placera les bouteilles. Three.js n'est chargé que quand le cadre est à l'écran, au
 premier moment libre du navigateur, puis la 3D remplace l'affiche en fondu une fois sa première image
 dessinée. **Jamais de 3D** en mouvement réduit (`prefers-reduced-motion`), en économie de données

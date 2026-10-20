@@ -10,7 +10,7 @@
 //   3. silhouette mesurée ligne par ligne (demi-largeur autour de l'axe central), lissée, normalisée ;
 //   4. écrit dans public/bouteilles/<slug>/ : face.webp (texture RGBA, 1024 px de haut),
 //      dos.webp (si photo de dos), profil.json (silhouette), vignette.webp (cartes de la boutique),
-//      detour.webp (la face détourée au vrai bord de la photo, pour le bandeau des opérations).
+//      detour.webp (la vraie photo redressée et détourée à son bord, pour les usages à plat).
 // Les photos de lieux photos/lieux/<nom>.jpg sont redimensionnées dans public/lieux/.
 // Les archives (public/archives/<id>.webp, versionnées, jusqu'à 1 400 px de large) reçoivent des
 // tailles réduites pour leur srcset (src/app/pieces.js) : public/archives-tailles/<id>-400.webp et
@@ -26,7 +26,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, wri
 import { basename, dirname, extname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const VERSION = 17; // à incrémenter quand le traitement change (invalide le cache)
+const VERSION = 20; // à incrémenter quand le traitement change (invalide le cache)
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
 const opt = (name, fallback) => {
@@ -197,6 +197,8 @@ function bottleComponents(mask, w, h) {
     let tail = 0;
     let x0 = w;
     let x1 = 0;
+    let y0 = h;
+    let y1 = 0;
     queue[tail++] = s;
     label[s] = id;
     while (head < tail) {
@@ -205,19 +207,23 @@ function bottleComponents(mask, w, h) {
       const y = (p - x) / w;
       if (x < x0) x0 = x;
       if (x > x1) x1 = x;
+      if (y < y0) y0 = y;
+      if (y > y1) y1 = y;
       if (x > 0 && mask[p - 1] && !label[p - 1]) ((label[p - 1] = id), (queue[tail++] = p - 1));
       if (x < w - 1 && mask[p + 1] && !label[p + 1]) ((label[p + 1] = id), (queue[tail++] = p + 1));
       if (y > 0 && mask[p - w] && !label[p - w]) ((label[p - w] = id), (queue[tail++] = p - w));
       if (y < h - 1 && mask[p + w] && !label[p + w]) ((label[p + w] = id), (queue[tail++] = p + w));
     }
-    comps.push({ id, size: tail, x0, x1 });
+    comps.push({ id, size: tail, x0, x1, y0, y1 });
   }
   if (!comps.length) return { mask: new Uint8Array(n), size: 0 };
   const main = comps.reduce((a, b) => (b.size > a.size ? b : a));
   const span = main.x1 - main.x0;
   const c0 = main.x0 + span * 0.25;
   const c1 = main.x1 - span * 0.25;
-  const keep = new Set(comps.filter((c) => c === main || (c.size > main.size * 0.0015 && c.x1 >= c0 && c.x0 <= c1)).map((c) => c.id));
+  // un morceau tout entier sous le pied de la bouteille est son reflet sur le sol (ou son ombre) :
+  // écarté (la photo de l'Apéritif à l'olive le montre)
+  const keep = new Set(comps.filter((c) => c === main || (c.size > main.size * 0.0015 && c.x1 >= c0 && c.x0 <= c1 && c.y0 < main.y1 - 2)).map((c) => c.id));
   const out = new Uint8Array(n);
   let size = 0;
   for (let p = 0; p < n; p++)
@@ -379,6 +385,63 @@ async function loadRaw(sharp, file, rotateDeg = 0, background = { r: 255, g: 255
   return { data, w: info.width, h: info.height };
 }
 
+// Bords « blanchis » : une photo détourée sur fond blanc garde souvent, sur un ou deux pixels, un
+// reste de ce fond (liseré clair autour d'un verre sombre). Un pixel du bord nettement plus clair que
+// la bouteille juste à l'intérieur reprend la couleur de cet intérieur ; l'alpha ne change pas. Le
+// verre clair, les capsules et manchons blancs (intérieur clair lui aussi) ne bougent pas.
+function nettoyerBords(raw, mask) {
+  const { w, h, data } = raw;
+  const n = w * h;
+  // distance au bord, en pixels (0 hors masque), jusqu'à 4
+  const dist = new Uint8Array(n);
+  for (let p = 0; p < n; p++) dist[p] = mask[p] ? 4 : 0;
+  for (let d = 1; d <= 3; d++)
+    for (let y = 0; y < h; y++)
+      for (let x = 0; x < w; x++) {
+        const p = y * w + x;
+        if (dist[p] <= d) continue;
+        if ((x > 0 && dist[p - 1] < d) || (x < w - 1 && dist[p + 1] < d) || (y > 0 && dist[p - w] < d) || (y < h - 1 && dist[p + w] < d)) dist[p] = d;
+      }
+  const lum = (p) => data[p * 4] * 0.299 + data[p * 4 + 1] * 0.587 + data[p * 4 + 2] * 0.114;
+  const src = Buffer.from(data);
+  let fixes = 0;
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      const p = y * w + x;
+      // bord : les deux premiers pixels de l'objet et l'anticrénelage juste dehors
+      if (dist[p] > 2 || (dist[p] === 0 && !data[p * 4 + 3])) continue;
+      let r = 0;
+      let g = 0;
+      let b = 0;
+      let k = 0;
+      for (let dy = -4; dy <= 4; dy++)
+        for (let dx = -4; dx <= 4; dx++) {
+          const xx = x + dx;
+          const yy = y + dy;
+          if (xx < 0 || yy < 0 || xx >= w || yy >= h) continue;
+          const q = yy * w + xx;
+          if (dist[q] < 4) continue;
+          r += src[q * 4];
+          g += src[q * 4 + 1];
+          b += src[q * 4 + 2];
+          k++;
+        }
+      if (k < 3) continue;
+      r /= k;
+      g /= k;
+      b /= k;
+      const li = r * 0.299 + g * 0.587 + b * 0.114;
+      const lp = lum(p);
+      if (lp > 150 && lp - li > 45) {
+        data[p * 4] = Math.round(r);
+        data[p * 4 + 1] = Math.round(g);
+        data[p * 4 + 2] = Math.round(b);
+        fixes++;
+      }
+    }
+  return fixes;
+}
+
 async function analyse(sharp, file, opts = {}) {
   let tilt = 0;
   let raw;
@@ -409,7 +472,8 @@ async function analyse(sharp, file, opts = {}) {
     tilt += t;
   }
   const hw = halfWidths(ext.left, ext.right, top, bottom, axis.cx, opts.cote);
-  return { raw, mask: m.mask, mode: m.mode, bg: m.bg, top, bottom, cx: axis.cx, hw, tilt };
+  const bords = nettoyerBords(raw, m.mask);
+  return { raw, mask: m.mask, mode: m.mode, bg: m.bg, top, bottom, cx: axis.cx, hw, tilt, bords };
 }
 
 // Texture RGBA centrée sur l'axe : alpha = silhouette symétrique (sans les franges de fond), couleurs
@@ -420,9 +484,6 @@ function buildTexture(a) {
   const R = Math.ceil(Math.max(...hw)) + 1;
   const W = R * 2;
   const out = Buffer.alloc(W * H * 4);
-  // Même image, détourée au vrai bord de la photo (sans la symétrie de la silhouette 3D) : pour les
-  // usages à plat (vignettes, bandeau), où un côté élargi se verrait comme une bosse.
-  const out2d = Buffer.alloc(W * H * 4);
   const fringe = Math.max(2, Math.round(R * 0.03));
   for (let k = 0; k < H; k++) {
     const y = top + k;
@@ -462,16 +523,54 @@ function buildTexture(a) {
       out[o + 1] = raw.data[si + 1];
       out[o + 2] = raw.data[si + 2];
       out[o + 3] = inside ? Math.round(cov * 255) : 0;
-      const l2 = Math.max(l, vl);
-      const r2 = Math.min(r, vr + 1);
-      const cov2 = half <= 0 ? 0 : Math.min(1, Math.max(0, Math.min(sx - l2 + 0.5, r2 - sx + 0.5)));
-      out2d[o] = out[o];
-      out2d[o + 1] = out[o + 1];
-      out2d[o + 2] = out[o + 2];
-      out2d[o + 3] = inside && sx >= l2 && sx <= r2 ? Math.round(cov2 * 255) : 0;
     }
   }
-  return { buffer: out, buffer2d: out2d, W, H, R };
+  return { buffer: out, W, H, R };
+}
+
+// Photo à plat (vignettes des cartes, bandeau des opérations, affiches des campagnes) : la vraie
+// photo, redressée comme pour la 3D, détourée à son propre bord. Ni la silhouette symétrique de la
+// 3D (bosses du côté étroit, épaules lissées), ni les fragments détachés de la photo.
+function buildPhoto2D(a) {
+  const { raw, mask, mode, top, bottom } = a;
+  const { w, h } = raw;
+  // masque élargi de 2 px : l'anticrénelage du bord reste, les fragments détachés partent
+  const keep = new Uint8Array(w * h);
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      if (!mask[y * w + x]) continue;
+      for (let dy = -2; dy <= 2; dy++)
+        for (let dx = -2; dx <= 2; dx++) {
+          const yy = y + dy;
+          const xx = x + dx;
+          if (yy >= 0 && yy < h && xx >= 0 && xx < w) keep[yy * w + xx] = 1;
+        }
+    }
+  let x0 = w;
+  let x1 = -1;
+  for (let y = top; y <= bottom; y++)
+    for (let x = 0; x < w; x++)
+      if (mask[y * w + x]) {
+        if (x < x0) x0 = x;
+        if (x > x1) x1 = x;
+      }
+  x0 = Math.max(0, x0 - 2);
+  x1 = Math.min(w - 1, x1 + 2);
+  const y0 = Math.max(0, top - 1);
+  const y1 = Math.min(h - 1, bottom + 1);
+  const W = x1 - x0 + 1;
+  const H = y1 - y0 + 1;
+  const out = Buffer.alloc(W * H * 4);
+  for (let y = 0; y < H; y++)
+    for (let x = 0; x < W; x++) {
+      const p = (y0 + y) * w + x0 + x;
+      const o = (y * W + x) * 4;
+      out[o] = raw.data[p * 4];
+      out[o + 1] = raw.data[p * 4 + 1];
+      out[o + 2] = raw.data[p * 4 + 2];
+      out[o + 3] = mode === 'fond retiré' ? (mask[p] ? 255 : 0) : keep[p] ? raw.data[p * 4 + 3] : 0;
+    }
+  return { buffer: out, W, H };
 }
 
 function profilePoints(hw, R, samples = 180) {
@@ -841,7 +940,8 @@ async function processBottle(sharp, slug, front, back, dest, label = null, plat 
   mkdirSync(dest, { recursive: true });
   const rgba = sharp(tex.buffer, { raw: { width: tex.W, height: tex.H, channels: 4 } });
   await rgba.clone().resize(width, TEX_H, { kernel: 'lanczos3' }).webp({ quality: 88, alphaQuality: 90, effort: 5 }).toFile(join(dest, 'face.webp'));
-  const rgba2d = sharp(tex.buffer2d, { raw: { width: tex.W, height: tex.H, channels: 4 } });
+  const p2d = buildPhoto2D(a);
+  const rgba2d = sharp(p2d.buffer, { raw: { width: p2d.W, height: p2d.H, channels: 4 } });
   // Flacon non tourné (carafe et étui, coffret) : la photo elle-même, détourée, sans symétrie.
   let photo = null;
   if (plat) {
@@ -853,11 +953,11 @@ async function processBottle(sharp, slug, front, back, dest, label = null, plat 
   } else {
     await rgba2d
       .clone()
-      .resize(Math.round((tex.W * THUMB_H) / tex.H), THUMB_H, { kernel: 'lanczos3' })
+      .resize(Math.round((p2d.W * THUMB_H) / p2d.H), THUMB_H, { kernel: 'lanczos3' })
       .webp({ quality: 84, alphaQuality: 85, effort: 5 })
       .toFile(join(dest, 'vignette.webp'));
-    // Photo détourée en grand (bandeau des opérations) : la face, au vrai bord de la photo.
-    await rgba2d.clone().resize(width, TEX_H, { kernel: 'lanczos3' }).webp({ quality: 88, alphaQuality: 90, effort: 5 }).toFile(join(dest, 'detour.webp'));
+    // La même en grand (bandeau des opérations, affiches des campagnes avant la 3D).
+    await rgba2d.clone().resize(Math.round((p2d.W * TEX_H) / p2d.H), TEX_H, { kernel: 'lanczos3' }).webp({ quality: 88, alphaQuality: 90, effort: 5 }).toFile(join(dest, 'detour.webp'));
   }
   const prof = profilePoints(a.hw, tex.R);
   // Couleur « tout autour » : la bouteille est un solide de révolution ; sur ses côtés et son dos
