@@ -26,7 +26,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, wri
 import { basename, dirname, extname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const VERSION = 20; // à incrémenter quand le traitement change (invalide le cache)
+const VERSION = 21; // à incrémenter quand le traitement change (invalide le cache)
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
 const opt = (name, fallback) => {
@@ -949,6 +949,7 @@ async function processBottle(sharp, slug, front, back, dest, label = null, plat 
     const ph = Math.min(TEX_H, trimmed.info.height);
     await sharp(trimmed.data).resize({ height: ph, kernel: 'lanczos3' }).webp({ quality: 88, alphaQuality: 90, effort: 5 }).toFile(join(dest, 'photo.webp'));
     await sharp(trimmed.data).resize({ height: THUMB_H, kernel: 'lanczos3' }).webp({ quality: 84, alphaQuality: 85, effort: 5 }).toFile(join(dest, 'vignette.webp'));
+    await sharp(trimmed.data).resize({ height: ph, kernel: 'lanczos3' }).webp({ quality: 88, alphaQuality: 90, effort: 5 }).toFile(join(dest, 'detour.webp'));
     photo = { fichier: 'photo.webp', ratio: +(trimmed.info.width / trimmed.info.height).toFixed(5) };
   } else {
     await rgba2d
